@@ -15,7 +15,7 @@
 import os
 import sys
 
-SCIPION_HOME = os.environ.get("SCIPION_HOME")
+SCIPION_HOME = os.environ.get("SCIPION_HOME", "~/git/scipion")
 sys.path.insert(0, os.path.join(SCIPION_HOME, 'software/lib/python2.7/lib-dynload/'))
 sys.path.insert(0, os.path.join(SCIPION_HOME, 'software/em/xmipp/bindings/python/'))
 sys.path.insert(0, os.path.join(SCIPION_HOME, 'software/em/xmipp/lib/'))

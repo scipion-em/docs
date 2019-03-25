@@ -31,6 +31,8 @@ system):
 Git will create a ``scipion`` directory under your current path; you do
 not need to create it manually.
 
+.. _install-deps:
+
 Step 2: Dependencies
 ====================
 
@@ -97,7 +99,7 @@ Step 3: Configure and Install
 Configure
 ---------
 
-After installing the `dependencies <#step2-dependencies>`__, you can
+After installing the :ref:`dependencies<install-deps>`, you can
 proceed to generate configuration files. If you had a previous Scipion
 installation, it is a good idea to make a copy of your current config
 files ``~/.config/scipion/scipion.conf`` and
@@ -128,14 +130,14 @@ One known change for Ubuntu 18 are the MPI paths in
    MPI_LIBDIR = /usr/lib/x86_64-linux-gnu/openmpi/lib
    MPI_INCLUDE = /usr/lib/x86_64-linux-gnu/openmpi/include/
 
-Read more about `editing the configuration
-file <Scipion-Configuration>`__.
+Read more about :doc:`editing the configuration
+file <scipion-configuration>`.
 
 The file ``config/hosts.conf`` contains some properties of the execution
 machine. This configuration file is particularly important for clusters
 that use a Queue System. If you are installing Scipion on a cluster, you
-probably will want to check `how to configure an execution
-host <Host-Configuration>`__.
+probably will want to check :doc:`how to configure an execution
+host <host-configuration>`.
 
 Install
 -------
@@ -196,18 +198,18 @@ terminal:
 
 * Open Plugin Manager (it will take a minute to load)
 
-.. image:: images/guis/scipion_config_menu.png
+.. image:: /docs/images/guis/scipion_config_menu.png
    :alt: Scipion project manager
 
 * Select Xmipp to install it by clicking on the empty checkbox on the left.
 
-.. image:: images/guis/plugin_manager_install_xmipp.png
+.. image:: /docs/images/guis/plugin_manager_install_xmipp.png
    :alt: plugin manager
 
 * Add the number of processors you'd like to use (the more, the merrier!).
   Then click on the install button on the operations tab
 
-.. image:: images/guis/plugin_manager_install_xmipp_install_button.png
+.. image:: /docs/images/guis/plugin_manager_install_xmipp_install_button.png
    :alt:  plugin manager install xmipp
 
 * Now we can check the progress on the Output log tab (or go make some coffee, Xmipp
@@ -215,17 +217,17 @@ terminal:
   You might have to refresh the logs by clicking on the refresh symbol on the right.
   Please note that messages might not appear in order if we are using more than 1 processor.
 
-.. image:: images/guis/plugin_manager_xmipp_install_logs.png
+.. image:: /docs/images/guis/plugin_manager_xmipp_install_logs.png
    :alt: install xmipp logs
 
 * When the operation gets a green check, it's done!
 
-.. image:: images/guis/plugin_manager_xmipp_done.png
+.. image:: /docs/images/guis/plugin_manager_xmipp_done.png
    :alt: install xmipp logs
 
 **Note**: if xmipp installation fails, you might have to uninstall it with the plugin manager:
 
-.. image:: images/guis/plugin_manager_xmipp_uninstall.png
+.. image:: /docs/images/guis/plugin_manager_xmipp_uninstall.png
    :alt: uninstall xmipp
 
 And manually remove leftover elements:

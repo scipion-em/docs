@@ -1,9 +1,5 @@
 .. _user-documentation:
 
-==================
-User Documentation
-==================
-
 Getting Started
 ===============
 
