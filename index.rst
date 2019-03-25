@@ -18,9 +18,11 @@ later on.
 
 .. toctree::
    :maxdepth: 1
-   :caption: Getting started
+   :caption: Set up
 
-   docs/install-from-sources
+   docs/scipion-modes/install-from-sources
+   docs/scipion-modes/scipion-configuration
+   docs/scipion-modes/host-configuration
 
 .. _user-docs:
 
@@ -35,9 +37,11 @@ later on.
 
 .. toctree::
    :maxdepth: 1
+   :glob:
    :caption: Developer documentation
 
-   docs/install-from-sources
+   docs/scipion-modes/install-from-sources
+   docs/scipion-modes/install-plugins-command-line
    docs/developer/*
 
 .. _api-docs:
@@ -55,7 +59,7 @@ later on.
    :maxdepth: 1
    :caption: Get in touch
 
-   docs/contact-us
+   docs/misc/contact-us
 
 
 How to Contribute
