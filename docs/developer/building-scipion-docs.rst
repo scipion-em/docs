@@ -55,10 +55,12 @@ Scipion's environment variables
 
 4. Set environment variables to emulate Scipion's environment. We have to do this because in order to build the api
    docs, Sphinx actually imports the modules. Without these variables, many modules will fail to import. We need:
-   ``SCIPION_HOME``, ``LD_LIBRARY_PATH``, ``SCIPION_SHORT_VERSION``. To check the values of these variables in our
-   Scipion installation, run this command:
+   ``SCIPION_HOME``, ``LD_LIBRARY_PATH``, ``SCIPION_SHORT_VERSION``. To export these variables, we can use the following
+   command:
 
-::
+.. code-block:: bash
 
-    scipion printenv
+    (sphinx-env) $ $(scipion printenv | grep SCIPION_HOME)
+    (sphinx-env) $ $(scipion printenv | grep LD_LIBRARY_PATH)
+    (sphinx-env) $ $(scipion printenv | grep SCIPION_SHORT_VERSION)
 
