@@ -35,7 +35,18 @@ Sphinx virtualenv
 
     $ git clone git@github.com:scipion-em/docs.git scipion-docs
 
-2. Create a virtual environment in the directory of your choice (better not inside the repo dir) and activate it.
+2. Modify the ``BUILDDIR`` in the ``Makefile`` (where we will store htmls locally, only for testing purposes).
+
+::
+
+    # You can set these variables from the command line.
+    SPHINXOPTS    =
+    SPHINXBUILD   = sphinx-build
+    SOURCEDIR     = .
+    BUILDDIR      = /home/yaiza/git/scipion_gh_pages  ##### modify this
+
+
+3. Create a virtual environment in the directory of your choice (better not inside the repo dir) and activate it.
 
 .. code-block:: bash
 
@@ -43,7 +54,7 @@ Sphinx virtualenv
     $ source sphinx-env/bin/activate
     (sphinx-env) $
 
-3. Go to the repo dir (with your virtual environment activated) and install the pip requirements.
+4. Go to the repo dir (with your virtual environment activated) and install the pip requirements.
 
 .. code-block:: bash
 
@@ -53,14 +64,17 @@ Sphinx virtualenv
 Scipion's environment variables
 -------------------------------
 
-4. Set environment variables to emulate Scipion's environment. We have to do this because in order to build the api
-   docs, Sphinx actually imports the modules. Without these variables, many modules will fail to import. We need:
-   ``SCIPION_HOME``, ``LD_LIBRARY_PATH``, ``SCIPION_SHORT_VERSION``. To export these variables, we can use the following
-   command:
+You can skip this step if you plan on setting up Pycharm to execute the commands. Keep reading to see examples of
+Pycharm run configurations. Set environment variables to emulate Scipion's environment. We have to do this because in order to build the api
+docs, Sphinx actually imports the modules. Without these variables, many modules will fail to import. We need:
+``SCIPION_HOME``, ``LD_LIBRARY_PATH``, ``SCIPION_SHORT_VERSION``. To export these variables, we can use the following
+command:
 
 .. code-block:: bash
 
     (sphinx-env) $ $(scipion printenv | grep SCIPION_HOME)
     (sphinx-env) $ $(scipion printenv | grep LD_LIBRARY_PATH)
     (sphinx-env) $ $(scipion printenv | grep SCIPION_SHORT_VERSION)
+
+
 
