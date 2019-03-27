@@ -49,13 +49,13 @@ Sphinx virtualenv
     (sphinx-env) $ cd scipion-docs
     (sphinx-env) $ pip install -r requirements.txt
 
-NOTE: we could skip the environment creation and install the requirements in Scipion's python. Then we would run the
-commands using ``scipion run ...``. However the installation of requirements will mess with the versions currently
+NOTE: we could skip the environment creation and install the requirements in Scipion's python. However the installation of requirements will mess with the versions currently
 available in Scipion's site-packages.
 
 Scipion's environment variables
 -------------------------------
 
+If you plan on using a PyCharm run configurations, you can skip this step.
 Set environment variables to emulate Scipion's environment. We have to do this because in order to build the api
 docs, Sphinx actually imports the modules. Without these variables, many modules will fail to import. We need:
 ``SCIPION_HOME``, ``LD_LIBRARY_PATH``, ``SCIPION_SHORT_VERSION``. To export these variables, copy the output of the
@@ -69,11 +69,11 @@ following commands in a terminal:
     export SCIPION_HOME="/home/yaiza/git/scipion"
     export SCIPION_SHORT_VERSION="v2.0"
 
-If you plan on using a PyCharm run configuration, keep these values handy to copy them as environment vars.
 
 Generate API docs
 -----------------
 
+To run this we need ``SCIPION_HOME`` in the environment.
 The api docs are contained in the folder ``api`` of the scipion docs repository. To update them, we need to run
 ``sphinx-apidoc``. Please note that this step is not necessary if you're just adding your own written ``.rst`` file.
 
@@ -128,6 +128,12 @@ After executing this we should be able see the docs with version support by open
 
 We can also trigger this command with the following run configuration in PyCharm:
 
+* **Script path**: ``/home/yaiza/git/scipion/scipion``
+* **Parameters**: ``run /home/yaiza/sphinx-env/bin/sphinx-versioning build -r release-2.0.0 /home/yaiza/git/scipion-docs /home/yaiza/git/scipion_gh_pages``
+* **Python interpreter**: The one from our ``sphinx-env``
+* **Working directory**: Our ``scipion-docs`` repo dir.
+
+
 .. image:: /docs/images/dev-tools/pycharm_sphinxversion_build.png
    :alt: PyCharm run config for sphinx-version build
 
@@ -139,7 +145,10 @@ Once we are happy with the build, we can push our docs. For this we must run thi
 
     (sphinx-env) $ sphinx-versioning push -r release-2.0.0 /home/yaiza/git/scipion-docs gh-pages .
 
-The PyCharm run configuration:
+The PyCharm run configuration is the same as before except for the parameters:
+
+* **Parameters** : ``run /home/yaiza/sphinx-env/bin/sphinx-versioning build -r release-2.0.0 /home/yaiza/git/scipion-docs /home/yaiza/git/scipion_gh_pages``
+
 .. image:: /docs/images/dev-tools/pycharm_sphinxversion_push.png
    :alt: PyCharm run config for sphinx-version push
 
