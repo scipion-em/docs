@@ -26,8 +26,6 @@ Set-up
 Sphinx virtualenv
 -----------------
 
-0. :doc:`Install Scipion </docs/scipion-modes/install-from-sources>`
-
 1. Clone the `Scipion docs repository <https://github.com/scipion-em/docs>`_. We'll clone to a folder
    called scipion-docs.
 
@@ -51,11 +49,14 @@ Sphinx virtualenv
     (sphinx-env) $ cd scipion-docs
     (sphinx-env) $ pip install -r requirements.txt
 
+NOTE: we could skip the environment creation and install the requirements in Scipion's python. Then we would run the
+commands using ``scipion run ...``. However the installation of requirements will mess with the versions currently
+available in Scipion's site-packages.
+
 Scipion's environment variables
 -------------------------------
 
-You can skip this step if you plan on setting up Pycharm to execute the commands. Keep reading to see examples of
-Pycharm run configurations. Set environment variables to emulate Scipion's environment. We have to do this because in order to build the api
+Set environment variables to emulate Scipion's environment. We have to do this because in order to build the api
 docs, Sphinx actually imports the modules. Without these variables, many modules will fail to import. We need:
 ``SCIPION_HOME``, ``LD_LIBRARY_PATH``, ``SCIPION_SHORT_VERSION``. To export these variables, copy the output of the
 following commands in a terminal:
@@ -63,14 +64,18 @@ following commands in a terminal:
 .. code-block:: bash
 
     (sphinx-env) $ scipion printenv | grep -E 'SCIPION_HOME|LD_LIBRARY_PATH|SCIPION_SHORT_VERSION'
-    >>>>>> COPY THIS OUTPUT IN TERMINAL
+    >>>>>>>>>>>>> Copy your output and run in terminal <<<<<<<<<<<<<
+    export LD_LIBRARY_PATH="/home/yaiza/git/scipion/software/lib:/usr/lib/openmpi/lib:/usr/local/cuda-8.0/lib64:/home/yaiza/git/scipion/software/em/xmipp/lib:/home/yaiza/git/scipion/software/lib:/usr/lib/openmpi/lib:/usr/local/cuda-8.0/lib64:/home/yaiza/git/scipion/software/em/xmipp/lib:/home/yaiza/git/scipion/software/lib:/usr/lib/openmpi/lib:/usr/local/cuda-8.0/lib64:/home/yaiza/git/scipion/software/em/xmipp/lib:/home/yaiza/git/scipion/software/lib:/usr/lib/openmpi/lib:/usr/local/cuda-8.0/lib64:/home/yaiza/git/scipion/software/em/xmipp/lib:"
+    export SCIPION_HOME="/home/yaiza/git/scipion"
+    export SCIPION_SHORT_VERSION="v2.0"
 
+If you plan on using a PyCharm run configuration, keep these values handy to copy them as environment vars.
 
 Generate API docs
 -----------------
 
 The api docs are contained in the folder ``api`` of the scipion docs repository. To update them, we need to run
-``sphinx-apidoc``.
+``sphinx-apidoc``. Please note that this step is not necessary if you're just adding your own written ``.rst`` file.
 
 We can set this up as a run configuration in PyCharm (Recommended):
 
@@ -94,8 +99,9 @@ Or alternatively, run this in the command line inside ``scipion-docs`` repo dir:
 Make html
 ---------
 
-This step is only used for testing purposes. Can be perfectly skipped. Only recommended to use if you need to test some
-local changes that you don't wish to commit just yet. To test if we can generate the html files, run this inside ``scipion-docs``.
+This step is only used for testing purposes. Can be perfectly skipped. It is recommended to do it if you need to test some
+local changes that you don't wish to commit just yet (which is good to avoid pushing tiny commits).
+To test if we can generate the html files, run this inside ``scipion-docs``.
 At the time of this writing, there are multiple errors and warnings. Sphinx will just generate whatever it can.
 It is a good idea to work on reducing these errors and warnings :)
 
