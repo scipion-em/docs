@@ -147,7 +147,7 @@ Once we are happy with the build, we can push our docs. For this we must run thi
 
 The PyCharm run configuration is the same as before except for the parameters:
 
-* **Parameters** : ``run /home/yaiza/sphinx-env/bin/sphinx-versioning build -r release-2.0.0 /home/yaiza/git/scipion-docs /home/yaiza/git/scipion_gh_pages``
+* **Parameters** : ``run /home/yaiza/sphinx-env/bin/sphinx-versioning push -r release-2.0.0 /home/yaiza/git/scipion-docs gh-pages .``
 
 .. image:: /docs/images/dev-tools/pycharm_sphinxversion_push.png
    :alt: PyCharm run config for sphinx-version push
