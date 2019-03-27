@@ -5,7 +5,7 @@
 SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 SOURCEDIR     = .
-BUILDDIR      = /home/yaiza/git/scipion_gh_pages
+BUILDDIR      = _build
 
 # Put it first so that "make" without argument is like "make help".
 help:
