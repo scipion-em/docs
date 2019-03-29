@@ -197,7 +197,7 @@
 <span class="c1"># **************************************************************************</span>
 <span class="sd">&quot;&quot;&quot; This module is for Actual wizards to be able to be discovered from the</span>
 <span class="sd">Domain. wizard.py is left for wizard models and base classes.&quot;&quot;&quot;</span>
-<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
 
 <span class="kn">from</span> <span class="nn">pyworkflow.em.convert.atom_struct</span> <span class="k">import</span> <span class="n">AtomicStructHandler</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="k">import</span> <span class="n">String</span>
@@ -207,7 +207,7 @@
 <span class="kn">from</span> <span class="nn">pyworkflow.em</span> <span class="k">import</span> <span class="n">ProtImportImages</span><span class="p">,</span> <span class="n">ProtImportCoordinates</span><span class="p">,</span> \
     <span class="n">ProtImportCoordinatesPairs</span><span class="p">,</span> <span class="n">ProtImportVolumes</span><span class="p">,</span> <span class="n">Volume</span><span class="p">,</span> <span class="n">Ccp4Header</span><span class="p">,</span> \
     <span class="n">ProtImportSequence</span>
-
+<span class="kn">import</span> <span class="nn">requests</span>
 
 <div class="viewcode-block" id="ImportAcquisitionWizard"><a class="viewcode-back" href="../../../api/pyworkflow.em.wizards.html#pyworkflow.em.wizards.ImportAcquisitionWizard">[docs]</a><span class="k">class</span> <span class="nc">ImportAcquisitionWizard</span><span class="p">(</span><span class="n">EmWizard</span><span class="p">):</span>
     <span class="n">_targets</span> <span class="o">=</span> <span class="p">[(</span><span class="n">ProtImportImages</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;acquisitionWizard&#39;</span><span class="p">])]</span>
@@ -313,9 +313,18 @@
 <div class="viewcode-block" id="GetStructureChainsWizard.getModelsChainsStep"><a class="viewcode-back" href="../../../api/pyworkflow.em.wizards.html#pyworkflow.em.wizards.GetStructureChainsWizard.getModelsChainsStep">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">getModelsChainsStep</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">protocol</span><span class="p">):</span>
         <span class="n">structureHandler</span> <span class="o">=</span> <span class="n">AtomicStructHandler</span><span class="p">()</span>
+        <span class="n">fileName</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="s1">&#39;pdbId&#39;</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">pdbId</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">pdbID</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">pdbId</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+                <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://www.rcsb.org/structure/&quot;</span>
+                <span class="n">URL</span> <span class="o">=</span> <span class="n">url</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pdbID</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">URL</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Cannot connect to PDB server&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">((</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">500</span><span class="p">)):</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is a wrong PDB ID&quot;</span> <span class="o">%</span> <span class="n">pdbID</span><span class="p">)</span>
                 <span class="n">fileName</span> <span class="o">=</span> <span class="n">structureHandler</span><span class="o">.</span><span class="n">readFromPDBDatabase</span><span class="p">(</span>
                     <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">pdbID</span><span class="p">),</span> <span class="nb">dir</span><span class="o">=</span><span class="s2">&quot;/tmp/&quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
@@ -341,7 +350,11 @@
 
 <div class="viewcode-block" id="GetStructureChainsWizard.show"><a class="viewcode-back" href="../../../api/pyworkflow.em.wizards.html#pyworkflow.em.wizards.GetStructureChainsWizard.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">):</span>
         <span class="n">protocol</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">protocol</span>
-        <span class="n">models</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getModelsChainsStep</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">models</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getModelsChainsStep</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span> <span class="s2">&quot;ERROR: &quot;</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">message</span>
+            <span class="k">return</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">editionListOfChains</span><span class="p">(</span><span class="n">models</span><span class="p">)</span>
         <span class="n">finalChainList</span> <span class="o">=</span> <span class="p">[]</span>
