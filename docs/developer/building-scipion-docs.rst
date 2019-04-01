@@ -20,9 +20,6 @@ On a high level, the docs have two main parts:
   To build these, we need a working :doc:`installation of Scipion </docs/scipion-modes/install-from-sources>` in our machine.
 * The general docs, which are manually generated content (e.g. guides, tutorials, etc).
 
-Set-up
-======
-
 Sphinx virtualenv
 -----------------
 
@@ -70,7 +67,7 @@ Or alternatively, run this in the command line inside ``scipion-docs`` repo dir:
 
 .. code-block:: bash
 
-    sphinx-apidoc -f -e -o api/ ~/git/scipion/pyworkflow ~/git/scipion/pyworkflow/tests/*
+    (sphinx-env) $ sphinx-apidoc -f -e -o api/ ~/git/scipion/pyworkflow ~/git/scipion/pyworkflow/tests/*
 
 * ``-f`` forces to overwrite existing files
 * ``-e`` generates one rst file per module
