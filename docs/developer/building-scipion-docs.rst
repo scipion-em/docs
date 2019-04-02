@@ -1,5 +1,5 @@
 
-.. _buildging-scipion-docs:
+.. _building-scipion-docs:
 
 =====================
 Building Scipion docs
