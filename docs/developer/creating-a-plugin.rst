@@ -4,7 +4,6 @@
 Creating a plugin
 =================
 
-
 A **Plugin** for Scipion is a Python module that meets some extra requirements.
 Each Plugin contains classes for  protocols, viewers, wizards, etc...allowing to use the functionality of a given EM
 package within the Scipion framework. Prior to version 2.0.0 Diocletian, the plugins' code was not completely isolated,
@@ -152,7 +151,7 @@ Here is where we give the Plugin's environment variables a default value. In the
     def _defineVariables(cls):
         cls._defineEmVar(RELION_HOME, 'relion-2.1')
 
-There are two functions defined in the :ref:`plugin class </api/pyworkflow.plugin>` that may be useful here:
+There are two functions defined in the :doc:`plugin class </api/pyworkflow.plugin>` that may be useful here:
 ``_defineEmVar`` and ``_defineVar``. The first one will add the path to ``software/em`` to the variable
 (which is the default place to install binaries). The second will store the value as is.
 We only need ``defineEmVar`` in Relion, since the binary location is the only variable we'll declare.
