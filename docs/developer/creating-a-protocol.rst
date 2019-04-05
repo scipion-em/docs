@@ -517,22 +517,7 @@ dynamically using Python reflection tools. So, when a new protocol class
 is added, it is automatically available to the whole system. Such
 configuration is needed if you want your protocol to appear in an
 specific position in the protocol tree in the left pane of the
-projects GUI.
-
-The appearance of this tree is specified in the configuration file
-``~/.config/scipion/menu.conf``. This file contains the tree structure,
-but does not list all protocols. There are slots that are set as
-'protocol_base' which tag protocol base classes. All protocols that
-descend from that base class will be added to this point in the tree.
-So, if you new implemented protocol descends from a base classes that is
-already in the configuration file, no additional actions are required. If
-not, you can edit ``menu.conf`` file and add an entry for your protocol
-(or for its base class if you expect more protocols there) and execute:
-
-.. code-block:: bash
-
-    scipion config
-
+projects GUI. This is performed with the :ref:`protocols.conf file<protocols.conf>`.
 
 Implement a Viewer
 ------------------
