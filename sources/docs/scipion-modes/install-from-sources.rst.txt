@@ -62,6 +62,34 @@ You can install them with (this example is for Debian/Ubuntu distros.
     sudo apt-get install gcc-5 g++-5 cmake openjdk-8-jdk libxft-dev libssl-dev libxext-dev\
      libxml2-dev libreadline7 libquadmath0 libxslt1-dev libopenmpi-dev openmpi-bin\
      libxss-dev libgsl-dev libx11-dev gfortran libfreetype6-dev scons libfftw3-dev libopencv-dev curl
+     
+- For OpenSUSE 42.3
+
+::
+
+   sudo zypper in gcc-c++ gcc5 gcc5-c++ cmake java-1_8_0-openjdk-devel libXft-devel-32bit openssl-devel\
+    libXext-devel-32bit libxml2-devel-32bit libreadline6 libquadmath0 libxslt1 openmpi-devel libXss1\
+    libX11-devel-32bit libgfortran4 gcc-fortran libfreetype6 scons libfftw3-3 fftw3-devel libfftw3_threads3\
+    libopencv3_1 opencv curl
+
+- For OpenSUSE 15.0
+
+::
+
+   sudo zypper in gcc-c++ cmake java-1_8_0-openjdk-devel libXft-devel-32bit openssl-devel\
+    libXext-devel-32bit libxml2-devel-32bit libreadline6 libquadmath0 libxslt1 openmpi-devel\
+    libXss1 libX11-devel-32bit libgfortran4 gcc-fortran libfreetype6 scons libfftw3-3\
+    fftw3-devel libfftw3_threads3 libopencv3_3 curl
+
+- For Centos 6 and Centos 7
+
+::
+
+   sudo yum install gcc gcc-c++ cmake java-1.8.0-openjdk-devel libXft-devel openssl-devel libXext-deve\
+    libxml2-devel readline-devel libquadmath libxslt-devel openmpi-devel libX11-devel libgfortran\
+    freetype-devel scons fftw-devel opencv-devel curl centos-release-scl devtoolset-4 python27`
+
+ Note: To be able to run python 2.7 (Scipion requirement), run `scl enable python27 bash`.
 
 -  **Note 1** - gcc and g++
 
@@ -91,6 +119,8 @@ CUDA at all).
 | gctf            | ☑          | ☑          | ☑          | ☑          | ☑          | ☑          |            |            |
 +-----------------+------------+------------+------------+------------+------------+------------+------------+------------+
 | gautomatch      |            |            |            | ☑          | ☑          | ☑          |            |            |
++-----------------+------------+------------+------------+------------+------------+------------+------------+------------+
+| xmipp           |            |            |            |            |            | ☑          |            |            |
 +-----------------+------------+------------+------------+------------+------------+------------+------------+------------+
 
 Step 3: Configure and Install
