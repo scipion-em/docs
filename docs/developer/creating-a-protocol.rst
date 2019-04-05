@@ -236,28 +236,28 @@ a protocol starts to run and the following actions take place:
 
 * The method ``protocol.run()`` is called
 * The ``protocol._insertAllSteps()`` is called and a list of steps is populated (depending on the current
-parameters selection)
+  parameters selection)
 * The steps list is compared with previous steps lists in the database (if exists a previous execution) and,
 * If in RESUME mode, it will try to continue from the last step that was completed
-successfully. (In RESTART mode it will start from the first step and
-output directory is cleaned)
+  successfully. (In RESTART mode it will start from the first step and
+  output directory is cleaned)
 
 It is important to note that no computing tasks should be performed in the ``_insertAllSteps``
 function this should be done in the steps; see next section). This place is only to *DEFINE*
 what needs to be done, not actually to do it.
 
 The ``Step`` class represents the smallest execution unit that composes a
-*``Protocol``*. The most used sub-classes of ``Step`` are:
+``Protocol``. The most used sub-classes of ``Step`` are:
 
-* *FunctionStep* : Inserted using the function
-*``protocol._insertFunctionStep``*. Any accessible function can be
-inserted; it could be a function of the protocol or an external
-function. The changes in the parameters passed to the function are used
-to detect step changes, so even when it may not be necessary to pass
-certain parameters, it is useful to pass them for detecting changes.
-* *RunJobStep* : this step wraps a call to an external program and
-builds the necessary command line arguments. It can be inserted using
-``protocol._insertRunJobStep``
+* **FunctionStep** : Inserted using the function
+  ``protocol._insertFunctionStep``. Any accessible function can be
+  inserted; it could be a function of the protocol or an external
+  function. The changes in the parameters passed to the function are used
+  to detect step changes, so even when it may not be necessary to pass
+  certain parameters, it is useful to pass them for detecting changes.
+* **RunJobStep** : this step wraps a call to an external program and
+  builds the necessary command line arguments. It can be inserted using
+  ``protocol._insertRunJobStep``
 
 In our example protocol, the ``_insertAllSteps`` function looks like:
 
@@ -273,13 +273,12 @@ In our example protocol, the ``_insertAllSteps`` function looks like:
 
 
 This is a relatively simple case (but also a common one) in which only three
-steps are inserted: *``convertInputStep``*, *``runJobStep``*,
-*``createOutputStep``*. In this case, the steps run in the same order
+steps are inserted: ``convertInputStep``, ``runJobStep``,
+``createOutputStep``. In this case, the steps run in the same order
 in which they were inserted, but it is also possible to define a more complex
 dependency graph between steps that can be executed in parallel (through
 threads or MPI). You can read more about defining steps to be executed
-in parallel in link:Parallelization[Developers - Protocol
-Parallelization].
+in parallel in :doc:`Parallelization<parallelization>`.
 
 Even when a protocol runs its steps without parallelization, one
 particular step can take advantage of a multiprocessor and use MPI or
@@ -292,7 +291,7 @@ Converting Inputs
 -----------------
 
 It is common that one of the first steps in a protocol is
-*``convertInputStep``*, whose main task is to convert from input Scipion
+``convertInputStep``* whose main task is to convert from input Scipion
 objects to files with the format that is appropriate for running a
 particular program. In our example, we should convert the input
 ``SetOfParticles`` object into the metadata star file that is required
@@ -318,14 +317,13 @@ in the input ``SetOfParticles`` and adds a line to a valid STAR file
 using the Xmipp MetaData class in Python. By the same logic, any other
 file format could be generated when writting a ``convertInputStep``
 function. Read more about iterating over a ``SetOfParticles`` and
-querying its attributes in link:DeveloperHowToSets[Developers - Using
-Sets].
+querying its attributes in :doc:`Using Sets <using-sets>`.
 
 Executing Programs
 ------------------
 
-The second step function in this example is a *``runJobStep``*. In this
-case the program is *xmipp_ml_align2d* (or mlf in the Fourier case). The
+The second step function in this example is a ``runJobStep``. In this
+case the program is ``xmipp_ml_align2d`` (or mlf in the Fourier case). The
 command line argument for calling the program is prepared in the
 ``_getMLParams`` function.
 
@@ -375,12 +373,12 @@ Creating Outputs
 At the end of a protocol execution, we want to register the results in
 the Scipion project. This is the function of the ``createOutputStep``
 method. It is the inverse operation of the
-*``convertInputStep``*. It should read the files produced by the
+``convertInputStep``. It should read the files produced by the
 protocol and create the Scipion objects that represent the output of the
 protocol. It should also define the relationship between the newly created
 output objects and the input.
 
-In our case, the result of the protocol is a *``SetOfClasses2D``*, which
+In our case, the result of the protocol is a ``SetOfClasses2D``, which
 is created by the following code:
 
 .. code-block:: python
@@ -396,7 +394,7 @@ is created by the following code:
 
 
 Here the job is done by the functions ``_createSetOfClasses2D`` and
-*``readSetOfClasses2D``*. The first one creates an empty set of
+``readSetOfClasses2D``. The first one creates an empty set of
 classes, while the second is specific to Xmipp and populates the set
 reading the classes' information from the Xmipp metadata outputs (STAR
 files). More information about creating Scipion sets objects can be
@@ -580,6 +578,12 @@ Here is the test for this protocol:
             self.launchProtocol(protML2D)
 
             self.assertIsNotNone(protML2D.outputClasses, "There was a problem with ML2D")
+
+
+TODO
+====
+
+* Review all :doc: directives and add content to the empty ones
 
 
 .. |cite-icon| image:: /docs/images/guis/cite_icon.png
