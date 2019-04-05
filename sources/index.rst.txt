@@ -26,7 +26,7 @@ later on.
    :glob:
    :caption: User documentation
 
-   docs/user/*
+   docs/user/user-documentation
 
 .. _dev-docs:
 
@@ -35,9 +35,7 @@ later on.
    :glob:
    :caption: Developer documentation
 
-   docs/scipion-modes/install-from-sources
-   docs/scipion-modes/install-plugins-command-line
-   docs/developer/*
+   docs/developer/developers
 
 .. _api-docs:
 
