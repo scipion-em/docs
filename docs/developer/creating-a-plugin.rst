@@ -23,10 +23,6 @@ We will use Relion as an example, so we recommend to clone and take a look at
 `Relion's repository <https://github.com/scipion-em/scipion-em-relion>`_.
 
 
-.. contents::
-    :local:
-
-
 Naming Conventions
 ==================
 
@@ -118,7 +114,7 @@ plugin-level references:
 Define the Plugin class
 ^^^^^^^^^^^^^^^^^^^^^^^
 
-Additionally, it is necessary to add a Plugin class (subclass from pyworkflow.em.Plugin), which contains much of the
+Additionally, it is necessary to add a Plugin class (subclass from :class:`pyworkflow.plugin.Plugin`), which contains much of the
 logic related with the plugin's variables, environment, associated binaries and paths.
 
 .. code-block:: python

@@ -60,7 +60,7 @@ The api docs are contained in the folder ``api`` of the scipion docs repository.
 We can set this up as a run configuration in PyCharm (Recommended):
 
 .. image:: /docs/images/dev-tools/pycharm_apidoc_runconfig.png
-   :alt: Scipion project manager
+   :alt: Sphinx apidoc in pycharm
 
 
 Or alternatively, run this in the command line inside ``scipion-docs`` repo dir:
@@ -79,8 +79,9 @@ Or alternatively, run this in the command line inside ``scipion-docs`` repo dir:
 Make html
 ---------
 
-This step is only used for testing purposes. Can be perfectly skipped. It is recommended to do it if you need to test some
-local changes that you don't wish to commit just yet (which is good to avoid pushing tiny commits).
+This step is only used for testing purposes. It is recommended to do it if you need to test some
+local changes that you don't wish to commit just yet (which is good to avoid pushing tiny commits when you're
+writing docs content).
 To test if we can generate the html files, run this inside ``scipion-docs``.
 At the time of this writing, there are multiple errors and warnings. Sphinx will just generate whatever it can.
 It is a good idea to work on reducing these errors and warnings :)
@@ -92,6 +93,23 @@ It is a good idea to work on reducing these errors and warnings :)
 After this, we can open ``_build/html/index.html`` on a browser and see the built docs. At this point we won't have the
 version support on the bottom left corner.
 
+
+.. image:: /docs/images/dev-tools/pycharm-make-html.png
+    :alt: pycharm make html config
+
+Make clean
+----------
+This step isn't strictly necessary, but sometimes when we perform ``make html`` over and over, pages get funky and
+some of them don't have the right things when we navigate (I've observed this a lot with the side bars). With this
+command we will remove everything under the ``_build`` folder, so that next time we run ``make html`` we do it
+fresh.
+
+::
+
+    (sphinx-env) $ make clean
+
+.. image:: /docs/images/dev-tools/pycharm-make-clean.png
+    :alt: pycharm make clean config
 
 Build with sphinx-versioning
 ----------------------------
