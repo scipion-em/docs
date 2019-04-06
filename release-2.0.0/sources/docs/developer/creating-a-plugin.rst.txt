@@ -329,12 +329,14 @@ Tests
 We strongly recommend to follow Test-Driven-Development, so this is the place where all plugin tests should go.
 It is important to create different test cases from the beginning of the plugin development.
 
+.. _protocols.conf:
+
 protocols.conf
 ~~~~~~~~~~~~~~
-This submodule contain the location of all protocols in the Scipion Protocols Tree View.
-This file is optional in Python modules and it is loaded when the module is imported if it exist.
+This submodule contains the location of all protocols in the Scipion Protocols Tree View.
+This file is optional in Python modules and it is loaded when the module is imported if it exists.
 If the file does not exist, the protocols will be loaded in the All view. Scipion will take care of
-parse the file and incorporate into the Scipion Tree View. For example, the Relion ``protocol.conf`` has
+parsing the file and incorporating its contents into Scipion's Tree View. For example, the Relion ``protocol.conf`` has
 the following structure:
 
 .. code-block:: cfg
