@@ -22,9 +22,7 @@ Follow these guides to add new elements to Scipion:
     creating-a-plugin
     creating-a-protocol
     building-scipion-docs
-
-TODO - Create a monitor
------------------------
+    creating-a-monitor
 
 TODO: Customize the HTML report
 -------------------------------

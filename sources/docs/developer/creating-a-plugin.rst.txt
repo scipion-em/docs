@@ -802,6 +802,7 @@ Install from pip
     $SCIPION_HOME/scipion installp -p scipion-em-relion
 
 * Test again (yes, again)
+
   .. code-block:: bash
 
       scipion test em.packages.relion.tests.test_***

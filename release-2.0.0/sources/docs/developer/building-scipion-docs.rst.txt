@@ -135,6 +135,12 @@ We can also trigger this command with the following run configuration in PyCharm
 .. image:: /docs/images/dev-tools/pycharm_sphinxversion_build.png
    :alt: PyCharm run config for sphinx-version build
 
+Important note on branches/versions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+At the moment we don't really have a way of auto-syncing Scipion branches with docs branches. Please be very mindful
+that your current Scipion branch matches the Docs branch when you push doc changes!!
+
+
 Push with sphinx-versioning
 ---------------------------
 Once we are happy with the build, we can push our docs. For this we must run this command within our scipion-docs dir:
@@ -150,5 +156,12 @@ The PyCharm run configuration is the same as before except for the parameters:
 .. image:: /docs/images/dev-tools/pycharm_sphinxversion_push.png
    :alt: PyCharm run config for sphinx-version push
 
-For more info on the params of sphinx-versioning you can run `sphinx-versioning --help` or check `sphinx-versioning docs
+For more info on the params of sphinx-versioning you can run ``sphinx-versioning --help`` or check `sphinx-versioning docs
 <https://robpol86.github.io/sphinxcontrib-versioning/v2.2.1/tutorial.html>`_.
+
+Resources and tips
+------------------
+
+1. You can reference python objects!! E.g. :class:`The plugin class<pyworkflow.plugin.Plugin>`. For more info check
+   the sphinx guide on  `how to reference python objects
+   <http://www.sphinx-doc.org/en/master/usage/restructuredtext/domains.html#the-python-domain>`_
