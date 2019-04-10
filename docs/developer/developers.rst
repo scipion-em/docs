@@ -12,6 +12,8 @@ General Information
 * :doc:`Release-notes<release-notes>` What has been done in each release.
 * :doc:`Scipion-roadmap-2019<roadmap-2019>` What we want to do for the next release.
 
+.. _extending-scipion:
+
 Extending Scipion
 =================
 Follow these guides to add new elements to Scipion:
