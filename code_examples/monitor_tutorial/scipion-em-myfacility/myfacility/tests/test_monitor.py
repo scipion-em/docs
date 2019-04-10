@@ -24,8 +24,10 @@
 # *  e-mail address 'scipion@cnb.csic.es'
 # *
 # **************************************************************************
+
 import math
 from pyworkflow.tests import *
+from pyworkflow.tests.test_utils import wait
 from myfacility.protocols import SpaceMonitor, ProtMonitorSpace
 from myfacility.protocols.space_monitor import disk_usage
 from tempfile import mkdtemp
@@ -78,29 +80,29 @@ class TestMonitor(BaseTest):
         # Check there is a notification
         self.assertEqual(1, len(testNotifier.getNotifications()), "There isn't a notification")
 
-        @classmethod
-        def setUpClass(cls):
-            setupTestProject(cls)
+    @classmethod
+    def setUpClass(cls):
+        setupTestProject(cls)
 
-        def test_spacemonitor_protocol(self):
-            prot = self.newProtocol(ProtMonitorSpace,
-                                    objLabel='HD free Space monitor',
-                                    samplingInterval=10)
+    def test_spacemonitor_protocol(self):
+        prot = self.newProtocol(ProtMonitorSpace,
+                                objLabel='HD free Space monitor',
+                                samplingInterval=10)
 
-            self.proj.launchProtocol(prot, wait=False)
+        self.proj.launchProtocol(prot, wait=False)
 
-            # Test that the spaceMonitor txt file is where expected
-            spaceMon = SpaceMonitor(10, workingDir=prot._getExtraPath())
-            txtPath = spaceMon.getStorageFilePath()
+        # Test that the spaceMonitor txt file is where expected
+        spaceMon = SpaceMonitor(10, workingDir=prot._getExtraPath())
+        txtPath = spaceMon.getStorageFilePath()
 
-            # Wait for a minute maximum or if file exists
-            wait(lambda: not os.path.exists(txtPath), timeout=15)
+        # Wait for a minute maximum or if file exists
+        wait(lambda: not os.path.exists(txtPath), timeout=15)
 
-            self.assertTrue(os.path.exists(txtPath), "Space monitor txt file not "
-                                                     "found at %s" % txtPath)
+        self.assertTrue(os.path.exists(txtPath), "Space monitor txt file not "
+                                                 "found at %s" % txtPath)
 
-            # Stop the protocol. Do not wait for its timeout
-            self.proj.stopProtocol(prot)
+        # Stop the protocol. Do not wait for its timeout
+        self.proj.stopProtocol(prot)
 
 
 class TestNotifier():
