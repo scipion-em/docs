@@ -8,12 +8,13 @@ What is a monitor?
 ==================
 
 A monitor is a non-GUI class which main action would be to do something,
-periodically and notify any possible "listeners".
+periodically and notify any possible "listeners". All code presented in this guide is available in
+our `docs repository <https://github.com/scipion-em/docs/tree/release-2.0.0/code_examples/monitor_tutorial>`_
 
 Monitors anatomy
 ================
 
-The base :class:`monitor class <Monitor>` looks like this:
+The base :class:`monitor class<pyworkflow.em.protocol.monitors.protocol_monitor.Monitor>` looks like this:
 
 .. code:: python
 
@@ -141,8 +142,19 @@ Add the following to the step method:
 This is adding a new method ``disk_usage`` which receives a path and
 uses it in the step method, printing it (temporarily).
 
-5. Expose new monitor to the package: add
-   ``from space_monitor import SpaceMonitor, ProtMonitorSpace`` to  ``<your-path>/myfacility/protocols/__init__.py``
+5. Expose new monitor to the package: import the monitors in ``<your-path>/myfacility/protocols/__init__.py``
+
+.. code:: python
+    :caption: protocols/__init__.py
+
+   from space_monitor import SpaceMonitor, ProtMonitorSpace
+
+  In addition, for Scipion to detect ``myfacility``, we need to add its container path to the `PYTHONPATH`.
+  Remember to do this in your terminal before you test anything related with this tutorial.
+
+.. code:: bash
+
+    $ export PYTHONPATH=~/Desktop/scipion-em-myfacility:$PYTHONPATH
 
 Testing first iteration
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -155,6 +167,7 @@ We are going now to add some tests to check our progress.
 4. Add the code below
 
 .. code:: python
+    :caption: tests/test_monitor.py
 
     import os
     from pyworkflow.tests import *
@@ -170,8 +183,11 @@ We are going now to add some tests to check our progress.
 
             spaceMonitor.step()
 
-5. Run the test:
-   ``scipion test myfacility.tests.test_monitor.TestMonitor``
+5. Run the test. Take into account that `PYTHONPATH` needs to be set.
+
+.. code:: bash
+
+   scipion test myfacility.tests.test_monitor.TestMonitor
 
 Output should look like this:
 
@@ -210,6 +226,7 @@ first import at the top mkdtemp function from tempfile
 monitor in ``myfacility/tests/test_monitor.py`` file:
 
 .. code:: python
+    :caption: tests/test_monitor.py
 
     from tempfile import mkdtemp
     [ . . . . . ]
@@ -264,6 +281,7 @@ Monitor second
 Let's implement what the test is expecting:
 
 .. code:: python
+    :caption: protocols/space_monitor.py
 
         def step(self):
             """ Using the workingdir attribute has to find the HD and then get the
@@ -301,7 +319,7 @@ Using the Monitor
 
 What we have done is just a piece of "behaviour" it will calculate the
 statistics of the HD where a certain folder (workingFolder) belongs. But
-how can we start it from a scipion project?
+how can we start it from a Scipion project?
 
 Protocol monitor
 ----------------
@@ -340,6 +358,7 @@ Let's define a new Class for our Space Monitor Protocol at ``space_monitor.py``.
 3. Add our ProtMonitorSpace:
 
 .. code:: python
+    :caption: protocols/space_monitor.py
 
     from pyworkflow.em import ProtMonitor, PrintNotifier
     from pyworkflow import VERSION_2_0
@@ -367,6 +386,7 @@ Let's define a new Class for our Space Monitor Protocol at ``space_monitor.py``.
    add:
 
 .. code:: python
+    :caption: myfacility/protocols/__init__.py
 
     from space_monitor import SpaceMonitor, ProtMonitorSpace``
 
@@ -398,6 +418,7 @@ Human-friendly output
    values and modify the notify call:
 
 .. code:: python
+    :caption: protocols/space_monitor.py
 
     from pyworkflow.utils import prettySize
 
@@ -422,6 +443,7 @@ Import params from em, like so:
 ``from pyworkflow.em import ProtMonitor, PrintNotifier, params``
 
 .. code:: python
+    :caption: protocols/space_monitor.py
 
     from pyworkflow.em import ProtMonitor, PrintNotifier, params
 
@@ -474,6 +496,7 @@ parent params. Next thing is to delete the ``inputProtocols``. This wasn't
 expected in our API, but python is flexible enough to make this happen:
 
 .. code:: python
+    :caption: protocols/space_monitor.py
 
             # Remove the inputProtocols
             section = form.getSection('Input')
@@ -488,6 +511,7 @@ Secondly, we have also made some changes in the ``monitorStep()`` method. We
 are passing the *minimumFreeSpace* value to the SpaceMonitor:
 
 .. code:: python
+    :caption: protocols/space_monitor.py
 
             # Instantiate a Space Monitor
             monitor = SpaceMonitor(self.minimumFreeSpace,
@@ -502,9 +526,10 @@ is notifying in any loop.
 
 -  Make SpaceMonitor to understand and react to 'minimumFreeSpace'
 
-   .. code:: python
+.. code:: python
+    :caption: protocols/space_monitor.py
 
-       class SpaceMonitor(Monitor):
+    class SpaceMonitor(Monitor):
     """
     Monitor to monitor free space on the HD where scipion project is placed
     """
@@ -515,7 +540,8 @@ is notifying in any loop.
 
 -  And modify the ``step()`` method of ``SpaceMonitor`` to take the threshold into account
 
-   .. code:: python
+.. code:: python
+    :caption: protocols/space_monitor.py
 
        def step(self):
            """ Using the workingdir attribute has to find the HD and then get the
@@ -547,11 +573,12 @@ We haven't touched the monitor test and more important, we are not
 testing the protocol.
 
 Our test should be failing because we are not passing the
-*minimumFreeSpace*. Let's do that:
+``minimumFreeSpace``. Let's do that:
 
 * Update Monitor test: Replace (for simplicity) all content in ``test_monitor.py`` with:
 
 .. code:: python
+    :caption: tests/test_monitor.py
 
     import math
     from pyworkflow.tests import *
@@ -634,46 +661,47 @@ Add a test for the protocol monitor.
 ''''''''''''''''''''''''''''''''''''
 
 We also have to test the protocol. You will need to import
-ProtMonitorSpace and a wait() function:
+ProtMonitorSpace and a ``wait`` function:
 
 .. code:: python
 
     import math
     from pyworkflow.tests import *
+    from pyworkflow.tests.test_utils import wait
     from myfacility.protocols import SpaceMonitor, ProtMonitorSpace
     from myfacility.protocols.space_monitor import disk_usage
     from tempfile import mkdtemp
 
-Now add the code below right after
+Now add the code below inside the class ``TestMonitor`` right after
 ``self.assertEqual(1, len(testNotifier.getNotifications()), "There isn't a notification")``
 and right above our custom ``class TestNotifier``
 
 .. code:: python
 
-        @classmethod
-        def setUpClass(cls):
-            setupTestProject(cls)
+    @classmethod
+    def setUpClass(cls):
+        setupTestProject(cls)
 
 
-        def test_spacemonitor_protocol(self):
-            prot = self.newProtocol(ProtMonitorSpace,
-                                    objLabel='HD free Space monitor',
-                                    samplingInterval=10)
+    def test_spacemonitor_protocol(self):
+        prot = self.newProtocol(ProtMonitorSpace,
+                                objLabel='HD free Space monitor',
+                                samplingInterval=10)
 
-            self.proj.launchProtocol(prot, wait=False)
+        self.proj.launchProtocol(prot, wait=False)
 
-            # Test that the spaceMonitor txt file is where expected
-            spaceMon = SpaceMonitor(10, workingDir=prot._getExtraPath())
-            txtPath = spaceMon.getStorageFilePath()
+        # Test that the spaceMonitor txt file is where expected
+        spaceMon = SpaceMonitor(10, workingDir=prot._getExtraPath())
+        txtPath = spaceMon.getStorageFilePath()
 
-            # Wait for a minute maximun or if file exists
-            wait(lambda: not os.path.exists(txtPath), timeout=15)
+        # Wait for a minute maximun or if file exists
+        wait(lambda: not os.path.exists(txtPath), timeout=15)
 
-            self.assertTrue(os.path.exists(txtPath), "Space monitor txt file not "
-                                                     "found at %s" % txtPath)
+        self.assertTrue(os.path.exists(txtPath), "Space monitor txt file not "
+                                                 "found at %s" % txtPath)
 
-            # Stop the protocol. Do not wait for its timeout
-            self.proj.stopProtocol(prot)
+        # Stop the protocol. Do not wait for its timeout
+        self.proj.stopProtocol(prot)
 
 With the ``setUpClass()`` we are creating an empty Scipion project
 
@@ -698,10 +726,24 @@ You should get something like:
 
     >>>>> python  /home/yaiza/git/scipion/pyworkflow/apps/pw_run_tests.py "myfacility.tests.test_monitor.TestMonitor"
     Running tests....
-    WARNING: There is only 185.82 GB left for /tmp/tmpXyZqpL Free: 185.82 GB, Total: 217.91 GB, Used: 21.00 GB, Threshold: 186.0
-    [ RUN   OK ] TestMonitor.test_monitor (0.061 secs)
+    ('Creating project at: ', '/home/yaiza/ScipionUserData/projects/TestMonitor/project.sqlite')
+    WARNING: There is only 185.83 GB left for /tmp/tmptRIM1E Free: 185.83 GB, Total: 217.91 GB, Used: 20.99 GB, Threshold: 186.0
+    [ RUN   OK ] TestMonitor.test_monitor (0.001 secs)
+    ** Running command: 'python /home/yaiza/git/scipion/scipion runprotocol pw_protocol_run.py "/home/yaiza/ScipionUserData/projects/TestMonitor" "Runs/000002_ProtMonitorSpace/logs/run.db" 2'
 
-    [==========] run 1 tests (0.061 secs)
-    [  PASSED  ] 1 tests
+    Scipion v2.0 (2019-03-15) Diocletian (release-2.0.0 584fbfa)
+
+    >>>>> python  /home/yaiza/git/scipion/pyworkflow/apps/pw_protocol_run.py "/home/yaiza/ScipionUserData/projects/TestMonitor" "Runs/000002_ProtMonitorSpace/logs/run.db" "2"
+    Terminating child pid: 27553
+    Terminating child pid: 27555
+    Terminating child pid: 27562
+    Terminating child pid: 27563
+    Terminating process pid: None
+    WARNING! Got None PID!!!
+    [ RUN   OK ] TestMonitor.test_spacemonitor_protocol (2.304 secs)
+
+    [==========] run 2 tests (3.099 secs)
+    [  PASSED  ] 2 tests
+
 
 

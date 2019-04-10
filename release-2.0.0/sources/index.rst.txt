@@ -62,7 +62,7 @@ There are many ways to help make Scipion better:
 
 * `Open a New Issue <https://github.com/I2PC/scipion/issues/new>`__ to report bugs or suggest new features.We would like to hear from you.
 
-* Extend Scipion with new protocols or packages (requires some Python programming skills).
+* :ref:`Extend Scipion <extending-scipion>` with new protocols or packages (requires some Python programming skills).
 
 * Add or improve content in the documentation.
   To do so, you will need a `GitHub <http://github.com>`__ account and send us a mail to add you

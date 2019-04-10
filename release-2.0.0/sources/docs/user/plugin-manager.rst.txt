@@ -153,6 +153,7 @@ to update the plugin (see Figure 8).
 
 .. figure:: https://github.com/I2PC/scipion/wiki/images/guis/updating_plugins.png
    :alt: uninstall_plugin
+
    Figure 8. Updating plugins
 
 To update any plugin, we need to select an installed plugin, right-click
