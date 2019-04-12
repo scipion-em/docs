@@ -7,7 +7,11 @@ recommend that you start with our :doc:`Introduction-to-Scipion-Developers<Intro
 
 General Information
 ===================
-* :doc:`Architecture<architecture>`. Take a look at the "big picture" of the Scipion architecture.
+.. toctree::
+    :maxdepth: 1
+
+    Architecture: take a look at the big picture<architecture>
+
 * :doc:`Scipion-EM-Classes<scipion-em-classes>` Diagram containing EM Classes and its relations.
 * :doc:`Release-notes<release-notes>` What has been done in each release.
 
