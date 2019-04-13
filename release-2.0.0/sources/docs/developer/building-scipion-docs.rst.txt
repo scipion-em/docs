@@ -165,3 +165,5 @@ Resources and tips
 1. You can reference python objects!! E.g. :class:`The plugin class<pyworkflow.plugin.Plugin>`. For more info check
    the sphinx guide on  `how to reference python objects
    <http://www.sphinx-doc.org/en/master/usage/restructuredtext/domains.html#the-python-domain>`_
+
+2. You can install and use `pandoc<https://pandoc.org/>`_ to convert from Markdown (.md) to .rst

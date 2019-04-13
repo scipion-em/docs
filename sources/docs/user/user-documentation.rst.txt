@@ -126,9 +126,9 @@ TODO: FAQ
 ---------
 `FAQ <FAQ>`__: Frequently Asked Questions
 
-TODO: Troubleshooting
+Troubleshooting
 ---------------------
-`Troubleshooting <Troubleshooting>`
+:ref:`Troubleshooting <Troubleshooting>`
 
 TODO: Relion in Scipion
 -----------------------

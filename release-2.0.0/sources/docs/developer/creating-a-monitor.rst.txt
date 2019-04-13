@@ -16,7 +16,7 @@ Monitors anatomy
 
 The base :class:`monitor class<pyworkflow.em.protocol.monitors.protocol_monitor.Monitor>` looks like this:
 
-.. code:: python
+.. code-block:: python
 
     class Monitor():
         def __init__(self, **kwargs):
@@ -64,7 +64,7 @@ The base :class:`monitor class<pyworkflow.em.protocol.monitors.protocol_monitor.
 
 The most important method of a monitor is
 
-.. code:: python
+.. code-block:: python
 
         def step(self):
             """ To be defined in subclasses. """
@@ -97,7 +97,7 @@ First iteration
 3. Import :class:`Monitor<pyworkflow.em.protocol.monitors.protocol_monitor.Monitor>`
    base class, and define your new class based on ``Monitor``
 
-.. code:: python
+.. code-block:: python
 
     from  pyworkflow.em.protocol.monitors import Monitor
 
@@ -112,14 +112,14 @@ First iteration
 
 Import some modules at the top of the file (import section)
 
-.. code:: python
+.. code-block:: python
 
     import os
     import collections
 
 Add the following to the step method:
 
-.. code:: python
+.. code-block:: python
 
         def step(self):
             """ Using the workingdir attribute has to find the HD and then get the
@@ -144,15 +144,15 @@ uses it in the step method, printing it (temporarily).
 
 5. Expose new monitor to the package: import the monitors in ``<your-path>/myfacility/protocols/__init__.py``
 
-.. code:: python
+.. code-block:: python
     :caption: protocols/__init__.py
 
-   from space_monitor import SpaceMonitor, ProtMonitorSpace
+    from space_monitor import SpaceMonitor, ProtMonitorSpace
 
-  In addition, for Scipion to detect ``myfacility``, we need to add its container path to the `PYTHONPATH`.
-  Remember to do this in your terminal before you test anything related with this tutorial.
+In addition, for Scipion to detect ``myfacility``, we need to add its container path to the `PYTHONPATH`.
+Remember to do this in your terminal before you test anything related with this tutorial.
 
-.. code:: bash
+.. code-block:: bash
 
     $ export PYTHONPATH=~/Desktop/scipion-em-myfacility:$PYTHONPATH
 
@@ -166,7 +166,7 @@ We are going now to add some tests to check our progress.
 3. Add ``test_monitor.py`` to the tests folder
 4. Add the code below
 
-.. code:: python
+.. code-block:: python
     :caption: tests/test_monitor.py
 
     import os
@@ -185,13 +185,13 @@ We are going now to add some tests to check our progress.
 
 5. Run the test. Take into account that `PYTHONPATH` needs to be set.
 
-.. code:: bash
+.. code-block:: bash
 
    scipion test myfacility.tests.test_monitor.TestMonitor
 
 Output should look like this:
 
-.. code:: shell
+.. code-block:: shell
 
     Scipion  (2018-06-12)  ((HEAD detached at june_2018_course) b9d0e37)
 
@@ -225,7 +225,7 @@ first import at the top mkdtemp function from tempfile
 ``from tempfile import mkdtemp`` and then use it when creating the
 monitor in ``myfacility/tests/test_monitor.py`` file:
 
-.. code:: python
+.. code-block:: python
     :caption: tests/test_monitor.py
 
     from tempfile import mkdtemp
@@ -258,7 +258,7 @@ Additionally, we have added some lines to:
 * and test that it has 2 lines
 * Since we haven't modified our Monitor yet this test should fail
 
-.. code:: shell
+.. code-block:: shell
 
     [   FAILED ] TestMonitor.test_monitor
 
@@ -280,7 +280,7 @@ Monitor second
 
 Let's implement what the test is expecting:
 
-.. code:: python
+.. code-block:: python
     :caption: protocols/space_monitor.py
 
         def step(self):
@@ -339,7 +339,7 @@ inputProtocol to monitor.
 Additionally, this special protocol will create a "monitorStep" that any
 "implementer" has to implement:
 
-.. code:: python
+.. code-block:: python
 
         # -------------------------- INSERT steps functions -----------------------
         def _insertAllSteps(self):
@@ -357,7 +357,7 @@ Let's define a new Class for our Space Monitor Protocol at ``space_monitor.py``.
 2. Import last version
 3. Add our ProtMonitorSpace:
 
-.. code:: python
+.. code-block:: python
     :caption: protocols/space_monitor.py
 
     from pyworkflow.em import ProtMonitor, PrintNotifier
@@ -385,7 +385,7 @@ Let's define a new Class for our Space Monitor Protocol at ``space_monitor.py``.
 5. Expose the new protocol to Scipion. In  ``myfacility/protocols/__init__.py``
    add:
 
-.. code:: python
+.. code-block:: python
     :caption: myfacility/protocols/__init__.py
 
     from space_monitor import SpaceMonitor, ProtMonitorSpace``
@@ -417,7 +417,7 @@ Human-friendly output
 2. In the step function of SpaceMonitor, just before calling notify, convert the
    values and modify the notify call:
 
-.. code:: python
+.. code-block:: python
     :caption: protocols/space_monitor.py
 
     from pyworkflow.utils import prettySize
@@ -442,7 +442,7 @@ Let's tweak the parameters of the protocol:
 Import params from em, like so:
 ``from pyworkflow.em import ProtMonitor, PrintNotifier, params``
 
-.. code:: python
+.. code-block:: python
     :caption: protocols/space_monitor.py
 
     from pyworkflow.em import ProtMonitor, PrintNotifier, params
@@ -495,7 +495,7 @@ called the ``ProtMonitor._defineParams(self, form)`` to have the default
 parent params. Next thing is to delete the ``inputProtocols``. This wasn't
 expected in our API, but python is flexible enough to make this happen:
 
-.. code:: python
+.. code-block:: python
     :caption: protocols/space_monitor.py
 
             # Remove the inputProtocols
@@ -510,7 +510,7 @@ We also add the email notifications parameters with
 Secondly, we have also made some changes in the ``monitorStep()`` method. We
 are passing the *minimumFreeSpace* value to the SpaceMonitor:
 
-.. code:: python
+.. code-block:: python
     :caption: protocols/space_monitor.py
 
             # Instantiate a Space Monitor
@@ -526,7 +526,7 @@ is notifying in any loop.
 
 -  Make SpaceMonitor to understand and react to 'minimumFreeSpace'
 
-.. code:: python
+.. code-block:: python
     :caption: protocols/space_monitor.py
 
     class SpaceMonitor(Monitor):
@@ -540,7 +540,7 @@ is notifying in any loop.
 
 -  And modify the ``step()`` method of ``SpaceMonitor`` to take the threshold into account
 
-.. code:: python
+.. code-block:: python
     :caption: protocols/space_monitor.py
 
        def step(self):
@@ -577,7 +577,7 @@ Our test should be failing because we are not passing the
 
 * Update Monitor test: Replace (for simplicity) all content in ``test_monitor.py`` with:
 
-.. code:: python
+.. code-block:: python
     :caption: tests/test_monitor.py
 
     import math
@@ -663,7 +663,7 @@ Add a test for the protocol monitor.
 We also have to test the protocol. You will need to import
 ProtMonitorSpace and a ``wait`` function:
 
-.. code:: python
+.. code-block:: python
 
     import math
     from pyworkflow.tests import *
@@ -676,7 +676,7 @@ Now add the code below inside the class ``TestMonitor`` right after
 ``self.assertEqual(1, len(testNotifier.getNotifications()), "There isn't a notification")``
 and right above our custom ``class TestNotifier``
 
-.. code:: python
+.. code-block:: python
 
     @classmethod
     def setUpClass(cls):
@@ -718,7 +718,7 @@ it has is the default timeout (100 minutes).
 
 You should get something like:
 
-.. code:: bash
+.. code-block:: bash
 
     ➜  ~ scipion test myfacility.tests.test_monitor.TestMonitor
 
