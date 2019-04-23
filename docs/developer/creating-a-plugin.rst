@@ -778,7 +778,7 @@ non-python files that you might have forgot to include in ``MANIFEST.in`` or in 
 
 .. code-block:: bash
 
-    cd $PLUGIN_HOME && twine upload dist/* -c "scipion-1.2"
+    cd $PLUGIN_HOME && twine upload dist/* -c "scipion-2.0"
 
 This means that this release we're uploading will be available for Scipion version 1.2 or higher.
 The scipion version must follow the pattern used above (scipion-X.Y(.Z))
