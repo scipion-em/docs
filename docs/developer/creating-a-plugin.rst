@@ -780,7 +780,7 @@ non-python files that you might have forgot to include in ``MANIFEST.in`` or in 
 
     cd $PLUGIN_HOME && twine upload dist/* -c "scipion-2.0"
 
-This means that this release we're uploading will be available for Scipion version 1.2 or higher.
+This means that this release we're uploading will be available for Scipion version 2.0 or higher.
 The scipion version must follow the pattern used above (scipion-X.Y(.Z))
 Now our plugin is on `PyPI <https://pypi.org/project/scipion-em-relion>`_.
     
