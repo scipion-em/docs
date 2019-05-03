@@ -94,10 +94,10 @@ display data in gallery and table modes and navigate through
 different blocks of data. Single images are opened using Image
 Window.
 
-TODO: Particle Picker
----------------------
 
-`Particle Picker <Picker>`__: The Xmipp Particle Picker allows the
+Particle Picker
+---------------
+`Particle Picker <picker>`__: The Xmipp Particle Picker allows the
 user to iterate over the micrographs to pick particles either
 manually or automatically, or visualize them. It is the default
 viewer for Scipion coordinates.

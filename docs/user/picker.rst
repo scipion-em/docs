@@ -14,10 +14,12 @@ over the micrograph using the mouse right click and zoom in/out the image using
 Shift + mouse scroll. After some training we can activate autopick to
 pick particles automatically.
 
+.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/picker.png
+   :width: 800
+   :align: center
+   :alt: Picker main GUI
 
-.. figure::https://github.com/I2PC/scipion/wiki/images/guis/picker.png
-
-    Figure 1. Picker main GUI
+   Fig. 1. Picker main GUI
 
 
 Toolbar
@@ -25,9 +27,10 @@ Toolbar
 
 From the toolbar we can select particle size, color and shapes: circle,
 square, center. Also to speed the picking process up we can use the tool
-|center-tool|. This tool centers particles automatically, using templates (see section
-Window: Particles and Templates). The |zoom-tool| button, when activated, allows the user
-to retain magnification and source rectangle when switching from one micrograph to another.
+|center-tool|. This tool centers particles automatically, using templates
+(see section Window: Particles and Templates). The |zoom-tool| button, when
+activated, allows the user to retain magnification and source rectangle when
+switching from one micrograph to another.
 
 Menu
 ====
@@ -43,10 +46,12 @@ results from adding the prefix and suffix specified to the micrograph name.
 If required, we can also invert X or Y axis, or apply some scale factor
 to coordinates.
 
+.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/import.png
+    :width: 400
+    :align: center
+    :alt: Import particles dialog
 
-.. figure::https://github.com/I2PC/scipion/wiki/images/guis/import.png[width="400"]
-
-    Figure 2. Import particles dialog
+    Fig. 2. Import particles dialog
 
 Filters
 -------
@@ -69,14 +74,20 @@ calculated automatically as we pick particles (using cross-correlation)
 autopicking.
 
 
-.. figure::https://github.com/I2PC/scipion/wiki/images/guis/templates.png[width="400"]
+.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/templates.png
+    :width: 400
+    :align: center
+    :alt: Templates
 
-    Figure 3. Templates
+    Fig. 3. Templates
 
 Particles picked can be displayed and centered using particles
 window, shown below, since this window provides more detail.
 
-.. figure::https://github.com/I2PC/scipion/wiki/images/guis/particles.png[width="400"]
+.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/particles.png
+    :width: 400
+    :align: center
+    :alt: Templates
 
     Figure 4. Particles
 
@@ -85,7 +96,10 @@ Help
 
 From the help menu the user can access this url or visualize help tips.
 
-.. figure::https://github.com/I2PC/scipion/wiki/images/guis/tips.png[width="600"]
+.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/tips.png
+    :width: 600
+    :align: center
+    :alt: Help tips
 
     Figure 5. Help tips
 
@@ -112,5 +126,5 @@ Scipion using Add Coordinates button. An output set of coordinates will
 be created as protocol output.
 
 
-.. |center-tool| image:: /docs/images/guis/center.png
-.. |zoom-tool| image:: /docs/images/guis/zoom.png
+.. |center-tool| image:: docs/images/guis/center.png
+.. |zoom-tool| image:: docs/images/guis/zoom.png
