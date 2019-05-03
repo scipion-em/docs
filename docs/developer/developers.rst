@@ -30,17 +30,13 @@ Follow these guides to add new elements to Scipion:
     creating-a-monitor
     generating-binaries
 
-TODO: Customize the HTML report
--------------------------------
+.. TODO: Customize the HTML report
 
-TODO - Developing output Viewers
---------------------------------
+.. TODO - Developing output Viewers
 
-TODO - Integrating parameter Wizards
-------------------------------------
+.. TODO - Integrating parameter Wizards
 
-TODO - Writing Tests, Tests, and more Tests
--------------------------------------------
+.. TODO - Writing Tests, Tests, and more Tests
 
 Development Tools
 =================
