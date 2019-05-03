@@ -87,9 +87,9 @@ a general project navigation, installing plugins, pick particles...
     picker
 
 
-TODO: ShowJ
+ShowJ
 -----------
-`ShowJ <ShowJ>`__: The default viewer for Scipion objects. It can
+`ShowJ <showJ>`__: The default viewer for Scipion objects. It can
 display data in gallery and table modes and navigate through
 different blocks of data. Single images are opened using Image
 Window.
