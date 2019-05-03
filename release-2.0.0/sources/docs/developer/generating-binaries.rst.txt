@@ -23,19 +23,19 @@ Getting ready: tagging release in git
 **In your local system**, move to the branch from where the bundle will be done
 (usually the master branch).
 
-.. code-block::
+.. code-block:: bash
     cd scipion
     git checkout <branch name>
 
 Ensure that https://github.com/I2PC/scipion/blob/bd81c8c3b3fb9ce30546b1e8835c3b543f130553/scipion#L43
 [Version, NickName and DateRelase] variables are updated in the scipion script
 
-.. code-block::
+.. code-block:: bash
     more scipion
 
 Make a git tag to the last commit in that branch
 
-.. code-block::
+.. code-block:: bash
     git tag v2.0
 
 replace ``v2.0`` for the right version number.
@@ -49,27 +49,29 @@ This VM is on heisenberg (user scipion) and the following commands are useful to
 manage it:
 
 * List existing VMs
-.. code-block::
+
+.. code-block:: bash
     VBoxManage list vms
 
 (machine is called "CentOS_64")
 
 * List running vms
 
-.. code-block::
+.. code-block:: bash
     VBoxManage list runningvms
 
 if CentOS_64 is not listed, then
 
 * Start the VM
-.. code-block::
+
+.. code-block:: bash
     VBoxHeadless -startvm "CentOS_64" &
 
 * Access the VM from heisenberg
 
 Wait a bit till it starts and then access via ssh
 
-.. code-block::
+.. code-block:: bash
     ssh -p 2222 xmipp@127.0.0.1
 
 (pass: 'V1rtu4l.')
@@ -77,6 +79,7 @@ Wait a bit till it starts and then access via ssh
 * Stop VM
 
 It is recommended to stop the VM once bundles are done and copied out of the machine.
+
 .. code-block:: bash
     VBoxManage controlvm CentOS_64 poweroff
 
@@ -89,7 +92,7 @@ Once in the machine where we will do the bundle (see above to log in CentOS_64).
 We must get the repository. For generating the binaries we do not need the whole
 repository history (option ``--depth 1``).
 
-.. code-block::
+.. code-block:: bash
     git clone --depth 1 https://github.com/I2PC/scipion.git
 
 
@@ -97,19 +100,20 @@ repository history (option ``--depth 1``).
 
 If you want to make a bundle from a certain branch (e.g. to make a beta), you need to do instead:
 
-.. code-block::
+.. code-block:: bash
     git clone --depth 1 https://github.com/I2PC/scipion.git -b branch-name
 
 
 * Generate the Source zipped tar
-.. code-block::
+
+.. code-block:: bash
     python scipion/pyworkflow/install/tar.py source
 
 
 This script will create the zipped tar file skipping temporary files and build artifacts.
 The script should print the tar command used:
 
-.. code-block::
+.. code-block:: bash
      tar czf scipion_devel__source.tgz \
     --exclude=.git --exclude='*.o' --exclude='*.os' --exclude='*pyc' \
     --exclude='*.mrc' --exclude='*.stk' --exclude='*.gz'  \
@@ -118,7 +122,7 @@ The script should print the tar command used:
 
 * Create a Basic Installation
 
-.. code-block::
+.. code-block:: bash
     cd scipion
     ./scipion config
     ./scipion install --binary -j 5
@@ -129,10 +133,10 @@ In this CentOS machine the ``./scipion config`` should complain about the MPI
 variables.
 You will need to correct with mpi directories. For example:
 
-.. code-block::
-MPI_BINDIR = /usr/lib64/openmpi-1.10/bin
-MPI_LIBDIR = /usr/lib64/openmpi-1.10/lib
-MPI_INCLUDE = /usr/include/openmpi-1.10-x86_64
+.. code-block:: bash
+    MPI_BINDIR = /usr/lib64/openmpi-1.10/bin
+    MPI_LIBDIR = /usr/lib64/openmpi-1.10/lib
+    MPI_INCLUDE = /usr/include/openmpi-1.10-x86_64
 
 
 * Install other EM packages (not for normal bundles)
