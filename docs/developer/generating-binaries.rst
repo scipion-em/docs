@@ -4,80 +4,63 @@
 Generating Binaries
 =====================
 
-For a new Scipion release we generate a "binary" version (a Scipion installation
-that can be moved as a whole and work in basically any machine without
-recompiling). The main difference is the ``--binary`` flag when installing from a
-fresh download, that will later change the RPATH of the binaries.
+For a new Scipion release we generate a "binary" version (a Scipion installation that can be moved
+as a whole and work in basically any machine without recompiling). The main difference is the `--binary` flag when installing from a fresh download, that will later change the RPATH of the binaries.
 
 In order to get the maximum libc compatibility, it is recommended to
 generate the binary package in a computer running an old Linux. One
 option is a Centos-6.5 virtual machine (see below for details).
 
-The following steps summarize how to generate the binaries in a Centos_64
-virtual machine.
+The following steps summarize how to generate the binaries in a Centos_64 virtual machine.
 
+== Getting ready: tagging release in git
 
-Getting ready: tagging release in git
-=====================================
-
-*In your local system*, move to the branch from where the bundle will be done
-(usually the master branch).
-
-.. code-block::
-    cd scipion
-    git checkout <branch name>
+*In your local system*, move to the branch from where the bundle will be done (usually the master branch).
+----
+cd scipion
+git checkout <branch name>
+----
 
 Ensure that https://github.com/I2PC/scipion/blob/bd81c8c3b3fb9ce30546b1e8835c3b543f130553/scipion#L43[Version, NickName and DateRelase] variables are updated in the scipion script
-
-.. code-block::
-    more scipion
+----
+more scipion
+----
 
 Make a git tag to the last commit in that branch
-
-.. code-block::
-    git tag v1.2
-
-
-replace ``v1.2`` for the right version number.
+----
+git tag v1.2
+----
+replace `v1.2` for the right version number.
 
 
-Accessing the Virtual machine
-=============================
+== Accessing the Virtual machine
 
 We have set up a Centos 6.5 virtual machine to generate the Scipion bundles.
-This VM is on heisenberg (user scipion) and the following commands are useful to
-manage it:
+This VM is on heisenberg (user scipion) and the following commands are useful to manage it:
 
 * List existing VMs
-.. code-block::
-    VBoxManage list vms
-
+----
+VBoxManage list vms
+----
 (machine is called "CentOS_64")
 
-List running vms
-=================
-
-.. code-block::
-    VBoxManage list runningvms
-
-
+* List running vms
+----
+VBoxManage list runningvms
+----
 if CentOS_64 is not listed, then
 
-Start the VM
-============
+* Start the VM
+----
+VBoxHeadless -startvm "CentOS_64" &
+----
 
-.. code-block::
-    VBoxHeadless -startvm "CentOS_64" &
-
-
-Access the VM from heisenberg
-=============================
+* Access the VM from heisenberg
 
 Wait a bit till it starts and then access via ssh
-
-.. code-block::
-    ssh -p 2222 xmipp@127.0.0.1
-
+----
+ssh -p 2222 xmipp@127.0.0.1
+----
 (pass: 'V1rtu4l.')
 
 * Stop VM
