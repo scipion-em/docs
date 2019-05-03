@@ -28,6 +28,7 @@ Follow these guides to add new elements to Scipion:
     creating-a-protocol
     building-scipion-docs
     creating-a-monitor
+    generating-binaries
 
 TODO: Customize the HTML report
 -------------------------------
