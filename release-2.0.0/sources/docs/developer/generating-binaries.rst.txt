@@ -24,18 +24,22 @@ Getting ready: tagging release in git
 (usually the master branch).
 
 .. code-block:: bash
+
     cd scipion
     git checkout <branch name>
 
-Ensure that https://github.com/I2PC/scipion/blob/bd81c8c3b3fb9ce30546b1e8835c3b543f130553/scipion#L43
-[Version, NickName and DateRelase] variables are updated in the scipion script
+Ensure that `[Version, NickName and DateRelase] <https://github.com/I2PC/scipion/blob/bd81c8c3b3fb9ce30546b1e8835c3b543f130553/scipion#L43>`_.
+variables are updated in the scipion script
+
 
 .. code-block:: bash
+
     more scipion
 
 Make a git tag to the last commit in that branch
 
 .. code-block:: bash
+
     git tag v2.0
 
 replace ``v2.0`` for the right version number.
@@ -51,6 +55,7 @@ manage it:
 * List existing VMs
 
 .. code-block:: bash
+
     VBoxManage list vms
 
 (machine is called "CentOS_64")
@@ -58,6 +63,7 @@ manage it:
 * List running vms
 
 .. code-block:: bash
+
     VBoxManage list runningvms
 
 if CentOS_64 is not listed, then
@@ -65,6 +71,7 @@ if CentOS_64 is not listed, then
 * Start the VM
 
 .. code-block:: bash
+
     VBoxHeadless -startvm "CentOS_64" &
 
 * Access the VM from heisenberg
@@ -72,6 +79,7 @@ if CentOS_64 is not listed, then
 Wait a bit till it starts and then access via ssh
 
 .. code-block:: bash
+
     ssh -p 2222 xmipp@127.0.0.1
 
 (pass: 'V1rtu4l.')
@@ -81,6 +89,7 @@ Wait a bit till it starts and then access via ssh
 It is recommended to stop the VM once bundles are done and copied out of the machine.
 
 .. code-block:: bash
+
     VBoxManage controlvm CentOS_64 poweroff
 
 ---------------
@@ -93,6 +102,7 @@ We must get the repository. For generating the binaries we do not need the whole
 repository history (option ``--depth 1``).
 
 .. code-block:: bash
+
     git clone --depth 1 https://github.com/I2PC/scipion.git
 
 
@@ -101,12 +111,14 @@ repository history (option ``--depth 1``).
 If you want to make a bundle from a certain branch (e.g. to make a beta), you need to do instead:
 
 .. code-block:: bash
+
     git clone --depth 1 https://github.com/I2PC/scipion.git -b branch-name
 
 
 * Generate the Source zipped tar
 
 .. code-block:: bash
+
     python scipion/pyworkflow/install/tar.py source
 
 
@@ -123,6 +135,7 @@ The script should print the tar command used:
 * Create a Basic Installation
 
 .. code-block:: bash
+
     cd scipion
     ./scipion config
     ./scipion install --binary -j 5
@@ -134,6 +147,7 @@ variables.
 You will need to correct with mpi directories. For example:
 
 .. code-block:: bash
+
     MPI_BINDIR = /usr/lib64/openmpi-1.10/bin
     MPI_LIBDIR = /usr/lib64/openmpi-1.10/lib
     MPI_INCLUDE = /usr/include/openmpi-1.10-x86_64
@@ -142,6 +156,7 @@ You will need to correct with mpi directories. For example:
 * Install other EM packages (not for normal bundles)
 
 .. code-block::
+
     cd scipion
     ./scipion install --no-xmipp --binary -j 5 relion-1.4
     ./scipion install --no-xmipp bsoft-1.9.0 chimera ctffind ctffind4 dogpicker eman2.11 frealign motioncorr resmap spider summovie unblur
