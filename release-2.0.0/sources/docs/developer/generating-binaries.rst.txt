@@ -138,7 +138,7 @@ The script should print the tar command used:
 
     cd scipion
     ./scipion config
-    ./scipion install --binary -j 5
+    ./scipion install -j 5
     cd ..
     python scipion/pyworkflow/install//tar.py linux64
 
@@ -153,13 +153,13 @@ You will need to correct with mpi directories. For example:
     MPI_INCLUDE = /usr/include/openmpi-1.10-x86_64
 
 
-* Install other EM packages (not for normal bundles)
+* Install Scipion plugins
 
-.. code-block::
+.. code-block:: bash
 
     cd scipion
-    ./scipion install --no-xmipp --binary -j 5 relion-1.4
-    ./scipion install --no-xmipp bsoft-1.9.0 chimera ctffind ctffind4 dogpicker eman2.11 frealign motioncorr resmap spider summovie unblur
+    $SCIPION_HOME/./scipion installp --help
+    $SCIPION_HOME/./scipion installp -p scipion-em-<plugin_name>
     cd ..
     python scipion/scripts/tar.py linux64-em-packages
 
