@@ -126,5 +126,5 @@ Scipion using Add Coordinates button. An output set of coordinates will
 be created as protocol output.
 
 
-.. |center-tool| image:: docs/images/guis/center.png
-.. |zoom-tool| image:: docs/images/guis/zoom.png
+.. |center-tool| image:: /docs/images/guis/center.png
+.. |zoom-tool| image:: /docs/images/guis/zoom.png
