@@ -43,7 +43,7 @@ Development Tools
 
 Git
 ---
-:doc:`Using git<howtogit>` Find the most used commands and practices using *git* in Scipion.
+`Using git <how-to-git>`_: Find the most used commands and practices using *git* in Scipion.
 
 Development environment
 -----------------------
