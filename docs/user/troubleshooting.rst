@@ -1,4 +1,3 @@
-
 .. _troubleshooting:
 
 ===============
@@ -7,6 +6,8 @@ Troubleshooting
 
 This page compiles a list of common errors that can appear when
 using Scipion.
+
+.. contents::
 
 Fixing fonts in Ubuntu 18
 =========================
