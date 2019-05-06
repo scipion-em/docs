@@ -129,7 +129,7 @@ FAQ
 
 Troubleshooting
 ---------------------
-:ref:`Troubleshooting <Troubleshooting>`
+`Troubleshooting <troubleshooting>`__
 
 TODO: Relion in Scipion
 -----------------------
