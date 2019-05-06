@@ -105,9 +105,9 @@ viewer for Scipion coordinates.
 Processing How To's
 ===================
 
-TODO: Importing Data
+Importing Data
 --------------------
-`Importing Data <ImportingData>`__: Importing data is the first step
+`Importing Data <importingData>`__: Importing data is the first step
 for any Scipion project. Find out how to import movies, micrographs,
 CTFs, and particles and which are the formats currently supported.
 
