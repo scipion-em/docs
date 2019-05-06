@@ -117,14 +117,15 @@ Creating subsets
 from micrographs, particles, volumes or from 2D/3D classifications.
 This tool is valid for results from any package.
 
-TODO: How to create 2D masks
-----------------------------
-`How to create 2D masks <Create2DMask>`__: Guide to creating 2D
-masks, either interactively or through protocols.
+.. TODO: How to create 2D masks
+.. ----------------------------
+.. `How to create 2D masks <Create2DMask>`__: Guide to creating 2D
+.. masks, either interactively or through protocols.
 
-TODO: FAQ
+FAQ
 ---------
-`FAQ <FAQ>`__: Frequently Asked Questions
+`FAQ <faq>`__: Frequently Asked Questions
+
 
 Troubleshooting
 ---------------------
