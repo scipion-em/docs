@@ -52,5 +52,5 @@ or `PyCharm-IDE <pycharm>`_
 
 Advanced Development Topics
 ===========================
-The following link contains :doc:`Advanced-Development-Topics<Advanced Development Topics>`. The information provided is intended for developers working in our lab and developing the core of
+The following link contains `Advanced-Development-Topics <advanced-topics>`. The information provided is intended for developers working in our lab and developing the core of
 Scipion. Anyway, some general information is also found such as Profiling and Debugging.
