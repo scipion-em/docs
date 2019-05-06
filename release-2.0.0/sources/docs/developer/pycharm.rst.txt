@@ -39,20 +39,21 @@ Click on `Tools > Create command line launcher...` and type the desired path to 
 
 3. In the function ``` def process_args(argv):```, add the code in **bold**. Remember to replace ```<your-scipion-home>``` with the right path and save your changes:
 
-<pre>
 
-...
-.. code-block:: python
 
+.. code-block:: bash
+
+    <pre>
+    ...
     elif arg == 'merge' and i == 0:
         args.append(arg)
     <b>elif arg == 'debug':
         os.system("export LD_LIBRARY_PATH=&lt;your-scipion-home&gt;/software/lib/")
         os.system("echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope")</b>
     elif arg == '-l' or arg == '--line':
-...
 
-</pre>
+    ...
+    </pre>
 
 4. Start pycharm from your terminal with your new debug option - will prompt you to enter your password.
 
