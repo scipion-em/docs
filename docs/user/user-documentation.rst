@@ -131,8 +131,8 @@ Troubleshooting
 ---------------------
 `Troubleshooting <troubleshooting>`__
 
-TODO: Relion in Scipion
+Relion in Scipion
 -----------------------
-`Relion in Scipion <Relion-in-Scipion>`__: Check how to use Relion inside Scipion.
+`Relion in Scipion <relion-in-scipion>`__: Check how to use Relion inside Scipion.
 Some of the original Relion FAQ are addressed.
 
