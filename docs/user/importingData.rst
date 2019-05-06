@@ -4,16 +4,7 @@
 Importing Data
 ==============
 
-Table of Contents:
-
-* `[Introduction] <(#introduction)>`_
-* `[CTFs] <(#ctfs)>`_
-* `[Coordinates] <(#coordinates)>`_
-* `[Micrographs] <(#micrographs)>`_
-* `[Particles] <(#particles)>`_
-* `[Tilt pairs] <(#tilt-pairs)>`_
-* `[Movies, volumes, averages, masks etc.] <(#movies-volumes-averages-masks-etc)>`_
-* `[Import/export Scipion projects and workflows] <(#importexport-scipion-projects-and-workflows)>`_
+.. contents:: Table of Contents:
 
 **Introduction**
 ----------------
