@@ -22,7 +22,7 @@ Specific
 --------
 `[Git for SVN users] <https://git.wiki.kernel.org/index.php/GitSvnCrashCourse>`_
 
-`[Branching] <http://gitref.org/branching/>`_
+`[Services] <https://services.github.com/>`_
 
 Configuration
 =============
@@ -434,4 +434,4 @@ Finally, just create a PR across forks using as base I2PC/devel
 
 `[Changing a remote's URL] <http://help.github.com/articles/changing-a-remote-s-url/>`_
 
-`[online git tutorial] <http://try.github.io/levels/1/challenges/1>`_
+`[Online git tutorial] <http://try.github.io/levels/1/challenges/1>`_
