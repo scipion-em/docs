@@ -47,7 +47,8 @@ Git
 
 Development environment
 -----------------------
-Setup your Development Environment, we prefer :doc:`Eclipse-IDE<eclipse>` or :doc:`PyCharm-IDE<pycharm>`
+Setup your Development Environment, we prefer `Eclipse-IDE <eclipse>`_
+or `PyCharm-IDE <pycharm>`_
 
 Advanced Development Topics
 ===========================
