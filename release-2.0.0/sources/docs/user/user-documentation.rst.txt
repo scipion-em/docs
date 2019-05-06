@@ -111,9 +111,9 @@ Importing Data
 for any Scipion project. Find out how to import movies, micrographs,
 CTFs, and particles and which are the formats currently supported.
 
-TODO: Creating subsets
+Creating subsets
 ----------------------
-`Creating subsets <ProtUserSubSet>`__: Find out how to create subsets
+`Creating subsets <protUserSubSet>`__: Find out how to create subsets
 from micrographs, particles, volumes or from 2D/3D classifications.
 This tool is valid for results from any package.
 
