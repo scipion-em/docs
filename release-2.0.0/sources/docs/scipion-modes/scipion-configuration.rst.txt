@@ -72,3 +72,12 @@ the ``LINKFLAGS`` variable of ``scipion.conf``. For example:
 
     CUDA = True
     LINKFLAGS = -L/opt/CUDA/cuda-5.5/lib64
+    
+OpenCV flag
+===========
+
+To install Xmipp without OpenCV and, then skipping the programs using it (Optical Alignment and Volume Enrich), you will need to set OPENCV to False in ``scipion.conf``:
+
+::
+
+    OPENCV = False

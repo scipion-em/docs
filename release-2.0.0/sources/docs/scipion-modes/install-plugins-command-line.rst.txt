@@ -57,9 +57,11 @@ example. First, we clone the repo, for example in our home ( ``~`` ):
     git clone git@github.com:scipion-em/scipion-em-relion.git
 
 Now we should have the plugin in ``~/scipion-em-relion``. We can install
-in devel mode with the command:
+in devel mode by pointing the path after the ``-p`` flag:
 
-scipion installp -p ~/scipion-em-relion --devel
+::
+
+    scipion installp -p ~/scipion-em-relion --devel
 
 Changes made to the plugin should now be available when you launch
 Scipion.
