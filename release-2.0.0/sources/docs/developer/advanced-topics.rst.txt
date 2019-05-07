@@ -16,7 +16,10 @@ Installation system
 Desktop development
 -------------------
 
-Most of the Scipion graphic user interfaces (GUIs) to visualize EM objects (particles, coordinates, volumes, etc) have been developed in Java, extending Xmipp ShowJ and Particle Picker. Implementation details are available link:Scipion-Java[here].
+Most of the Scipion graphic user interfaces (GUIs) to visualize EM objects
+(particles, coordinates, volumes, etc) have been developed in Java, extending
+Xmipp ShowJ and Particle Picker. Implementation details are available
+`[here] <scipion-java>`_.
 
 Web development
 ----------------
