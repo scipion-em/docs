@@ -1,9 +1,15 @@
+.. _web-developers-page:
+
+====================
+Web developers page
+====================
+
 Work in progress!
 
 On this page you will find information for developers who need to deal with
 Scipion Web.
 
-First of all check out our `Introduction to Scipion web <fdf>`_.
+First of all check out our `Introduction to Scipion web <introduction-scipion-web>`_.
 
 As a Scipion web developer you might be interested in:
 
