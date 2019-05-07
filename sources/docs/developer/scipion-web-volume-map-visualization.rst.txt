@@ -27,20 +27,20 @@ used as an applet in a web page or as a desktop application.
 
 Advantages
 ----------
-. We are familiar with Open Astex Viewer because we have another project in the
-  laboratory that uses it: `PeppeR <http://pepper.cnb.csic.es/das/PeppeR/>`_.
-. It can be displayed as an applet in a web page.
-. It can be customized.
-. It allows interaction.
+1. We are familiar with Open Astex Viewer because we have another project in the
+   laboratory that uses it: `PeppeR <http://pepper.cnb.csic.es/das/PeppeR/>`_.
+2. It can be displayed as an applet in a web page.
+3. It can be customized.
+4. It allows interaction.
 
 
 Disadvantages
 --------------
 
-. When it is displayed as an applet it has all the disadvantages of an
-  applet.
-. When it is used as an applet it has some restrictions that we
-  will see below in the Installation section.
+1. When it is displayed as an applet it has all the disadvantages of an
+   applet.
+2. When it is used as an applet it has some restrictions that we
+   will see below in the Installation section.
 
 Installation
 -------------
@@ -52,9 +52,9 @@ will use `EMDB jar <http://www.ebi.ac.uk/pdbe/entry/applets/OpenAstexViewer.jar>
 Since we are working with Django, the installation is referred in to this
 framework.
 
-. Place jar file in the Django static folder (Django: STATIC_ROOT = 'static').
+1. Place jar file in the Django static folder (Django: STATIC_ROOT = 'static').
 
-. In the html code include the applet code (here is an example):
+2. In the html code include the applet code (here is an example):
 
 .. code-block:: bash
 
@@ -100,22 +100,22 @@ in a web page.
 Advantages
 -----------
 
-. It does not use an applet; it is html, css and javascript code.
-. It has no restrictions.
+1. It does not use an applet; it is html, css and javascript code.
+2. It has no restrictions.
 
 
 Disadvantages
 -------------
 
-. It must be installed on the server machine.
-. It does not allow complex interactions.
+1. It must be installed on the server machine.
+2. It does not allow complex interactions.
 
 Installation
 ---------------
 
-. We must install a headless Chimera version; this version is for servers or other places where we do not need a user GUI, and it avoids   some problems for our operations.
+1. We must install a headless Chimera version; this version is for servers or other places where we do not need a user GUI, and it avoids   some problems for our operations.
 
-. Our code must open Chimera, load the volume map, export it, take the needed code from exported file, and add it to our html code. Here is an example code:
+2. Our code must open Chimera, load the volume map, export it, take the needed code from exported file, and add it to our html code. Here is an example code:
 
 .. code-block:: bash
 
@@ -143,10 +143,10 @@ We are going to look at each line function:
 Problems
 -----------
 
-. With an incorrect threshold we will see a black result. With a very
+1. With an incorrect threshold we will see a black result. With a very
   bad threshold we will not see anything.
 
-. After some use, ReadStdin utility command has been
+2. After some use, ReadStdin utility command has been
   removed because we had some problems, but we must know it. Now we use
   this instruction:
 

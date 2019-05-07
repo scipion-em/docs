@@ -30,7 +30,9 @@ Web development
 Scipion from the command line
 ------------------------------
 
-There are many things you can do with Scipion using just the command line, like running tests, starting the webserver, or opening a ShowJ viewer. Read this link:Scipion-commands[page] to learn how.
+There are many things you can do with Scipion using just the command line, like
+running tests, starting the webserver, or opening a ShowJ viewer. Read
+this `[page] <scipion-commands>`_ to learn how.
 
 Profiling and Debugging
 -----------------------
