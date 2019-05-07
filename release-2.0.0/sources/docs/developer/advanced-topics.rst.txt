@@ -38,7 +38,7 @@ Profiling and Debugging
 -----------------------
 
 * Check what can be reused from here: http://xmipp.cnb.csic.es/twiki/bin/view/Xmipp/DebuggingProfiling, check with Juan if he has some NOTES about profiling
-* link:Valgrind-suite-tools-introduction[Profiling in C/C++: Valgrind]
+* `Profiling in C/C++: Valgrind <valgrind-suite-tools-introduction>`_
 * Debugging in Python: with PyCharm and WinPdb
 
 Virtualization
