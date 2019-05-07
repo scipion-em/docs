@@ -44,7 +44,7 @@ Profiling and Debugging
 Virtualization
 ---------------
 
-* link:Scipion-image[Preparing a Scipion image]
+* `Preparing a Scipion image <scipion-image>`_
 
 Scipioncloud
 -------------
