@@ -4,8 +4,8 @@
 Scipion Java
 ============
 
-As you may know `ShowJ <showJ>`_ is our default viewer for most of Scipion
-objects and `Particle Picker <picker>`_ allows us to visualize coordinates or
+As you may know `ShowJ <https://scipion-em.github.io/docs/docs/user/user-documentation.html#showj>`_ is our default viewer for most of Scipion
+objects and `Particle Picker <https://scipion-em.github.io/docs/docs/user/user-documentation.html#particle-picker>`_ allows us to visualize coordinates or
 pick particles either manually or automatically. Scipion source packages related
 to ShowJ and Particle Picking include:
 
