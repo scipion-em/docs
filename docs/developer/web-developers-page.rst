@@ -13,9 +13,9 @@ First of all check out our `Introduction to Scipion web <introduction-scipion-we
 
 As a Scipion web developer you might be interested in:
 
-* link:Scipion-web-development-setup[Setting-your-web-development-environment]
-* link:Scipion-web-production-setup[Setting a production environment]
-* link:Scipion-web-volume-map-visualization[Scipion web volume map visualization]
-* link:Creating-a-new-webtool[Creating a new web tool]
+* `Setting-your-web-development-environment <scipion-web-development-setup>`_
+* `Setting a production environment <setting-a-production-environment>`_
+* `Scipion web volume map visualization <scipion-web-volume-map-visualization>`_
+* `Creating a new web tool <creating-a-new-webtool>`_
 
-Legacy: link:How-to-install-drupal-in-sourceforge[How to install drupal in sourceforge]
+Legacy: `How to install drupal in sourceforge <how-to-install-drupal-in-sourceforge>`_

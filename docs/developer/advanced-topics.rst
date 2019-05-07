@@ -24,7 +24,7 @@ Xmipp ShowJ and Particle Picker. Implementation details are available
 Web development
 ----------------
 
-* `[Web developments and tools].... <web-developers-page>`_
+* `Web developments and tools <web-developers-page>`_
 * Conventions: Description of the conventions followed in Scipion.
 
 Scipion from the command line
