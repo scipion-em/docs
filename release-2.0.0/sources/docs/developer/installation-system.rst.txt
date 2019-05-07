@@ -1,7 +1,13 @@
+.. _installation-system:
+
+===================
+Installation Script
+===================
 
 This page will explain the Scipion installation system
 
 .. contents:: Table of Contents
+
 
 Developers
 ==========
@@ -114,8 +120,7 @@ package)
 If you need to add (or modify) low-level features, ``install/funcs.py`` is
 your file.
 
-Solution to exercise 1
------------------------
+**Solution to exercise 1**
 
 In Exercise 1, the solution would be very simple. Let's say you're trying to
 add the python module paramiko. With every library, every module, and
@@ -199,8 +204,7 @@ note that it is the same as typing the line:
         deps=[python],
         default=False)
 
-Solution to exercise 2
-------------------------
+**Solution to exercise 2**
 
 Exercise 2 is also simple and is an example of how can we compile a
 new external library. In this case, developer will only need to add a
@@ -256,8 +260,7 @@ CFLAGS=-DSQLITE_ENABLE_UPDATE_DELETE_LIMIT=1'" and finally executed
 'make install' on that folder. The resulting log will be stored at
 software/log/sqlite_configure.log and software/log/sqlite_make.log
 
-Solution to exercise 3
-----------------------
+**Solution to exercise 3**
 
 The exercise 3 aims at building a new EM Package called 'TRFEMP'. In
 this case we will use the *`AddPackage()`* pseudo-builder. This one has the
@@ -312,8 +315,7 @@ If the TRFEMP package is not installed, executing
 etc.
 
 
-Xmipp
------
+**Xmipp**
 
 Xmipp is installed by default with a similar philosophy: ``scipion`` uses
 ``install/script.py`` to call ``install/scons.py``.
