@@ -49,9 +49,9 @@ Virtualization
 Scipioncloud
 -------------
 
-link:ScipionCloud[ScipionCloud] main "cloud platforms" are Amazon Web Services (AWS) and EGI Federated Cloud (FedCloud)
+`ScipionCloud <scipion-cloud>`_ main "cloud platforms" are Amazon Web Services (AWS) and EGI Federated Cloud (FedCloud)
 
-* link:ScipionCloud-on-Amazon-Web-Services-EC2[ScipionCloud on AWS]
+* `ScipionCloud on AWS <scipionCloud-on-amazon-web-services-ec2>`_
 * link:Scipion-on-the-EGI-Federated-Cloud[ScipionCloud on FedCloud]
 * link:Scipion-HPC-cluster-on-AWS[Deploying an HPC cluster on AWS]
 * link:AWS-Instance-Types-for-Starcluster[Starcluster instance types (AWS)]
