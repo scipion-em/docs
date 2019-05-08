@@ -66,10 +66,10 @@ GPU
 Scipion ubiquity
 ----------------
 
- * link:Scipion-demo[Scipion demo]
+ * `Scipion demo <scipion-demo>`_
  * Scipion live
 
 References
 -----------
-* The http://scipion.cnb.csic.es/old-docs/bin/view/TWiki/WebHome[original Scipion Wiki]
+* The `original Scipion Wiki <http://scipion.cnb.csic.es/old-docs/bin/view/TWiki/WebHome>`_
 
