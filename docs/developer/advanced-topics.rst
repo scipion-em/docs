@@ -56,12 +56,12 @@ Scipioncloud
 * `Deploying an HPC cluster on AWS <scipion-hpc-cluster-on-aws>`_
 * `Starcluster instance types (AWS) <aws-instance-types-for-starcluster>`_
 * `ScipionCloud deployments <scipion-deployments-on-the-cloud>`_ : on `FedCloud <scipion-deployments-on-the-egi-federated-cloud>`_
-* link:Scipion-image[Preparing a Scipion image] (useful also for ScipionCloud)
+* `Preparing a Scipion image <scipion-image/>`_ (useful also for ScipionCloud)
 
 GPU
 ---
-* link:GPU[GPU purchase guide. Enabling GPU in Scipion]
-* link:GPU-protocol-standardization[GPU params standardization in Scipion protocols]
+* `GPU purchase guide. Enabling GPU in Scipion <https://scipion-em.github.io/docs/docs/developer/enable-gpu-in-scipion>`_
+* `GPU params standardization in Scipion protocols <gpu-protocol-standardization>`_
 
 Scipion ubiquity
 ----------------
