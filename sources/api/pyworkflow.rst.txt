@@ -1,3 +1,6 @@
+.. _pyworkflow.rst:
+
+==================
 pyworkflow package
 ==================
 
@@ -30,6 +33,7 @@ Module contents
 ---------------
 
 .. automodule:: pyworkflow
+
     :members:
     :undoc-members:
     :show-inheritance:
