@@ -112,6 +112,7 @@ Use libraries functions whenever is possible. Avoid using system
 commands.
 
 .. code-block:: bash
+
     - YES:
     moveFile(sourceFile, destFile)
     cleanPatern(“*.log”)
