@@ -55,7 +55,7 @@ Scipioncloud
 * `ScipionCloud on FedCloud <scipion-on-the-egi-federated-cloud>`_
 * `Deploying an HPC cluster on AWS <scipion-hpc-cluster-on-aws>`_
 * `Starcluster instance types (AWS) <aws-instance-types-for-starcluster>`_
-* link:Scipion-deployments-on-the-Cloud[ScipionCloud deployments]: on link:Scipion-deployments-on-the-EGI-Federated-Cloud[FedCloud]
+* `ScipionCloud deployments <scipion-deployments-on-the-cloud>`_ : on `FedCloud <scipion-deployments-on-the-egi-federated-cloud>`_
 * link:Scipion-image[Preparing a Scipion image] (useful also for ScipionCloud)
 
 GPU
