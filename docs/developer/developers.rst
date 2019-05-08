@@ -28,8 +28,7 @@ Follow these guides to add new elements to Scipion:
     * `Building Scipion docs <building-scipion-docs>`_
     * `Creating a monitor <creating-a-monitor>`_
     * `Generating binaries <generating-binaries>`_
-
-.. TODO: Customize the HTML report
+    * `Customize the HTML report <customize-html-report>`_
 
 .. TODO - Developing output Viewers
 
