@@ -52,9 +52,9 @@ Scipioncloud
 `ScipionCloud <scipion-cloud>`_ main "cloud platforms" are Amazon Web Services (AWS) and EGI Federated Cloud (FedCloud)
 
 * `ScipionCloud on AWS <scipionCloud-on-amazon-web-services-ec2>`_
-* link:Scipion-on-the-EGI-Federated-Cloud[ScipionCloud on FedCloud]
-* link:Scipion-HPC-cluster-on-AWS[Deploying an HPC cluster on AWS]
-* link:AWS-Instance-Types-for-Starcluster[Starcluster instance types (AWS)]
+* `ScipionCloud on FedCloud <scipion-on-the-egi-federated-cloud>`_
+* `Deploying an HPC cluster on AWS <scipion-hpc-cluster-on-aws>`_
+* `Starcluster instance types (AWS) <aws-instance-types-for-starcluster>`_
 * link:Scipion-deployments-on-the-Cloud[ScipionCloud deployments]: on link:Scipion-deployments-on-the-EGI-Federated-Cloud[FedCloud]
 * link:Scipion-image[Preparing a Scipion image] (useful also for ScipionCloud)
 
