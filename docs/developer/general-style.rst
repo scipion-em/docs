@@ -10,7 +10,7 @@ Branding Guidelines
 Logo
 -----
 
-Refer to the original link:Artwork[Artwork] page
+Refer to the original `Artwork <artwork>`_ page
 
 
 Image&media
@@ -51,16 +51,16 @@ unless it was extremely necessary.
 
 Firebrick (b22222): Red color for background label
 
-F3CBCB: Very light red for row selection
+**F3CBCB**: Very light red for row selection
 
-EAEBFF: Very light blue for even rows
+**EAEBFF**: Very light blue for even rows
 
-EAEBEC: Light grey for background color in form, protocol, table header
+**EAEBEC**: Light grey for background color in form, protocol, table header
 and west container
 
-F2F2F2: Very light grey for odd rows, input background, etc
+**F2F2F2**: Very light grey for odd rows, input background, etc
 
-6E6E6E: Very dark grey for project title, tubes, etc
+**6E6E6E**: Very dark grey for project title, tubes, etc
 
 Messages
 ========
