@@ -226,7 +226,7 @@ terminal:
       > Please install Xmipp to get full functionality.
    (Configuration->Plugins->scipion-em-xmipp in Scipion manager window)
 
-* Open Plugin Manager (it will take a minute to load)
+* Open Plugin Manager
 
 .. image:: /docs/images/guis/scipion_config_menu.png
    :alt: Scipion project manager

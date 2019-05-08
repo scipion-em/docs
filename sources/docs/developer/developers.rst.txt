@@ -1,33 +1,32 @@
+.. _developers:
+
+===============
+Developers Page
+===============
 
 Welcome to the **Scipion Developers Page**!
 
 On this page, you will find documentation about the Scipion architecture and how you can easily 
 extend Scipion with new functionality. If you are completely new to the Scipion framework, we 
-recommend that you start with our :doc:`Introduction-to-Scipion-Developers<Introduction to Scipion Developers>`
+recommend that you start with our `Introduction to Scipion Developers <introduction-to-scipion-developers>`_
 
 General Information
-===================
-.. toctree::
-    :maxdepth: 1
-
-    Architecture: take a look at the big picture<architecture>
-    Scipion EM Classes: Diagram containing EM Classes and its relations<scipion-em-classes>
-    Release-notes: What has been done in each release<release-notes>.
+-------------------
+    * `Architecture <architecture>`_: take a look at the big picture
+    * `Scipion EM Classes <scipion-em-classes>`_: Diagram containing EM Classes and its relations
+    * `Release-notes <release-notes>`_: What has been done in each release.
 
 .. _extending-scipion:
 
 Extending Scipion
-=================
+-----------------
 Follow these guides to add new elements to Scipion:
 
-.. toctree::
-    :maxdepth: 1
-
-    creating-a-plugin
-    creating-a-protocol
-    building-scipion-docs
-    creating-a-monitor
-    generating-binaries
+    * `Creating a plugin <creating-a-plugin>`_
+    * `Creating a protocol <creating-a-protocol>`_
+    * `Building Scipion docs <building-scipion-docs>`_
+    * `Creating a monitor <creating-a-monitor>`_
+    * `Generating binaries <generating-binaries>`_
 
 .. TODO: Customize the HTML report
 
