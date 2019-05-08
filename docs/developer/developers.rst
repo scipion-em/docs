@@ -11,9 +11,8 @@ General Information
     :maxdepth: 1
 
     Architecture: take a look at the big picture<architecture>
-
-* :doc:`Scipion-EM-Classes<scipion-em-classes>` Diagram containing EM Classes and its relations.
-* :doc:`Release-notes<release-notes>` What has been done in each release.
+    Scipion EM Classes: Diagram containing EM Classes and its relations<scipion-em-classes>
+    Release-notes: What has been done in each release<release-notes>.
 
 .. _extending-scipion:
 
