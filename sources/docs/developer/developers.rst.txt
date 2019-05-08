@@ -29,12 +29,9 @@ Follow these guides to add new elements to Scipion:
     * `Creating a monitor <creating-a-monitor>`_
     * `Generating binaries <generating-binaries>`_
     * `Customize the HTML report <customize-html-report>`_
-
-.. TODO - Developing output Viewers
-
-.. TODO - Integrating parameter Wizards
-
-.. TODO - Writing Tests, Tests, and more Tests
+    *  Developing output Viewers
+    *  Integrating parameter Wizards
+    *  Writing Tests, Tests, and more Tests
 
 Development Tools
 =================
