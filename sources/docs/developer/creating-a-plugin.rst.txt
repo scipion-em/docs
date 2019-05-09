@@ -229,6 +229,10 @@ this binary will be installed automatically when we get this plugin (unless spec
                       vars=relion_vars,
                       default=True)
 
+
+You can find more information about how to add a packages or a module `[here] <scipion-installation-system>`_.
+
+
 Register plugin
 ^^^^^^^^^^^^^^^
 
