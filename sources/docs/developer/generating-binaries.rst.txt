@@ -161,7 +161,7 @@ You will need to correct with mpi directories. For example:
     $SCIPION_HOME/./scipion installp --help
     $SCIPION_HOME/./scipion installp -p scipion-em-<plugin_name>
     cd ..
-    python scipion/scripts/tar.py linux64-em-packages
+    python scipion/pyworkflow/install//tar.py linux64-em-packages
 
 Now, two file are in the home directory ``scipion_<version>_<date>_source.tgz``
 and ``scipion_<version>_<date>_linux-64.tgz``. The first is the source package
