@@ -5,6 +5,12 @@ Tutorials
 
 Introduction to Scipion
 -----------------------
+
+.. figure:: https://github.com/I2PC/scipion/wiki/images/12.VolumeChimera.png
+   :align: right
+   :height: 96
+   :alt: 12.VolumeChimera.png
+
 This tutorial provides a quick
 introduction to processing with Scipion. It is designed to take a
 short time while illustrating the main concepts. The tutorial uses 3
@@ -18,6 +24,12 @@ virus 3D map is obtained.
 
 Initial model estimation
 ------------------------
+
+.. figure:: https://github.com/I2PC/scipion/wiki/images/00.ReconstructedVolume.png
+   :align: right
+   :height: 96
+   :alt: 00.ReconstructedVolume.png
+
 This tutorial uses different methods to
 obtain an initial 3D map. Methods covered are RCT, Ransac, Eman and
 Reconstruct Significant.
@@ -27,6 +39,11 @@ Reconstruct Significant.
 
 Mix-and-match in Scipion
 ------------------------
+.. figure:: https://github.com/I2PC/scipion/wiki/images/betagal.png
+   :align: right
+   :height: 96
+   :alt: 00.ReconstructedVolume.png
+
 This tutorial presents a more complete
 workflow of Cryo-EM single particles inside Scipion. It is focused on
 demonstrate the combination of different EM-packages. This tutorial
@@ -41,6 +58,11 @@ You may download a fully solved project of this tutorial from
 
 Model Building
 --------------
+.. figure:: https://github.com/I2PC/scipion/wiki/images/modelbuilding.png
+   :align: right
+   :height: 96
+   :alt: 00.ReconstructedVolume.png
+
 The recent development of single-particle electron
 cryo-microscopy (cryo-EM) allows structures to be solved at almost
 atomic resolutions. Providing a basic introduction to model building,
@@ -56,6 +78,10 @@ framework..
 
 Initial volume validation by SAXS
 ---------------------------------
+.. figure:: https://github.com/I2PC/scipion/wiki/images/12.VolumeChimera.png
+   :align: right
+   :height: 76
+   :alt: 00.ReconstructedVolume.png
 
 This tutorial provides a guide to
 the validation of the initial volume estimations using SAXS curves in
