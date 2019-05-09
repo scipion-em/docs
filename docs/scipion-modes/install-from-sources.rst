@@ -85,7 +85,7 @@ You can install them with (this example is for Debian/Ubuntu distros.
 
 ::
 
-   sudo yum install gcc gcc-c++ cmake java-1.8.0-openjdk-devel libXft-devel openssl-devel libXext-deve\
+   sudo yum install gcc gcc-c++ cmake java-1.8.0-openjdk-devel libXft-devel openssl-devel libXext-devel\
     libxml2-devel readline-devel libquadmath libxslt-devel openmpi-devel libX11-devel libgfortran\
     freetype-devel scons fftw-devel opencv-devel curl centos-release-scl devtoolset-4 python27`
 
