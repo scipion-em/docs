@@ -93,14 +93,13 @@ Scipion.
 
 Full processing video tutorial
 ------------------------------
-4 video tutorials in a
-`list <https://www.youtube.com/watch?v=LAwe9DroypI&list=PLyJiuGnB9hAyxHotd--gKMzCRFpXrSo15>`__
-to go from movies to a 3D volume using betagalactosidase data.
+    4 video tutorials in a
+    `list <https://www.youtube.com/watch?v=LAwe9DroypI&list=PLyJiuGnB9hAyxHotd--gKMzCRFpXrSo15>`__
+    to go from movies to a 3D volume using betagalactosidase data.
 
-Scipion youtube channel
-~~~~~~~~~~~~~~~~~~~~~~~
-Take a look at our `tutorial videos <https://www.youtube.com/user/BiocompWebs>`_.
+    Take a look at our `tutorial videos <https://www.youtube.com/user/BiocompWebs>`_ in the Scipion youtube channel.
 
+Know more about the `theory and practice <http://i2pc.es/coss/Docencia/ImageProcessing/imageProcessingInEM.pdf>`_ behind Image Processing in EM.
 
 
 Graphical interface manuals
