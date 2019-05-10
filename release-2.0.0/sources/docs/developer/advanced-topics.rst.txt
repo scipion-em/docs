@@ -61,7 +61,7 @@ Scipioncloud
 GPU
 ---
 * `GPU purchase guide. Enabling GPU in Scipion <https://scipion-em.github.io/docs/docs/developer/enable-gpu-in-scipion>`_
-* `GPU params standardization in Scipion protocols <gpu-protocol-standardization>`_
+* `GPU params standardization in Scipion protocols <gpu-params-standardization>`_
 
 Scipion ubiquity
 ----------------
