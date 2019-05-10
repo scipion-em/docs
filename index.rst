@@ -22,7 +22,7 @@ later on.
 .. _user-docs:
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 1
    :glob:
    :caption: User documentation
 
