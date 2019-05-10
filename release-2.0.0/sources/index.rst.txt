@@ -81,7 +81,7 @@ There are many ways to help make Scipion better:
 
 Scipion in the Cloud
 ====================
-* ScipionCloud images are available on commercial and academic `clouds <scipion-on-the-cloud>`_
+* ScipionCloud images are available on commercial and academic `clouds <https://scipion-em.github.io/docs/release-2.0.0/docs/developer/scipion-on-the-cloud.html>`_
 
 
 Indices and tables
