@@ -319,5 +319,5 @@ Next Steps
 
 -  Test your installation by running at least the *Small* and *Medium*
    tests mentioned in `running tests page <Running-Tests>`__.
--  Complete some of the `Scipion
-   Tutorials <docs/user/user-documentation>`__.
+-  Complete some of the :ref:`Scipion
+   Tutorials <User-Documentation>`__.
