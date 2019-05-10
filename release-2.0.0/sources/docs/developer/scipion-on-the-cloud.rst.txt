@@ -8,7 +8,6 @@ How to use ScipionCloud
 =======================
 
 `ScipionCloud in Amazon Web Services EC2 <scipionCloud-on-amazon-web-services-ec2>`_
--------------------------------------------------------------------------------------
 
 `ScipionCloud in the EGI Federated Cloud <scipion-on-the-egi-federated-cloud>`_
 
