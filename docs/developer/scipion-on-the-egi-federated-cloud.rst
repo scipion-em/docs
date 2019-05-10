@@ -1,4 +1,4 @@
-.. scipion-on-the-egi-federated-cloud:
+.. _scipion-on-the-egi-federated-cloud:
 
 ====================================
 Scipion in the EGI Federated Cloud
