@@ -37,6 +37,8 @@ later on.
 
    docs/developer/developers
 
+.. _facilities-docs:
+
 .. toctree::
    :maxdepth: 1
    :glob:
