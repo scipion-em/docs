@@ -81,6 +81,14 @@ You can install them with (this example is for Debian/Ubuntu distros.
     libXss1 libX11-devel-32bit libgfortran4 gcc-fortran libfreetype6 scons libfftw3-3\
     fftw3-devel libfftw3_threads3 libopencv3_3 curl
 
+- Fedora
+
+::
+
+  yum install gcc gcc-g++ cmake java-1.8.0-openjdk-devel.x86_64 libXft-devel.x86_64\
+   openssl-devel.x86_64 libXext-devel.x86_64  libxml++.x86_64 libquadmath-devel.x86_64\
+   libxslt.x86_64 openmpi-devel.x86_64  gsl-devel.x86_64  libX11.x86_64  gcc-gfortran.x86_64
+
 - For Centos 6 and Centos 7
 
 ::
@@ -152,13 +160,21 @@ next step. If there is a problem (red colored output), you will need to
 edit ``config/scipion.conf`` file in your preferred text editor and run
 ``./scipion config`` again.
 
-One known change for Ubuntu 18 are the MPI paths in
+One known change for **Ubuntu 18** are the MPI paths in
 ``<your_scipion_home>/config/scipion.conf``:
 
 ::
 
    MPI_LIBDIR = /usr/lib/x86_64-linux-gnu/openmpi/lib
    MPI_INCLUDE = /usr/lib/x86_64-linux-gnu/openmpi/include/
+
+The MPI paths in **CentOS** are in:
+
+::
+
+    MPI_BINDIR = /usr/lib64/openmpi/bin
+    MPI_LIBDIR = /usr/lib64/openmpi/lib
+    MPI_INCLUDE = /usr/include/openmpi-x86_64
 
 Read more about :doc:`editing the configuration
 file <scipion-configuration>`.
@@ -182,7 +198,7 @@ To compile and install Scipion, just run:
 compilation. You should adjust this value according to your system.
 
 If you have problems compiling Scipion, see
-`Troubleshooting <https://github.com/I2PC/scipion/wiki/Troubleshooting>`__
+`Troubleshooting <https://scipion-em.github.io/docs/release-2.0.0/docs/user/troubleshooting.html>`__
 page.
 
 Step 4: Installing Xmipp3 and other EM Plugins
