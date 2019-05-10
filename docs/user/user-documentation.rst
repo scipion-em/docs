@@ -97,6 +97,10 @@ Full processing video tutorial
 `list <https://www.youtube.com/watch?v=LAwe9DroypI&list=PLyJiuGnB9hAyxHotd--gKMzCRFpXrSo15>`__
 to go from movies to a 3D volume using betagalactosidase data.
 
+Scipion youtube channel
+~~~~~~~~~~~~~~~~~~~~~~~
+Take a look at our `tutorial videos <https://www.youtube.com/user/BiocompWebs>`_.
+
 
 
 Graphical interface manuals
