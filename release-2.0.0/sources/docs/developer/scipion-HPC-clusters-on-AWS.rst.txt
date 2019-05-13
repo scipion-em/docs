@@ -6,7 +6,7 @@ Scipion HPC clusters on AWS
 
 The following diagram shows a basic HPC cluster architecture on AWS:
 
-.. figure:: /docs/images/cloud/Scipion%20cluster%20deployment%20AWS.png
+.. figure:: /docs/images/cloud/Scipion-cluster-deployment-AWS.png
    :align: center
    :alt: HPC Cluster on AWS
 
