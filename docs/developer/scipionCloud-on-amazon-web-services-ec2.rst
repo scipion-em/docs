@@ -53,14 +53,14 @@ If you see a "Your connection is not secure" warning, click on "Advanced", "Add 
 
 This is how the remote desktop will look like:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/cloud/noVNC-desktop.png
+.. figure:: /docs/images/cloud/noVNC-desktop.png
    :align: center
    :width: 800
    :alt: noVNC-desktop
 
 To resize screen clicks on the Settings icon and choose `Remote resizing` as `Scaling mode`:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/cloud/noVNC-resize.png
+.. figure:: /docs/images/cloud/noVNC-resize.png
    :align: center
    :width: 250
    :alt: noVNC-resize
@@ -68,7 +68,7 @@ To resize screen clicks on the Settings icon and choose `Remote resizing` as `Sc
 To disconnect from the session click on the little arrow that appears on the left (see menu below) and click on the last option:
 
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/cloud/noVNC-menu.png
+.. figure:: /docs/images/cloud/noVNC-menu.png
    :align: center
    :width: 250
    :alt: noVNC-menu
@@ -155,12 +155,12 @@ Current processing is normally done using GPUs so we present here prices for GPU
 
 AWS have different families of GPU instance types (P2, P3 and G3) which features and prices are shown below:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/cloud/AWS-P2-prices.jpg
+.. figure:: /docs/images/cloud/AWS-P2-prices.jpg
    :align: center
    :width: 500
    :alt: AWS - P2 types
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/cloud/AWS-G3-prices.jpg
+.. figure:: /docs/images/cloud/AWS-G3-prices.jpg
    :align: center
    :width: 500
    :alt: AWS - G3 types

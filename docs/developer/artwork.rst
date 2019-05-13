@@ -9,14 +9,14 @@ Current Scipion logos (from 2013 on)
 
 *Color version, with title*
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/scipion_logo.png
+.. figure:: /docs/images/scipion_logo.png
    :align: center
    :height: 128
    :alt: scipion_logo
 
 *Color version, no title and no background*
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/scipion_logo_nobackground.png
+.. figure:: /docs/images/scipion_logo_nobackground.png
    :align: center
    :height: 128
    :width: 128
@@ -24,34 +24,34 @@ Current Scipion logos (from 2013 on)
 
 For the web header, the scaled version is used
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/scipion_logo_small.gif
+.. figure:: /docs/images/scipion_logo_small.gif
    :align: center
    :alt: scipion_logo_small
 
 For the footer, a scaled and translucent version is used,
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/scipion_logo_transparent.png
+.. figure:: /docs/images/scipion_logo_transparent.png
    :align: center
    :height: 40
    :alt: scipion_logo_transparent
 
 *Black and white version, with title*
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/scipion_bn_logo.png
+.. figure:: /docs/images/scipion_bn_logo.png
    :align: center
    :height: 60
    :alt: scipion_bn_logo
 
 *Black and white version, no title*
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/scipion_bn.png
+.. figure:: /docs/images/scipion_bn.png
    :align: center
    :height: 50
    :alt: scipion_bn
 
 The icon (ultra-small) is based on this black and white version.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/favicon.png
+.. figure:: /docs/images/favicon.png
    :align: center
    :height: 32
    :alt: favicon

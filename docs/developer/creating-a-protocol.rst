@@ -224,7 +224,7 @@ can be found in :doc:`Parallelization<protocol-parallelization`.
 The above definition will generate a desktop GUI as shown in the
 following figure:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/ml2d_form.png
+.. figure:: /docs/images/guis/ml2d_form.png
 
 
 Defining Steps

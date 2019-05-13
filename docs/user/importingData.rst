@@ -59,7 +59,7 @@ containing two columns: ``_X-coord Y-coord_``. In that case origin (1,1) should
 be located at the top left corner of the micrograph with X-axis pointing right
 and Y-axis pointing downwards. The coordinates mark the box center (fig. 1).
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/etc/box_coord.png
+.. figure:: /docs/images/etc/box_coord.png
    :width: 200
    :align: center
    :alt: Box coordinates

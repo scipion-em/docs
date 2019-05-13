@@ -6,7 +6,7 @@ Tutorials
 Introduction to Scipion
 -----------------------
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/12.VolumeChimera.png
+.. figure:: /docs/images/12.VolumeChimera.png
    :align: right
    :height: 96
    :alt: 12.VolumeChimera.png
@@ -25,7 +25,7 @@ virus 3D map is obtained.
 Initial model estimation
 ------------------------
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/00.ReconstructedVolume.png
+.. figure:: /docs/images/00.ReconstructedVolume.png
    :align: right
    :height: 96
    :alt: 00.ReconstructedVolume.png
@@ -39,7 +39,7 @@ Reconstruct Significant.
 
 Mix-and-match in Scipion
 ------------------------
-.. figure:: https://github.com/I2PC/scipion/wiki/images/betagal.png
+.. figure:: /docs/images/betagal.png
    :align: right
    :height: 96
    :alt: 00.ReconstructedVolume.png
@@ -58,7 +58,7 @@ You may download a fully solved project of this tutorial from
 
 Model Building
 --------------
-.. figure:: https://github.com/I2PC/scipion/wiki/images/modelbuilding.png
+.. figure:: /docs/images/modelbuilding.png
    :align: right
    :height: 96
    :alt: 00.ReconstructedVolume.png
@@ -78,7 +78,7 @@ framework..
 
 Initial volume validation by SAXS
 ---------------------------------
-.. figure:: https://github.com/I2PC/scipion/wiki/images/12.VolumeChimera.png
+.. figure:: /docs/images/12.VolumeChimera.png
    :align: right
    :height: 76
    :alt: 00.ReconstructedVolume.png

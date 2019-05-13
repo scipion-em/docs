@@ -66,7 +66,7 @@ To visualize the output of the callgrind tool it is necessary to use the Kcacheg
 
 The figure depicted below shows an example of a profiling displayed by Kcachegrind:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/profiling-kcachegrind.png
+.. figure:: /docs/images/profiling-kcachegrind.png
    :align: center
    :width: 800
    :alt: profiling-kcachegrind.
@@ -102,7 +102,7 @@ Once generated the file, to visualize the information it is necessary to use the
 
 The graph printed is based in several snapshots taken by the valgrind at different time steps. The more snapshots taken the slower the analysis is executed (the default number of snapshots is 100).  The image depicted below shows a graph created by massif:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/profiling-massif-graph.png
+.. figure:: /docs/images/profiling-massif-graph.png
    :align: center
    :width: 800
    :alt: profiling-massif-graph

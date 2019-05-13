@@ -35,7 +35,7 @@ User registration
 
 * Most of the EGI services are accessible using the link:https://www.egi.eu/services/check-in/[EGI CheckIn service]. This authentication service accepts different 'Identity Providers':
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/cloud/EGI-CheckIn-providers.png
+.. figure:: /docs/images/cloud/EGI-CheckIn-providers.png
    :align: center
    :alt: EGI CheckIn Identity providers
 

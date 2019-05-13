@@ -11,7 +11,7 @@ illustrative purposes (running ``scipion tests tests.em.workflows.test_workflow_
 ``tests.em.workflows.test_workflow_xmipp``).
 
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/new_project.png
+.. figure:: /docs/images/guis/new_project.png
     :alt: Create a new project
 
     Figure 1. Create a new project
@@ -40,7 +40,7 @@ Bottom right panel displays information for the selected run, such as
 inputs and outputs, execution logs or documentation - also provides
 ``Analyze Results`` button to visualize outputs.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/project.png
+.. figure:: /docs/images/guis/project.png
     :alt: Project GUI in Protocols Mode
 
     Figure 2. Project GUI in Protocols Mode
@@ -53,7 +53,7 @@ opened using double click. This mode allows us to track image processing
 emphasizing on data handling.
 
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/datamode.png
+.. figure:: /docs/images/guis/datamode.png
     :alt: Project GUI in Data Mode
 
     Figure 3. Project GUI in Data Mode
@@ -63,7 +63,7 @@ aligns them to finally use it as input for different 2D classification
 algorithms. If we open filter particles protocol (using edit) the
 following form is displayed:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/filter.png
+.. figure:: /docs/images/guis/filter.png
     :alt: Filter Particles Protocol Form
 
     Figure 4. Filter Particles Protocol Form
@@ -85,17 +85,17 @@ of them (using help button) and for some a Search GUI to select input
 object (Fig. 6) or a wizard GUI (through eye button). Parameters are
 showed considering expert level selected (Normal, Advanced or Expert).
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/cite.png
+.. figure:: /docs/images/guis/cite.png
     :alt: Protocol Cite
 
     Figure 5. Protocol Cite
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/protocol_help.png
+.. figure:: /docs/images/guis/protocol_help.png
     :alt: Protocol Help
 
     Figure 6. Protocol Help
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/inputlist.png
+.. figure:: /docs/images/guis/inputlist.png
     :alt: List of SetOfParticles objects registered
 
     Figure 7. List of SetOfParticles objects registered
@@ -108,7 +108,7 @@ Also load single images, create subsets, etc. See ShowJ for more detail.
 In this project we use it to refine output from a 2D classification
 algorithm.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/particles2.png
+.. figure:: /docs/images/guis/particles2.png
     :alt: ShowJ displaying filtered particles
 
     Figure 8. ShowJ displaying filtered particles
@@ -121,7 +121,7 @@ operation registers a subset protocol with this classes as input and the
 set of classes with enabled items as output.
 
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/classes.png
+.. figure:: /docs/images/guis/classes.png
     :alt: ShowJ displaying a SetOfClasses
 
     Figure 9. ShowJ displaying a SetOfClasses
@@ -132,7 +132,7 @@ Xmipp Workflow
 If you open TestXmippWorkflow the following project GUI is displayed
 (Fig. 10):
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/xmipp-project.png
+.. figure:: /docs/images/guis/xmipp-project.png
     :alt: TestXmippWorkflow Project GUI
 
     Figure 10. TestXmippWorkflow Project GUI
@@ -145,7 +145,7 @@ rotational spectra. We use it to illustrate CTF and particle picking
 GUIs.
 
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/micrograph.png
+.. figure:: /docs/images/guis/micrograph.png
     :alt: ShowJ displaying input micrograph with "gaussian blur" filter applied
 
     Figure 11. ShowJ displaying input micrograph with "gaussian blur" filter applied
@@ -156,7 +156,7 @@ ShowJ GUI for single images is displayed above (see Showj)
 Screen micrographs produces this output:
 
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/ctf2.png
+.. figure:: /docs/images/guis/ctf2.png
     :alt: CTF Recalculate Wizard
 
     Figure 12. CTF Recalculate Wizard
@@ -170,7 +170,7 @@ Particle picking can be done in Scipion using Xmipp, Eman, Bsoft, etc.
 In this tutorial we chose Xmipp Particle Picker, see Fig. 12.
 
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/picking.png
+.. figure:: /docs/images/guis/picking.png
     :alt: Xmipp Particle Picker GUI
 
     Figure 13. Xmipp Particle Picker GUI

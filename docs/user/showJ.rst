@@ -14,7 +14,7 @@ table mode |table_mode, width=20| and navigate through different
 blocks of data. Single images are opened using image window. On the top of
 the window we have the menu and toolbar (Fig. 1).
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/table-mode.png
+.. figure:: /docs/images/guis/table-mode.png
    :align: center
    :alt: Table mode.
 
@@ -42,7 +42,7 @@ select a range of items, open an image, recalculate CTF, if possible, etc.
 Developer users can customize this menu from the command line to add actions
 related to the type of data loaded.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/ctf.png
+.. figure:: /docs/images/guis/ctf.png
    :width: 800
    :align: center
    :alt: Ctf tools.
@@ -66,7 +66,7 @@ from the command line (for Scipion objects). In order to modify this
 configuration we can access columns window from the display menu (Fig.
 3).
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/columns.png
+.. figure:: /docs/images/guis/columns.png
     :width: 500
     :align: center
     :alt: Columns Window.
@@ -87,7 +87,7 @@ Right and Bottom perspectives.
 In Scipion, after a 2D classification, particles have geometry information. We can apply
 geometry or wrap these images either from the gallery or table modes:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/geometry.png
+.. figure:: /docs/images/guis/geometry.png
     :width: 700
     :align: center
     :alt: Gallery mode.
@@ -97,7 +97,7 @@ geometry or wrap these images either from the gallery or table modes:
 Chimera projector lets us visualize and project the selected volume from different
 angles (Fig. 5).
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/chimera-viewer.png
+.. figure:: /docs/images/guis/chimera-viewer.png
     :width: 700
     :align: center
     :alt: Chimera viewer.
@@ -114,14 +114,14 @@ mouse scroll (Fig. 6 and Fig. 7). Also we can apply filters on image to increase
 signal to noise ratio.
 
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/micrographs.png
+.. figure:: /docs/images/guis/micrographs.png
     :width: 700
     :align: center
     :alt: Image Window.
 
     Fig. 6: Image Window.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/stack-window.png
+.. figure:: /docs/images/guis/stack-window.png
     :width: 250
     :align: center
     :alt: Stack Window.
@@ -146,7 +146,7 @@ tools and add or delete regions to selection using Shift and Alt keys
 respectively. Also from the toolbar we can invert selection or smooth
 the border. This tool comes handy when we need to create our own masks.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/design-mask.png
+.. figure:: /docs/images/guis/design-mask.png
     :width: 700
     :align: center
     :alt: Design mask tool.
@@ -160,7 +160,7 @@ From the File menu we can use volume viewer to visualize stacks or
 volumes. This plugin shows stacks as slices, projections or volumes
 within a 3D-(xyz)-space:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/volume-viewer.png
+.. figure:: /docs/images/guis/volume-viewer.png
     :width: 700
     :align: center
     :alt: Volume viewer.
@@ -182,7 +182,7 @@ dismiss objects from a set without modifying the original set
 (potentiating project traceability).
 
 
-.. |table_mode, width=20| image:: https://github.com/I2PC/scipion/wiki/images/guis/02.TableView.png
-.. |find_replace, height=20| image:: https://github.com/I2PC/scipion/wiki/images/guis/binocular.png
-.. |plot_labels, height=20| image:: https://github.com/I2PC/scipion/wiki/images/guis/plot.png
-.. |number_of_colums, height=20| image:: https://github.com/I2PC/scipion/wiki/images/guis/06.3DAxis.png
+.. |table_mode, width=20| image:: /docs/images/guis/02.TableView.png
+.. |find_replace, height=20| image:: /docs/images/guis/binocular.png
+.. |plot_labels, height=20| image:: /docs/images/guis/plot.png
+.. |number_of_colums, height=20| image:: /docs/images/guis/06.3DAxis.png

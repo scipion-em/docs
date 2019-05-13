@@ -14,7 +14,7 @@ over the micrograph using the mouse right click and zoom in/out the image using
 Shift + mouse scroll. After some training we can activate autopick to
 pick particles automatically.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/picker.png
+.. figure:: /docs/images/guis/picker.png
    :width: 800
    :align: center
    :alt: Picker main GUI
@@ -46,7 +46,7 @@ results from adding the prefix and suffix specified to the micrograph name.
 If required, we can also invert X or Y axis, or apply some scale factor
 to coordinates.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/import.png
+.. figure:: /docs/images/guis/import.png
     :width: 400
     :align: center
     :alt: Import particles dialog
@@ -74,7 +74,7 @@ calculated automatically as we pick particles (using cross-correlation)
 autopicking.
 
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/templates.png
+.. figure:: /docs/images/guis/templates.png
     :width: 400
     :align: center
     :alt: Templates
@@ -84,7 +84,7 @@ autopicking.
 Particles picked can be displayed and centered using particles
 window, shown below, since this window provides more detail.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/particles.png
+.. figure:: /docs/images/guis/particles.png
     :width: 400
     :align: center
     :alt: Templates
@@ -96,7 +96,7 @@ Help
 
 From the help menu the user can access this url or visualize help tips.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/tips.png
+.. figure:: /docs/images/guis/tips.png
     :width: 600
     :align: center
     :alt: Help tips

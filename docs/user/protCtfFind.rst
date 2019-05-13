@@ -28,14 +28,14 @@ button for any specific parameter (Fig. 3). The CTFFind protocol allows to use
 either the ctffind3 or ctffind4 program (the latest has been reported to be about
 ten times faster than its predecessor).
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/protocols/grigoriefflab/01.CTFFind.png
+.. figure:: /docs/images/protocols/grigoriefflab/01.CTFFind.png
    :align: center
    :width: 500
    :alt: GUI input form of the ctffind protocol
 
    Figure 1. GUI input form of the ctffind protocol
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/protocols/grigoriefflab/02.CTFWizard.png
+.. figure:: /docs/images/protocols/grigoriefflab/02.CTFWizard.png
    :align: center
    :width: 500
    :alt: CTF wizard helps
@@ -43,7 +43,7 @@ ten times faster than its predecessor).
    Figure 2. CTF wizard helps to select a downsampling factor and the range of spatial frequencies
 
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/protocols/grigoriefflab/03.CTFFindAdvanced.png
+.. figure:: /docs/images/protocols/grigoriefflab/03.CTFFindAdvanced.png
    :align: center
    :width: 500
    :alt: Advanced protocol parameters
@@ -60,7 +60,7 @@ A reason to discard micrographs may be the presence of strongly asymmetric rings
 (astigmatism, Fig. 4 center) or rings that fade in a particular direction (drift, Fig. 4 right).
 
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/protocols/grigoriefflab/04.CTFexamples.jpg
+.. figure:: /docs/images/protocols/grigoriefflab/04.CTFexamples.jpg
    :align: center
    :width: 500
    :alt: Advanced protocol parameters
@@ -70,7 +70,7 @@ A reason to discard micrographs may be the presence of strongly asymmetric rings
 
 When the protocol is finished you may click on the *Analyze Results* button to show the list of micrographs and their PSD (Fig. 5). To discard micrographs with bad CTFs you may click with the mouse right button and press _Disable_. Once you finish the selection, press on the Micrographs button to create a subset of micrographs with only the enabled ones.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/protocols/grigoriefflab/05.CTFResult.png
+.. figure:: /docs/images/protocols/grigoriefflab/05.CTFResult.png
    :align: center
    :width: 700
    :alt: Advanced protocol parameters
@@ -89,7 +89,7 @@ calculated by ctffind4 (fig. 7). This is an interactive plot that can be zoomed
 to specific regions among other things.
 
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/protocols/grigoriefflab/06.CTFProfile.png
+.. figure:: /docs/images/protocols/grigoriefflab/06.CTFProfile.png
    :align: center
    :width: 500
    :alt: Advanced protocol parameters
@@ -97,7 +97,7 @@ to specific regions among other things.
    Figure 6. CTF profile.
 
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/protocols/grigoriefflab/07.CTFFitting.png
+.. figure:: /docs/images/protocols/grigoriefflab/07.CTFFitting.png
    :align: center
    :width: 500
    :alt: Advanced protocol parameters
