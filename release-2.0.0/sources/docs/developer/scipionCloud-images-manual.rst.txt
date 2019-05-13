@@ -17,12 +17,12 @@ To login with admin privileges you need to ssh to the machine with ubuntu user a
 
 To resize screen clicks on the Settings icon and choose ``Remote resizing`` as ``Scaling mode``:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/cloud/noVNC-resize.png
+.. figure:: /docs/images/cloud/noVNC-resize.png
    :alt: noVNC-resize
 
 To disconnect from the session click on the little arrow that appears on the left (see menu below) and click on the last option:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/cloud/noVNC-menu.png
+.. figure:: /docs/images/cloud/noVNC-menu.png
    :alt: noVNC - disconnect
 
 IMPORTANT!! Do not disconnect from the top right corner, as in a physical machine. If you do so the machine will need to be reboot

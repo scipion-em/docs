@@ -43,7 +43,7 @@ find some other colors in Scipion they are usually used with purpose
 design. Therefore you should not use these or any other new colors
 unless it was extremely necessary.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/colors.png
+.. figure:: /docs/images/colors.png
    :align: center
    :width: 699
    :height: 50

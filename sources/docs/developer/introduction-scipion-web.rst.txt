@@ -27,7 +27,7 @@ To understand the right works for the templates in Django, firstly, it
 is necessary to explain the model-view-controller pattern applied to
 Django.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/wd/DjangoGeneral.png
+.. figure:: /docs/images/wd/DjangoGeneral.png
    :align: center
    :width: 500
    :alt: DjangoGeneral.png
@@ -97,7 +97,7 @@ structure; here the MVC diagram is applied to the Scipion code.
 MVC diagram applied to the scipion code
 ------------------------------------------
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/wd/diagramMVC.png
+.. figure:: /docs/images/wd/diagramMVC.png
    :align: center
    :alt: diagramMVC
 
@@ -109,7 +109,7 @@ The template architecture is organized inside Scipion code as follows:
 General templates
 ~~~~~~~~~~~~~~~~~
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/wd/diagram_templates.png
+.. figure:: /docs/images/wd/diagram_templates.png
    :align: center
    :alt: diagram_templates
 
@@ -148,7 +148,7 @@ This templates can be found under 'web/pages/templates' folder.
 Wizard templates
 ~~~~~~~~~~~~~~~~~
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/wd/diagram_templates_wiz.png
+.. figure:: /docs/images/wd/diagram_templates_wiz.png
    :align: center
    :alt: diagram_templates_wiz
 
@@ -178,7 +178,7 @@ Wizard templates
 Showj templates
 ~~~~~~~~~~~~~~~
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/wd/diagram_templates_showj.png
+.. figure:: /docs/images/wd/diagram_templates_showj.png
    :align: center
    :alt: diagram_templates_showj
 
@@ -227,7 +227,7 @@ Structure diagram of JavaScript libraries inside Scipion
 The architecture for javascript libraries organized inside the Scipion code
 is next:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/wd/diagram_libraries.png
+.. figure:: /docs/images/wd/diagram_libraries.png
    :align: center
    :alt: diagram_libraries
 
@@ -429,7 +429,7 @@ The organization chosen by the CSS files has to be explained taking the template
 pages as a reference.
 
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/wd/diagram_css.png
+.. figure:: /docs/images/wd/diagram_css.png
    :align: center
    :width: 600
    :alt: CSS diagram

@@ -28,7 +28,7 @@ in the `Protocol class <https://github.com/delarosatrevin/scipion/blob/cd1001579
 
 When the GPU_LIST param is used, then it will be displayed on the top of the protocol form together with other common execution parameters (see image below).
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/scipion-gpu-form.png
+.. figure:: /docs/images/scipion-gpu-form.png
    :alt: Scipion GPU Form
 
 

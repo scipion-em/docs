@@ -63,23 +63,23 @@ make a copy of the protocol to see the new HTML.
 
 * Right click on the summary monitor and choose *copy*:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/html_report_tutorial/copy_monitor_summary.png
+.. figure:: /docs/images/html_report_tutorial/copy_monitor_summary.png
    :align: center
    :alt: Copy monitor summary
 
 * Adjust the refresh time to a lower amount, so it finishes quicker. Then launch protocol:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/html_report_tutorial/restart_monitor_summary.png
+.. figure:: /docs/images/html_report_tutorial/restart_monitor_summary.png
    :align: center
    :alt: restart monitor summary
 
 * Click on Analyze results -> open html report to see the report with the new logo:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/html_report_tutorial/analyze_results.png
+.. figure:: /docs/images/html_report_tutorial/analyze_results.png
    :align: center
    :alt: analyze results
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/html_report_tutorial/report_new_logo.png
+.. figure:: /docs/images/html_report_tutorial/report_new_logo.png
    :align: center
    :alt: new logo
 
@@ -88,7 +88,7 @@ make a copy of the protocol to see the new HTML.
 
 In this example we'll remove the *DefocusU* column from the table:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/html_report_tutorial/mic_table.png
+.. figure:: /docs/images/html_report_tutorial/mic_table.png
    :align: center
    :alt: mic table
 
@@ -156,7 +156,7 @@ check `addMicTable()`.
 
 * Re-run the summary monitor, check the table and voila! Defocus column is gone:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/html_report_tutorial/mic_table_without_defocus.png
+.. figure:: /docs/images/html_report_tutorial/mic_table_without_defocus.png
    :align: center
    :alt: mic table without defocus
 
@@ -198,7 +198,7 @@ The place where Scipion performs the replacement of all the `%(keywords)s` is in
   in the SetOfCtf. We can click on CTFFIND's **`Analyze results`** button to open its output (or double click in any output
   set). Then we can inspect all the data available for this set by clicking on **Display -> Columns**.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/html_report_tutorial/set_of_ctf_columns.png
+.. figure:: /docs/images/html_report_tutorial/set_of_ctf_columns.png
    :align: center
    :alt: set of ctf columns
 
@@ -284,7 +284,7 @@ The place where Scipion performs the replacement of all the `%(keywords)s` is in
 
 * Run the summary again and check that we have our new column:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/html_report_tutorial/mic_table_with_fit_quality.png
+.. figure:: /docs/images/html_report_tutorial/mic_table_with_fit_quality.png
    :align: center
    :alt: mic table with fit quality
 

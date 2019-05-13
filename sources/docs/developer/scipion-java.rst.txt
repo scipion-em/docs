@@ -37,7 +37,7 @@ respectively.
 
 In the following class diagram, we display ShowJ main classes and its relations:
 
-.. image:: https://github.com/I2PC/scipion/wiki/images/showj-class-diagram.gif
+.. image:: /docs/images/showj-class-diagram.gif
    :alt: showj-class-diagram
    :height: 400
 
@@ -52,7 +52,7 @@ given as input to ShowJ from the command line.
 In the following class diagram, we display particle picker main classes and its
 relations:
 
-.. image:: https://github.com/I2PC/scipion/wiki/images/picker-class-diagram.gif
+.. image:: /docs/images/picker-class-diagram.gif
    :alt: Picker Class Diagram
    :height: 400
 

@@ -15,7 +15,7 @@ After launching Scipion from the command line ( ``./scipion`` ) we will
 see the project manager window. Here we click on the Configuration menu
 to select the Plugins option (Figure 1).
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/scipion_config_menu.png
+.. figure:: /docs/images/guis/scipion_config_menu.png
    :alt: Scipion projects manager
 
    Scipion projects manager
@@ -27,7 +27,7 @@ Plugin Manager
 
 Now you will see the Plugin Manager interface (Figure 2).
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/plugin_manager.png
+.. figure:: /docs/images/guis/plugin_manager.png
    :alt: Plugin manager GUI
 
    Plugin manager GUI
@@ -60,7 +60,7 @@ In both cases, the icon of the selected plugin will change to **TO INSTALL**
 on the **Operations** tab. We can select more than one plugin to install
 (Figure 3)
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/plugin_to_install.png
+.. figure:: /docs/images/guis/plugin_to_install.png
    :alt: plugin to install
    :name: figure-3-installing-plugins
 
@@ -89,7 +89,7 @@ right-click on the plugin name and selecting **Undo**
 processors with which we want all the selected operations to be
 executed. By default it is 4 processors.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/execute_operation.png
+.. figure:: /docs/images/guis/execute_operation.png
 
    Figure 4. Installed plugin
 
@@ -98,7 +98,7 @@ the **Output log** tab from the bottom right panel. The operations logs
 will show up in the **Plugin.log** tab as the Figure 5 shows. If there
 are errors, **Plugin.error** will show a detailed list of these.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/plugin_manager_logs.png
+.. figure:: /docs/images/guis/plugin_manager_logs.png
 
    Figure 5. Plugin manager logs
 
@@ -110,7 +110,7 @@ plugin will be installed. If we need to **install** other non-default
 **binaries** of any plugin, we just need to do the same procedure we did
 to install a plugin.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/binaries_list.png
+.. figure:: /docs/images/guis/binaries_list.png
 
     Figure 6. Scipion-em-grigoriefflab binaries
 
@@ -151,7 +151,7 @@ In this case, the name of the plugin is highlighted in bold and, in the
 top right panel there will be information about the new version and how
 to update the plugin (see Figure 8).
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/updating_plugins.png
+.. figure:: /docs/images/guis/updating_plugins.png
    :alt: uninstall_plugin
 
    Figure 8. Updating plugins
@@ -164,7 +164,7 @@ In this case, the selected plugin icon will change to **TO UPDATE** icon
 |update_icon| and the operation is shown in the bottom right panel on
 the **Operations** tab (Figure 9)
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/update_operation.png
+.. figure:: /docs/images/guis/update_operation.png
    :alt: update plugin operation
 
    Figure 9. Uninstalling plugins
@@ -180,7 +180,7 @@ The Plugin Manager has a glossary of terms in the Help menu in the
 toolbar. This interface shows the icons that are used and their meaning
 as shown in the following figure.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/guis/plugin_manager_help.png
+.. figure:: /docs/images/guis/plugin_manager_help.png
    :alt: update plugin operation
 
    Figure 10. Glossary

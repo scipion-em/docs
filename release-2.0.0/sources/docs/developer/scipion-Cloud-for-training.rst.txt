@@ -17,7 +17,7 @@ Only AWS admin user can do that, but these are the steps.
 * Select AMIs on the left side menu
 * Select i2pc-cloud-training and click on ``Launch``
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/cloud/AWS%20console%20-%20AMIs.png
+.. figure:: /docs/images/cloud/AWS%20console%20-%20AMIs.png
    :alt: AWS console - AMIs
 
 * Choose the instance type appropriate for the training. For the usual Workflow (ExtendedBetagal) we normally use p2.xlarge (GPU).
@@ -26,7 +26,7 @@ Only AWS admin user can do that, but these are the steps.
 * Click ‘Next: Add tags’ and specify the following tags:
 
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/cloud/AWS%20console%20-%20Add%20Tags.png
+.. figure:: /docs/images/cloud/AWS%20console%20-%20Add%20Tags.png
    :alt: AWS console - Add tags
 
 
@@ -34,7 +34,7 @@ Only AWS admin user can do that, but these are the steps.
 
 * Click ‘Next: Configure Security group’ and select the one named ‘i2pc-training-sg’.
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/cloud/aws-i2pc-training-sg.png
+.. figure:: /docs/images/cloud/aws-i2pc-training-sg.png
    :alt: AWS console - Security Groups
 
 ssh is by default restricted to CNB IP range but it could be changed if neccessary.
@@ -43,7 +43,7 @@ ssh is by default restricted to CNB IP range but it could be changed if neccessa
   A pop-up window will appear to select a security key pair. You can either select key i2pc-training or create a new one.
 
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/cloud/AWS%20console%20-%20Key%20pairs.png
+.. figure:: /docs/images/cloud/AWS%20console%20-%20Key%20pairs.png
    :alt: AWS console - Key pairs
 
 * Click on ‘Launch Instances’ and go to ‘View Instances’ and wait until instances has been initialized (Status Checks)
@@ -67,7 +67,7 @@ There is a user called i2pc-training that can only manage training instances (st
 * Select the instance and either click on ‘Actions’ or Right-click on the instance and select Instance State and the action required.
 
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/cloud/AWS%20console%20-%20manage%20training%20instances.png
+.. figure:: /docs/images/cloud/AWS%20console%20-%20manage%20training%20instances.png
    :alt: AWS console - manage training instances
 
 Accessing training instances
@@ -82,17 +82,17 @@ The first time you will be warned that connection is not secure and will have to
 
 This is how Desktop on the new machine will look like:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/cloud/noVNC-desktop.png
+.. figure:: /docs/images/cloud/noVNC-desktop.png
    :alt: noVNC - desktop
 
 To resize screen clicks on the Settings icon and set ``Scaling Mode`` to ``Remote Resizing``:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/cloud/noVNC-resize.png
+.. figure:: /docs/images/cloud/noVNC-resize.png
    :alt: noVNC - resize
 
 To disconnect from the session click on the little arrow that appears on the left (see menu below) and click on the last option:
 
-.. figure:: https://github.com/I2PC/scipion/wiki/images/cloud/noVNC-menu.png
+.. figure:: /docs/images/cloud/noVNC-menu.png
    :alt: noVNC - disconnect
 
 IMPORTANT!! Do not disconnect from the top right corner, as in a physical machine. If you do so the machine will need to be reboot.

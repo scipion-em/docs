@@ -1,4 +1,4 @@
-.. figure:: https://github.com/I2PC/scipion/wiki/images/scipion_logo.gif
+.. figure:: /docs/images/scipion_logo.gif
    :alt: scipion logo
 
 Welcome to Scipion's documentation!
