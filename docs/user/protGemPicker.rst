@@ -43,7 +43,7 @@ correspond to the order of references. Of course, image size and pixel size of
 the references and masks should be the same.
 
 
-.. figure:: docs/images/protocols/igbmc/01.ProtGemPicker.png
+.. figure:: /docs/images/protocols/igbmc/01.ProtGemPicker.png
    :align: center
    :width: 500
    :alt: GUI input form of the gEMpicker protocol
@@ -55,7 +55,7 @@ To see all available options, choose the _Advanced_ expert level and click on
 the *Help* button for any specific parameter (Fig. 2).
 
 
-.. figure:: docs/images/protocols/igbmc/02.ProtGemPickerAdvanced.png
+.. figure:: /docs/images/protocols/igbmc/02.ProtGemPickerAdvanced.png
    :align: center
    :width: 500
    :alt: Advanced protocol parameters
@@ -70,7 +70,7 @@ that will launch Xmipp particle picker window and display picked particles for
 each micrograph (Fig. 3).
 
 
-.. figure:: docs/images/protocols/igbmc/03.ProtGemPickerResults.png
+.. figure:: /docs/images/protocols/igbmc/03.ProtGemPickerResults.png
    :align: center
    :width: 500
    :alt: Displaying picking results
