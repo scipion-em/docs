@@ -1,7 +1,7 @@
 .. _facilities-tutorial:
 
 ==================================
-Facilities tutorial
+Tutorial
 ==================================
 
 Aim

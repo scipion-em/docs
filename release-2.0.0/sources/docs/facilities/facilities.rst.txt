@@ -44,15 +44,15 @@ Requirements
 
 To run the demo as it is, you need to have installed:
 
-* motioncor2
+* scipion-em-motioncorr
 
-* ctffind4
+* scipion-em-grigoriefflab
 
-* eman
+* scipion-em-eman
 
 .. code-block:: bash
 
-    scipion install motioncor2 ctffind4 eman
+    scipion installp -p scipion-em-motioncorr -p scipion-em-grigoriefflab scipion-em-eman2
 
 ``Notice that motioncor2 needs GPU acceleration.``
 
