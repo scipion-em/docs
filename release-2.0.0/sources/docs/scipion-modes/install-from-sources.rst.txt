@@ -89,6 +89,8 @@ You can install them with (this example is for Debian/Ubuntu distros.
    openssl-devel.x86_64 libXext-devel.x86_64  libxml++.x86_64 libquadmath-devel.x86_64\
    libxslt.x86_64 openmpi-devel.x86_64  gsl-devel.x86_64  libX11.x86_64  gcc-gfortran.x86_64 git
 
+Note: Use **dnf install** instead of **yum** if your Fedora is recent
+
 - For Centos 6 and Centos 7
 
 ::
@@ -226,7 +228,17 @@ developers.
 
 ::
 
+   cd scipion
    ./scipion
+
+
+For convenience, create an **alias** in the ``.bashrc`` file located
+in ``/home/<user>/.bashrc`` that allows you to launch Scipion from any
+location on your computer.
+
+::
+
+   alias scipion='<your_scipion_home>/scipion'
 
 Because we haven't installed
 xmipp yet, you'll see a message saying something like this in the

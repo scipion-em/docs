@@ -81,3 +81,24 @@ To install Xmipp without OpenCV and, then skipping the programs using it (Optica
 ::
 
     OPENCV = False
+
+
+Running Scipion in multi-users environment
+==========================================
+
+In the case we want to install Scipion on a Cluster for many users, it is
+convenient to have a single ``scipion.conf`` file for all of them, otherwise, the
+each user must have a config file under his home folder as described above.
+
+We can launch Scipion with the --config parameter: ``--config <scipion.conf PATH>``.
+This parameter tells Scipion to be use a configuration file in a specific path.
+
+IMPORTANT!!!!!
+
+In this case, the config file must be a union of the ``~/.config/scipion/scipion.conf``  and
+``<your-scipion-home>/config` and be placed in an accessible path to all users.
+
+
+::
+
+    ./scipion --config <scipion.conf PATH>
