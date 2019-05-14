@@ -12,7 +12,7 @@ No existe Scipion como software científico, se podría pedir que lo instalaran.
 
 En el cluster Trueno tienen dos nodos con GPU K80.
 
-* CESGA: Los usuarios del CSIC pueden solicitar `acceso <https://www.altausuarios.cesga.es/) al CESGA, el centro de supercomputación de Galicia>`_.
+* CESGA: Los usuarios del CSIC pueden solicitar `acceso <https://www.altausuarios.cesga.es/>`_) al CESGA, el centro de supercomputación de Galicia.
 
 En CESGA no existe Scipion como software científico pero podemos pedir que lo instalen, de hecho ellos encantados de que usemos el servicio.
 Sin embargo parece ser que puede ser lento ya que existe un sistema de colas que puede poner los trabajos pesados al final.
