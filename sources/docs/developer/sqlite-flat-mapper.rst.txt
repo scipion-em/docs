@@ -24,6 +24,10 @@ Example
 Let's start with an example and follow the complete process. Let's take
 SetOfParticles which is basically a list of **Particle** objects.
 
+.. figure:: /docs/images/guis/particles_table.png
+   :align: center
+   :alt: particles_table
+
 Each of the particles in the set has the same 14 attributes (creation
 attribute is never shown in the viewer):
 
@@ -118,12 +122,21 @@ attributes (5 of them are the fixed ones), the Objects table should have
 
 Let's have a look at the table:
 
+.. figure:: /docs/images/mappers/sqlflatmapper_1row.png
+   :align: center
+   :alt: sqlflatmapper_1row
+
 If you pay attention, you'll find there is one more variable field than
 expected (we see 10 "c" columns). The reason for this is because our
 particle object contains another object (\_acquisition) and this
 generates an extra column.
 
 After inserting the first particle you will see something like this:
+
+.. figure:: /docs/images/mappers/sqlflatmapper_objects_fields.png
+   :align: center
+   :alt: sqlflatmapper_objects_fields
+
 
 As you can see, the values for the first particle object are stored
 there, the "fixed" ones and the variable ones too in thee "c" columns.
@@ -137,6 +150,10 @@ Classes table
 
 This table serves as a map between the object attributes and the "c"
 columns present in the Objects table.
+
+.. figure:: /docs/images/mappers/flatmapper_classes.png
+   :align: center
+   :alt: sqlflatmapper_objects_fields
 
 The "label\_property" column corresponds to each of the attributes of
 our "Particle" objects, and the "column\_name" column with the "c"
@@ -168,6 +185,10 @@ persisted.
 For a single SetOfParticles (regardless the number of particles in the
 set) we have a few values to persist. For this purpose, the "Properties"
 table is created, to store those attributes.
+
+.. figure:: /docs/images/mappers/flatMapper_properties.png
+   :align: center
+   :alt: flatMapper_properties.png
 
 With this our SetOfParticles should have been persisted in an sqlLite
 file.
