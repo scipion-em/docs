@@ -1,9 +1,14 @@
 .. _how-to-install:
 
 
+=====================
+How to install
+=====================
+
+
 Installing Scipion v2.0
 ========================
-We have prepared 2 different guides depending on the mode you want to install Scipion
+We have prepared two different guides depending on the mode you want to install Scipion
 
 * `Installing from Sources or github <install-from-sources>`_.
 * `Installing using binaries <install-from-binaries>`_.
