@@ -44,6 +44,7 @@ later on.
    :glob:
    :caption: Facilities
 
+   docs/facilities/facilities-tutorial
    docs/facilities/facilities
 
 .. _api-docs:
