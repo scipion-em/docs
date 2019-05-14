@@ -49,8 +49,6 @@ dependencies (this example is for Ubuntu16). See for
 Step3: Configure and Install
 ----------------------------
 
-*Configure*
-
 After installing the dependencies, you can proceed to `generate configuration files <https://scipion-em.github.io/docs/release-2.0.0/docs/scipion-modes/install-from-sources#step-3-configure-and-install>`_.
 
 
