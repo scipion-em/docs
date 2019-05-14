@@ -33,7 +33,7 @@ that constantly check how the execution of other protocols is going. We have
 developed several GUIs that are refreshed periodically and produce a graphical
 summary (e.g, CTF defocus values, system load etc). A summary is also generated
 in HTML format that can be easily copied to a public website to provide access
-for external users.`See an example here <http://scipion.cnb.csic.es/scipionbox/lastHTMLReport/>`_.
+for external users. See an example `here <http://scipion.cnb.csic.es/scipionbox/lastHTMLReport/>`_.
 
 Launching the demo
 ------------------
