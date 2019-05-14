@@ -152,7 +152,7 @@ files ``~/.config/scipion/scipion.conf`` and
     ./scipion config
 
 You will be asked to share **scipion usage only** data. Sharing `usage
-data <https://github.com/I2PC/scipion/wiki/Collecting-Usage-Statistics-for-Scipion>`__
+data <https://scipion-em.github.io/docs/release-2.0.0/docs/developer/collecting-statistics.html>`_
 will help to make Scipion better.
 
 This command will generate the configuration files (if not present) and
