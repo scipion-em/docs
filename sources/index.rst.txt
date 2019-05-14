@@ -15,7 +15,7 @@ later on.
    :maxdepth: 1
    :caption: Set up
 
-   docs/scipion-modes/install-from-sources
+   docs/scipion-modes/how-to-install
    docs/scipion-modes/scipion-configuration
    docs/scipion-modes/host-configuration
 
