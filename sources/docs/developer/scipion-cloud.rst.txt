@@ -1,5 +1,0 @@
-.. scipion-cloud:
-
-================
-Scipion cloud
-================
