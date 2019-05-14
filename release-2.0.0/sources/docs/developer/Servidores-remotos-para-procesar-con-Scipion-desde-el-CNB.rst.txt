@@ -1,3 +1,7 @@
+.. figure:: /docs/images/scipion_logo.gif
+   :width: 250
+   :alt: scipion logo
+
 .. _Servidores-remotos-para-procesar-con-Scipion-desde-el-CNB:
 
 ==========================================================

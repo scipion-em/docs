@@ -1,5 +1,6 @@
 .. figure:: /docs/images/scipion_logo.gif
-   :alt: http://scipion.cnb.csic.es
+   :width: 250
+   :alt: scipion logo
 
 .. _install-from-binaries:
 
