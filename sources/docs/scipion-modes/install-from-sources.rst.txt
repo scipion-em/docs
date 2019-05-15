@@ -181,6 +181,6 @@ Next Steps
 ==========
 
 -  Test your installation by running at least the *Small* and *Medium*
-   tests mentioned in `running tests page <Running-Tests>`__.
+   tests mentioned in :ref:`running tests page <Running-Tests>`.
 -  Complete some of the :ref:`Scipion Tutorials <User-Documentation>`.
 
