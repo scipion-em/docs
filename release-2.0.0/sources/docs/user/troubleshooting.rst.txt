@@ -298,3 +298,71 @@ If you are determined to move forward follow this steps:
 4. Tell scipion to install bigtiff
 
 ``./scipion install tiff --no-xmipp``
+
+
+Install Xmipp3 in Diocletian
+============================
+
+Because we haven't installed
+xmipp yet, you'll see a message saying something like this in the
+terminal:
+
+::
+
+   Scipion v2.0 (2019-03-12) Diocletian (release-2.0.0-fixes 50b9908)
+
+   >>>>> python  /home/yaiza/Desktop/scipion/pyworkflow/apps/pw_manager.py
+
+   >>> WARNING: Xmipp binaries not found. Ghost active.....BOOOOOO!
+      > Please install Xmipp to get full functionality.
+   (Configuration->Plugins->scipion-em-xmipp in Scipion manager window)
+
+* Open Plugin Manager
+
+.. image:: /docs/images/guis/scipion_config_menu.png
+   :alt: Scipion project manager
+
+* Select Xmipp to install it by clicking on the empty checkbox on the left.
+
+.. image:: /docs/images/guis/plugin_manager_install_xmipp.png
+   :alt: plugin manager
+
+* Add the number of processors you'd like to use (the more, the merrier!).
+  Then click on the install button on the operations tab
+
+.. image:: /docs/images/guis/plugin_manager_install_xmipp_install_button.png
+   :alt:  plugin manager install xmipp
+
+* Now we can check the progress on the Output log tab (or go make some coffee, Xmipp
+  installation will take a bit!).
+  You might have to refresh the logs by clicking on the refresh symbol on the right.
+  Please note that messages might not appear in order if we are using more than 1 processor.
+
+.. image:: /docs/images/guis/plugin_manager_xmipp_install_logs.png
+   :alt: install xmipp logs
+
+* When the operation gets a green check, it's done!
+
+.. image:: /docs/images/guis/plugin_manager_xmipp_done.png
+   :alt: install xmipp logs
+
+**Note**: if xmipp installation fails, you might have to uninstall it with the plugin manager:
+
+.. image:: /docs/images/guis/plugin_manager_xmipp_uninstall.png
+   :alt: uninstall xmipp
+
+And manually remove leftover elements:
+
+::
+
+   rm -rf software/em/xmipp*
+
+* Now when we close and re-launch Scipion, we should get no messages.
+
+::
+
+  ./scipion
+
+   Scipion v2.0 (2019-03-12) Diocletian (release-2.0.0-fixes 50b9908)
+
+   >>>>> python  /home/yaiza/Desktop/scipion/pyworkflow/apps/pw_manager.py

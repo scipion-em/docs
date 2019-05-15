@@ -38,7 +38,7 @@ Step 2: Dependencies
 
 If you have download the Scipion binary version, you only need to install some
 dependencies (this example is for Ubuntu16). See for
-`Installing Dependencies <https://scipion-em.github.io/docs/release-2.0.0/docs/scipion-modes/install-from-sources#step-2-dependencies>`_):
+`Installing Dependencies <dependencies>`_):
 
 .. code-block:: bash
 
