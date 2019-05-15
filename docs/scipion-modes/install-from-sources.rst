@@ -135,7 +135,7 @@ plugins from the command line <install-plugins-command-line>`.
 
 For users
 ---------
-To list and install plugins including Xmipp, you can use the :ref:`Plugin manager guide <Plugin-Manager>`_
+To list and install plugins including Xmipp, you can use the :ref:`Plugin manager guide <Plugin-Manager>`
 (recommended) or alternatively, use the `command line tool <install-plugins-command-line>`__ mentioned for
 developers.
 
