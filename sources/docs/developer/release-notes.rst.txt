@@ -16,7 +16,8 @@ v2.0 (2019-05-16) Diocletian
 
 Release Notes
 -------------
-We are pleased to announce another release of Scipion, v2.0 is now available!
+We are pleased to announce the new major release of version Scipion 2.0.
+It is available for download on Linux `here <http://scipion.i2pc.es/download_form>`_
 
 Scipion is now a plugin framework. This will speed up the release of new packages
 or new updates without the need of releasing a new Scipion version.
@@ -26,6 +27,28 @@ We are also very happy to see the Scipion development becoming more distributed.
 The main developers team is in Madrid, but now core developers are also in
 Stockholm, Montreal and Cambridge. We will be really happy to have more people
 on-board, come and join us!
+
+Key changes for version 2.0 are:
+--------------------------------
+
+* Pluginization: each EM package is now a plugin developed and updated
+  independently from Scipion core. This is a first step towards making Scipion
+  even more modular and easy to use and install for both users and developers.
+  The new repository hosting official plugins is now `here <https://github.com/scipion-em>`_
+
+  For your convenience we have developed a Plugin Manager which provides an easy
+  GUI to manage plugins and associated binaries. We already have over 30 plugins
+  including several new ones, such as 3DFSC, CryoEF, Cryolo, EMPIAR depositor
+  and others. For more information on each plugin consult its corresponding
+  repo and/ or developers.
+
+* Almost all existing EM packages were updated, such as RELION3, EMAN2.21,
+  Gctf 1.18, SPIDER 25.02, Motioncor2-1.2.1 and others.
+
+* Model building tools from CCP4, Chimera, Phenix and powerfit have been added.
+* Several improvements for streaming: multi-GPU jobs distribution, more protocols supporting batch processing, jobs scheduling, new XMIPP streaming protocols (movie maxshift, ctf selection, GL2D classification on GPU etc.)
+* Multiple workflow usability and GUI improvements as well as bug fixes for several tasks.
+* For developers and facility managers we now have a slack workspace where you can easily reach other developers and facility staff to get a quick feedback: https://scipion.slack.com/. Contact us at scipion@cnb.csic.es for an invitation.
 
 
 Streaming
@@ -44,7 +67,7 @@ New protocols & package updates
 7. XMIPP 19.03: center particles, compare angles, consensus classes 3D, deep consensus picking, deep denoising, directional ResDir, eliminate empty classes/particles, generate projections, local MonoTomo, metaprotocol heterogeneity, movie maxshift, particle boxsize, screen deep learning, significant heterogeneity, split volume, trigger data…
 8. Motioncor2: updated to version 1.2.1, added gain rotation/flip options. Motioncor/dosefgpu is deprecated.
 9. New 3D FSC (https://github.com/nysbc/Anisotropy) and cryoEF (https://www.mrc-lmb.cam.ac.uk/crusso/cryoEF/) protocols.
-10. Locscale
+10. Locscale: computes contrast-enhanced cryo-EM maps by local amplitude scaling using a reference model
 11. New model building module, including several protocols from different packages: extract unit cell protocol (XMIPP) to isolate the smallest asymmetrical subunit of the map; Chimera model from template, to get the initial structure from a sequence based on Modeler web server and sequence homology, and other Chimera-derived protocols to handle structures and perform intermediate operations, such as Chimera operate and Chimera restore-session, as well as the operator protocol of Atomstructutils; Chimera rigid fit and Powerfit protocols allow to accomplish rigid fitting of structures in maps; Coot refinement and Refmac protocols, from CCP4, and real space refinement protocol, from Phenix, implement the process of flexible fitting and refinement; EMRinger and MolProbity Phenix protocols have been added to validate the final structure generated; the analysis of this structure is simplified with superpose pdbs protocol, from Phenix, and Chimera contacts protocol, that computes interactions among structure chains; the Scipion protocol export to EMDB has been modified to facilitate the submission of map and its derived structure.
 
 Other improvements and bug fixes
