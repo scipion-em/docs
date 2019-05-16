@@ -10,18 +10,69 @@ Release-notes
 
 .. contents:: Table of Contents
 
+
+v2.0 (2019-05-16) Diocletian
+============================
+We are pleased to announce another release of Scipion, v2.0 is now available!
+
+Scipion is now a plugin framework. This will speed up the release of new packages
+or new updates without the need of releasing a new Scipion version.
+
+We added several new features, made improvements and fixed bugs.
+We are also very happy to see the Scipion development becoming more distributed.
+The main developers team is in Madrid, but now core developers are also in
+Stockholm, Montreal and Cambridge. We will be really happy to have more people
+on-board, come and join us!
+
+
+Streaming
+----------
+1. Batch support for CTF estimation protocols.
+2. More streaming methods available.
+
+New protocols & package updates
+--------------------------------
+1. EMPIAR depositor.
+2. Cryolo picker from SPHIRE.
+3. EMAN2 updated to 2.21, new protocols added: new boxer (interactive and autopicker), ctf_auto, refine 2d and ref2d bispectra, tilt validation.
+4. Relion 3.0 and associated protocols.
+5. SPIDER 25.02: projection matching refinement without defocus groups (“gold-standard”).
+6. Grigoriefflab: ctftilt program added.
+7. XMIPP 19.03: center particles, compare angles, consensus classes 3D, deep consensus picking, deep denoising, directional ResDir, eliminate empty classes/particles, generate projections, local MonoTomo, metaprotocol heterogeneity, movie maxshift, particle boxsize, screen deep learning, significant heterogeneity, split volume, trigger data…
+8. Motioncor2: updated to version 1.2.1, added gain rotation/flip options. Motioncor/dosefgpu is deprecated.
+9. New 3D FSC (https://github.com/nysbc/Anisotropy) and cryoEF (https://www.mrc-lmb.cam.ac.uk/crusso/cryoEF/) protocols.
+10. Locscale
+11. New model building module, including several protocols from different packages: extract unit cell protocol (XMIPP) to isolate the smallest asymmetrical subunit of the map; Chimera model from template, to get the initial structure from a sequence based on Modeler web server and sequence homology, and other Chimera-derived protocols to handle structures and perform intermediate operations, such as Chimera operate and Chimera restore-session, as well as the operator protocol of Atomstructutils; Chimera rigid fit and Powerfit protocols allow to accomplish rigid fitting of structures in maps; Coot refinement and Refmac protocols, from CCP4, and real space refinement protocol, from Phenix, implement the process of flexible fitting and refinement; EMRinger and MolProbity Phenix protocols have been added to validate the final structure generated; the analysis of this structure is simplified with superpose pdbs protocol, from Phenix, and Chimera contacts protocol, that computes interactions among structure chains; the Scipion protocol export to EMDB has been modified to facilitate the submission of map and its derived structure.
+
+Other improvements and bug fixes
+--------------------------------
+1. Protocol tree is now auto-generated from protocols.conf of each plugin.
+2. HTML report of streaming monitor polished: added phase shift, time series
+   plot of CTF parameters, load thumbnails only on request
+   (`#1963 <https://github.com/I2PC/scipion/issues/1963>`_,
+   `#1460 <https://github.com/I2PC/scipion/issues/1460>`_,
+   `#1443 <https://github.com/I2PC/scipion/issues/1443>`_,
+   `#1366 <https://github.com/I2PC/scipion/issues/1366>`_).
+3. Added functions to restart/continue project workflow.
+4. Scheduling has been improved dealing better with exceptions and non streaming protocols.
+5. Protocols output refactored: now the can output/input scalar objects. Discovering outputs have been sped up (`#1810 <https://github.com/I2PC/scipion/issues/1810>`_).
+6. Added QueueStepExecutor: an alternative way to execute jobs in a queue system that sends only the actual package command (e.g. relion_refine) instead of the whole protocol run (`#1807 <https://github.com/I2PC/scipion/issues/1807>`_).
+7. More versatile way to blacklist files during import: by regular expressions, by date, set exclusion or just a plain black list (#1702).
+8. Gctf refinement protocol is now split into multiple steps (`#1748 <https://github.com/I2PC/scipion/issues/1748>`_).
+9. Deprecation of motioncor1, igbmc gEMpicker, cryoem, ctffind3 (in progress, `#1813 <https://github.com/I2PC/scipion/issues/1813>`_).
+10. Libtiff updated to version 4 to support files over 4Gb from SerialEM (`#1837 <https://github.com/I2PC/scipion/issues/1837>`_).
+11. MRC 4-bit support (`#1401 <https://github.com/I2PC/scipion/issues/1401>`_).
+12. Add run ID to input list of objects (`#928 <https://github.com/I2PC/scipion/issues/928>`_).
+13. Gain reference files can be used in dm4 format directly (`#1000 <https://github.com/I2PC/scipion/issues/1000>`_).
+
+    ...
+
+And many more minor features and bug fixes! ;)
+
+
+
 v1.2.1 (2018-10-01) Claudio
 ===========================
-
-Release note
-------------
-
-We are pleased to announce another release of Scipion, v1.2.1 is now available!
-We added several new features, made improvements and fixed bugs, specially for on-the-fly data processing.
-
-We are also very happy to see the Scipion development becoming more distributed. The main developers team is in Madrid, but now core developers are also in Stockholm, Montreal and Cambridge. We will be really happy to have more people on-board, come and join us!
-
-For the next release, we are going for a more strong “pluginization”, to make the whole platform more easy to maintain and the development more agile. Stay tuned and keep an eye!
 
 New for Streaming
 ------------------
