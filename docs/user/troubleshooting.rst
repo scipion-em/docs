@@ -13,6 +13,26 @@ using Scipion.
 
 .. contents::
 
+Installing Scipion/Xmipp from precompiled bundles
+=================================================
+We have check the following Operative Systems for the installation using the precompiled bundles.
+
+- Centos7: works with Scipion_Centos and Xmipp_Centos
+- Ubuntu16: works with Scipion_Ubuntu and Xmipp_Debian
+- Ubuntu18: workks with Scipion_Ubuntu and Xmipp_Debian
+- OpenSUSE42.3: works with Scipion_Ubuntu and Xmipp_Debian
+
+For OpenSUSE15 and Debian, installation from sources is needed, so far.
+
+Fixing libjbig.so.0 not found in OpenSUSE42.3
+===================================
+
+When Scipion_Ubuntu precompiled bundle is installed, maybe a "libjbig.so.0 not found" is raised. We have observed that OpenSUSE includes libjbig.so.2 and we have check that is also valid, thus we propose to link one to the other by
+
+::
+
+  sudo ln -s /usr/lib64/libjbig.so.2 /usr/lib64/libjbig.so.0
+
 Fixing fonts in Ubuntu 18
 =========================
 The Scipion font is not right in Ubuntu 18. A temporary fix for this is to
