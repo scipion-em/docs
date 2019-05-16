@@ -46,7 +46,7 @@ Key changes for version 2.0 are:
   Gctf 1.18, SPIDER 25.02, Motioncor2-1.2.1 and others.
 
 * Model building tools from CCP4, Chimera, Phenix and powerfit have been added.
-* Several improvements for streaming: multi-GPU jobs distribution, more protocols supporting batch processing, jobs scheduling, new XMIPP streaming protocols (movie maxshift, ctf selection, GL2D classification on GPU etc.)
+* Several improvements for streaming: multi-GPU jobs distribution, more protocols supporting batch processing, jobs scheduling, new XMIPP streaming protocols (movie maxshift, ctf consensus, GL2D classification on GPU etc.)
 * Multiple workflow usability and GUI improvements as well as bug fixes for several tasks.
 * For developers and facility managers we now have a slack workspace where you can easily reach other developers and facility staff to get a quick feedback: https://scipion.slack.com/. Contact us at scipion@cnb.csic.es for an invitation.
 
@@ -64,7 +64,7 @@ New protocols & package updates
 4. Relion 3.0 and associated protocols.
 5. SPIDER 25.02: projection matching refinement without defocus groups (“gold-standard”).
 6. Grigoriefflab: ctftilt program added.
-7. XMIPP 19.03: center particles, compare angles, consensus classes 3D, deep consensus picking, deep denoising, directional ResDir, eliminate empty classes/particles, generate projections, local MonoTomo, metaprotocol heterogeneity, movie maxshift, particle boxsize, screen deep learning, significant heterogeneity, split volume, trigger data…
+7. XMIPP 3.19.04: align volume and particles, center particles, compare angles, GL2D (streaming and static), consensus classes 3D, 2D kmeans clustering, CTF consensus, deep consensus picking, deep denoising, directional ResDir, eliminate empty classes/particles, extract unit cell, generate reprojections, local MonoTomo, metaprotocol heterogeneity, movie maxshift, particle boxsize, screen deep learning, significant heterogeneity, swarm consensus intial volumes, split volume, trigger data…
 8. Motioncor2: updated to version 1.2.1, added gain rotation/flip options. Motioncor/dosefgpu is deprecated.
 9. New 3D FSC (https://github.com/nysbc/Anisotropy) and cryoEF (https://www.mrc-lmb.cam.ac.uk/crusso/cryoEF/) protocols.
 10. Locscale: computes contrast-enhanced cryo-EM maps by local amplitude scaling using a reference model
