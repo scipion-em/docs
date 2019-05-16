@@ -53,7 +53,7 @@ Key changes for version 2.0 are:
 Streaming
 ----------
 1. New protocol from Xmipp to trigger data (movies, micrographs, particles...) only when a certain among of that data is reached, in three modes: in batches, full streaming, from streaming to static.
-2. Xmipp Movie Alignment is updated to work on GPU and to do local Alignmen by means of an splines fit.
+2. Xmipp Movie Alignment is updated to work on GPU and to do local alignmen by means of splines fititings.
 3. New protocol to select/discard movies on-the-fly depending on the shift jumps between frames or/and the total travel drift.
 4. Batch support for CTF estimation protocols.
 5. CTF selection and CTF discrepancy from Xmipp are merged on the CTF consensus in order to select/discard CTFs on-the-fly depending on three assertions types: common parameters (defocus range, resolution, astigmatism...), Xmipp criteria and discrepancy with an auxiliar CTF estimation.
