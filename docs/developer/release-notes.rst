@@ -13,6 +13,9 @@ Release-notes
 
 v2.0 (2019-05-16) Diocletian
 ============================
+
+Release Notes
+-------------
 We are pleased to announce another release of Scipion, v2.0 is now available!
 
 Scipion is now a plugin framework. This will speed up the release of new packages
@@ -70,9 +73,17 @@ Other improvements and bug fixes
 And many more minor features and bug fixes! ;)
 
 
-
 v1.2.1 (2018-10-01) Claudio
 ===========================
+
+Release Note
+-------------
+
+We are pleased to announce another release of Scipion, v1.2.1 is now available! We added several new features, made improvements and fixed bugs, specially for on-the-fly data processing.
+
+We are also very happy to see the Scipion development becoming more distributed. The main developers team is in Madrid, but now core developers are also in Stockholm, Montreal and Cambridge. We will be really happy to have more people on-board, come and join us!
+
+For the next release, we are going for a more strong “pluginization”, to make the whole platform more easy to maintain and the development more agile. Stay tuned and keep an eye!
 
 New for Streaming
 ------------------
