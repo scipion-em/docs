@@ -153,7 +153,7 @@ developers.
    cd scipion
    ./scipion
 
-and open Configuration > Plugins, there any plugin can be easyly installed.
+and open Configuration > Plugins. There, any plugin can be easyly installed.
 
 Please refer to the :ref:`Plugin manager guide <Plugin-Manager>` to get
 more details about plugin installation options.
