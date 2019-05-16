@@ -15,7 +15,7 @@ using Scipion.
 
 Installing Scipion/Xmipp from precompiled bundles
 =================================================
-We have check the following Operative Systems for the installation using the precompiled bundles.
+We have checked the following Operative Systems for the installation using the precompiled bundles:
 
 - Centos7: works with Scipion_Centos and Xmipp_Centos
 - Ubuntu16: works with Scipion_Ubuntu and Xmipp_Debian
