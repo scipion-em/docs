@@ -50,11 +50,18 @@ Key changes for version 2.0 are:
 * Multiple workflow usability and GUI improvements as well as bug fixes for several tasks.
 * For developers and facility managers we now have a slack workspace where you can easily reach other developers and facility staff to get a quick feedback: https://scipion.slack.com/. Contact us at scipion@cnb.csic.es for an invitation.
 
-
 Streaming
 ----------
-1. Batch support for CTF estimation protocols.
-2. More streaming methods available.
+1. New protocol from Xmipp to trigger data (movies, micrographs, particles...) only when a certain among of that data is reached, in three modes: in batches, full streaming, from streaming to static.
+2. New protocol to select/discard movies on-the-fly depending on the shift jumps between frames or/and the total travel drift.
+3. Batch support for CTF estimation protocols.
+4. CTF selection and CTF discrepancy from Xmipp are merged on the CTF consensus in order to select/discard CTFs on-the-fly depending on three assertions types: common parameters (defocus range, resolution, astigmatism...), Xmipp criteria and discrepancy with an auxiliar CTF estimation.
+5. New protocol from Xmipp to automatically estimate the particle size.
+6. CRYOLO automatic picking from Sphire now is available.
+7. Now the protocol extract coordinates is ready to follow streaming processing.
+8. New protocol to eliminate/select empty particles/classes in streaming processing.
+9. New GL2D protocol from Xmipp for 2D classificantion in streaming mode in two modes: static (when a particle is assigned to a class, it remains there), full streaming (continuosly updating the classes and re-assigning particles).
+10. More streaming methods available...
 
 New protocols & package updates
 --------------------------------
