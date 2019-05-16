@@ -113,6 +113,14 @@ To compile and install Scipion, just run:
 ``-j 5`` tells the Scipion installer to use 5 processors (cores) for
 compilation. You should adjust this value according to your system.
 
+For convenience, create an **alias** in the ``.bashrc`` file located
+in ``/home/<user>/.bashrc`` that allows you to launch Scipion from any
+location on your computer.
+
+::
+
+   alias scipion='<your_scipion_home>/scipion'
+
 If you have problems compiling Scipion, see
 `Troubleshooting <https://scipion-em.github.io/docs/release-2.0.0/docs/user/troubleshooting.html>`__
 page.
@@ -145,14 +153,7 @@ developers.
    cd scipion
    ./scipion
 
-
-For convenience, create an **alias** in the ``.bashrc`` file located
-in ``/home/<user>/.bashrc`` that allows you to launch Scipion from any
-location on your computer.
-
-::
-
-   alias scipion='<your_scipion_home>/scipion'
+and open Configuration > Plugins, there any plugin can be easyly installed.
 
 Please refer to the :ref:`Plugin manager guide <Plugin-Manager>` to get
 more details about plugin installation options.
