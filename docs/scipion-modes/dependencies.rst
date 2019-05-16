@@ -41,6 +41,10 @@ Dependencies
     libXext-devel-32bit libxml2-devel-32bit libreadline6 libquadmath0 libxslt1 openmpi-devel libXss1\
     libX11-devel-32bit libgfortran4 gcc-fortran libfreetype6 scons libfftw3-3 fftw3-devel libfftw3_threads3\
     libopencv3_1 opencv curl git
+    
+Note: We have observed that libjbig.so.0 is not found in OpenSUSE42.3. However, OpenSUSE42.3 contains libjbig.so.2 and it is also valid. Therefore, please link one to the other by
+::
+  sudo ln -s /usr/lib64/libjbig.so.2 /usr/lib64/libjbig.so.0
 
 - For OpenSUSE 15.0
 
