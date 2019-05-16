@@ -27,7 +27,7 @@ For OpenSUSE15 and Debian, installation from sources is needed, so far.
 Fixing libjbig.so.0 not found in OpenSUSE42.3
 ===================================
 
-When Scipion_Ubuntu precompiled bundle is installed, maybe a "libjbig.so.0 not found" error is raised. We have observed that OpenSUSE includes libjbig.so.2 and we have check that is also valid, thus we propose to link one to the other by
+When Scipion_Ubuntu precompiled bundle is installed, maybe a "libjbig.so.0 not found" error is raised. We have observed that OpenSUSE includes libjbig.so.2 and we have checked that is also valid, thus we propose to link one to the other by
 
 ::
 
