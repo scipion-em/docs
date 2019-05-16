@@ -83,7 +83,7 @@ Other improvements and bug fixes
 4. Scheduling has been improved dealing better with exceptions and non streaming protocols.
 5. Protocols output refactored: now the can output/input scalar objects. Discovering outputs have been sped up (`#1810 <https://github.com/I2PC/scipion/issues/1810>`_).
 6. Added QueueStepExecutor: an alternative way to execute jobs in a queue system that sends only the actual package command (e.g. relion_refine) instead of the whole protocol run (`#1807 <https://github.com/I2PC/scipion/issues/1807>`_).
-7. More versatile way to blacklist files during import: by regular expressions, by date, set exclusion or just a plain black list (#1702).
+7. More versatile way to blacklist files during import: by regular expressions, by date, set exclusion or just a plain black list (`#1702 <https://github.com/I2PC/scipion/issues/1702>`_).
 8. Gctf refinement protocol is now split into multiple steps (`#1748 <https://github.com/I2PC/scipion/issues/1748>`_).
 9. Deprecation of motioncor1, igbmc gEMpicker, cryoem, ctffind3 (in progress, `#1813 <https://github.com/I2PC/scipion/issues/1813>`_).
 10. Libtiff updated to version 4 to support files over 4Gb from SerialEM (`#1837 <https://github.com/I2PC/scipion/issues/1837>`_).
