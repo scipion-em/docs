@@ -48,6 +48,13 @@ installed on your computer is conflicting with the Qt distributed with
 EMAN2. In most cases it gets solved by removing the Qt that comes with
 EMAN2 from EMAN2DIR/extlib/lib.
 
+Relion3 compilation with CUDA8.0 and g++>6
+==========================================
+
+If you are getting an error telling that g++ later than 6 is not supported 
+by nvcc8, you can set a lower g++ compiler in the ``$SCIPION_HOME/config/scipion.conf``
+for instance ``CC=gcc-5`` and ``CXX=g++-5``. To do that you need to have gcc/g++-5 installed. 
+
 --------------
 
 Compiling Scipion with OpenCV
