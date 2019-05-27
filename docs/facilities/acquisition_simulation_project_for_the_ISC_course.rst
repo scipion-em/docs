@@ -1,4 +1,4 @@
-.. _acquisition_simulation_project_for_the _ISC _course:
+.. _acquisition_simulation_project_for_the_ISC_course:
 
 ==================================================
 Acquisition simulation project for the ISC course
