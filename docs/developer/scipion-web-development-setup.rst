@@ -44,6 +44,7 @@ Create web tools folders
 Open a console a run these commands
 
 .. code-block:: bash
+
     mkdir ~/.config/scipion/myfirstmap
     mkdir ~/.config/scipion/myresmap
     mkdir ~/.config/scipion/movies

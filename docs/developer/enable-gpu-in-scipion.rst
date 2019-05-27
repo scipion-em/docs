@@ -24,6 +24,7 @@ then you should prepare all the GPU-related stuff.
 First, NVidia driver:
 
 .. code-block:: bash
+
     # Download the latest stable driver.
     # Disable nouveau:
     echo "blacklist nouveau" > /etc/modprobe.d/disable-nouveau.conf
@@ -40,6 +41,7 @@ Then, install CUDA. We recommend `CUDA 5.5 <https://developer.nvidia.com/cuda-to
 (which requires `gcc 4.6 <http://www.tranquilinho.com/informatica/linux/compilar-gcc/>`_)
 
 .. code-block:: bash
+
     ./cuda_5.5.22_linux_64.run -toolkit -silent
 
 The last requisite is OpenCV, which can be installed with scipion install

@@ -80,6 +80,7 @@ priorities are used, consider adding whitespace around the operators
 with the lowest priority(ies)
 
 .. code-block:: bash
+
     YES:
     i = i + 1
     submitted += 1

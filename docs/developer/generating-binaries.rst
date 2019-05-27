@@ -130,6 +130,7 @@ This script will create the zipped tar file skipping temporary files and build a
 The script should print the tar command used:
 
 .. code-block:: bash
+
      tar czf scipion_devel__source.tgz \
     --exclude=.git --exclude='*.o' --exclude='*.os' --exclude='*pyc' \
     --exclude='*.mrc' --exclude='*.stk' --exclude='*.gz'  \
