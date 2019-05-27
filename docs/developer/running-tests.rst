@@ -99,7 +99,7 @@ Xmipp Workflow
 +-----------+--------------------------------------------------------------------------------------+
 | Software  | Xmipp                                                                                |
 +-----------+--------------------------------------------------------------------------------------+
-| Command   | ``scipion tests pyworkflow.tests.em.workflows.test_workflow_xmippp``                 |
+| Command   | ``scipion tests pyworkflow.tests.em.workflows.test_workflow_xmipp``                 |
 +-----------+--------------------------------------------------------------------------------------+
 |  Input    | Same data as in Xmipp Workflow. A refined volume generated with Frealign is obtained |
 +-----------+--------------------------------------------------------------------------------------+
