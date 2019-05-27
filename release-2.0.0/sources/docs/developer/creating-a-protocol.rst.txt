@@ -365,6 +365,7 @@ If we take a look at the output logs files after executing this
 protocol, we can see a command line similar to the following:
 
 .. code-block:: bash
+
     mpirun -np 2 -bynode `which xmipp_mpi_ml_align2d`
     -i Runs/000194_XmippProtML2D/tmp/input_particles.xmd
     --oroot Runs/000194_XmippProtML2D/ml2d_ --ref Runs/000194_XmippProtML2D/tmp/input_references.xmd

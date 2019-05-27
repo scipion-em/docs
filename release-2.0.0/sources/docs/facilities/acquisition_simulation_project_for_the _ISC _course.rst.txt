@@ -1,4 +1,4 @@
-.. _acquisition_simulation_demo:
+.. _acquisition_simulation_project_for_the _ISC _course:
 
 ==================================================
 Acquisition simulation project for the ISC course

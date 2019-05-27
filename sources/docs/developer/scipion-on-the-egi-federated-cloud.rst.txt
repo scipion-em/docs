@@ -95,6 +95,7 @@ Instantiation command
 ---------------------
 
 .. code-block:: bash
+
     # Instantiate a VM
     # You have to specify OS template and hardware flavor as mixin parameters (see list commands above)
     occi --endpoint https://carach5.ics.muni.cz:11443  --auth x509 --user-cred myproxy-enmr.pem --voms --action create --resource compute --attribute occi.core.title="ScipionVM" --mixin OS_TEMPLATE --mixin FLAVOUR  --context user_data="file://$PWD/tmpfedcloud.login"

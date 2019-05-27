@@ -112,6 +112,7 @@ Everybody else has to "update" the list of branches in the origin, so
 that they also get it deleted:
 
 .. code-block:: bash
+
     git remote prune origin
 
 Remote branch
