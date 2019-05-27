@@ -1,3 +1,7 @@
+.. figure:: /docs/images/scipion_logo.gif
+   :width: 250
+   :alt: scipion logo
+
 .. _acquisition_simulation_project_for_the_ISC_course:
 
 ==================================================
