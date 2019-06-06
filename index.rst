@@ -46,7 +46,9 @@ later on.
 
    docs/facilities/facilities
    docs/facilities/facilities-workflows
+   docs/facilities/facilities-API-demo
    docs/facilities/customize-html-report
+   docs/facilities/acquisition-simulation
 
 .. _api-docs:
 
