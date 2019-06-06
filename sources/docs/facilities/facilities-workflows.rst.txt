@@ -5,7 +5,7 @@
 .. _facilities-workflows:
 
 ===================
-Launching workflows
+Streaming workflows
 ===================
 
 Scipion can launch streaming workflows in several ways. The most basic one is
@@ -150,8 +150,8 @@ Thus, you can download the dataset that you need by
     scipion testdata --download jmbFalconMovies relion13_tutorial
 
 
-Creating/adding custom dynamic templates
-========================================
+Creating custom dynamic templates
+=================================
 
 The dynamic template explained above is just an example, but you can create your
 custom dynamic templates according with your preferences,
@@ -244,7 +244,8 @@ by
 
 .. code-block:: bash
 
-    scipion python $EM_FACILITIES/usingAPI_demo/form_launcher.py [/path/to/the/scipionbox.conf]
+    git clone https://github.com/I2PC/em-facilities
+    scipion python em-facilities/usingAPI_demo/form_launcher.py [/path/to/the/scipionbox.conf]
 
 where the optional parameter is a config file that will be read
 in order to retrieve some configuration parameters. If not provided, a default
