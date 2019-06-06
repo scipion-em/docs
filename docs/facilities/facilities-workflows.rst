@@ -22,9 +22,9 @@ but now all the protocols will wait for new data to process.
    :width: 300
    :alt: streaming tab
 
-Tthe two main parameters associated to the streaming mode are:
+The two main parameters associated to the streaming mode are:
 
-* **Timeout**: The time to wait after not receiving new images to close the acquisition.
+* **Timeout**: The time to wait, after not receiving new images, to close the acquisition.
 * **File timeout**: Scipion is checking if a new file is growing up. If it do not change after this time, Scipion will consider that it is ready to be imported.
 
 Usually the general *timeout* is a huge value (43,200 seconds = 12 hours) in
@@ -47,22 +47,22 @@ For this reason, Scipion is able to automatically launch whole workflows by mean
 Static templates
 ----------------
 
-You can design a workflow by using Scipion as usual. Add an import, add some
-processing protocols, add the summary monitor... When you are happy with your
+You can design a workflow by using Scipion GUI as usual. Adding an import, attaching some
+processing protocols, including the summary monitor... When you are happy with your
 workflow, you can export it by selecting all protocols that you want to export
 (*ctrl+click* to select more than one) and, then, click the *Export* button at top.
-You can save it as a template (a JSON file) at any directory on your system.
+You can save it as a template (a *JSON* file) at any directory on your system.
 
 .. figure:: /docs/images/export-and-exportUpload-button.png
    :align: center
-   :width: 300
+   :width: 350
    :alt: export workflows
 
 Additionally, Scipion has a public workflows repository at http://workflows.scipion.i2pc.es.
 The workflows are classified in different categories, such as **Data Collection**,
-2D classification, 3D classification, Model Building... If you click a certain
+2D classification, 3D classification, Model Building... If you click on a certain
 workflow, you can see a preview of that workflow at left side. Use the *mouse-wheel*
-to zoom in/out, *click and drag* an empty zone to move and click on a box/protocol
+to zoom in/out, *click and drag* in an empty zone to move and click on a box/protocol
 to inspect the internal parameters. You can download a certain workflow to any
 directory on you system. In addition, anyone can upload workflows (without any
 log up) by selecting all the protocols in your Scipion's project
@@ -79,10 +79,10 @@ When you are happy with all the parameters, store the protocol by clicking **Sav
 select the *Import* protocol, *right-click > Restart workflow*.
 Then, the *Import* should start to import data and the rest of the protocols should
 change to the *Schedule* mode. A scheduled protocol is waiting for ready
-inputs. Therefore, when all inputs become ready for it, that protocol should
+inputs, i.e. when all inputs become ready for it, that protocol should
 automatically start to process the incoming data.
 
-Alternatively, a JSON template can be launched from the command line as follow
+Alternatively, a *JSON* template can be launched from the command line as follow
 
 .. code-block:: bash
 
@@ -96,12 +96,12 @@ the third opens the Scipion GUI to see the project.
 Dynamic templates
 -----------------
 
-Usually, we always must set the same parameters that are specific of each acquisition
-such as, deposition path, gain image path, dose per frame, particle size...
-Then, in order to avoid manually editing this parameters using the procedure
-explained for the static templates (previous section), Scipion has a mode to
-open modified templates in such a way that an initial form is launched asking
-for that specific parameters at once.
+Usually, we always must set the same parameters that are specific for each acquisition,
+such as deposition path, gain image path, dose per frame, particle size...
+Then, in order to avoid manually editing this parameters by opening every protocol
+in which belongs (using the procedure explained for the static templates in the
+previous section), Scipion has a mode to open modified templates in such a way
+that a wizard is launched asking for all that specific parameters, at once.
 
 To see a demo of this you just have to run:
 
@@ -117,14 +117,15 @@ This will pop up a small wizard like the one below ready to go.
 
 
 You can fill the form according to your data or just leave all the displayed
-fields untouched since it goes right with the test data. Once you click on the
-*Start demo* button Scipion should appear with the new project loaded and running in
-streaming mode.
+fields untouched since it goes right with the test data (\*see requirements below).
+As you click on the *Start demo* button, Scipion should appear with the new
+project loaded and running in streaming mode.
 
-*Import movies* should already be importing files and the rest are scheduled. As soon as there
-is any input available, the protocols will start processing it and making it
-available for the next protocol in line. Also, the *Monitor summary* is
-monitoring the progress and generating an HTML report with the outcome of the data.
+*Import movies* should already be importing files, whereas the rest should be
+scheduled. As soon as there is any input available for each protocol, that protocol
+will start processing it and making it available for the next protocol in line.
+Also, the *Monitor summary* should be monitoring the progress and generating an HTML
+report with the outcome of the data.
 
 **(\*) Requirements for the demo**:
 
@@ -153,12 +154,18 @@ Adding custom dynamic templates
 ===============================
 
 The dynamic template explained above is just an example, but you can create your
-custom dynamic templates according with your preferences, the system requirements...
-using static templates (explained in the previous section above) as a starting
-points to create the dynamic ones. A Scipion's template is a *JSON* file, which
+custom dynamic templates according with your preferences,
+system requirements/availability... using static templates
+(explained in the previous section above) as a starting
+points to create the dynamic ones.
+
+A Scipion's template is a *JSON* file, which
 are composed by a list of all the protocols in the workflow.
-In the figure below, we have highlight the *Import movies* protocol with a blue
-box, where are listed in all the internal parameters/fields for the import.
+In the figure below, we have highlight with a blue box
+the *Import movies* protocol part,
+where it has listed inside all the internal parameters/fields for
+the *Import movies*, such as the label, the files path, the voltage,
+the sampling rate... (underlined in yellow)
 
 .. figure:: /docs/images/custom-scipion-demo.png
    :align: center
@@ -168,11 +175,13 @@ box, where are listed in all the internal parameters/fields for the import.
 In a common *JSON* file, all fields are made of key-value pairs where *key*
 (what is before ':') is always a *string* and the *value* (what is after ':')
 can be a *string* ("something coated"), a *number*, a
-*Boolean* (true or false) or *null* (`more info <https://www.json.org>`_).
-Additionally, we have created a syntax to add dynamic fields to that *JSON* file. Then, to add a
-dynamic field, you just have to substitute the value (what is after the ':') of
-a certain field for a string starting and ending by '~', and with three strings
-separated by '|', something like
+*boolean* (true or false), a *list*, a *dictionary*, a *null*...
+(`more info <https://www.json.org>`_).
+
+Additionally, we have created a syntax to add dynamic fields to that *JSON* file.
+Then, to add a dynamic field, you just have to substitute the value
+(what is after the ':') of a certain field for a string starting and ending by
+'~', and with three strings separated by '|', something like
 
 .. code-block:: bash
 
@@ -182,12 +191,15 @@ where *label* is the name of the filed in the form, *defaultValue* is the
 default value inserted in the field and *typeValue* is a number fixing the type of the value
 (0 for *strings*, 1 for *booleans*, 2 for *paths*, 3 for *integers*, and 4 for *floats*).
 
-In the figure above, there are three examples for the *filesPath*, *dosePerFrame*
-and *gainFile* fields. Notice that the type for the *filesPath* field is set to
-2, which means *path*, then Scipion will check that this path exists before starting
-to process. *gainFile* is set to 0 (*string*) to allow an empty value (to skip
-using a gain image if not needed). Finally, the 4 (*float* type) set to the *dosPerFrame* allows to
-introduce non integer values.
+In the figure above, there are three examples: the *filesPath*, *dosePerFrame*
+and *gainFile* fields. In this case all three belongs to the same protocol,
+however there is no restriction in this way and, thus, you can add a dynamic
+field to any parameter to any protocol.
+Notice that the type for the *filesPath* field is set to 2, which means *path*,
+then Scipion will check that this path exists before starting to process.
+*gainFile* is set to 0 (*string*) to allow an empty value (to skip
+using a gain image if not needed). Finally, the 4 (*float* type) set to the
+*dosPerFrame* allows to introduce non integer values.
 
 When you are happy with the modified *JSON* file, you must save it to
 
@@ -195,11 +207,13 @@ When you are happy with the modified *JSON* file, you must save it to
 
     $SCIPION_HOME/pyworkflow/templates
 
-where *$SCIPION_HOME* is where you have installed Scipion. The extension of the
-file must be **.json.template**.
+where *$SCIPION_HOME* is where you have installed Scipion. The extension of this
+file must be **.json.template**. You can make as dynamic templates as you want
+by storing in that directory with a certain different file name as long as they
+finishes with **.json.template**.
 
-When more than one dynamic template is in the *$SCIPION_HOME/pyworkflow/templates*
-directory, then running
+When more than one dynamic template are in the *$SCIPION_HOME/pyworkflow/templates*
+directory, then the command
 
 .. code-block:: bash
 
