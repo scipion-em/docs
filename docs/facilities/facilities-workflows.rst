@@ -19,7 +19,7 @@ but now all the protocols will wait for new data to process.
 
 .. figure:: /docs/images/streaming-tab.png
    :align: center
-   :width: 500
+   :width: 300
    :alt: streaming tab
 
 Tthe two main parameters associated to the streaming mode are:
@@ -55,7 +55,7 @@ You can save it as a template (a JSON file) at any directory on your system.
 
 .. figure:: /docs/images/export-and-exportUpload-button.png
    :align: center
-   :width: 600
+   :width: 300
    :alt: export workflows
 
 Additionally, Scipion has a public workflows repository at http://workflows.scipion.i2pc.es.
@@ -209,7 +209,7 @@ opens a menu to choose the dynamic template to launch
 
 .. figure:: /docs/images/multiple-choice-scipion-demo.png
    :align: center
-   :width: 700
+   :width: 400
    :alt: multiple choise scipion demo
 
 
