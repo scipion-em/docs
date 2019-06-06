@@ -150,8 +150,8 @@ Thus, you can download the dataset that you need by
     scipion testdata --download jmbFalconMovies relion13_tutorial
 
 
-Adding custom dynamic templates
-===============================
+Creating/adding custom dynamic templates
+========================================
 
 The dynamic template explained above is just an example, but you can create your
 custom dynamic templates according with your preferences,
@@ -167,16 +167,16 @@ where it has listed inside all the internal parameters/fields for
 the *Import movies*, such as the label, the files path, the voltage,
 the sampling rate... (underlined in yellow)
 
-.. figure:: /docs/images/custom-scipion-demo.png
-   :align: center
-   :width: 900
-   :alt: custom scipion demo
-
 In a common *JSON* file, all fields are made of key-value pairs where *key*
 (what is before ':') is always a *string* and the *value* (what is after ':')
 can be a *string* ("something coated"), a *number*, a
 *boolean* (true or false), a *list*, a *dictionary*, a *null*...
 (`more info <https://www.json.org>`_).
+
+.. figure:: /docs/images/custom-scipion-demo.png
+   :align: center
+   :width: 900
+   :alt: custom scipion demo
 
 Additionally, we have created a syntax to add dynamic fields to that *JSON* file.
 Then, to add a dynamic field, you just have to substitute the value
@@ -192,8 +192,9 @@ default value inserted in the field and *typeValue* is a number fixing the type 
 (0 for *strings*, 1 for *booleans*, 2 for *paths*, 3 for *integers*, and 4 for *floats*).
 
 In the figure above, there are three examples: the *filesPath*, *dosePerFrame*
-and *gainFile* fields. In this case all three belongs to the same protocol,
-however there is no restriction in this way and, thus, you can add a dynamic
+and *gainFile* fields (follow the arrows to see their behavior).
+In this case all three belongs to the same protocol.
+However there is no restriction in this way and, thus, you can add a dynamic
 field to any parameter to any protocol.
 Notice that the type for the *filesPath* field is set to 2, which means *path*,
 then Scipion will check that this path exists before starting to process.
