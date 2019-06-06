@@ -267,7 +267,7 @@ We have a repository destined to share Scipion's code used in
 `EM-facilities <https://github.com/I2PC/em-facilities>`_.
 Specially, we have an example of creating a Scipion's project using the API
 `here <https://github.com/I2PC/em-facilities/blob/master/usingAPI_demo/acquisition_workflow.py>`_.
-This code is loaded by the `form_launcher.py` at same directory and it can be
+This code is loaded by the `form_launcher.py` at same directory and it can be run
 by
 
 .. code-block:: bash
