@@ -44,8 +44,8 @@ later on.
    :glob:
    :caption: Facilities
 
-   docs/facilities/facilities-tutorial
    docs/facilities/facilities
+   docs/facilities/launching-workflows
 
 .. _api-docs:
 
