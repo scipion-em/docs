@@ -2,12 +2,11 @@
    :width: 250
    :alt: scipion logo
 
-.. _acquisition_simulation_project_for_the_ISC_course:
+.. _facilities-API-demo:
 
-==================================================
-Acquisition simulation project for the ISC course
-==================================================
-
+=================================================================
+Acquisition simulation using a workflow created via Scipion's API
+=================================================================
 
 Acquisition simulation demo
 ----------------------------
@@ -58,18 +57,3 @@ Since the 2D classifications protocols need a certain among of particles and a s
 
 Until here, the acquisition takes from 5 minutes to 10 minutes for the 10 demo movies. However, due to the limited resources that we have in VirtualBox, we are not able to continue with the classification and the initial model estimation in an optimal way (it will take 3-5 hours). However, we can open an already processed project to see how it would have continue. Therefore, close the project by clicking on the ``Project`` > ``Exit``.
 
-
-Acquisition simulation project
-------------------------------
-
-To open the already processed project, launch Scipion from the shortcut and choose the 'Acquisition_Simulation' project, then a Scipion window should be opened showing the project.
-
-In this project, we have labeled/colored the protocols by sections. You can change the color mode by ``Project`` > ``Toogle color mode`` or ``ctrl+t``. Even, you can add/edit labels clicking on ``Project`` > ``Manage project labels`` or ``right-click`` on a protocol and click ``labels`` to attach a label to a protocol.
-
-In this case, two particles picking have been used, the ``Eman - Sparx auto-pick`` and the ``Xmipp - manual-picking``. And two ``consensus pickings`` have been performed, one with the junction of the two pickings (OR) and other with all those particles that coincides in both pickers (AND).
-
-Since the 2D-classifyers work with a static set of particles, the ``Xmipp - triger data to classify`` ensures that a certain among of particles is ready and then, a closed set of particles is given to fed the classifiers. We have added two independent methods to classify, one from Relion and the other from Xmipp.
-
-The ``Auto-class selection`` takes those averages that seems fine to be used to fed the initial model protocols. Then, the ``Xmipp - swarm init. vol.`` performs a consensus between the ``Eman - initial vol.``, ``Xmipp - Recons. significans`` and ``Xmipp - Ransac`` to give an initial volume.
-
-Finally, to keep monitoring the incoming particles coming from the new acquired movies, ``Scipion - streamer`` is launching several ``Relion - 2D classifying`` in batches.

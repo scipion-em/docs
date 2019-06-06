@@ -45,7 +45,8 @@ later on.
    :caption: Facilities
 
    docs/facilities/facilities
-   docs/facilities/launching-workflows
+   docs/facilities/facilities-workflows
+   docs/facilities/customize-html-report
 
 .. _api-docs:
 
