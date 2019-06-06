@@ -37,6 +37,8 @@ one key change: the output is produced as soon as the first element is
 available, and it is later updated with new output elements. This allows
 concatenating several operations before the first one is completed.
 
+Learn `how to create and launch streaming workflows <facilities-workflows>`_.
+
 On top of that, we have added the concept of monitors, the special protocols
 that constantly check how the execution of other protocols is going. We have
 developed several GUIs that are refreshed periodically and produce a graphical
@@ -51,5 +53,3 @@ button. A browser will show you something
 like `this <http://scipion.cnb.csic.es/scipionbox/lastHTMLReport/>`_.
 
 The *HTML report* can be customized following `this guide <customize-html-report>`_.
-
-Learn `how to create and launch streaming workflows <facilities-workflows>`_.
