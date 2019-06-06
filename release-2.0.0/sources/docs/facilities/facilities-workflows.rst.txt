@@ -196,6 +196,7 @@ and *gainFile* fields (follow the arrows to see their behavior).
 In this case all three belongs to the same protocol.
 However there is no restriction in this way and, thus, you can add a dynamic
 field to any parameter to any protocol.
+
 Notice that the type for the *filesPath* field is set to 2, which means *path*,
 then Scipion will check that this path exists before starting to process.
 *gainFile* is set to 0 (*string*) to allow an empty value (to skip
@@ -210,8 +211,8 @@ When you are happy with the modified *JSON* file, you must save it to
 
 where *$SCIPION_HOME* is where you have installed Scipion. The extension of this
 file must be **.json.template**. You can make as dynamic templates as you want
-by storing in that directory with a certain different file name as long as they
-finishes with **.json.template**.
+by storing them in the mentioned directory with certain different file names
+as long as they finishes with **.json.template**.
 
 When more than one dynamic template are in the *$SCIPION_HOME/pyworkflow/templates*
 directory, then the command
@@ -234,17 +235,19 @@ Using Scipion's API
 A Scipion's project can be created, designed (adding protocols) and launched by
 a Python script by using the `Scipion's API <https://scipion-em.github.io/docs/api/pyworkflow.html>`_.
 
-We have a repository destined to share Scipion's code used in
+We have a repository destined to share Scipion's scripts potentially useful in
 `EM-facilities <https://github.com/I2PC/em-facilities>`_.
 Specially, we have an example of creating a Scipion's project using the API
 `here <https://github.com/I2PC/em-facilities/blob/master/usingAPI_demo/acquisition_workflow.py>`_.
-This code is loaded by the `form_launcher.py` at same directory and it can be run
+This code is loaded by the *form_launcher.py* at same directory and it can be run
 by
 
 .. code-block:: bash
 
-    scipion python $EM_FACILITIES/usingAPI_demo/form_launcher.py [scipionbox.conf]
+    scipion python $EM_FACILITIES/usingAPI_demo/form_launcher.py [/path/to/the/scipionbox.conf]
 
-where the optional *scipionbox.conf* parameter is a config file that will be read
+where the optional parameter is a config file that will be read
 in order to retrieve some configuration parameters. If not provided, a default
 file in the same directory is used.
+
+See `here <facilities-API-demo>`_ to see in detail.
