@@ -11,13 +11,16 @@ Tutorial for Facilities
 This tutorial try to put into practice the previous facilities sections
 by means of a demo which simulates a cryo-EM acquisition.
 
-The demo will be made of the following 4 logical steps:
+The demo will be made of the following 5 logical steps:
 
-1. Take movies from a data set, one by one every a certain time step,
-   to deposit it in a simulated deposition directory.
-2. Launch a wizard asking for some parameters that the user can set.
-3. Create the workflow according to that user and config parameters.
-4. Launch and open that workflow.
+1. `Taking movies from a data set to deposit it in a simulated deposition
+   directory <acquisition-simulation#id1>`_, one by one every a certain
+   time step.
+2. `Launching a wizard <acquisition-simulation#id2>`_ asking for some
+   parameters that the user can set.
+3. `Creating the workflow <acquisition-simulation#id3>`_ according to that user and config parameters.
+4. `Launching and opening that workflow <acquisition-simulation#id4>`_.
+5. `Customize the HTML report <customize-html-report>`_.
 
 Notice that these 4 steps are independent one each other. In addition,
 each of them can be done in different ways and, this demo wants to be just an
@@ -98,7 +101,7 @@ in mind that are parameters rarely change from one acquisition to the next.
 
 
 1. Acquisition simulation
---------------------------
+-------------------------
 
 This point is just to periodically get movies. Nothing else. If you intend to
 run in a real acquisition, you can skip this point.
@@ -206,14 +209,44 @@ the wizard described in the previous section.
 See `how to create workfows with the API <facilities-API-demo>`_ to continue.
 
 
-4. Launch an open workflows
----------------------------
+4. Launch an open projects
+--------------------------
+
+Launch a project
+================
 
 See `launching JSON workflows <facilities-workflows.html#static-templates>`_ if
 you crated a JSON file.
 
-Wait a second if you are using the API way.
+If the protocols included in the workflow made in the previous section are save
+instead of launched, we must to launch the whole workflow at once by
 
+.. code-block:: bash
+
+    scipion python $SCIPION_HOME/pyworkflow/project/scripts/schedule.py projectName
+
+where `projectName` is the name of the project made in the previous section.
+Alternatively, the whole workflow can also be launch from the GUI by selecting
+the `Import` and *right-click > Restart workflow*.
+
+Note that if the protocols have been launched during the workflow creation, this
+step must be skipped.
+
+Open a project
+==============
+
+To open a project you can either open Scipion GUI and choose the project from the
+project window or just run
+
+.. code-block:: bash
+
+    scipion project projectName
+
+
+5. Customize the HTML report
+----------------------------
+
+This section is in `this specific page <customize-html-report>`_.
 
 
 

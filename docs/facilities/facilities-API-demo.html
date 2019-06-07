@@ -36,9 +36,7 @@
   <link rel="stylesheet" href="../../_static/banner.css" type="text/css" />
   <link rel="stylesheet" href="../../static/custom.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
-    <link rel="search" title="Search" href="../../search.html" />
-    <link rel="next" title="The summary monitor and report customization" href="customize-html-report.html" />
-    <link rel="prev" title="Streaming workflows" href="facilities-workflows.html" /> 
+    <link rel="search" title="Search" href="../../search.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -99,11 +97,9 @@
 <li class="toctree-l1"><a class="reference internal" href="../developer/developers.html">Developers Page</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Facilities</span></p>
-<ul class="current">
+<ul>
 <li class="toctree-l1"><a class="reference internal" href="facilities.html">Streaming Processing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="facilities-workflows.html">Streaming workflows</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">API workflows</a></li>
-<li class="toctree-l1"><a class="reference internal" href="customize-html-report.html">The summary monitor and report customization</a></li>
 <li class="toctree-l1"><a class="reference internal" href="acquisition-simulation.html">Tutorial for Facilities</a></li>
 </ul>
 <p class="caption"><span class="caption-text">API Documentation</span></p>
@@ -182,25 +178,67 @@
 </div>
 <div class="section" id="api-workflows">
 <span id="facilities-api-demo"></span><h1>API workflows<a class="headerlink" href="#api-workflows" title="Permalink to this headline">¶</a></h1>
-<p><strong>This is a draft</strong></p>
-<p>The <a class="reference external" href="https://github.com/I2PC/em-facilities/blob/8a31f7f5eed3dc73443266272c40b1da6432135d/usingAPI_demo/form_launcher.py#L396-L447">usingAPI-demo/form_launcher.py</a>
-creates an empty project by means of</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">manager</span> <span class="o">=</span> <span class="n">Manager</span><span class="p">()</span>
-<span class="n">project</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">createProject</span><span class="p">(</span><span class="n">projName</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">scipionProjPath</span><span class="p">)</span>
+<p>To create a Scipion workflow from a Python script, you only need to do 3 logical
+steps:</p>
+<ol class="arabic simple">
+<li><a class="reference external" href="facilities-api-demo#id1">Create an empty project</a>.</li>
+<li><a class="reference external" href="facilities-api-demo#id2">Create protocols</a>.</li>
+<li><a class="reference external" href="facilities-api-demo#id3">Register that protocols to the project</a>.</li>
+</ol>
+<p>In addition, we include an special mention in <a class="reference external" href="facilities-api-demo#id4">how to set EM objects as protocol
+inputs</a>.</p>
+<div class="section" id="getting-config-and-user-parameters">
+<h2>0. Getting config and user parameters<a class="headerlink" href="#getting-config-and-user-parameters" title="Permalink to this headline">¶</a></h2>
+<p>First of all, we need to get all the <em>config</em> and <em>user</em> parameters retrieved in
+<a class="reference external" href="acquisition-simulation#id2">previous steps</a>. We have stored all these
+parameters in a dictionary that is gotten as argument by the main function script
+located in this section (<a class="reference external" href="https://github.com/I2PC/em-facilities/blob/master/usingAPI_demo/acquisition_workflow.py">acquisition_workflow.py</a>).
+In addition, we import the <em>UPPER_CASE</em> constants from <a class="reference external" href="https://github.com/I2PC/em-facilities/blob/master/usingAPI_demo/constants.py">constants.py</a>
+to ensure that we use the same that in the wizard (<a class="reference external" href="https://github.com/I2PC/em-facilities/blob/master/usingAPI_demo/acquisition_workflow.py">form_launcher.py</a>)
+and also to easy gat values from the <cite>configDict</cite> variable.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">constants</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="k">def</span> <span class="nf">preprocessWorkflow</span><span class="p">(</span><span class="n">configDict</span><span class="p">):</span>
+
+    <span class="n">numCpus</span> <span class="o">=</span> <span class="p">(</span><span class="n">configDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">NUM_CPU</span><span class="p">)</span> <span class="k">if</span> <span class="n">configDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">NUM_CPU</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                   <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s1">&#39;nproc&#39;</span><span class="p">,</span><span class="s1">&#39;--all&#39;</span><span class="p">],</span>
+                                             <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">)</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">read</span><span class="p">()))</span>
 </pre></div>
 </div>
-<p>then, we fill the project with protocols by function</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">preprocessWorkflow</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">dataPath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">configDict</span><span class="p">)</span>
+<p>Note that we are taking the number of CPUs from the <cite>configDict</cite> via the <cite>NUM_CPU</cite>
+constant.</p>
+</div>
+<div class="section" id="creating-a-project">
+<h2>1. Creating a project<a class="headerlink" href="#creating-a-project" title="Permalink to this headline">¶</a></h2>
+<p>To create an empty project,</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyworkflow.project</span> <span class="kn">import</span> <span class="n">Manager</span>
+<span class="n">manager</span> <span class="o">=</span> <span class="n">Manager</span><span class="p">()</span>
+<span class="n">project</span> <span class="o">=</span> <span class="n">manager</span><span class="o">.</span><span class="n">createProject</span><span class="p">(</span><span class="n">configDict</span><span class="p">[</span><span class="n">PROJECT_NAME</span><span class="p">],</span>
+                                <span class="n">location</span><span class="o">=</span><span class="n">configDict</span><span class="p">[</span><span class="n">SCIPION_PROJECT</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>which is in
-<a class="reference external" href="https://github.com/I2PC/em-facilities/blob/master/usingAPI_demo/acquisition_workflow.py">usingAPI-demo/form_launcher.py</a></p>
+<p>where <cite>PROJECT_NAME</cite> and <cite>SCIPION_PROJECT</cite> return the project name and
+the project path, respectively.</p>
+</div>
+<div class="section" id="including-protocols">
+<h2>2. Including protocols<a class="headerlink" href="#including-protocols" title="Permalink to this headline">¶</a></h2>
+<p>Once a project is created, we must fill it with protocols.</p>
+<p>To be able to instance a protocol, it must be imported from the containing plugin
+(or from Scipion). Here an example of importing the <em>Import Movies</em> and
+the <em>Motioncor</em> protocols</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyworkflow.em.protocol</span> <span class="kn">import</span> <span class="n">ProtImportMovies</span>
+<span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="kn">as</span> <span class="nn">pwutils</span>
+<span class="n">ProtMotionCorr</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">importFromPlugin</span><span class="p">(</span><span class="s1">&#39;motioncorr.protocols&#39;</span><span class="p">,</span> <span class="s1">&#39;ProtMotionCorr&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Notice that use the <cite>pwutils.importFromPlugin()</cite> function to import classes from
+plugins in order to avoid uncontrolled errors if that plugin is not installed.</p>
 <p>For instance, to create the <em>Import movies</em></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">protImport</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">newProtocol</span><span class="p">(</span>
                   <span class="n">ProtImportMovies</span><span class="p">,</span>
                   <span class="n">objLabel</span><span class="o">=</span><span class="s1">&#39;import movies&#39;</span><span class="p">,</span>
                   <span class="n">importFrom</span><span class="o">=</span><span class="n">ProtImportMovies</span><span class="o">.</span><span class="n">IMPORT_FROM_FILES</span><span class="p">,</span>
-                  <span class="n">filesPath</span><span class="o">=</span><span class="n">dataPath</span><span class="p">,</span>
+                  <span class="n">filesPath</span><span class="o">=</span><span class="n">configDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DATA_FOLDER</span><span class="p">),</span>
                   <span class="n">filesPattern</span><span class="o">=</span><span class="n">configDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">PATTERN</span><span class="p">),</span>
                   <span class="n">amplitudeContrast</span><span class="o">=</span><span class="n">configDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">AMP_CONTR</span><span class="p">),</span>
                   <span class="n">sphericalAberration</span><span class="o">=</span><span class="n">configDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SPH_AB</span><span class="p">),</span>
@@ -214,25 +252,142 @@ creates an empty project by means of</p>
                   <span class="p">)</span>
 </pre></div>
 </div>
-<p>Notice that the first argument of the <cite>project.newProtocol</cite> function is a
+<p>Notice that the first argument of the <cite>project.newProtocol()</cite> function is an
 <a class="reference external" href="https://scipion-em.github.io/docs/api/pyworkflow.em.protocol.html#pyworkflow-em-protocol-package">EM-protocol</a>
-subclass corresponding to that protocol to be created, and the following
-arguments are all those parameters to be set. If a parameter is not
-set, the default value is used.</p>
-<p>Alternativelly, a protocol parameter can be set as follow</p>
+object, corresponding to that protocol to be created (and imported above).
+The following arguments are all those parameters to be set, where if a parameter
+is not set, the default value is used.</p>
+</div>
+<div class="section" id="registering-protocols">
+<h2>3. Registering protocols<a class="headerlink" href="#registering-protocols" title="Permalink to this headline">¶</a></h2>
+<p>Once a protocol is instanced, we should register it in two alternative ways:</p>
+<ul>
+<li><dl class="first docutils">
+<dt><strong>Saving the protocol</strong>:</dt>
+<dd><div class="first highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">project</span><span class="o">.</span><span class="n">saveProtocol</span><span class="p">(</span><span class="n">protImport</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="last">This option is similar to create a <em>JSON</em> block when
+making Scipion’s templates. In this way, the protocols do not run until the whole workflow will be launched after
+including all the protocols (see <a class="reference external" href="acquisition-simulation.html#launch-an-open-workflows">launch an open workflows</a>). Thus, the output objects from protocols are not
+instanced yet and, then, no information can be gotten from them. Even though, they
+can be used for the next protocols with no inconvenience as we will see below.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><strong>Launching the protocol</strong>:</dt>
+<dd><div class="first highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">project</span><span class="o">.</span><span class="n">launchProtocol</span><span class="p">(</span><span class="n">protImport</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>This option is to launch protocols as soon as we create them
+(similar to a manual processing). The drawback here is that we must take
+into account that all inputs have to be ready before launching a certain
+protocol. In this way, we must monitor the outputs of the protocols to
+prevent launching posterior protocols with empty inputs.</p>
+<p class="last">Notice that we introduce <cite>wait=False</cite> to continue with the script.
+If <cite>wait=True</cite>, the script stops here until that protocol finishes.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>These two options are noticeable different and we must take a procedure decision,
+since we should do the same for all the protocols.</p>
+</div>
+<div class="section" id="setting-em-objects-as-protocol-inputs">
+<h2>4. Setting EM objects as protocol inputs<a class="headerlink" href="#setting-em-objects-as-protocol-inputs" title="Permalink to this headline">¶</a></h2>
+<p>We have seen how to set protocol parameters in the initialization arguments.
+However, any protocol parameter (let’s say parameter <cite>input1</cite> of protocol
+<cite>prot1</cite>) can also be set as <cite>prot1.input1.set(value)</cite>. For instance,</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">protMotionCor</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">newProtocol</span><span class="p">(</span><span class="n">ProtMotionCorr</span><span class="p">)</span>
-<span class="n">protMotionCor</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">protImport</span><span class="o">.</span><span class="n">outputMovies</span><span class="p">)</span>
+<span class="n">protMotionCor</span><span class="o">.</span><span class="n">doApplyDoseFilter</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">configDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">DOSEF</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <cite>protMotionCor</cite> is initialized in the first line whereas in the second line
+<cite>doApplyDoseFilter</cite> is set to <cite>True</cite> if the <em>dose per frame</em> introduced in
+<a class="reference external" href="acquisition-simulation#id2">the previous steps</a> is bigger than 0 or
+to <cite>False</cite>, instead.</p>
+<p>At this point, we only have set <a class="reference external" href="https://scipion-em.github.io/docs/api/pyworkflow.object.html#pyworkflow.object.Scalar">Scalar</a> objects or basic objects.
+To set <a class="reference external" href="https://scipion-em.github.io/docs/api/pyworkflow.em.data.html#pyworkflow.em.data.EMSet">EMSets</a> (SetOfMovies, SetOfMicrographs, SetOfCtfs,
+SetOfParticles…) produced in previous protocols, we must take into account
+that previous protocol may be not running yet (<a class="reference external" href="facilities-API-demo#registering-protocols">it can be saved</a>), then in that cases the output is
+not created yet.
+Therefore, we set the whole protocol as input parameter, while indicating which
+object should be retrieved from that protocol, in the running time.
+For instance,</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">protMotionCor</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">protImport</span><span class="p">)</span>
+<span class="n">protMotionCor</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">setExtended</span><span class="p">(</span><span class="s1">&#39;ouputMovies&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where the whole <cite>protImport</cite> protocol is attached to the
+<cite>protMotionCor.inputMovies</cite> in the first line and the <cite>outputMovies</cite> is set as
+an extension for this parameter, indicating that it will be gotten in the
+running time.</p>
+<p>If you decided to <a class="reference external" href="facilities-API-demo#registering-protocols">launch protocols as soon as they are created</a>, then a direct
+assignation is possible as long as the object is ready</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">protMotionCor</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">protImport</span><span class="o">.</span><span class="n">outputMovies</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Notice that to use this <cite>protImport</cite> must have an attribute
 called <cite>outputMovies</cite> if not, this line will break.</p>
-<p>Then every protocol can be saved by</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">project</span><span class="o">.</span><span class="n">saveProtocol</span><span class="p">(</span><span class="n">protImport</span><span class="p">)</span>
+<p>In this case, a waiting function to ensure that the <cite>protImport.outputMovies</cite>
+is ready to be used becomes crucial. For instance</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+
+<span class="k">def</span> <span class="nf">waitOutput</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">outputAttributeName</span><span class="p">,</span> <span class="n">checkNotEmpty</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">5000</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Wait until the output is being generated by the protocol.</span>
+<span class="sd">        Returns False if the TimeOut is reached or True, instead.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">timeStep</span> <span class="o">=</span> <span class="mf">5.</span>  <span class="c1"># checking every 5 second</span>
+
+    <span class="k">def</span> <span class="nf">_loadProt</span><span class="p">():</span>
+        <span class="c1"># Load the last version of the protocol from its own database</span>
+        <span class="n">prot2</span> <span class="o">=</span> <span class="n">getProtocolFromDb</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getProject</span><span class="p">()</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+                                  <span class="n">protocol</span><span class="o">.</span><span class="n">getDbPath</span><span class="p">(),</span>
+                                  <span class="n">protocol</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
+        <span class="c1"># Close DB connections</span>
+        <span class="n">prot2</span><span class="o">.</span><span class="n">getProject</span><span class="p">()</span><span class="o">.</span><span class="n">closeMapper</span><span class="p">()</span>
+        <span class="n">prot2</span><span class="o">.</span><span class="n">closeMappers</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">prot2</span>
+
+    <span class="n">counter</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">prot2</span> <span class="o">=</span> <span class="n">_loadProt</span><span class="p">()</span>
+
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">prot2</span><span class="o">.</span><span class="n">hasAttribute</span><span class="p">(</span><span class="n">outputAttributeName</span><span class="p">):</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="n">timeStep</span><span class="p">)</span>
+        <span class="n">prot2</span> <span class="o">=</span> <span class="n">_loadProt</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">counter</span> <span class="o">&gt;</span> <span class="n">timeout</span><span class="o">/</span><span class="n">timeStep</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">outputObject</span> <span class="o">=</span> <span class="n">prot2</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="n">outputAttributeName</span><span class="p">)</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">outputObject</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">outputObject</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">sleep</span><span class="p">(</span><span class="n">timeStep</span><span class="p">)</span>
+        <span class="n">prot2</span> <span class="o">=</span> <span class="n">_loadProt</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">counter</span> <span class="o">&gt;</span> <span class="n">timeout</span><span class="o">/</span><span class="n">timeStep</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="c1"># Update the protocol instance to get latest changes</span>
+    <span class="n">project</span><span class="o">.</span><span class="n">_updateProtocol</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="bp">True</span>
+
+<span class="c1"># Waiting for a non empty ouput from MotioCor2 to continue</span>
+<span class="n">waitOutput</span><span class="p">(</span><span class="n">protMotionCor</span><span class="p">,</span> <span class="s1">&#39;outputMicrographs&#39;</span><span class="p">)</span>
+
+<span class="c1"># Importing, creating and launching the gCTF protocol</span>
+<span class="n">ProtGctf</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">importFromPlugin</span><span class="p">(</span><span class="s1">&#39;gctf.protocols&#39;</span><span class="p">,</span> <span class="s1">&#39;ProtGctf&#39;</span><span class="p">)</span>
+<span class="n">protGCTF</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">newProtocol</span><span class="p">(</span><span class="n">ProtGctf</span><span class="p">,</span>
+                               <span class="n">objLabel</span><span class="o">=</span><span class="s1">&#39;gCTF estimation&#39;</span><span class="p">,</span>
+                               <span class="n">gpuList</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">configDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">GCTF</span><span class="p">)))</span>
+<span class="n">protCTF2</span><span class="o">.</span><span class="n">inputMicrographs</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">protMotionCor</span><span class="o">.</span><span class="n">outputMicrographs</span><span class="p">)</span>
+<span class="n">project</span><span class="o">.</span><span class="n">launchProtocol</span><span class="p">(</span><span class="n">protGCTF</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="c1"># Waiting for at least one CTF estimation to continue</span>
+<span class="n">waitOutput</span><span class="p">(</span><span class="n">protGCTF</span><span class="p">,</span> <span class="s1">&#39;outputCTF&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>or launched</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">project</span><span class="o">.</span><span class="n">launchProtocol</span><span class="p">(</span><span class="n">protImport</span><span class="p">)</span>
-</pre></div>
 </div>
 </div>
 
@@ -241,15 +396,6 @@ called <cite>outputMovies</cite> if not, this line will break.</p>
            
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="customize-html-report.html" class="btn btn-neutral float-right" title="The summary monitor and report customization" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="facilities-workflows.html" class="btn btn-neutral float-left" title="Streaming workflows" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>

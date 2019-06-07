@@ -37,19 +37,43 @@ one key change: the output is produced as soon as the first element is
 available, and it is later updated with new output elements. This allows
 concatenating several operations before the first one is completed.
 
-Learn `how to create and launch streaming workflows <facilities-workflows>`_.
+Learn `how to create, import, export and launch streaming workflows <facilities-workflows>`_.
 
-On top of that, we have added the concept of monitors, the special protocols
+Scipion v.2.0 - Diocletian `updates/introduce a big number of streaming tools
+<release-notes#streaming>`_. We review and analyze in deep the use and the
+combination of these on-the-fly tools and protocols for facilities in the
+`D. Maluenda et.al. 'Flexible workflows for on-the-fly electron microscopy
+single particle image processing using Scipion' Acta Cryst. (2019). Dxx, yy-zz
+<linkToPaper>`_ paper.
+
+On top of that, we have paid special attention to the data flow management with
+the `Trigger data <https://github.com/I2PC/scipion-em-xmipp/blob/648ebe3a4f8dc2f3022332c080fb3d300d273bd7/
+xmipp3/protocols/protocol_trigger_data.py#L41-L53>`_ protocol, the `Movie max shift
+<https://github.com/I2PC/scipion-em-xmipp/blob/648ebe3a4f8dc2f3022332c080fb3d300d273bd7/
+xmipp3/protocols/protocol_movie_max_shift.py#L43-L53>`_ protocol, the
+`CTF consensus <https://github.com/I2PC/scipion-em-xmipp/blob/648ebe3a4f8dc2f3022332c080fb3d300d273bd7/
+xmipp3/protocols/protocol_ctf_consensus.py#L49-L51>`_ protocol, the
+`Extract coordinates <https://github.com/I2PC/scipion/blob/d1a60f69960d1079bbbecde5bf3f5f4017b36927/
+pyworkflow/em/protocol/protocol_extract_coordinates.py#L44-L49>`_ protocol in
+streaming and `2D classification <https://github.com/I2PC/scipion-em-xmipp/blob/648ebe3a4f8dc2f3022332c080fb3d300d273bd7/
+xmipp3/protocols/protocol_classification_gpuCorr_semi.py#L68-L70>`_ protocol in
+streaming.
+
+In addition, we have work more in the concept of consensus protocols, for
+merging and combining different approach (from different EM softwares) to do the
+same tasks, in order to get an improved result based on that different results.
+The consensus protocols family are for *CTF estimation*, *Picking*,
+*Initial Volume* and *3D classes*, so far.
+
+Moreover, we are also working in the monitor protocols, the special protocols
 that constantly check how the execution of other protocols is going. We have
 developed several GUIs that are refreshed periodically and produce a graphical
-summary (e.g, CTF defocus values, system load etc). A summary is also generated
-in HTML format that can be easily copied to a public website to provide access
-for external users.
+summary (e.g, CTF estimated values, system load, etc).
+This summary is generated in *HTML* format to be easily copied to a
+`public website <http://scipion.cnb.csic.es/scipionbox/lastHTMLReport/>`_.
+Learn `how to customize the HTML report <customize-html-report>`_ according to
+your facilities' needs.
 
-To see the HTML summary report from Scipion you must launch the *Summary monitor*
-protocol (or select it if it is already in the workflow), click on the
-*Analyze results* button (down-right) and, then, click on the "Open HTML report"
-button. A browser will show you something
-like `this <http://scipion.cnb.csic.es/scipionbox/lastHTMLReport/>`_.
-
-The *HTML report* can be customized following `this guide <customize-html-report>`_.
+Finally, this `tutorial focused on streaming processing <facilities-tutorial>`_
+simulates a cryo-EM acquisition in order to sum up all the available facilities
+tools.
