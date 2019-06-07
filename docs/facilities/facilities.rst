@@ -77,6 +77,6 @@ This summary is generated in *HTML* format to be easily copied to a
 Learn `how to customize the HTML report <customize-html-report>`_ according to
 your facilities' needs.
 
-Finally, this `tutorial focused on streaming processing <facilities-tutorial>`_
+Finally, this `tutorial focused on streaming processing <acquisition-simulation>`_
 simulates a cryo-EM acquisition in order to sum up all the available facilities
 tools.
