@@ -357,6 +357,25 @@ terminal:
    >>> WARNING: Xmipp binaries not found. Ghost active.....BOOOOOO!
       > Please install Xmipp to get full functionality.
    (Configuration->Plugins->scipion-em-xmipp in Scipion manager window)
+   
+or this one when importing something:
+
+::
+
+   Error: AttributeError
+   Description: 'NoneType' object has no attribute 'isImage'
+   Traceback:
+     File "/home/me/scipion/pyworkflow/protocol/protocol.py", line 1817, in validate
+       childErrors = self._validate()
+
+     File "/home/me/scipion/pyworkflow/em/protocol/protocol_import/images.py", line 372, in validate
+       errors += self.validateImages()
+
+     File "/home/me/scipion/pyworkflow/em/protocol/protocol_import/images.py", line 354, in validateImages
+       ih.isImageFile(imgFn))):
+
+     File "/home/me/scipion/pyworkflow/em/convert/imagehandler.py", line 436, in isImageFile
+       return xmippLib.FileName(imgFn).isImage() 
 
 * Open Plugin Manager
 
