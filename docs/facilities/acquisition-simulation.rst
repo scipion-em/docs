@@ -16,10 +16,11 @@ The demo will be made of the following 5 logical steps:
 1. `Taking movies from a data set to deposit it in a simulated deposition
    directory <acquisition-simulation#id1>`_, one by one every a certain
    time step.
-2. `Launching a wizard <acquisition-simulation#id2>`_ asking for some
-   parameters that the user can set.
-3. `Creating the workflow <acquisition-simulation#id3>`_ according to that user and config parameters.
-4. `Launching and opening that workflow <acquisition-simulation#id4>`_.
+2. `Launching a wizard <acquisition-simulation#wizard-for-user-parameters>`_
+   asking for some parameters that the user can set.
+3. `Creating the workflow <acquisition-simulation#creating-custom-workflows>`_
+   according to that user and config parameters.
+4. `Launching and opening that workflow <acquisition-simulation#launch-and-open-projects>`_.
 5. `Customize the HTML report <customize-html-report>`_.
 
 Notice that these 4 steps are independent one each other. In addition,
@@ -209,8 +210,8 @@ the wizard described in the previous section.
 See `how to create workfows with the API <facilities-API-demo>`_ to continue.
 
 
-4. Launch an open projects
---------------------------
+4. Launch and open projects
+---------------------------
 
 Launch a project
 ================

@@ -18,6 +18,7 @@ later on.
    docs/scipion-modes/how-to-install
    docs/scipion-modes/scipion-configuration
    docs/scipion-modes/host-configuration
+   docs/user/troubleshooting
 
 .. _user-docs:
 
