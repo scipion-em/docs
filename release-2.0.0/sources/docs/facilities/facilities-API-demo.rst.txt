@@ -102,8 +102,8 @@ For instance, to create the *Import movies*
                       )
 
 Notice that the first argument of the `project.newProtocol()` function is an
-`EM-protocol <https://scipion-em.github.io/docs/api/pyworkflow.em.protocol.html
-#pyworkflow-em-protocol-package>`_
+`EM-protocol <https://scipion-em.github.io/docs/api/pyworkflow.protocol.protocol.html
+#pyworkflow.protocol.protocol.Protocol>`_
 object, corresponding to that protocol to be created (and imported above).
 The following arguments are all those parameters to be set, where if a parameter
 is not set, the default value is used.
@@ -162,7 +162,7 @@ where `protMotionCor` is initialized in the first line whereas in the second lin
 to `False`, instead.
 
 At this point, we only have set `Scalar <https://scipion-em.github.io/docs/api/
-pyworkflow.object.html#pyworkflow.object.Scalar>`_ objects or basic objects.
+pyworkflow.object.html#pyworkflow.object.Scalar>`_ objects or Python's primitives types.
 To set `EMSets <https://scipion-em.github.io/docs/api/pyworkflow.em.data.html
 #pyworkflow.em.data.EMSet>`_ (SetOfMovies, SetOfMicrographs, SetOfCtfs,
 SetOfParticles...) produced in previous protocols, we must take into account
@@ -191,7 +191,7 @@ assignation is possible as long as the object is ready
 
     protMotionCor.inputMovies.set(protImport.outputMovies)
 
-Notice that to use this `protImport` must have an attribute
+Notice that to use this, `protImport` must have an attribute
 called `outputMovies` if not, this line will break.
 
 In this case, a waiting function to ensure that the `protImport.outputMovies`

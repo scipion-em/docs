@@ -43,7 +43,7 @@ concatenating several operations before the first one is completed.
 Learn `how to create, import, export and launch streaming workflows <facilities-workflows>`_.
 
 Scipion v.2.0 - Diocletian `updates/introduce a big number of streaming tools
-</docs/developer/release-notes#streaming>`_. We review and analyze in deep the use and the
+</docs/docs/developer/release-notes#streaming>`_. We review and analyze in deep the use and the
 combination of these on-the-fly tools and protocols for facilities in the
 `D. Maluenda et.al. 'Flexible workflows for on-the-fly electron microscopy
 single particle image processing using Scipion' Acta Cryst. (2019). Dxx, yy-zz

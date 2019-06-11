@@ -27,7 +27,9 @@ For OpenSUSE15 and Debian, installation from sources is needed, so far.
 Fixing libjbig.so.0 not found in OpenSUSE42.3
 ===================================
 
-When Scipion_Ubuntu precompiled bundle is installed, maybe a "libjbig.so.0 not found" error is raised. We have observed that OpenSUSE includes libjbig.so.2 and we have checked that is also valid, thus we propose to link one to the other by
+When Scipion_Ubuntu precompiled bundle is installed, maybe a "libjbig.so.0 not found" error is raised.
+We have observed that OpenSUSE includes libjbig.so.2 and we have checked that is also valid,
+thus we propose to link one to the other by
 
 ::
 
@@ -231,6 +233,8 @@ Missing libssl-dev
 Launching XMIPP3 CL2D protocol
 ==============================
 
+**Error: libmpi.so - No such file or directory**
+
 If executing Xmipp3-cl2d protocol fails with an error:
 
 ::
@@ -246,14 +250,24 @@ If executing Xmipp3-cl2d protocol fails with an error:
 This means that the libmpi.so.1 library installed on your computer
 cannot open.
 
-\*\* Fix \*\*
+**Fix**
 
 Create a symbolic link to this library at the location of the libmpi.so
-library.
+library (`/usr/lib/` in Ubunut16 or `/usr/lib/x86_64-linux-gnu` in Ubuntu18).
 
 Example:
 
-ln -s /usr/lib/libmpi.so /usr/lib/libmpi.so.1
+Assuming that `ls /usr/lib/libmpi.so` find a file:
+
+.. code:: bash
+
+    ln -s /usr/lib/libmpi.so /usr/lib/libmpi.so.1
+
+We have experimented something similar with libmpi_cxx.so.1
+
+.. code:: bash
+
+    ln -s /usr/lib/libmpi_cxx.so /usr/lib/libmpi_cxx.so.1
 
 ImportError: libgfortran.so.3
 =============================
