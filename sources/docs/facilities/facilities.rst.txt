@@ -43,13 +43,14 @@ concatenating several operations before the first one is completed.
 Learn `how to create, import, export and launch streaming workflows <facilities-workflows>`_.
 
 Scipion v.2.0 - Diocletian `updates/introduce a big number of streaming tools
-</docs/docs/developer/release-notes#streaming>`_. We review and analyze in deep the use and the
-combination of these on-the-fly tools and protocols for facilities in the
-`D. Maluenda et.al. 'Flexible workflows for on-the-fly electron microscopy
-single particle image processing using Scipion' Acta Cryst. (2019). Dxx, yy-zz
-<linkToPaper>`_ paper.
+</docs/docs/developer/release-notes#key-changes-for-version-2-0-are>`_.
+We review and analyze in deep the use and the combination of these on-the-fly
+tools and protocols for facilities in the `D. Maluenda et.al. 'Flexible
+workflows for on-the-fly electron microscopy single particle image processing
+using Scipion' Acta Cryst. (2019). Dxx, yy-zz <linkToPaper>`_ paper
+(not published, yet. Please contact us to ask a preprint).
 
-On top of that, we have paid special attention to the data flow management with
+On top of that, we have paid special attention to the data flow management including
 the `Trigger data <https://github.com/I2PC/scipion-em-xmipp/blob/648ebe3a4f8dc2f3022332c080fb3d300d273bd7/
 xmipp3/protocols/protocol_trigger_data.py#L41-L53>`_ protocol, the `Movie max shift
 <https://github.com/I2PC/scipion-em-xmipp/blob/648ebe3a4f8dc2f3022332c080fb3d300d273bd7/
@@ -58,9 +59,15 @@ xmipp3/protocols/protocol_movie_max_shift.py#L43-L53>`_ protocol, the
 xmipp3/protocols/protocol_ctf_consensus.py#L49-L51>`_ protocol, the
 `Extract coordinates <https://github.com/I2PC/scipion/blob/d1a60f69960d1079bbbecde5bf3f5f4017b36927/
 pyworkflow/em/protocol/protocol_extract_coordinates.py#L44-L49>`_ protocol in
-streaming and `2D classification <https://github.com/I2PC/scipion-em-xmipp/blob/648ebe3a4f8dc2f3022332c080fb3d300d273bd7/
-xmipp3/protocols/protocol_classification_gpuCorr_semi.py#L68-L70>`_ protocol in
-streaming.
+streaming and 2D classification protocol in
+streaming (`GL2D-static <https://github.com/I2PC/scipion-em-xmipp/blob/648ebe3a4f8dc2f3022332c080fb3d300d273bd7/
+xmipp3/protocols/protocol_classification_gpuCorr_semi.py#L68-L70>`_ and
+`GL2D-streaming <https://github.com/I2PC/scipion-em-xmipp/blob/648ebe3a4f8dc2f3022332c080fb3d300d273bd7/
+xmipp3/protocols/protocol_classification_gpuCorr_full.py#L68-L70>`_).
+But also we have included general streaming tools, such as enabling to
+*Continue* and *Restart* workflows from a certain protocol,
+providing more stability in streaming protocols keeping processing new data
+even if a certain bunch fails for some reason, etc.
 
 In addition, we have work more in the concept of consensus protocols, for
 merging and combining different approach (from different EM softwares) to do the
@@ -68,7 +75,7 @@ same tasks, in order to get an improved result based on that different results.
 The consensus protocols family are for *CTF estimation*, *Picking*,
 *Initial Volume* and *3D classes*, so far.
 
-Moreover, we are also working in the monitor protocols, the special protocols
+Moreover, we are also working in the monitor protocols, those special protocols
 that constantly check how the execution of other protocols is going. We have
 developed several GUIs that are refreshed periodically and produce a graphical
 summary (e.g, CTF estimated values, system load, etc).
