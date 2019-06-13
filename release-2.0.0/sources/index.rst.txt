@@ -29,15 +29,6 @@ later on.
 
    docs/user/user-documentation
 
-.. _dev-docs:
-
-.. toctree::
-   :maxdepth: 1
-   :glob:
-   :caption: Developer documentation
-
-   docs/developer/developers
-
 .. _facilities-docs:
 
 .. toctree::
@@ -48,6 +39,15 @@ later on.
    docs/facilities/facilities
    docs/facilities/facilities-workflows
    docs/facilities/acquisition-simulation
+
+.. _dev-docs:
+
+.. toctree::
+   :maxdepth: 1
+   :glob:
+   :caption: Developer documentation
+
+   docs/developer/developers
 
 .. _api-docs:
 
