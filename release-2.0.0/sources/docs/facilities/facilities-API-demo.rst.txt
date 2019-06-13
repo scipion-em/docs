@@ -11,12 +11,12 @@ API workflows
 To create Scipion workflows from Python scripts, you only need to do 3 logical
 steps:
 
-1. `Create an empty project <facilities-api-demo#creating-a-project>`_.
-2. `Create protocols <facilities-api-demo#including-protocols>`_.
-3. `Register that protocols to the project <facilities-api-demo#registering-protocols>`_.
+1. `Create an empty project <facilities-API-demo#creating-a-project>`_.
+2. `Create protocols <facilities-API-demo#including-protocols>`_.
+3. `Register that protocols to the project <facilities-API-demo#registering-protocols>`_.
 
 In addition, we include an special mention in `how to set EM objects as protocol
-inputs <facilities-api-demo#setting-em-objects-as-protocol-inputs>`_.
+inputs <facilities-API-demo#setting-em-objects-as-protocol-inputs>`_.
 
 
 0. Getting config and user parameters
@@ -49,7 +49,9 @@ constant.
 1. Creating a project
 =====================
 
-To create an empty project, you only must do
+To create an empty project, you only must use the `Manager.createProject()
+<https://scipion-em.github.io/docs/api/pyworkflow.project.manager.html#
+pyworkflow.project.manager.Manager.createProject>`_ method
 
 .. code-block:: python
 
@@ -69,9 +71,13 @@ the project path from the `configDict`, respectively.
 Once a project is created, we must fill it with protocols.
 
 To be able to instance a protocol, it must be imported from the containing plugin
-(or from Scipion). Here an example of importing the *Import Movies* protocol
-from Scipion and the *Motioncor* protocol from the `scipion-em-motioncor
-<https://github.com/scipion-em/scipion-em-motioncorr>`_ plugin.
+(or from Scipion). Here an example of importing the `Import Movies
+<https://scipion-em.github.io/docs/api/pyworkflow.em.protocol.protocol_import.micrographs.html#
+pyworkflow.em.protocol.protocol_import.micrographs.ProtImportMovies>`_ protocol
+from Scipion and the `Motioncor <https://github.com/scipion-em/scipion-em-motioncorr/blob/
+master/motioncorr/protocols/protocol_motioncorr.py>`_ protocol from the
+`scipion-em-motioncor <https://github.com/scipion-em/scipion-em-motioncorr>`_
+plugin.
 
 .. code-block:: python
 
@@ -87,7 +93,7 @@ if that plugin is not installed in the current Scipion.
 
 To create a protocol, the `Project <https://scipion-em.github.io/docs/api/
 pyworkflow.project.project.html#pyworkflow.project.project.Project>`_ class has
-a method to make a new protocols.
+a method to make new protocols.
 For instance, for the *Import movies*
 
 .. code-block:: python
@@ -116,16 +122,18 @@ Notice that the first argument of the `project.newProtocol()
 #pyworkflow.protocol.protocol.Protocol>`_
 subclass, corresponding to that protocol to be created (and imported above).
 The following arguments are all those `form parameters <https://scipion-em.github.io/
-docs/api/pyworkflow.protocol.params.html#pyworkflow.protocol.params.ElementGroup.addParam>`_
+docs/api/pyworkflow.protocol.params.html#pyworkflow.protocol.params.FormElement>`_
 defined by `the protocol <https://scipion-em.github.io/docs/modules/pyworkflow/em/
-protocol/protocol_import/micrographs.html#ProtImportMicBase>`_.
+protocol/protocol_import/micrographs.html#ProtImportMicBase>`_ using the
+`addParam() <https://scipion-em.github.io/docs/api/pyworkflow.protocol.params.html#
+pyworkflow.protocol.params.ElementGroup.addParam>`_ method.
 If a parameter is not set, the default value is used.
 
 3. Registering protocols
 ========================
 
-Once a protocol is instanced, we should register it by means of writing in the
-data bases on disk. This can be done in two **alternative** ways:
+Once a protocol is instanced, we should register it, which means writing it in
+disk at the data bases. This can be done in two **alternative** ways:
 
 * **Saving the protocol** using the `project.saveProtocol() <https://scipion-em.github.io/
   docs/api/pyworkflow.project.project.html#pyworkflow.project.project.Project.saveProtocol>`_
@@ -139,7 +147,7 @@ data bases on disk. This can be done in two **alternative** ways:
   `Scipion's templates <facilities-workflows.html#static-templates>`_.
   Therefore, that protocol does not run until the whole workflow will be
   launched after including all the rest protocols (see `launch an open workflows
-  <acquisition-simulation.html#launch-an-open-workflows>`_).
+  <acquisition-simulation.html#launch-an-open-projects>`_).
   Thus, the output objects from the saved protocols are not created yet and,
   then, no information can be gotten from them. Even though, they
   can be used for the next protocols with no inconvenience as we will see below.
@@ -181,10 +189,14 @@ For instance,
     protMotionCor = project.newProtocol(ProtMotionCorr)
     protMotionCor.doApplyDoseFilter.set(configDict.get(DOSEF, 0)>0)
 
-where `protMotionCor` is initialized in the first line whereas in the second line
-`doApplyDoseFilter` is set to `True` if the *dose per frame* introduced in
-`the previous steps <acquisition-simulation#wizard-for-user-parameters>`_
-is bigger than 0 or to `False`, instead.
+where `protMotionCor <https://github.com/scipion-em/scipion-em-motioncorr/blob/
+d9397a6dd5c9493a67b08d08f8c2af1e8f580c61/motioncorr/protocols/
+protocol_motioncorr.py#L50-L55>`_ is initialized in the first line whereas the
+`doApplyDoseFilter <https://github.com/scipion-em/scipion-em-motioncorr/blob/d9397a6dd5c9493a67b08d08f8c2af1e8f580c61/
+motioncorr/protocols/protocol_motioncorr.py#L167-L171>`_ is set to `True` if
+the *dose per frame* introduced by the user in `the wizard in previous steps
+<acquisition-simulation#wizard-for-user-parameters>`_ is bigger than 0 or
+to `False`, instead.
 
 Until here, we only have set `Scalar <https://scipion-em.github.io/docs/api/
 pyworkflow.object.html#pyworkflow.object.Scalar>`_ objects or `Built-in Python
