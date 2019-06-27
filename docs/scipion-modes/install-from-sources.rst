@@ -134,18 +134,19 @@ limited functionality).
 
 For users
 ---------
-To list and install plugins including Xmipp, you can use the :ref:`Plugin manager guide <Plugin-Manager>`
-(recommended) or alternatively, use the `command line tool <install-plugins-command-line>`__ mentioned for
+To list and install plugins including Xmipp, you can use the plugin manager
+(recommended) or, alternatively, use the `command line tool <install-plugins-command-line>`__ mentioned for
 developers.
 
-* Run Scipion
+To open the plugin manager, please run Scipion
 
 ::
 
    cd scipion
    ./scipion
 
-and open Configuration > Plugins. There, any plugin can be easyly installed.
+and choose Configuration > Plugins on the top bar. There, any plugin can be
+easyly installed.
 
 Since Xmipp is (almost) mandatory for processing with Scipion,
 please **install scipion-em-xmipp** plugin and, then,
@@ -153,9 +154,9 @@ please **install scipion-em-xmipp** plugin and, then,
 `depending on your OS </docs/docs/user/troubleshooting.html
 #installing-scipion-xmipp-from-precompiled-bundles>`_:
 
-* xmippBin_Centos: Pre-compiled bundle for Cenots OS.
-* xmippBin_Debian: Pre-compiled bundle for Debian/Ubuntu/OpenSUSE OS.
-* xmippSrc: Source code to compile in any OS (this option is only available if
+* *xmippBin_Centos*: Pre-compiled bundle for Cenots OS.
+* *xmippBin_Debian*: Pre-compiled bundle for Debian/Ubuntu/OpenSUSE OS.
+* *xmippSrc*: Source code to compile in any OS (this option is only available if
   Scipion is installed from sources).
 
 Please refer to the :ref:`Plugin manager guide <Plugin-Manager>` to get
