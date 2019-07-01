@@ -45,6 +45,10 @@ with functions and classes required by Scipion (explained below).
 Plugin Overview
 ===============
 
+First of all, maybe you want to migrate code from Scipion to an independent
+plugin. If so, please see `how to keep the git history of that code part
+<how-to-migrate-from-scipion-to-plugin>`_
+
 File tree
 ---------
 

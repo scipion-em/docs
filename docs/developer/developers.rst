@@ -16,36 +16,36 @@ recommend that you start with our `Introduction to Scipion Developers <introduct
 
 General Information
 -------------------
-    * `Architecture <architecture>`_: take a look at the big picture
-    * `Scipion EM Classes <scipion-em-classes>`_: Diagram containing EM Classes and its relations
-    * `Release-notes <release-notes>`_: What has been done in each release.
-    * `Road map 2018 <road-map>`_ What we want to do for the next release.
+* `Architecture <architecture>`_: take a look at the big picture
+* `Scipion EM Classes <scipion-em-classes>`_: Diagram containing EM Classes and its relations
+* `Release-notes <release-notes>`_: What has been done in each release.
+* `Road map 2018 <road-map>`_ What we want to do for the next release.
 
 .. _extending-scipion:
 
 Extending Scipion
 -----------------
-Follow these guides to add new elements to Scipion:
 
-    * `Creating a plugin <creating-a-plugin>`_
-    * `Creating a protocol <creating-a-protocol>`_
-    * `Building Scipion docs <building-scipion-docs>`_
-    * `Creating a monitor <creating-a-monitor>`_
-    * `Generating binaries <generating-binaries>`_
-    * `Customize the HTML report <customize-html-report>`_
-    *  Developing output Viewers
-    *  Integrating parameter Wizards
-    *  Writing Tests, Tests, and more Tests
+Scipion can be 'easily' extended by `Creating a Plugin<creating-a-plugin>`_ to
+do an specific task or to introduce a new software package:
+
+* `Creating a protocol <creating-a-protocol>`_
+* `Creating a monitor <creating-a-monitor>`_
+* `Customize the HTML report <customize-html-report>`_
+*  Developing output Viewers
+*  Integrating parameter Wizards
+*  Writing Tests
+
 
 Development Tools
-=================
+-----------------
 
 Git
----
+===
 `Using git <how-to-git>`_: Find the most used commands and practices using *git* in Scipion.
 
 Development environment
------------------------
+=======================
 Setup your Development Environment, we prefer `Eclipse-IDE <eclipse>`_
 or `PyCharm-IDE <pycharm>`_
 
@@ -53,3 +53,10 @@ Advanced Development Topics
 ===========================
 The following link contains `Advanced-Development-Topics <advanced-topics>`_. The information provided is intended for developers working in our lab and developing the core of
 Scipion. Anyway, some general information is also found such as Profiling and Debugging.
+
+
+Internal development tools and hints
+====================================
+
+* `Generating binaries <generating-binaries>`_
+* `Building Scipion docs <building-scipion-docs>`_
