@@ -4,50 +4,61 @@
 
 .. _customize-html-report:
 
-============================================
-The summary monitor and report customization
-============================================
+=========================
+HTML report customization
+=========================
 
 .. :contents:: Table of Contents
 
 Intro
 -----
 
-We can use the summary monitor to track a number of things while our input protocols run: it encapsulates the CTF Monitor, the system monitor and the movie gain monitor. All these monitors have some graphs that we can check in the HTML Report. Here we will focus on the technical details of the HTML report and the options we have to customize it using some examples.
+We can use the summary monitor to track a number of things while our input
+protocols run: it encapsulates the CTF Monitor, the system monitor and the movie
+gain monitor. All these monitors have some graphs that we can check in the HTML
+Report. Here we will focus on the technical details of the HTML report and the
+options we have to customize it using some examples.
+
 
 0. Before we start
 ------------------
-* We'll get started with an environment variable so that you can directly copy and paste
-  all commands in this guide. Replace the values with the right path for your Scipion installation.
+* We'll get started with an environment variable so that you can directly copy
+  and paste all commands in this guide. Replace the values with the right path
+  for your Scipion installation.
 
-.. code-block:: bash
+  .. code-block:: bash
 
-        $ export SCIPION_DIR=/usr/local/scipion
+      $ export SCIPION_DIR=/usr/local/scipion
 
 * You'd also need a project with a Monitor Summary executed. We'll use the result of running scipion demo. If you don't have it yet, run scipion demo in your terminal:
 
-.. code-block:: bash
+  .. code-block:: bash
 
-        $ scipion demo
+      $ scipion demo
 
 * Open the directory of Scipion as a PyCharm project (or the editor of your choice).
+
 
 1. Changing the logo
 ----------------------
 
 The html code used by the summary monitor is in
-`config/templates/execution.summary.template.html <https://github.com/I2PC/scipion/blob/june_2018_course/config/templates/execution.summary.template.html>`_.
-If we want to use a customized version, we'll have to modify this file. It's always a good idea to keep a copy of the
+`pyworkflow/templates/execution.summary.template.html
+<https://github.com/I2PC/scipion/blob/master/pyworkflow/templates/
+execution.summary.template.html>`_.
+If we want to use a customized version, we'll have to modify this file.
+It's always a good idea to keep a copy of the
 original:
 
 .. code-block:: bash
 
     $ cd $SCIPION_DIR
-    $ cp config/templates/execution.summary.template.html config/templates/execution.summary.template.original.html
+    $ cp pyworkflow/templates/execution.summary.template.html pyworkflow/templates/execution.summary.template.original.html
 
-Now we open `config/templates/execution.summary.template.html <https://github.com/I2PC/scipion/blob/june_2018_course/config/templates/execution.summary.template.html>`_.
-to locate the logo and replace the url. We must choose a logo-sized image, otherwise it'll change the layout of the page:
-`**config/templates/execution.summary.template.html** <https://github.com/I2PC/scipion/blob/june_2018_course/config/templates/execution.summary.template.html>`_:
+Now we open `pyworkflow/templates/execution.summary.template.html
+<https://github.com/I2PC/scipion/blob/master/config/templates/execution.summary.template.html>`_.
+to locate the logo and replace the url. We must choose a logo-sized image,
+otherwise it'll change the layout of the page:
 
 .. code-block:: html
 
@@ -62,45 +73,49 @@ to locate the logo and replace the url. We must choose a logo-sized image, other
         <DIV class="row">
             <DIV class="column column-5">
 
-If our summary monitor is running, the next time it refreshes it should have the new logo. If it isn't running, we can
-make a copy of the protocol to see the new HTML.
+If our summary monitor is running, the next time it refreshes it should have the
+new logo. If it isn't running, we can make a copy of the protocol to see the new
+HTML.
 
 * Right click on the summary monitor and choose *copy*:
 
-.. figure:: /docs/images/html_report_tutorial/copy_monitor_summary.png
-   :align: center
-   :alt: Copy monitor summary
+  .. figure:: /docs/images/html_report_tutorial/copy_monitor_summary.png
+     :align: center
+     :alt: Copy monitor summary
 
-* Adjust the refresh time to a lower amount, so it finishes quicker. Then launch protocol:
+* Adjust the refresh time to a lower amount, so it finishes quicker. Then launch
+  protocol:
 
-.. figure:: /docs/images/html_report_tutorial/restart_monitor_summary.png
-   :align: center
-   :alt: restart monitor summary
+  .. figure:: /docs/images/html_report_tutorial/restart_monitor_summary.png
+     :align: center
+     :alt: restart monitor summary
 
 * Click on Analyze results -> open html report to see the report with the new logo:
 
-.. figure:: /docs/images/html_report_tutorial/analyze_results.png
-   :align: center
-   :alt: analyze results
+  .. figure:: /docs/images/html_report_tutorial/analyze_results.png
+     :align: center
+     :alt: analyze results
 
-.. figure:: /docs/images/html_report_tutorial/report_new_logo.png
-   :align: center
-   :alt: new logo
+  .. figure:: /docs/images/html_report_tutorial/report_new_logo.png
+     :align: center
+     :alt: new logo
+
 
 2. Removing a column from the table
 ------------------------------------
 
-In this example we'll remove the *DefocusU* column from the table:
+In this example we will remove the *DefocusU* column from the table:
 
 .. figure:: /docs/images/html_report_tutorial/mic_table.png
    :align: center
    :alt: mic table
 
-To do this, we have to go one step further and dig into the javascript code of the html report, which you can find
-`after the closing of </body> <https://github.com/I2PC/scipion/blob/june_2018_course/config/templates/execution.summary.template.html#L296>`_.
-The first bit of code we find is the variable `report`. This variable has a few `%(keywords)s`, which are used by
-Scipion to transfer data from the protocols watched by the Summary Monitor to the HTML report.
-`config/templates/execution.summary.template.html <https://github.com/I2PC/scipion/blob/june_2018_course/config/templates/execution.summary.template.html#L296>`_:
+To do this, we have to go one step further and dig into the javascript code of
+the html report, which you can find `after the closing of </body>
+<https://github.com/I2PC/scipion/blob/master/pyworkflow/templates/execution.summary.template.html#L301>`_.
+The first bit of code we find is the variable `report`. This variable has a few
+`%(keywords)s`, which are used by Scipion to transfer data from the protocols
+watched by the Summary Monitor to the HTML report.
 
 .. code-block:: javascript
 
@@ -119,10 +134,11 @@ Scipion to transfer data from the protocols watched by the Summary Monitor to th
         systemData: %(systemData)s
     }
 
-Then, we have a bunch of Javascript functions. It is a good idea to take a look at the function
-`populateReport <https://github.com/I2PC/scipion/blob/june_2018_course/config/templates/execution.summary.template.html#L937>`_,
-which has the high level functions responsible of each visible section in the HTML report. In our case, we'll want to go
-check `addMicTable()`.
+Then, we have a bunch of Javascript functions. It is a good idea to take a look
+at the `populateReport()
+<https://github.com/I2PC/scipion/blob/d1a60f69960d1079bbbecde5bf3f5f4017b36927/pyworkflow/templates/execution.summary.template.html#L1035-L1042>`_,
+function, which has the high level functions responsible of each visible section
+in the HTML report. In our case, we'll want to go check `addMicTable()`.
 
 .. code-block:: javascript
 
@@ -137,7 +153,7 @@ check `addMicTable()`.
 
 * Remove the column name from the header:
 
-.. code-block:: javascript
+  .. code-block:: javascript
 
         if ('defocusU' in report.ctfData){
             cols.push(
@@ -149,34 +165,36 @@ check `addMicTable()`.
 
 * Don't add DefocusU data to the rows:
 
-.. code-block:: javascript
+  .. code-block:: javascript
 
-    if ('defocusU' in report.ctfData){
-        rowValues.push(
-                       // report.ctfData.defocusU[index]*1e-4,
-                       report.ctfData.astigmatism[index]*1e-4,
-                       report.ctfData.resolution[index],
+       if ('defocusU' in report.ctfData){
+           rowValues.push(
+                          // report.ctfData.defocusU[index]*1e-4,
+                          report.ctfData.astigmatism[index]*1e-4,
+                          report.ctfData.resolution[index],
                      ...
 
 * Re-run the summary monitor, check the table and voila! Defocus column is gone:
 
-.. figure:: /docs/images/html_report_tutorial/mic_table_without_defocus.png
-   :align: center
-   :alt: mic table without defocus
+  .. figure:: /docs/images/html_report_tutorial/mic_table_without_defocus.png
+     :align: center
+     :alt: mic table without defocus
 
 
 3. Adding a column to defocus table
 -------------------------------------
 
 In this section, we'll add the fit quality value to the micrograph table.
-As we have seen in the beginning of the previous example, the template has some keywords that are used by
-Scipion to provide data to the HTML report. In this example, we'll see where Scipion generates that data and modify
-it.
-Pay attention to the last step of example 2: the data of the defocusU column is accessed with
-`report.ctfData.defocusU[index]*1e-4`. In the report variable, we see that `ctfData` is assigned a keyword to be
+As we have seen in the beginning of the previous example, the template has some
+keywords that are used by Scipion to provide data to the HTML report.
+In this example, we'll see where Scipion generates that data and modify it.
+Pay attention to the last step of example 2: the data of the defocusU column is
+accessed with `report.ctfData.defocusU[index]*1e-4`.
+In the report variable, we see that `ctfData` is assigned a keyword to be
 replaced by Scipion:
 
-`config/templates/execution.summary.template.html <https://github.com/I2PC/scipion/blob/june_2018_course/config/templates/execution.summary.template.html#L296>`_:
+`pyworkflow/templates/execution.summary.template.html
+<https://github.com/I2PC/scipion/blob/master/pyworkflow/templates/execution.summary.template.html#L301>`_:
 
 .. code-block:: javascript
 
@@ -196,20 +214,23 @@ replaced by Scipion:
     }
 
 The place where Scipion performs the replacement of all the `%(keywords)s` is in
-`pyworkflow/em/protocol/monitors/report_html.py <https://github.com/I2PC/scipion/blob/june_2018_course/pyworkflow/em/protocol/monitors/report_html.py#L398>`_.
+`pyworkflow/em/protocol/monitors/report_html.py
+<https://github.com/I2PC/scipion/blob/d1a60f69960d1079bbbecde5bf3f5f4017b36927/pyworkflow/em/protocol/monitors/report_html.py#L392>`_.
 
-* First, we can take a look at which data is available in the monitor's input protocols. In our case, the fit quality is
-  in the SetOfCtf. We can click on CTFFIND's **`Analyze results`** button to open its output (or double click in any output
-  set). Then we can inspect all the data available for this set by clicking on **Display -> Columns**.
+* First, we can take a look at which data is available in the monitor's input
+  protocols. In our case, the fit quality is in the SetOfCtf. We can click on
+  CTFFIND's **`Analyze results`** button to open its output (or double click in
+  any output set). Then we can inspect all the data available for this set by
+  clicking on **Display -> Columns**.
 
-.. figure:: /docs/images/html_report_tutorial/set_of_ctf_columns.png
-   :align: center
-   :alt: set of ctf columns
+  .. figure:: /docs/images/html_report_tutorial/set_of_ctf_columns.png
+     :align: center
+     :alt: set of ctf columns
 
 * Next, we need to add the `_fitQuality` field to ctfData. Lets look for it in
-  `report_html.py <https://github.com/I2PC/scipion/blob/june_2018_course/pyworkflow/em/protocol/monitors/report_html.py#L381>`_:
+  `report_html.py <https://github.com/I2PC/scipion/blob/d1a60f69960d1079bbbecde5bf3f5f4017b36927/pyworkflow/em/protocol/monitors/report_html.py#L448>`_:
 
-.. code-block:: python
+  .. code-block:: python
 
     args = {'projectName': projName,
             'startTime': pwutils.dateStr(project.getCreationTime(), secs=True),
@@ -225,18 +246,18 @@ The place where Scipion performs the replacement of all the `%(keywords)s` is in
             'refresh': self.refreshSecs
             }
 
-
-.. code-block:: python
+  .. code-block:: python
 
     ctfData = json.dumps(data)  ####### NOW WE LOOK FOR "data" ########
 
-.. code-block:: python
+  .. code-block:: python
 
     data = {} if self.ctfMonitor is None else self.ctfMonitor.getData()  ####### Lets check whats in this getData() ########
 
-`pyworkflow/em/protocol/monitors/prototol_monitor_ctf.py <https://github.com/I2PC/scipion/blob/june_2018_course/pyworkflow/em/protocol/monitors/protocol_monitor_ctf.py#L245>`_
+  `pyworkflow/em/protocol/monitors/prototol_monitor_ctf.py
+  <https://github.com/I2PC/scipion/blob/d1a60f69960d1079bbbecde5bf3f5f4017b36927/pyworkflow/em/protocol/monitors/protocol_monitor_ctf.py#L246>`_
 
-.. code-block:: python
+  .. code-block:: python
 
     def getData(self):
         def get(name):
@@ -264,23 +285,25 @@ The place where Scipion performs the replacement of all the `%(keywords)s` is in
 
 * Now we just need to add it at the same place where we previously deleted de DefocusU.
 
-    - First we add a name for the column:
+  - First we add a name for the column:
 
-        `config/templates/execution.summary.template.html <https://github.com/I2PC/scipion/blob/june_2018_course/config/templates/execution.summary.template.html#L296>`_:
+    `pyworkflow/templates/execution.summary.template.html
+    <https://github.com/I2PC/scipion/blob/master/pyworkflow/templates/execution.summary.template.html#L301>`_:
 
-.. code-block:: python
+    .. code-block:: python
 
-    if ('defocusU' in report.ctfData){
-        cols.push(
-                  {"title": "Fit Quality",
-                   "render": $.fn.dataTable.render.number( ',', '.', 2)},
-                  {"title": "Astigmatism (µm)",
-                   "render": $.fn.dataTable.render.number( ',', '.', 3)},
+        if ('defocusU' in report.ctfData){
+            cols.push(
+                      {"title": "Fit Quality",
+                       "render": $.fn.dataTable.render.number( ',', '.', 2)},
+                      {"title": "Astigmatism (µm)",
+                       "render": $.fn.dataTable.render.number( ',', '.', 3)},
 
-    - Then add data to the rows:
+  - Then add data to the rows:
 
-.. code-block:: python
-      if ('defocusU' in report.ctfData){
+    .. code-block:: python
+
+        if ('defocusU' in report.ctfData){
             rowValues.push(
                            report.ctfData.fitQuality[index],
                            report.ctfData.astigmatism[index]*1e-4,
@@ -288,9 +311,9 @@ The place where Scipion performs the replacement of all the `%(keywords)s` is in
 
 * Run the summary again and check that we have our new column:
 
-.. figure:: /docs/images/html_report_tutorial/mic_table_with_fit_quality.png
-   :align: center
-   :alt: mic table with fit quality
+  .. figure:: /docs/images/html_report_tutorial/mic_table_with_fit_quality.png
+     :align: center
+     :alt: mic table with fit quality
 
 
 

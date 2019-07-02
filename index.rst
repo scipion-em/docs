@@ -18,6 +18,7 @@ later on.
    docs/scipion-modes/how-to-install
    docs/scipion-modes/scipion-configuration
    docs/scipion-modes/host-configuration
+   docs/user/troubleshooting
 
 .. _user-docs:
 
@@ -28,6 +29,17 @@ later on.
 
    docs/user/user-documentation
 
+.. _facilities-docs:
+
+.. toctree::
+   :maxdepth: 1
+   :glob:
+   :caption: Facilities
+
+   docs/facilities/facilities
+   docs/facilities/facilities-workflows
+   docs/facilities/acquisition-simulation
+
 .. _dev-docs:
 
 .. toctree::
@@ -36,16 +48,6 @@ later on.
    :caption: Developer documentation
 
    docs/developer/developers
-
-.. _facilities-docs:
-
-.. toctree::
-   :maxdepth: 1
-   :glob:
-   :caption: Facilities
-
-   docs/facilities/facilities-tutorial
-   docs/facilities/facilities
 
 .. _api-docs:
 

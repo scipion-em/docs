@@ -4,6 +4,20 @@
 
 .. _user-documentation:
 
+Graphical interface manuals
+===========================
+
+The following guides show you how to perform certain actions using the GUI:
+
+.. toctree::
+    :maxdepth: 1
+
+    Introduction to Scipion's GUI <scipion-gui>
+    Using the default viewer for Scipion objects <showJ>
+    Using the default viewer for Coordinates objects <picker>
+    How to install plugins <plugin-manager>
+
+
 Tutorials
 =========
 
@@ -60,6 +74,18 @@ Beta-galactosidase data. \
 You may download a fully solved project of this tutorial from
 `here <http://scipion.cnb.csic.es/downloads/scipion/data/FEICourse.tgz>`__.
 
+
+Full processing video tutorial
+------------------------------
+    4 video tutorials in a
+    `list <https://www.youtube.com/watch?v=LAwe9DroypI&list=PLyJiuGnB9hAyxHotd--gKMzCRFpXrSo15>`__
+    to go from movies to a 3D volume using betagalactosidase data.
+
+    Take a look at our `tutorial videos <https://www.youtube.com/user/BiocompWebs>`_ in the Scipion youtube channel.
+
+Know more about the `theory and practice <http://i2pc.es/coss/Docencia/ImageProcessing/imageProcessingInEM.pdf>`_ behind Image Processing in EM.
+
+
 Model Building
 --------------
 .. figure:: /docs/images/modelbuilding.png
@@ -94,46 +120,6 @@ Scipion.
 *Guide*:
 `scipion\_tutorial\_SAXS.pdf <https://github.com/I2PC/scipion/wiki/tutorials/tutorial_SAXS.pdf>`__\ 
 
-
-Full processing video tutorial
-------------------------------
-    4 video tutorials in a
-    `list <https://www.youtube.com/watch?v=LAwe9DroypI&list=PLyJiuGnB9hAyxHotd--gKMzCRFpXrSo15>`__
-    to go from movies to a 3D volume using betagalactosidase data.
-
-    Take a look at our `tutorial videos <https://www.youtube.com/user/BiocompWebs>`_ in the Scipion youtube channel.
-
-Know more about the `theory and practice <http://i2pc.es/coss/Docencia/ImageProcessing/imageProcessingInEM.pdf>`_ behind Image Processing in EM.
-
-
-Graphical interface manuals
-===========================
-
-The following guides show you how to perform certain actions using the GUI, like
-a general project navigation, installing plugins, pick particles...
-
-.. toctree::
-    :maxdepth: 1
-
-    scipion-gui
-    plugin-manager
-    picker
-
-
-ShowJ
------------
-`ShowJ <showJ>`__: The default viewer for Scipion objects. It can
-display data in gallery and table modes and navigate through
-different blocks of data. Single images are opened using Image
-Window.
-
-
-Particle Picker
----------------
-`Particle Picker <picker>`__: The Xmipp Particle Picker allows the
-user to iterate over the micrographs to pick particles either
-manually or automatically, or visualize them. It is the default
-viewer for Scipion coordinates.
 
 Processing How To's
 ===================

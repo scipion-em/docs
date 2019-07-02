@@ -132,6 +132,36 @@ Scipion can use many EM plugins. It is almost **mandatory to install
 scipion-em-xmipp** (i.e. Scipion will run without it but with very
 limited functionality).
 
+For users
+---------
+To list and install plugins including Xmipp, you can use the plugin manager
+(recommended) or, alternatively, use the `command line tool <install-plugins-command-line>`__ mentioned for
+developers.
+
+To open the plugin manager, please run Scipion
+
+::
+
+   cd scipion
+   ./scipion
+
+and choose Configuration > Plugins on the top bar. There, any plugin can be
+easyly installed.
+
+Since Xmipp is (almost) mandatory for processing with Scipion,
+please **install scipion-em-xmipp** plugin and, then,
+**install xmipp-3.19.03 software** by choosing one of these options
+`depending on your OS </docs/docs/user/troubleshooting.html
+#installing-scipion-xmipp-from-precompiled-bundles>`_:
+
+* *xmippBin_Centos*: Pre-compiled bundle for Cenots OS.
+* *xmippBin_Debian*: Pre-compiled bundle for Debian/Ubuntu/OpenSUSE OS.
+* *xmippSrc*: Source code to compile in any OS (this option is only available if
+  Scipion is installed from sources).
+
+Please refer to the :ref:`Plugin manager guide <Plugin-Manager>` to get
+more details about plugin installation options.
+
 For developers
 --------------
 Developers might want to
@@ -140,23 +170,6 @@ build xmipp from the latest development version, please head
 if this is your case. You might also want to check how to :ref:`install
 plugins from the command line <install-plugins-command-line>`.
 
-For users
----------
-To list and install plugins including Xmipp, you can use the :ref:`Plugin manager guide <Plugin-Manager>`
-(recommended) or alternatively, use the `command line tool <install-plugins-command-line>`__ mentioned for
-developers.
-
-* Run Scipion
-
-::
-
-   cd scipion
-   ./scipion
-
-and open Configuration > Plugins. There, any plugin can be easyly installed.
-
-Please refer to the :ref:`Plugin manager guide <Plugin-Manager>` to get
-more details about plugin installation options.
 
 Step 5: Cleaning up (Optional)
 ==============================

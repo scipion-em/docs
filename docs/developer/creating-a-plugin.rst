@@ -45,6 +45,10 @@ with functions and classes required by Scipion (explained below).
 Plugin Overview
 ===============
 
+First of all, maybe you want to migrate code from Scipion to an independent
+plugin. If so, please see `how to keep the git history of that code part
+<how-to-migrate-from-scipion-to-plugin>`_
+
 File tree
 ---------
 
@@ -459,7 +463,7 @@ your plugin into a pip package.
 
 .. code-block:: bash
 
-    scipion run python scripts/inspect_plugins.py relion
+    scipion run python pyworkflow/install/inspect_plugins.py relion
 
 * List your tests and copy the one you want to run:
 
@@ -681,7 +685,7 @@ If no errors happen, we get an output similar to this one:
 
 .. code-block:: bash
 
-    $SCIPION_HOME/scipion installp -p scipion-em-relion
+    $SCIPION_HOME/scipion uninstallp -p scipion-em-relion
 
 * We can use the flag --noBin to both install and uninstall without binaries:
 

@@ -27,7 +27,9 @@ For OpenSUSE15 and Debian, installation from sources is needed, so far.
 Fixing libjbig.so.0 not found in OpenSUSE42.3
 ===================================
 
-When Scipion_Ubuntu precompiled bundle is installed, maybe a "libjbig.so.0 not found" error is raised. We have observed that OpenSUSE includes libjbig.so.2 and we have checked that is also valid, thus we propose to link one to the other by
+When Scipion_Ubuntu precompiled bundle is installed, maybe a "libjbig.so.0 not found" error is raised.
+We have observed that OpenSUSE includes libjbig.so.2 and we have checked that is also valid,
+thus we propose to link one to the other by
 
 ::
 
@@ -231,6 +233,8 @@ Missing libssl-dev
 Launching XMIPP3 CL2D protocol
 ==============================
 
+**Error: libmpi.so - No such file or directory**
+
 If executing Xmipp3-cl2d protocol fails with an error:
 
 ::
@@ -246,14 +250,24 @@ If executing Xmipp3-cl2d protocol fails with an error:
 This means that the libmpi.so.1 library installed on your computer
 cannot open.
 
-\*\* Fix \*\*
+**Fix**
 
 Create a symbolic link to this library at the location of the libmpi.so
-library.
+library (`/usr/lib/` in Ubunut16 or `/usr/lib/x86_64-linux-gnu` in Ubuntu18).
 
 Example:
 
-ln -s /usr/lib/libmpi.so /usr/lib/libmpi.so.1
+Assuming that `ls /usr/lib/libmpi.so` find a file:
+
+.. code:: bash
+
+    ln -s /usr/lib/libmpi.so /usr/lib/libmpi.so.1
+
+We have experimented something similar with libmpi_cxx.so.1
+
+.. code:: bash
+
+    ln -s /usr/lib/libmpi_cxx.so /usr/lib/libmpi_cxx.so.1
 
 ImportError: libgfortran.so.3
 =============================
@@ -343,6 +357,25 @@ terminal:
    >>> WARNING: Xmipp binaries not found. Ghost active.....BOOOOOO!
       > Please install Xmipp to get full functionality.
    (Configuration->Plugins->scipion-em-xmipp in Scipion manager window)
+   
+or this one when importing something:
+
+::
+
+   Error: AttributeError
+   Description: 'NoneType' object has no attribute 'isImage'
+   Traceback:
+     File "/home/me/scipion/pyworkflow/protocol/protocol.py", line 1817, in validate
+       childErrors = self._validate()
+
+     File "/home/me/scipion/pyworkflow/em/protocol/protocol_import/images.py", line 372, in validate
+       errors += self.validateImages()
+
+     File "/home/me/scipion/pyworkflow/em/protocol/protocol_import/images.py", line 354, in validateImages
+       ih.isImageFile(imgFn))):
+
+     File "/home/me/scipion/pyworkflow/em/convert/imagehandler.py", line 436, in isImageFile
+       return xmippLib.FileName(imgFn).isImage() 
 
 * Open Plugin Manager
 
@@ -393,3 +426,30 @@ And manually remove leftover elements:
    Scipion v2.0 (2019-03-12) Diocletian (release-2.0.0-fixes 50b9908)
 
    >>>>> python  /home/yaiza/Desktop/scipion/pyworkflow/apps/pw_manager.py
+   
+
+scikit-learn installation fails
+===============================
+
+If you are getting error while scipion tries to install scikit-learn python package, something like:
+
+::
+
+  00086:   Building scikit-learn ...
+  00087:   /home/fanhc/Programs/scipion/software/bin/python /home/fanhc/Programs/scipion/software/lib/python2.7/site-packages/pip install scikit-learn==0.17
+  00088:   Collecting scikit-learn==0.17
+  00089:     Using cached https://files.pythonhosted.org/packages/60/b8/c420dce3f72d95e06f7c1e50a6e705f4e8b6078d7d6db38425ac77ae3fab/scikit-learn-0.17.tar.gz
+  00090:   Building wheels for collected packages: scikit-learn
+  00091:     Building wheel for scikit-learn (setup.py): started
+  00092:     Building wheel for scikit-learn (setup.py): finished with status 'error'
+  00093:     Running setup.py clean for scikit-learn
+  00094:   Failed to build scikit-learn
+  00095:   Installing collected packages: scikit-learn
+  00096:     Running setup.py install for scikit-learn: started
+  00097:       Running setup.py install for scikit-learn: finished with status 'error' 
+
+Try to run:
+
+::
+
+  scipion python -m pip install scikit-learn==0.17.1
