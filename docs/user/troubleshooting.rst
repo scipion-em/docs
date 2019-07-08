@@ -453,3 +453,12 @@ Try to run:
 ::
 
   scipion python -m pip install scikit-learn==0.17.1
+
+sh_alignment installation fails
+===============================
+
+Some program in Xmipp use the **sh_alignent** library. If you get some of the errors
+below try the following:
+
+* **swig: Command not found**: Install `swig` in your computer,
+  ie. `sudo apt-get install swig` (`yum` in Centos distros and `zypper` in OpenSUSE).
