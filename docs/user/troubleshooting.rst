@@ -462,3 +462,50 @@ below try the following:
 
 * **swig: Command not found**: Install `swig` in your computer,
   ie. `sudo apt-get install swig` (`yum` in Centos distros and `zypper` in OpenSUSE).
+
+
+Deep consensus fail due to index out of run.
+============================================
+
+We have find a bug reporting the following error:
+
+::
+
+    133   consensusNpixels = consensusRadius* boxSize
+    134
+    135   # Add the rest of coordinates
+    136   Ncurrent = N0
+    137   for n in range(1, len(coords_files)):
+    138     for coord in coords[n]:  <----------------------- BUG
+        coord = array([2379,  102])
+        coords = [array([[3543,  222],
+       [3757,  133],
+      ...3935],
+       [3063, 3935],
+       [ 712, 3944]]), array([[1136,  280],
+       [2388, 2416],
+      ... 120],
+       [1788,  624],
+       [2608, 3204]]), array([[ 663, 3811],
+       [ 287, 3688],
+      ... 162],
+       [3048,  159],
+       [2379,  102]])]
+        n = 3
+    139       if Ncurrent > 0:
+    140         dist = np.sum((coord - allCoords[0:Ncurrent])**2, axis=1)
+    141         imin = np.argmin(dist)
+    142         if sqrt(dist[imin]) < consensusNpixels:
+
+This bug should be fixed for versions after v19.04. However, to fix it in
+prior versions, please download the bug-fixed file to your Xmipp installation.
+
+::
+
+    wget -O $(scipionBIN run printenv | grep XMIPP_HOME | sed 's/.*=//')/bin/xmipp_coordinates_consensus https://raw.githubusercontent.com/I2PC/xmipp/devel/applications/scripts/coordinates_consensus/coordinates_consensus.py
+
+Please, ensure it has executable permissions
+
+::
+
+    chmod a+x $(scipionBIN run printenv | grep XMIPP_HOME= | sed 's/.*=//')/bin/xmipp_coordinates_consensus
