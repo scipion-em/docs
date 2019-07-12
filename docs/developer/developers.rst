@@ -18,6 +18,7 @@ General Information
 -------------------
 * `Architecture <architecture>`_: take a look at the big picture
 * `Scipion EM Classes <scipion-em-classes>`_: Diagram containing EM Classes and its relations
+* `Conventions <conventions>`_ : How scipion understands rotations, translations, symmetries ...
 * `Release-notes <release-notes>`_: What has been done in each release.
 * `Road map 2018 <road-map>`_ What we want to do for the next release.
 
