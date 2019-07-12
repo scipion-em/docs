@@ -8,8 +8,18 @@
 Symmetries
 ===========================
 
-Advanced Topics
+Overview
 ===============
+
+This page describes the different symmetries
+that a polyhedron with fixed center may
+and the conventions followed by Scipion to
+label them. There are five fundamental symmetry classes:
+cyclical, dihedral, tetrahedral, octahedral,
+icosahedral.
+
+
+
 
 Installation system
 -------------------
