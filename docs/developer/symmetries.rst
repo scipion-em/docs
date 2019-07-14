@@ -37,7 +37,7 @@ Cyclic of order N (Cn)
 
     **Scipion Definition (CN)**: rotation axis = *Z* axis.
 
-    **PDB**: `link to C7 model </docs/images/Conventions/Symmetry/Conventions/Symmetry/c7.pdb>`_
+    **PDB**: `link to C7 model </docs/images/Conventions/Symmetry/c7.pdb>`_
 
     .. figure:: /docs/images/Conventions/Symmetry/c7.png
        :width: 250
