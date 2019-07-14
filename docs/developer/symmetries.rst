@@ -136,7 +136,9 @@ Icosahedral (I)
        :width: 250
        :alt: in25r symmetry image
 
-   **Scipion Definition (I2n3)**: 3-fold axis in *Z* and 2-fold in *X*. ??????With the positive *Z*-axis pointing at the viewer and without taken into account the 5-fold vertex in *Z*, there is one of the front-most 5-fold vertices in -*XZ* plane (note the minus *X*)
+   **Scipion Definition (I2n3)**: 3-fold axis in *Z* and 2-fold in *X*.
+   With the positive *Z*-axis pointing at the viewer and without taken into account the 3-fold
+   vertex in *Z*, there is one of the front-most 3-fold vertices in -*YZ* plane (note the minus *Y*)
 
    **PDB**: `link to I2n3 model </docs/images/Conventions/Symmetry/i2n3.pdb>`_
 
@@ -144,7 +146,9 @@ Icosahedral (I)
        :width: 250
        :alt: i2 symmetry image
 
-   **Scipion Definition (I2n3r)**: same as i2n3 except rotated 180° about $Y$
+   **Scipion Definition (I2n3r)**: 3-fold axis in *Z* and 2-fold in *X*.
+   With the positive *Z*-axis pointing at the viewer and without taken into account the 3-fold
+   vertex in *Z*, there is one of the front-most 3-fold vertices in +*YZ* plane (note the plu *Y*)
 
    **PDB**: `link to I2n3 model </docs/images/Conventions/Symmetry/i2n3.pdb>`_
 
