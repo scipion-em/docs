@@ -1,4 +1,4 @@
-.. figure:: /docs/images/scipion_logo.gif
+.. figure:: /docs/images/Conventions/Symmetry/scipion_logo.gif
    :width: 250
    :alt: scipion logo
 
@@ -19,7 +19,7 @@ For each type we show in this page:
 - Surface rendering of a volume that displays the symmetry.
 - Atomic structure file (pb format) containing an atomic structure that
   satisfies the symmetry. (The PDB files may be visualized with
-  viewers such as Chimera. `link </docs/images/Conventions/Symmetry/c7.pdb>`_ to chimera axis file).
+  viewers such as Chimera. `Link </docs/images/Conventions/Symmetry/Conventions/Symmetry/c7.pdb>`_ to chimera axis file).
 - Definition including the elements of symmetry.
 - *X*, *Y* and *Z* axes are colored in red, yellow and blue respectively.
 
@@ -33,9 +33,9 @@ Cyclic of order N (Cn)
 
     **Scipion Definition (CN)**: rotation axis = *Z* axis.
 
-    **PDB**: `link to C7 model </docs/images/Conventions/Symmetry/c7.pdb>`_
+    **PDB**: `link to C7 model </docs/images/Conventions/Symmetry/Conventions/Symmetry/c7.pdb>`_
 
-    .. figure:: /docs/images/Conventions/Symmetry/c7.png
+    .. figure:: /docs/images/Conventions/Symmetry/Conventions/Symmetry/c7.png
        :width: 250
        :alt: c7 symmetry image
 
@@ -47,9 +47,9 @@ Dihedral of order N (Dn)
 
     **Scipion Definition (DNx)**: first axis = *Z*, second axis = *X*.
 
-    **PDB**: `link to D7x model </docs/images/d7x.pdb>`_
+    **PDB**: `link to D7x model </docs/images/Conventions/Symmetry/d7x.pdb>`_
 
-    .. figure:: /docs/images/d7x.png
+    .. figure:: /docs/images/Conventions/Symmetry/d7x.png
        :width: 250
        :alt: d7x symmetry image
 
@@ -57,7 +57,7 @@ Dihedral of order N (Dn)
 
     **PDB**: `link to D7y model </ docs/images/d7y.pdb>`_
 
-    .. figure:: /docs/images/d7y.png
+    .. figure:: /docs/images/Conventions/Symmetry/d7y.png
        :width: 250
        :alt: d7y symmetry image
 
@@ -68,17 +68,17 @@ Tetrahedral (T)
 
     **Scipion Definition (T222)**: two-fold symmetry axes along the *X*, *Y*, and *Z* axes, a three-fold along axis (1,1,1)
 
-    **PDB**: `link to T222 model </docs/images/t222.pdb>`_
+    **PDB**: `link to T222 model </docs/images/Conventions/Symmetry/t222.pdb>`_
 
-    .. figure:: /docs/images/t222.png
+    .. figure:: /docs/images/Conventions/Symmetry/t222.png
        :width: 250
        :alt: t222 symmetry image
 
     **Scipion Definition (Tz3)**: a three-fold symmetry axis along *Z*, another three-fold axis in the *YZ* plane such that rotation about the *X* axis by ~110° is a symmetry operation
 
-    **PDB**: `link to Tz3 </docs/images/tz3.pdb>`_
+    **PDB**: `link to Tz3 </docs/images/Conventions/Symmetry/tz3.pdb>`_
 
-    .. figure:: /docs/images/tz3.png
+    .. figure:: /docs/images/Conventions/Symmetry/tz3.png
        :width: 250
        :alt: tz3 symmetry image
 
@@ -91,7 +91,7 @@ Octahedral (O)
 
     **PDB**: `link to O model </ docs/images/o.pdb>`_
 
-    .. figure:: /docs/images/o.png
+    .. figure:: /docs/images/Conventions/Symmetry/o.png
        :width: 250
        :alt: o symmetry image
 
@@ -104,7 +104,7 @@ Icosahedral (I)
 
    **PDB**: `link to I222 model </ docs/images/i222.pdb>`_
 
-   .. figure:: /docs/images/i222.png
+   .. figure:: /docs/images/Conventions/Symmetry/i222.png
        :width: 250
        :alt: i222 symmetry image
 
@@ -112,7 +112,7 @@ Icosahedral (I)
 
    **PDB**: `link to I222r model </ docs/images/i222r.pdb>`_
 
-   .. figure:: /docs/images/i222r.png
+   .. figure:: /docs/images/Conventions/Symmetry/i222r.png
        :width: 250
        :alt: i222r symmetry image
 
@@ -120,7 +120,7 @@ Icosahedral (I)
 
    **PDB**: `link to In25 model </ docs/images/in25.pdb>`_
 
-   .. figure:: /docs/images/in25.png
+   .. figure:: /docs/images/Conventions/Symmetry/in25.png
        :width: 250
        :alt: in25 symmetry image
 
@@ -128,7 +128,7 @@ Icosahedral (I)
 
    **PDB**: `link to In25r model </ docs/images/in25r.pdb>`_
 
-   .. figure:: /docs/images/in25r.png
+   .. figure:: /docs/images/Conventions/Symmetry/in25r.png
        :width: 250
        :alt: in25r symmetry image
 
@@ -136,7 +136,7 @@ Icosahedral (I)
 
    **PDB**: `link to I2n3 model </ docs/images/i2n3.pdb>`_
 
-   .. figure:: /docs/images/i2n3.png
+   .. figure:: /docs/images/Conventions/Symmetry/i2n3.png
        :width: 250
        :alt: i2 symmetry image
 
@@ -144,6 +144,6 @@ Icosahedral (I)
 
    **PDB**: `link to I2n3 model </ docs/images/i2n3.pdb>`_
 
-   .. figure:: /docs/images/i2n3r.png
+   .. figure:: /docs/images/Conventions/Symmetry/i2n3r.png
        :width: 250
        :alt: i2n3r symmetry image
