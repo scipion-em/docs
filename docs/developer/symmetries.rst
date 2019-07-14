@@ -1,4 +1,4 @@
-.. figure:: /docs/images/Conventions/Symmetry/scipion_logo.gif
+.. figure:: /docs/images/scipion_logo.gif
    :width: 250
    :alt: scipion logo
 
@@ -19,7 +19,7 @@ For each type we show in this page:
 - Surface rendering of a volume that displays the symmetry.
 - Atomic structure file (pb format) containing an atomic structure that
   satisfies the symmetry. (The PDB files may be visualized with
-  viewers such as Chimera. `Link </docs/images/Conventions/Symmetry/Conventions/Symmetry/c7.pdb>`_ to chimera axis file).
+  viewers such as Chimera. `Link </docs/images/Conventions/Symmetry/Conventions/Symmetry/axis.bild>`_ to chimera axis file).
 - Definition including the elements of symmetry.
 - *X*, *Y* and *Z* axes are colored in red, yellow and blue respectively.
 
