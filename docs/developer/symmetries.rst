@@ -93,7 +93,7 @@ Octahedral (O)
 
     **Scipion Definition (0)**: 3-fold symmetry axis around (.5773502, .5773502, .5773502) 4-fold rotation axis around (0 0 1).
 
-    **PDB**: `link to O model </docs/images/o.pdb>`_
+    **PDB**: `link to O model </docs/images/Conventions/Symmetry/o.pdb>`_
 
     .. figure:: /docs/images/Conventions/Symmetry/o.png
        :width: 250
@@ -106,7 +106,7 @@ Icosahedral (I)
 
    **Scipion Definition (I222)**:  2-fold axes on *X*, *Y* and *Z* axes. With the positive *Z*-axis pointing at the viewer, the front-most 5-fold vertices are in *YZ* plane, and the front-most 3-fold axis is in the *XZ* plane. As known as no Crowther 222, standard in Heymman et al 2005 article).
 
-   **PDB**: `link to I222 model </ docs/images/i222.pdb>`_
+   **PDB**: `link to I222 model </docs/images/Conventions/Symmetry/i222.pdb>`_
 
    .. figure:: /docs/images/Conventions/Symmetry/i222.png
        :width: 250
@@ -114,7 +114,7 @@ Icosahedral (I)
 
    **Scipion Definition (I222r)**:  2-fold axes on *X*, *Y* and *Z* axes. With the positive *Z*-axis pointing at the viewer, the front-most 5-fold vertices are in *XZ* plane, and the front-most 3-fold axis is in the *YZ* plane. As known as no Crowther 222, standard in Heymman et al 2005 article).
 
-   **PDB**: `link to I222r model </ docs/images/i222r.pdb>`_
+   **PDB**: `link to I222r model </docs/images/Conventions/Symmetry/i222r.pdb>`_
 
    .. figure:: /docs/images/Conventions/Symmetry/i222r.png
        :width: 250
@@ -122,7 +122,7 @@ Icosahedral (I)
 
    **Scipion Definition (In25)**: 5fold axis in *Z* and 2-fold in *Y*. With the positive *Z*-axis pointing at the viewer and without taken into account the 5-fold vertex in *Z*, there is one of the front-most 5-fold vertices in -*XZ* plane (note the minus *X*)
 
-   **PDB**: `link to In25 model </ docs/images/in25.pdb>`_
+   **PDB**: `link to In25 model </docs/images/Conventions/Symmetry/in25.pdb>`_
 
    .. figure:: /docs/images/Conventions/Symmetry/in25.png
        :width: 250
@@ -130,7 +130,7 @@ Icosahedral (I)
 
    **Scipion Definition (In25r)**: 5fold axis in *Z* and 2-fold in *Y*. With the positive *Z*-axis pointing at the viewer and without taken into account the 5-fold vertex in *Z*, there is one of the front-most 5-fold vertices in +*XZ* plane (note the plus *X*)
 
-   **PDB**: `link to In25r model </ docs/images/in25r.pdb>`_
+   **PDB**: `link to In25r model </docs/images/Conventions/Symmetry/in25r.pdb>`_
 
    .. figure:: /docs/images/Conventions/Symmetry/in25r.png
        :width: 250
@@ -138,7 +138,7 @@ Icosahedral (I)
 
    **Scipion Definition (I2n3)**: 3-fold axis in *Z* and 2-fold in *X*. ??????With the positive *Z*-axis pointing at the viewer and without taken into account the 5-fold vertex in *Z*, there is one of the front-most 5-fold vertices in -*XZ* plane (note the minus *X*)
 
-   **PDB**: `link to I2n3 model </ docs/images/i2n3.pdb>`_
+   **PDB**: `link to I2n3 model </docs/images/Conventions/Symmetry/i2n3.pdb>`_
 
    .. figure:: /docs/images/Conventions/Symmetry/i2n3.png
        :width: 250
@@ -146,7 +146,7 @@ Icosahedral (I)
 
    **Scipion Definition (I2n3r)**: same as i2n3 except rotated 180° about $Y$
 
-   **PDB**: `link to I2n3 model </ docs/images/i2n3.pdb>`_
+   **PDB**: `link to I2n3 model </docs/images/Conventions/Symmetry/i2n3.pdb>`_
 
    .. figure:: /docs/images/Conventions/Symmetry/i2n3r.png
        :width: 250
