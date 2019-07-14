@@ -35,7 +35,7 @@ Cyclic of order N (Cn)
 
     **PDB**: `link to C7 model </docs/images/Conventions/Symmetry/Conventions/Symmetry/c7.pdb>`_
 
-    .. figure:: /docs/images/Conventions/Symmetry/Conventions/Symmetry/c7.png
+    .. figure:: /docs/images/Conventions/Symmetry/c7.png
        :width: 250
        :alt: c7 symmetry image
 
