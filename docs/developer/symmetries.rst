@@ -93,7 +93,7 @@ Octahedral (O)
 
     **Scipion Definition (0)**: 3-fold symmetry axis around (.5773502, .5773502, .5773502) 4-fold rotation axis around (0 0 1).
 
-    **PDB**: `link to O model </ docs/images/o.pdb>`_
+    **PDB**: `link to O model </docs/images/o.pdb>`_
 
     .. figure:: /docs/images/Conventions/Symmetry/o.png
        :width: 250
