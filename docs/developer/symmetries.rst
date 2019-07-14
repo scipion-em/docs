@@ -23,6 +23,10 @@ For each type we show in this page:
 - Definition including the elements of symmetry.
 - *X*, *Y* and *Z* axes are colored in red, yellow and blue respectively.
 
+Note: Is really hard to see the difference symmetries just looking to the images,
+instead download the PDB files, the axis.bild file and visualize them in chimera.
+In chimera command line type "represent sphere" to incresae the atoms size.
+
 .. contents:: Table of Contents
     :local:
 
