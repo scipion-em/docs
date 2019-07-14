@@ -17,7 +17,9 @@ icosahedral.
 For each type we show in this page:
 
 - Surface rendering of a volume that displays the symmetry.
-- Atomic structure file (pb format) containing an atomic structure that satisfies the symmetry. (The PDB files may be visualized with viewers such as Chimera).
+- Atomic structure file (pb format) containing an atomic structure that
+  satisfies the symmetry. (The PDB files may be visualized with
+  viewers such as Chimera. `link </docs/images/Conventions/Symmetry/c7.pdb>`_ to chimera axis file).
 - Definition including the elements of symmetry.
 - *X*, *Y* and *Z* axes are colored in red, yellow and blue respectively.
 
