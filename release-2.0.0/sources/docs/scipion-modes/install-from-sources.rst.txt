@@ -8,6 +8,10 @@
 Installing Scipion v2.0
 =======================
 
+Let's see how to install Scipion in 5 steps:
+
+.. contents::
+
 Step 1: Download
 ================
 
@@ -22,8 +26,9 @@ Please, check how to `download Scipion <how-to-install>`_.
 Step 2: Dependencies
 ====================
 
-To install Scipion from source, some libraries are required.
-You can install them with: (this example is for Ubuntu16, see `Installing Dependencies <dependencies>`_ for others distributions):
+To install Scipion some libraries are required. You can install them with:
+(this example is for Ubuntu16, see `Installing Dependencies <dependencies>`_ for
+others distributions):
 
 ::
 
@@ -38,10 +43,10 @@ Step 3: Configure and Install
 Configure
 ---------
 
-After installing the `dependencies <dependencies>`_, you can
-proceed to generate configuration files. If you had a previous Scipion
-installation, it is a good idea to make a copy of your current config
-files ``~/.config/scipion/scipion.conf`` and
+After `downloading Scipion <how-to-install>`_ and installing the `dependencies
+<dependencies>`_, you can proceed to generate configuration files.
+If you had a previous Scipion installation, it is a good idea to make a copy of
+your current config files ``~/.config/scipion/scipion.conf`` and
 ``<your_scipion_home>/config/scipion.conf``. Now run:
 
 ::
@@ -143,9 +148,9 @@ please **install scipion-em-xmipp** plugin and, then,
 `depending on your OS </docs/docs/user/troubleshooting.html
 #installing-scipion-xmipp-from-precompiled-bundles>`_:
 
-* *xmippBin_Centos*: Pre-compiled bundle for Cenots OS.
-* *xmippBin_Debian*: Pre-compiled bundle for Debian/Ubuntu/OpenSUSE OS.
-* *xmippSrc*: Source code to compile in any OS (this option is only available if
+* **xmippBin_Centos**: Pre-compiled bundle for Cenots OS.
+* **xmippBin_Debian**: Pre-compiled bundle for Debian/Ubuntu/OpenSUSE OS.
+* **xmippSrc**: Source code to compile in any OS (this option is only available if
   Scipion is `installed from sources <how-to-install>`_).
 
 Please, refer to the :ref:`Plugin manager guide <Plugin-Manager>` to get
@@ -178,7 +183,7 @@ The downloaded .tgz files of the EM packages can also be removed:
 
     rm -rf sofware/em/*.tgz
 
-Next Steps
+Test Steps
 ==========
 
 -  Test your installation by running at least the *Small* and *Medium*

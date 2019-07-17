@@ -4,9 +4,9 @@
 
 .. _how-to-install:
 
-====================
-Getting Scipion v2.0
-====================
+===================
+Downloading Scipion
+===================
 
 Scipion can be installed using either from **Binaries** or from **Sources**.
 From **Binaries**, all the code is precompiled and it is ready to be used as
@@ -78,7 +78,6 @@ repository (install **git** if not present in your system):
 
     git clone https://github.com/I2PC/scipion.git
     cd scipion
-    git checkout release-2.0.0
 
 Git will create a *scipion* directory under your current path. Therefore, you do
 not need to create it manually.
