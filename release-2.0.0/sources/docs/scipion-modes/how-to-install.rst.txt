@@ -4,14 +4,10 @@
 
 .. _how-to-install:
 
-
-=====================
-How to install
-=====================
-
-
+=======================
 Installing Scipion v2.0
-========================
+=======================
+
 Scipion can be installed using two different ways, from **Binaries** or
 from **Sources**.
 From **Binaries**, all the code is precompiled and it is ready to be used as
@@ -30,7 +26,7 @@ If it is only for you, you can use your home directory as well.
     <https://github.com/I2PC/scipion/wiki/How-to-Install>`_.
 
 From Binaries
--------------
+=============
 
 Go to the directory where you want to install Scipion and download it from
 `Scipion Download Page <http://scipion.i2pc.es/download_form/>`_. Select
@@ -48,7 +44,7 @@ After Scipion software structure is deployed in the *scipion* directory
 `continue with the installation <install-from-sources#step-2-Dependencies>`_.
 
 From Sources
-------------
+============
 
 Scipion from Sources can be gotten either downloading the **Sources Bundle** or
 cloning the Scipion's **GitHub repository**. If you intend to develop Scipion we
@@ -56,7 +52,8 @@ strongly recommend to clone the **GitHub repository** in order to be able to
 commit your bug fixings and improvements. Alternatively, if you only want to
 use Scipion, go for the **Sources Bundle**.
 
-**Sources Bundle**
+Sources Bundle
+--------------
 
 Go to the directory where you want to install Scipion, and download it from
 `Scipion Download Page <http://scipion.i2pc.es/download_form/>`_ (select
@@ -72,7 +69,8 @@ After Scipion software structure is deployed under the *scipion* directory
 (see the *pyworkflow*, *software* among other files), all is ready to
 `continue with the installation <install-from-sources#step-2-Dependencies>`_.
 
-**Cloning the Scipion's repository**
+Cloning the Scipion's repository
+--------------------------------
 
 Go to the directory where you want to install Scipion and, clone Scipion
 repository (install **git** if not present in your system):
