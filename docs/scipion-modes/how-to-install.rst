@@ -4,14 +4,13 @@
 
 .. _how-to-install:
 
-=======================
-Installing Scipion v2.0
-=======================
+====================
+Getting Scipion v2.0
+====================
 
-Scipion can be installed using two different ways, from **Binaries** or
-from **Sources**.
+Scipion can be installed using either from **Binaries** or from **Sources**.
 From **Binaries**, all the code is precompiled and it is ready to be used as
-soon as it is downloaded. Only some dependencies and configuration must be set.
+soon as it is downloaded. Only some dependencies and some configuration must be set.
 On the other hand, we also release the Scipion's **Source** code to allow developers
 going inside Scipion and, also, for those users that are not able to launch Scipion
 from Binaries. Sources is usually more wide compatible than Binaries.
@@ -41,7 +40,7 @@ installation directory and decompress it using *tar*:
 
 After Scipion software structure is deployed in the *scipion* directory
 (see the *pyworkflow*, *software* among other dirs and files), all is ready to
-`continue with the installation <install-from-sources#step-2-Dependencies>`_.
+`continue with the installation <install-from-sources#step-2-dependencies>`_.
 
 From Sources
 ============
@@ -67,7 +66,7 @@ to the installation directory and decompress using *tar*:
 
 After Scipion software structure is deployed under the *scipion* directory
 (see the *pyworkflow*, *software* among other files), all is ready to
-`continue with the installation <install-from-sources#step-2-Dependencies>`_.
+`continue with the installation <install-from-sources#step-2-dependencies>`_.
 
 Cloning the Scipion's repository
 --------------------------------
@@ -86,4 +85,4 @@ not need to create it manually.
 
 After Scipion software structure is deployed under the *scipion* directory
 (see the *pyworkflow*, *software* among other files), all is ready to
-`continue with the installation <install-from-sources#step-2-Dependencies>`_.
+`continue with the installation <install-from-sources#step-2-dependencies>`_.

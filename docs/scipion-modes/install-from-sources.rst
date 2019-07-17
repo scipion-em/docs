@@ -4,9 +4,9 @@
 
 .. _install-from-sources:
 
-======================================
-Scipion Installation and Configuration
-======================================
+=======================
+Installing Scipion v2.0
+=======================
 
 Step 1: Download
 ================
@@ -90,7 +90,7 @@ host <host-configuration>`.
 Install
 -------
 
-To compile and install Scipion, just run:
+To install Scipion, just run:
 
 ::
 
