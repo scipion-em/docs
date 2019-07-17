@@ -8,9 +8,19 @@
 Installing Scipion v2.0
 =======================
 
-Let's see how to install Scipion in 5 steps:
+Scipion is easily installed following this 5 steps:
 
-.. contents::
+.. toctree::
+    :maxdepth: 1
+
+    Step 1: Download. <how-to-install>
+    Step 2: Dependencies. <dependencies>
+    Step 3: Configure and install. <install-from-sources#step-3-configure-and-install>
+    Step 4: Installing Xmipp3 and other EM Plugins. <install-from-sources#step-4-installing-xmipp3-and-other-em-plugins>
+    Step 5: Cleaning up (Optional). <install-from-sources#step-5-cleaning-up-optional>`
+
+We also provide some :ref:`tests <Running-Tests>` and :ref:`tutorials <User-Documentation>`
+to check that all is fine and to learn how to use Scipion.
 
 Step 1: Download
 ================
@@ -183,8 +193,8 @@ The downloaded .tgz files of the EM packages can also be removed:
 
     rm -rf sofware/em/*.tgz
 
-Test Steps
-==========
+Tests and tutorials
+===================
 
 -  Test your installation by running at least the *Small* and *Medium*
    tests mentioned in :ref:`running tests page <Running-Tests>`.
