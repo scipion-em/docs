@@ -8,13 +8,13 @@
 Downloading Scipion
 ===================
 
-Scipion can be installed using either from **Binaries** or from **Sources**.
+Scipion can be installed either from **Binaries** or from **Sources**.
 From **Binaries**, all the code is precompiled and it is ready to be used as
 soon as it is downloaded. Only some dependencies and some configuration must be set.
 On the other hand, we also release the Scipion's **Source** code to allow developers
 going inside Scipion and, also, for those users that are not able to launch Scipion
 from Binaries. Sources is usually more wide compatible than Binaries.
-However, Sources compilation might be in some cases a little tricky.
+However, Sources compilation might be a bit tricky in some cases.
 
 In addition, you can install Scipion anywhere, as long as you have write
 permissions. If you want to share Scipion installation among different users
@@ -68,8 +68,8 @@ After Scipion software structure is deployed under the *scipion* directory
 (see the *pyworkflow*, *software* among other files), all is ready to
 `continue with the installation <install-from-sources#step-2-dependencies>`_.
 
-Cloning the Scipion's repository
---------------------------------
+Sources from GitHub
+-------------------
 
 Go to the directory where you want to install Scipion and, clone Scipion
 repository (install **git** if not present in your system):
@@ -81,6 +81,15 @@ repository (install **git** if not present in your system):
 
 Git will create a *scipion* directory under your current path. Therefore, you do
 not need to create it manually.
+
+The most stable branch is ``master`` (it is the same code than in the
+``V2.0-Source code`` from Scipion Download Page). The newest version under
+development is the ``devel`` branch.
+Please, check the `Scipion's GitHub repository <https://github.com/I2PC/scipion>`_
+to follow the *Issues* and *Pull requests* intended to improve Scipion.
+If you want to develop Scipion, please, submit changes in your own devel-based
+branch and, when ready, make a *Pull Request* to ``devel``.
+Learn `how to Git <https://scipion-em.github.io/docs/docs/developer/how-to-git>`_.
 
 After Scipion software structure is deployed under the *scipion* directory
 (see the *pyworkflow*, *software* among other files), all is ready to
