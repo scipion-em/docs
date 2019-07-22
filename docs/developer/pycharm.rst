@@ -77,15 +77,15 @@ click on the cog icon, and then "add" menu
 .. figure:: /docs/images/dev-tools/pycharm_project_interpreter_add.png
    :alt: pycharm project interpreter add
 
-This will pop up the "Add python environment" window, select "System interpreter" and look for the python that is under
+This will pop up the "Add Python Interpreter" window, select "System interpreter" and look for the python that is under
 <SCIPION_HOME>/software/bin/python2.7
 
 .. figure:: /docs/images/dev-tools/pycharm_add_python.png
    :alt: pycharm adding new python interpreter
 
 This should have registered Scipion's python in your pycharm. Now we need to
-customized it. Having it selected, press again in the "cog", but this time press
-in "Show all". This should pop up the "Project interpreter" window. Select the
+customize it. Having it selected, press again in the "cog", but this time press
+in "Show all". This should pop up the "Project interpreters" window. Select the
 recently added interpreter and click on the "pencil" to rename it to
 "pythonForPlugins" (e.g.). This is optional but will make more clear why that
 interpreter is there and easier to choose in any new plugin project you might
@@ -94,7 +94,7 @@ load in pycharm.
 .. figure:: /docs/images/dev-tools/pycharm_interpreter_list.png
    :alt: pycharm adding new python interpreter
 
-Lastly, we need to add a 3 "dependencies":
+Lastly, we need to add 3 "dependencies":
 
 - Add <SCIPION_HOME>, so pyworkflow code is found
 - Add xmipp python bindings, usually found at <SCIPION_HOME>/software/em/xmipp/bindings/python
