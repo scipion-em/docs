@@ -42,13 +42,15 @@ See more here https://www.jetbrains.com/help/clion/attaching-to-local-process.ht
 
 How to setup this may differ depending on your OS and pycharm version.
 
-An idea could be to create a shell script --> launchPycharm.sh:
+An idea could be to create a shell script --> launchPycharm.sh.
 
-.. code-block::
+
+.. code-block:: bash
 
     export LD_LIBRARY_PATH= <SCIPION_HOME>/software/lib/:$LD_LIBRARY_PATH
     echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
     pycharm
+
 
 pycharm, in this case refers to the command launcher that pycharm, or
 Jetbrains toolbox app generates.
