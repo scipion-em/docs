@@ -30,7 +30,7 @@ use the "Attach to local process" option.
 
 1 Add scipion lib folder to the LD_LIBRARY_PATH
 
-`export LD_LIBRARY_PATH= <SCIPION_HOME>/software/lib/:$LD_LIBRARY_PATH`
+`export LD_LIBRARY_PATH= /path/to/scipion/software/lib/:$LD_LIBRARY_PATH`
 
 There are libraries there that where used to compile Scipion's python and need to be available
 
@@ -47,7 +47,7 @@ An idea could be to create a shell script --> launchPycharm.sh.
 
 .. code-block:: bash
 
-    export LD_LIBRARY_PATH= <SCIPION_HOME>/software/lib/:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH= /path/to/scipion/software/lib/:$LD_LIBRARY_PATH
     echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
     pycharm
 
@@ -78,7 +78,7 @@ click on the cog icon, and then "add" menu
    :alt: pycharm project interpreter add
 
 This will pop up the "Add Python Interpreter" window, select "System interpreter" and look for the python that is under
-<SCIPION_HOME>/software/bin/python2.7
+/path/to/scipion/software/bin/python2.7
 
 .. figure:: /docs/images/dev-tools/pycharm_add_python.png
    :alt: pycharm adding new python interpreter
@@ -96,9 +96,9 @@ load in pycharm.
 
 Lastly, we need to add 3 "dependencies":
 
-- Add <SCIPION_HOME>, so pyworkflow code is found
-- Add xmipp python bindings, usually found at <SCIPION_HOME>/software/em/xmipp/bindings/python
-- Add xmipp python bindings dependencies, found at <SCIPION_HOME>/software/em/xmipp/lib
+- Add /path/to/scipion/, so pyworkflow code is found
+- Add xmipp python bindings, usually found at /path/to/scipion/software/em/xmipp/bindings/python
+- Add xmipp python bindings dependencies, found at /path/to/scipion/software/em/xmipp/lib
 
 .. figure:: /docs/images/dev-tools/pycharm_interpreter_paths.png
    :alt: pycharm adding paths to python interpreter
