@@ -9,7 +9,7 @@ PyCharm IDE
 ===========
 
 Getting started
-===============
+---------------
 
 * Download PyCharm's community version `[here] <https://www.jetbrains.com/pycharm/download/#section=linux>`_. Install following the instructions for your platform.
 * Clone Scipion git repository in your machine:
@@ -20,52 +20,94 @@ Getting started
 
 * Create a new Scipion project (Choose "open" in the open project dialog and select your scipion directory).
 
-Debugging
-=========
 
-There is a couple of commands that we need to run before starting PyCharm in
-order to be able to debug Scipion and use the "Attach to local process" option.
-A handy way is to generate PyCharm's command line launcher and modify it:
+Launching pycharm
+-----------------
 
-1a. Edit .bashrc file and include `LD_LIBRARY_PATH= <our-scipion-home>/software/lib/`
+There is a couple of things we need to run before starting PyCharm in
+order to be able to debug Scipion, using the embedded python console or
+use the "Attach to local process" option.
 
-1b. Generate Pycharm's command line launcher
+1 Add scipion lib folder to the LD_LIBRARY_PATH
 
-Click on `Tools > Create command line launcher...` and type the desired path to the script.
+`export LD_LIBRARY_PATH= <SCIPION_HOME>/software/lib/:$LD_LIBRARY_PATH`
 
-1c. Find PyCharm's command line launcher if already have one
-.. code-block:: bash
-    $ which charm
-    /usr/local/bin/charm
+There are libraries there that where used to compile Scipion's python and need to be available
 
-2. Open the init script as root
+2 Allow pycharm to attach to other processes:
 
-.. code-block:: bash
-    $ sudo vim /usr/local/bin/charm
+These is achieved by:
+ `echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope`
+See more here https://www.jetbrains.com/help/clion/attaching-to-local-process.html
 
-3. In the function ``` def process_args(argv):```, add the code in **bold**. Remember to replace ```<your-scipion-home>``` with the right path and save your changes:
+How to setup this may differ depending on your OS and pycharm version.
+
+An idea could be to create a shell script --> launchPycharm.sh:
+
+.. code-block::
+
+    export LD_LIBRARY_PATH= <SCIPION_HOME>/software/lib/:$LD_LIBRARY_PATH
+    echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
+    pycharm
+
+pycharm, in this case refers to the command launcher that pycharm, or
+Jetbrains toolbox app generates.
+
+make it executable and launch it like `./launchPycharm.sh.`
+
+Another option would be to edit such a file to add those 2 lines, somewhere
+inside the launcher script.
 
 
+Configuring the interpreter for plugins
+---------------------------------------
+A proper configuration ofs pycharm will make your life easier when it comes to
+navigate the code from the plugin to Scipion and viceversa. It will allow
+pycharm to understand your setup and make better suggestions for importing
+code or even identifying bugs. For it,  we need to add a new interpreter,
+since scipion provides it's own python. Go to:
 
-.. code-block:: bash
+.. pull-quote::
+ File > Settings > Project > Project interpreter
 
-    <pre>
-    ...
-    elif arg == 'merge' and i == 0:
-        args.append(arg)
-    <b>elif arg == 'debug':
-        os.system("export LD_LIBRARY_PATH=&lt;your-scipion-home&gt;/software/lib/")
-        os.system("echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope")</b>
-    elif arg == '-l' or arg == '--line':
+click on the cog icon, and then "add" menu
 
-    ...
-    </pre>
+.. figure:: /docs/images/dev-tools/pycharm_project_interpreter_add.png
+   :alt: pycharm project interpreter add
 
-4. Start pycharm from your terminal with your new debug option - will prompt you to enter your password.
+This will pop up the "Add python environment" window, select "System interpreter" and look for the python that is under
+<SCIPION_HOME>/software/bin/python2.7
 
-.. code-block:: bash
+.. figure:: /docs/images/dev-tools/pycharm_add_python.png
+   :alt: pycharm adding new python interpreter
 
-    $ charm debug
-    [sudo] password for <your-user>:
+This should have registered Scipion's python in your pycharm. Now we need to
+customized it. Having it selected, press again in the "cog", but this time press
+in "Show all". This should pop up the "Project interpreter" window. Select the
+recently added interpreter and click on the "pencil" to rename it to
+"pythonForPlugins" (e.g.). This is optional but will make more clear why that
+interpreter is there and easier to choose in any new plugin project you might
+load in pycharm.
 
-5. Happy debugging!
+.. figure:: /docs/images/dev-tools/pycharm_interpreter_list.png
+   :alt: pycharm adding new python interpreter
+
+Lastly, we need to add a 3 "dependencies":
+
+- Add <SCIPION_HOME>, so pyworkflow code is found
+- Add xmipp python bindings, usually found at <SCIPION_HOME>/software/em/xmipp/bindings/python
+- Add xmipp python bindings dependencies, found at <SCIPION_HOME>/software/em/xmipp/lib
+
+.. figure:: /docs/images/dev-tools/pycharm_interpreter_paths.png
+   :alt: pycharm adding paths to python interpreter
+
+
+Configuring the interpreter just for a Scipion "solo" project
+-------------------------------------------------------------
+In this case you can follow the same steps as above, but avoid adding "pyworkflow"
+as a dependency, since it will be naturally found by pycharm. The xmipp binding
+is still needed.
+
+For this case it is also advisable to exclude some folders from being indexed:
+data and software.
+
