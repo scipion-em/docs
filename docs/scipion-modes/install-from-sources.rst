@@ -5,8 +5,19 @@
 .. _install-from-sources:
 
 =======================
-Installing from sources
+Installing Scipion v2.0
 =======================
+
+Scipion is easily installed following this 5 steps:
+
+* Step 1: `Download <how-to-install>`_.
+* Step 2: `Dependencies <dependencies>`_.
+* Step 3: `Configure and install <install-from-sources#step-3-configure-and-install>`_.
+* Step 4: `Installing Xmipp3 and other EM Plugins <install-from-sources#step-4-installing-xmipp3-and-other-em-plugins>`_.
+* Step 5: `Cleaning up (Optional) <install-from-sources#step-5-cleaning-up-optional>`_.
+
+We also provide some :ref:`tests <Running-Tests>` and :ref:`tutorials <User-Documentation>`
+to check that all is fine and to learn how to use Scipion.
 
 Step 1: Download
 ================
@@ -17,28 +28,14 @@ use ``/usr/local`` or a similar path. If it is only for you, you can use
 your home directory as well. If you have a previous installation, we
 recommend starting this installation fresh in a new folder.
 
-From GitHub
------------
-
-Clone Scipion repository (install **git** if not present in your
-system):
-
-::
-
-    git clone https://github.com/I2PC/scipion.git
-    cd scipion 
-    git checkout release-2.0.0
-
-Git will create a ``scipion`` directory under your current path; you do
-not need to create it manually.
-
-.. _install-deps:
+Please, check how to `download Scipion <how-to-install>`_.
 
 Step 2: Dependencies
 ====================
 
-To install Scipion from source, some development libraries are required.
-You can install them with (this example is for Ubuntu16). See `Installing Dependencies <dependencies>`_ for others distributions):
+To install Scipion some libraries are required. You can install them with:
+(this example is for Ubuntu16, see `Installing Dependencies <dependencies>`_ for
+others distributions):
 
 ::
 
@@ -53,10 +50,10 @@ Step 3: Configure and Install
 Configure
 ---------
 
-After installing the `dependencies <dependencies>`_, you can
-proceed to generate configuration files. If you had a previous Scipion
-installation, it is a good idea to make a copy of your current config
-files ``~/.config/scipion/scipion.conf`` and
+After `downloading Scipion <how-to-install>`_ and installing the `dependencies
+<dependencies>`_, you can proceed to generate configuration files.
+If you had a previous Scipion installation, it is a good idea to make a copy of
+your current config files ``~/.config/scipion/scipion.conf`` and
 ``<your_scipion_home>/config/scipion.conf``. Now run:
 
 ::
@@ -76,15 +73,17 @@ next step. If there is a problem (red colored output), you will need to
 edit ``config/scipion.conf`` file in your preferred text editor and run
 ``./scipion config`` again.
 
-One known change for **Ubuntu 18** are the MPI paths in
+One known change for **Ubuntu 18** and **CentOS** are the MPI paths in
 ``<your_scipion_home>/config/scipion.conf``:
+
+For **Ubuntu 18**:
 
 ::
 
    MPI_LIBDIR = /usr/lib/x86_64-linux-gnu/openmpi/lib
    MPI_INCLUDE = /usr/lib/x86_64-linux-gnu/openmpi/include/
 
-The MPI paths in **CentOS** are in:
+For **CentOS**:
 
 ::
 
@@ -92,8 +91,7 @@ The MPI paths in **CentOS** are in:
     MPI_LIBDIR = /usr/lib64/openmpi/lib
     MPI_INCLUDE = /usr/include/openmpi-x86_64
 
-Read more about :doc:`editing the configuration
-file <scipion-configuration>`.
+Read more about :doc:`editing the configuration file <scipion-configuration>`.
 
 The file ``config/hosts.conf`` contains some properties of the execution
 machine. This configuration file is particularly important for clusters
@@ -104,7 +102,7 @@ host <host-configuration>`.
 Install
 -------
 
-To compile and install Scipion, just run:
+To install Scipion, just run:
 
 ::
 
@@ -132,11 +130,14 @@ Scipion can use many EM plugins. It is almost **mandatory to install
 scipion-em-xmipp** (i.e. Scipion will run without it but with very
 limited functionality).
 
+If you intend to develop some plugin, check the
+**For developers** section below. However, if you only want to use the
+plugin, just follow the **For users** section below.
+
 For users
 ---------
 To list and install plugins including Xmipp, you can use the plugin manager
-(recommended) or, alternatively, use the `command line tool <install-plugins-command-line>`__ mentioned for
-developers.
+(recommended) or, alternatively, use the `command line tool <install-plugins-command-line>`__.
 
 To open the plugin manager, please run Scipion
 
@@ -145,7 +146,7 @@ To open the plugin manager, please run Scipion
    cd scipion
    ./scipion
 
-and choose Configuration > Plugins on the top bar. There, any plugin can be
+and choose **Configuration** > **Plugins** on the top bar. There, any plugin can be
 easyly installed.
 
 Since Xmipp is (almost) mandatory for processing with Scipion,
@@ -154,19 +155,18 @@ please **install scipion-em-xmipp** plugin and, then,
 `depending on your OS </docs/docs/user/troubleshooting.html
 #installing-scipion-xmipp-from-precompiled-bundles>`_:
 
-* *xmippBin_Centos*: Pre-compiled bundle for Cenots OS.
-* *xmippBin_Debian*: Pre-compiled bundle for Debian/Ubuntu/OpenSUSE OS.
-* *xmippSrc*: Source code to compile in any OS (this option is only available if
-  Scipion is installed from sources).
+* **xmippBin_Centos**: Pre-compiled bundle for Cenots OS.
+* **xmippBin_Debian**: Pre-compiled bundle for Debian/Ubuntu/OpenSUSE OS.
+* **xmippSrc**: Source code to compile in any OS (this option is only available if
+  Scipion is `installed from sources <how-to-install>`_).
 
-Please refer to the :ref:`Plugin manager guide <Plugin-Manager>` to get
+Please, refer to the :ref:`Plugin manager guide <Plugin-Manager>` to get
 more details about plugin installation options.
 
 For developers
 --------------
-Developers might want to
-build xmipp from the latest development version, please head
-`here <https://github.com/I2PC/xmipp/wiki/Migrating-branches-from-nonPluginized-Scipion-to-the-new-Scipion-Xmipp-structure#xmipp>`__
+Developers might want to build xmipp from the latest development version, please head
+`here <https://github.com/I2PC/xmipp/blob/devel/README.md>`__
 if this is your case. You might also want to check how to :ref:`install
 plugins from the command line <install-plugins-command-line>`.
 
@@ -190,8 +190,8 @@ The downloaded .tgz files of the EM packages can also be removed:
 
     rm -rf sofware/em/*.tgz
 
-Next Steps
-==========
+Tests and tutorials
+===================
 
 -  Test your installation by running at least the *Small* and *Medium*
    tests mentioned in :ref:`running tests page <Running-Tests>`.
