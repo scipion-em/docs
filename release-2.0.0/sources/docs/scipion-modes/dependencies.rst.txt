@@ -22,7 +22,7 @@ Dependencies
 ::
 
     sudo apt-get install gcc-5 g++-5 cmake openjdk-8-jdk libxft-dev libssl-dev libxext-dev\
-     libxml2-dev libreadline6-dev libquadmath0 libxslt1-dev libopenmpi-dev openmpi-bin\
+     libxml2-dev libreadline7 libquadmath0 libxslt1-dev libopenmpi-dev openmpi-bin\
      libxss-dev libgsl0-dev libx11-dev gfortran libfreetype6-dev scons libfftw3-dev libopencv-dev curl git
 
 -  For debian 9.7:
