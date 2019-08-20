@@ -151,7 +151,9 @@ Then we can proceed with the same instructions as explained above.
 
 Costs on AWS
 ============
-`The following prices are valid on April 2018 on the AWS Ireland region and are tax free. Updated prices can be found `[here] <https://aws.amazon.com/ec2/pricing/on-demand/>`_.
+
+The following prices are valid on April 2018 on the AWS Ireland region and are tax free. 
+Updated prices can be found `here <https://aws.amazon.com/ec2/pricing/on-demand/>`_.
 
 Using ScipionCloud on AWS will have the following costs:
 
