@@ -205,7 +205,7 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">getmtime</span><span class="p">,</span> <span class="n">exists</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">getmtime</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 
@@ -808,6 +808,7 @@
         <span class="k">return</span> <span class="n">newItemDict</span><span class="p">,</span> <span class="n">streamClosed</span>
 
     <span class="k">def</span> <span class="nf">_updateOutputCTFSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">micList</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">):</span>
+        <span class="n">doneFailed</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">micDoneList</span> <span class="o">=</span> <span class="p">[</span><span class="n">mic</span> <span class="k">for</span> <span class="n">mic</span> <span class="ow">in</span> <span class="n">micList</span><span class="p">]</span>
         <span class="c1"># Do no proceed if there is not micrograph ready</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">micDoneList</span><span class="p">:</span>
@@ -833,9 +834,12 @@
                 <span class="n">outputCtf</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ctf</span><span class="p">)</span>
             <span class="k">except</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">yellowStr</span><span class="p">(</span><span class="s2">&quot;Missing CTF?: Couldn&#39;t update CTF set with mic: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">micFn</span><span class="p">))</span>
+                <span class="n">doneFailed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mic</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot; _updateOutputCTFSet Stream Mode: </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="n">streamMode</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="n">outputName</span><span class="p">,</span> <span class="n">outputCtf</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">doneFailed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_writeFailedList</span><span class="p">(</span><span class="n">doneFailed</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">firstTime</span><span class="p">:</span>  <span class="c1"># define relation just onceget</span>
             <span class="c1"># Using a pointer to define the relations is more robust to</span>
@@ -891,14 +895,32 @@
     <span class="k">def</span> <span class="nf">_getAllDone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;DONE&#39;</span><span class="p">,</span> <span class="s1">&#39;all.TXT&#39;</span><span class="p">)</span>
 
+    <span class="k">def</span> <span class="nf">_getAllFailed</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;FAILED_all.TXT&#39;</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">_getMicrographDir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mic</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return an unique dir name for results of the micrograph. &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s1">&#39;mic_</span><span class="si">%04d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mic</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
 
     <span class="k">def</span> <span class="nf">_getMicrographDone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mic</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return the file that is used as a flag of termination. &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;DONE&#39;</span><span class="p">,</span> <span class="s1">&#39;mic_</span><span class="si">%06d</span><span class="s1">.TXT&#39;</span> <span class="o">%</span> <span class="n">mic</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;DONE&#39;</span><span class="p">,</span> <span class="s1">&#39;mic_</span><span class="si">%06d</span><span class="s1">.TXT&#39;</span> <span class="o">%</span> <span class="n">mic</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
 
+    <span class="k">def</span> <span class="nf">_writeFailedList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">micList</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Write to a text file the items that have failed. &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getAllFailed</span><span class="p">(),</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">mic</span> <span class="ow">in</span> <span class="n">micList</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mic</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">_readFailedList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Read from a text file the id&#39;s of the items that have failed. &quot;&quot;&quot;</span>
+        <span class="n">failedFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getAllFailed</span><span class="p">()</span>
+        <span class="n">failedList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">failedFile</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">failedFile</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">failedList</span> <span class="o">+=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">failedList</span></div>
 
 <div class="viewcode-block" id="ProtPreprocessMicrographs"><a class="viewcode-back" href="../../../../api/pyworkflow.em.protocol.protocol_micrographs.html#pyworkflow.em.protocol.protocol_micrographs.ProtPreprocessMicrographs">[docs]</a><span class="k">class</span> <span class="nc">ProtPreprocessMicrographs</span><span class="p">(</span><span class="n">ProtMicrographs</span><span class="p">):</span>
     <span class="k">pass</span></div>
