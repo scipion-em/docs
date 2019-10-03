@@ -12,7 +12,7 @@ For facilities
 ---------------
 Currently, scipion is being used every day in several facilities in Europe, US,
 Canada, Israel and Australia. If you are running a Cryo EM facility and want more
-info, please `contatct us <scipion@i2pc.com>`_. We will be happy to help you run
+info, please `contatct us <scipion@cnb.csic.es>`_. We will be happy to help you run
 Scipion there. Also, we have a `Slack <https://scipion.slack.com>`_ framework to
 maintain a direct communication channel.
 
