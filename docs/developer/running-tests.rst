@@ -22,9 +22,8 @@ workflows. They usually take more time to execute, and require some
 input data (which should be downloaded automatically on demand).
 
 In the following sections you will find a brief explanation about the
-more important tests, and their input data. You will also find how to
-launch the tests from the command line.
-
+more important tests, and their input data. All of them must be executed 
+from the command line using the specified commands.
 .. contents:: Table of Contents
 
 
