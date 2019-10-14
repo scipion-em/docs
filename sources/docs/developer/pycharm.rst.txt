@@ -16,7 +16,7 @@ Getting started
 
 .. code-block:: bash
 
-    git clone https://github.com/I2PC/scipion.git`
+    git clone https://github.com/I2PC/scipion.git
 
 * Create a new Scipion project (Choose "open" in the open project dialog and select your scipion directory).
 
@@ -30,7 +30,7 @@ use the "Attach to local process" option.
 
 1 Add scipion lib folder to the LD_LIBRARY_PATH
 
-`export LD_LIBRARY_PATH= /path/to/scipion/software/lib/:$LD_LIBRARY_PATH`
+`export LD_LIBRARY_PATH=/path/to/scipion/software/lib/:$LD_LIBRARY_PATH`
 
 There are libraries there that where used to compile Scipion's python and need to be available
 
@@ -47,7 +47,7 @@ An idea could be to create a shell script --> launchPycharm.sh.
 
 .. code-block:: bash
 
-    export LD_LIBRARY_PATH= /path/to/scipion/software/lib/:$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=/path/to/scipion/software/lib/:$LD_LIBRARY_PATH
     echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
     pycharm
 
