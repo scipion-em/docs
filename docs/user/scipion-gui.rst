@@ -13,7 +13,7 @@ line. At first projects manager is displayed and we can create a new
 project or select one previously registered (Fig. 1). For this tutorial
 we registered projects TestSpiderWorkflow and TestXmippWorkflow for
 illustrative purposes (running ``scipion tests tests.em.workflows.test_workflow_spiderMDA`` and
-``tests.em.workflows.test_workflow_xmipp``).
+``pyworkflow.tests.em.workflows.test_workflow_xmipp``).
 
 
 .. figure:: /docs/images/guis/new_project.png
