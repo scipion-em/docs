@@ -50,7 +50,7 @@ inputs and outputs, execution logs or documentation - also provides
 
     Figure 2. Project GUI in Protocols Mode
 
-If we switch to Data mode left panel displays EM objects registered for
+If we switch to Data mode (top right), then left panel displays EM objects registered for
 each type and right panel displays project data tree, with protocol
 output objects as nodes and edges towards objects used as input. Bottom
 right panel displays information for the selected item, that can be
