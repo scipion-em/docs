@@ -49,17 +49,6 @@ Setup some aliases
     git config --global alias.ci commit
     git config --global alias.st status
 
-Some others handful aliases for using the *git-flow* methodology.
-
-.. code-block:: bash
-
-    # To create a new feature branch and publish to origin
-    git config --global alias.new-feature '!git checkout -b $1 master \
-    && git push -u origin $1 #'
-    # To create a hotfix branch (now from v1.0)
-    git config --global alias.new-hotfix '!git checkout -b $1 v1.0 \
-    && git push -u origin $1 #'
-
 Branches
 ========
 
