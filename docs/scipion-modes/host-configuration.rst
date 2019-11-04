@@ -142,6 +142,7 @@ Example for `Slurm <http://slurm.schedmd.com/slurm.html>`__
 you can find a very simple tutorial about installing Slurm in Ubuntu.
 
 ::
+
     [localhost]
     PARALLEL_COMMAND = mpirun -np %_(JOB_NODES)d -bynode %_(COMMAND)s
     NAME = SLURM
