@@ -142,11 +142,10 @@ Example for `Slurm <http://slurm.schedmd.com/slurm.html>`__
 you can find a very simple tutorial about installing Slurm in Ubuntu.
 
 ::
-
     [localhost]
     PARALLEL_COMMAND = mpirun -np %_(JOB_NODES)d -bynode %_(COMMAND)s
     NAME = SLURM
-    MANDATORY = False
+    MANDATORY = 2
     SUBMIT_COMMAND = sbatch %_(JOB_SCRIPT)s
     CANCEL_COMMAND = scancel %_(JOB_ID)s
     CHECK_COMMAND = squeue -j %_(JOB_ID)s
@@ -154,14 +153,14 @@ you can find a very simple tutorial about installing Slurm in Ubuntu.
             ### Job name
             #SBATCH -J %_(JOB_NAME)s
             ### Outputs (we need to escape the job id as %%j)
-            #SBATCH -o job%%j.out
-            #SBATCH -e job%%j.err
+            #SBATCH -o %_(JOB_SCRIPT)s.out
+            #SBATCH -e %_(JOB_SCRIPT)s.err
             ### Partition (queue) name
             ### if the system has only 1 queue, it can be omited
             ### if you want to specify the queue, ensure the name in the scipion dialog matches
             ### a slurm partition, then leave only 1 # sign in the next line
             ##### SBATCH -p %_(JOB_QUEUE)s
-
+    
             ### Specify time, number of nodes (tasks), cores and memory(MB) for your job
             #SBATCH --time=%_(JOB_TIME)s:00:00 --ntasks=%_(JOB_NODES)d --cpus-per-task=%_(JOB_THREADS)d --mem=%_(JOB_MEMORY)s
             # Use as working dir the path where sbatch was launched
@@ -170,29 +169,28 @@ you can find a very simple tutorial about installing Slurm in Ubuntu.
             #################################
             ### Set environment varible to know running mode is non interactive
             export XMIPP_IN_QUEUE=1
-
+    
             cd $WORKDIR
             # Make a copy of node file
-            cp $SLURM_JOB_NODELIST %_(JOB_NODEFILE)s
-            # Calculate the number of processors allocated to this run.
-            NPROCS=`wc -l < $SLURM_JOB_NODELIST`
-            # Calculate the number of nodes allocated.
-            NNODES=`uniq $SLURM_JOB_NODELIST | wc -l`
-
+            echo $SLURM_JOB_NODELIST > %_(JOB_NODEFILE)s
             ### Display the job context
             echo Running on host `hostname`
             echo Time is `date`
             echo Working directory is `pwd`
-            echo Using ${NPROCS} processors across ${NNODES} nodes
-            echo NODE LIST:
-            cat $SLURM_JOB_NODELIST
+            echo Using $SLURM_NTASKS tasks ($SLURM_CPUS_PER_TASK CPUs each) across $SLURM_JOB_NUM_NODES nodes
+            echo NODE LIST: $SLURM_JOB_NODELIST
             #################################
             %_(JOB_COMMAND)s
     QUEUES = {
-            "myslurmqueue": [["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
-                                        ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"]
-                                        ]
-                      }
+    "tesla": [["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
+              ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"]],
+    "geforce": [["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
+                ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"]],
+    "quadro": [["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
+               ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"]]
+    }
+
+
 
 Example for Torque-PBS
 ----------------------
