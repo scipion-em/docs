@@ -103,7 +103,9 @@ examples in the next sections. I
     QUEUES = {
         "myslurmqueue": [
             ["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
-            ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"]
+            ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"],
+            ["GPU_COUNT", "1", "Number of GPUs", "Select the number of GPUs if protocol has been set up to use them"],
+            ["QUEUE_FOR_JOBS", "N", "Use queue for jobs", "Send individual jobs to queue"]]
         ]
     }
 
@@ -120,6 +122,9 @@ composed by a list of 4 values:
 Keep in mind that the parameters defined here (like ``JOB_TIME``, in the example) will be returned from the GUI
 dialog as a string. Hence, in the template you will need to declare them as string (%s), even if they are integers (%d).
 See the Torque example (``JOB_HOURS`` parameter).
+
+The ``GPU_COUNT`` variable is only needed if the queue is configured to manage GPUs (for instance in slurm).
+The ``QUEUE_FOR_JOBS`` variable is needed if you want to give the possibility to submit single jobs to the queue (by default Scipion submits the whole protocol run to the queue as a monolitic job). This can only be used in protocols parallelized by Scipion, not by the packages themselves and when using threads.
 
 ::
 
@@ -145,51 +150,68 @@ you can find a very simple tutorial about installing Slurm in Ubuntu.
 
     [localhost]
     PARALLEL_COMMAND = mpirun -np %_(JOB_NODES)d -bynode %_(COMMAND)s
-    NAME = SLURM
-    MANDATORY = 2
-    SUBMIT_COMMAND = sbatch %_(JOB_SCRIPT)s
-    CANCEL_COMMAND = scancel %_(JOB_ID)s
-    CHECK_COMMAND = squeue -j %_(JOB_ID)s
-    SUBMIT_TEMPLATE = #!/bin/bash
-            ### Job name
-            #SBATCH -J %_(JOB_NAME)s
-            ### Outputs (we need to escape the job id as %%j)
-            #SBATCH -o %_(JOB_SCRIPT)s.out
-            #SBATCH -e %_(JOB_SCRIPT)s.err
-            ### Partition (queue) name
-            ### if the system has only 1 queue, it can be omited
-            ### if you want to specify the queue, ensure the name in the scipion dialog matches
-            ### a slurm partition, then leave only 1 # sign in the next line
-            ##### SBATCH -p %_(JOB_QUEUE)s
-    
-            ### Specify time, number of nodes (tasks), cores and memory(MB) for your job
-            #SBATCH --time=%_(JOB_TIME)s:00:00 --ntasks=%_(JOB_NODES)d --cpus-per-task=%_(JOB_THREADS)d --mem=%_(JOB_MEMORY)s
-            # Use as working dir the path where sbatch was launched
-            WORKDIR=$SLURM_JOB_SUBMIT_DIR
+NAME = SLURM
+MANDATORY = False
+SUBMIT_COMMAND = sbatch %_(JOB_SCRIPT)s
+CANCEL_COMMAND = scancel %_(JOB_ID)s
+CHECK_COMMAND = squeue -j %_(JOB_ID)s
+SUBMIT_TEMPLATE = #!/bin/bash
+        ### Job name
+        #SBATCH -J %_(JOB_NAME)s
+        ### Outputs (we need to escape the job id as %%j)
+        #SBATCH -o %_(JOB_LOGS)s.out
+        #SBATCH -e %_(JOB_LOGS)s.err
+        ### Partition (queue) name
+        ### if the system has only 1 queue, it can be omited
+        ### if you want to specify the queue, ensure the name in the scipion dialog matches
+        ### a slurm partition, then leave only 1 # sign in the next line
+        ##### SBATCH -p %_(JOB_QUEUE)s
 
-            #################################
-            ### Set environment varible to know running mode is non interactive
-            export XMIPP_IN_QUEUE=1
-    
-            cd $WORKDIR
-            # Make a copy of node file
-            echo $SLURM_JOB_NODELIST > %_(JOB_NODEFILE)s
-            ### Display the job context
-            echo Running on host `hostname`
-            echo Time is `date`
-            echo Working directory is `pwd`
-            echo Using $SLURM_NTASKS tasks ($SLURM_CPUS_PER_TASK CPUs each) across $SLURM_JOB_NUM_NODES nodes
-            echo NODE LIST: $SLURM_JOB_NODELIST
-            #################################
-            %_(JOB_COMMAND)s
-    QUEUES = {
+        ### Specify time, number of nodes (tasks), cores and memory(MB) for your job
+        #SBATCH --time=%_(JOB_TIME)s:00:00 --ntasks=%_(JOB_NODES)d --cpus-per-task=%_(JOB_THREADS)d --mem=%_(JOB_MEMORY)s           --gres=gpu:%_(GPU_COUNT)s
+        # Use as working dir the path where sbatch was launched
+        WORKDIR=$SLURM_SUBMIT_DIR
+
+        #################################
+        ### Set environment varible to know running mode is non interactive
+        export XMIPP_IN_QUEUE=1
+
+        cd $WORKDIR
+        # Make a copy of node file
+        echo $SLURM_JOB_NODELIST > %_(JOB_NODEFILE)s
+        # Calculate the number of processors allocated to this run.
+        NPROCS=`wc -l < $SLURM_JOB_NODELIST`
+        # Calculate the number of nodes allocated.
+        NNODES=`uniq $SLURM_JOB_NODELIST | wc -l`
+
+        ### Display the job context
+        echo Running on host `hostname`
+        echo Time is `date`
+        echo Working directory is `pwd`
+        echo Using ${NPROCS} processors across ${NNODES} nodes
+        echo NODE LIST - config:
+        cat $SLURM_JOB_NODELIST
+        echo CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES
+        #################################
+        # echo '%_(JOB_COMMAND)s' >> /tmp/slurm-jobs.log
+        %_(JOB_COMMAND)s
+        find "$SLURM_SUBMIT_DIR" -type f -user $USER -perm 644 -exec chmod 664 {} +
+JOB_DONE_REGEX = ""
+
+QUEUES = {
     "tesla": [["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
-              ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"]],
+              ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"],
+              ["GPU_COUNT", "1", "Number of GPUs", "Select the number of GPUs if protocol has been set up to use them"],
+              ["QUEUE_FOR_JOBS", "N", "Use queue for jobs", "Send individual jobs to queue"]],
     "geforce": [["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
-                ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"]],
+                ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"],
+                ["GPU_COUNT", "1", "Number of GPUs", "Select the number of GPUs if protocol has been set up to use them"],
+                ["QUEUE_FOR_JOBS", "N", "Use queue for jobs", "Send individual jobs to queue"]],
     "quadro": [["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
-               ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"]]
-    }
+               ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"],
+               ["GPU_COUNT", "1", "Number of GPUs", "Select the number of GPUs if protocol has been set up to use them"],
+               ["QUEUE_FOR_JOBS", "N", "Use queue for jobs", "Send individual jobs to queue"]]
+}
 
 
 
