@@ -124,7 +124,7 @@ dialog as a string. Hence, in the template you will need to declare them as stri
 See the Torque example (``JOB_HOURS`` parameter).
 
 The ``GPU_COUNT`` variable is only needed if the queue is configured to manage GPUs (for instance in slurm).
-The ``QUEUE_FOR_JOBS`` variable is needed if you want to give the possibility to submit single jobs to the queue (by default Scipion submits the whole protocol run to the queue as a monolitic job). This can only be used in protocols parallelized by Scipion, not by the packages themselves and when using threads.
+The ``QUEUE_FOR_JOBS`` variable is needed if you want to give the possibility to submit single jobs to the queue (by default Scipion submits the whole protocol run to the queue as a single job). This can only be used in protocols parallelized by Scipion, not by the packages themselves and when using threads. The other variable involved in this mode is JOB_DONE_REGEX which is used to check for finished jobs. If unset or set to "" then jobs are considered finished when the CHECK_COMMAND returns nothing (for instance, slurm). If the batch system returns some string that needs to be parsed to check the job status then use this variable to specify the regular expression to check for finished jobs.
 
 ::
 
