@@ -124,7 +124,8 @@ dialog as a string. Hence, in the template you will need to declare them as stri
 See the Torque example (``JOB_HOURS`` parameter).
 
 The ``GPU_COUNT`` variable is only needed if the queue is configured to manage GPUs (for instance in slurm).
-The ``QUEUE_FOR_JOBS`` variable is needed if you want to give the possibility to submit single jobs to the queue (by default Scipion submits the whole protocol run to the queue as a single job). This can only be used in protocols parallelized by Scipion, not by the packages themselves and when using threads. The other variable involved in this mode is JOB_DONE_REGEX which is used to check for finished jobs. If unset or set to "" then jobs are considered finished when the CHECK_COMMAND returns nothing (for instance, slurm). If the batch system returns some string that needs to be parsed to check the job status then use this variable to specify the regular expression to check for finished jobs.
+
+The ``QUEUE_FOR_JOBS`` variable is needed if you want to give the possibility to submit single jobs to the queue (by default Scipion submits the whole protocol run to the queue as a single job). This can only be used in protocols parallelized by Scipion, not by the packages themselves and when using threads. The other variable involved in this mode is JOB_DONE_REGEX which is used to check for finished jobs. If unset (not in the config) then jobs are considered finished when the CHECK_COMMAND returns nothing (for instance, slurm). If the batch system returns some string that needs to be parsed to check the job status then use this variable to specify the regular expression to check for finished jobs. This check is done every 3 seconds making this kind of submission slower for fast jobs.
 
 ::
 
@@ -154,7 +155,7 @@ NAME = SLURM
 MANDATORY = False
 SUBMIT_COMMAND = sbatch %_(JOB_SCRIPT)s
 CANCEL_COMMAND = scancel %_(JOB_ID)s
-CHECK_COMMAND = squeue -j %_(JOB_ID)s
+CHECK_COMMAND = squeue -h -j %_(JOB_ID)s
 SUBMIT_TEMPLATE = #!/bin/bash
         ### Job name
         #SBATCH -J %_(JOB_NAME)s
@@ -196,7 +197,6 @@ SUBMIT_TEMPLATE = #!/bin/bash
         # echo '%_(JOB_COMMAND)s' >> /tmp/slurm-jobs.log
         %_(JOB_COMMAND)s
         find "$SLURM_SUBMIT_DIR" -type f -user $USER -perm 644 -exec chmod 664 {} +
-JOB_DONE_REGEX = ""
 
 QUEUES = {
     "tesla": [["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
