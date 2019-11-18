@@ -79,11 +79,12 @@ Image processing in Scipion 2.0.0
 .. figure:: /docs/images/Cover_apoferritin.pdf
    :align: right
    :height: 96
-   :alt: 00.ReconstructedVolume.png
+   :alt: 00.Cover_apoferritin.pdf
 
 This tutorial presents acomplete
 workflow of Cryo-EM single particles inside Scipion. It is focused on
 demonstrate the combination of different EM-packages with high focus on Xmipp higres. \
+
 *Guide*:
 `scipion\_tutorial\_mouse_apoferritin.pdf <https://github.com/I2PC/scipion/wiki/tutorials/tutorial_image_processing.pdf>`__
 
