@@ -76,12 +76,12 @@ You may download a fully solved project of this tutorial from
 
 Image processing in Scipion 2.0.0
 ------------------------
-.. figure:: /docs/images/Cover_apoferritin.pdf
+.. figure:: /docs/images/Cover_apoferritin.png
    :align: right
    :height: 96
-   :alt: Cover_apoferritin.pdf
+   :alt: 00.Cover_apoferritin.png
 
-This tutorial presents acomplete
+This tutorial presents a complete
 workflow of Cryo-EM single particles inside Scipion. It is focused on
 demonstrate the combination of different EM-packages with high focus on Xmipp higres. \
 
