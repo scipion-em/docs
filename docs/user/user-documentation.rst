@@ -86,9 +86,9 @@ Full processing video tutorial
 Know more about the `theory and practice <http://i2pc.es/coss/Docencia/ImageProcessing/imageProcessingInEM.pdf>`_ behind Image Processing in EM.
 
 
-Image processing in Scipion 2.0.0
+Mouse apoferritin image processing in Scipion 2.0.0
 ------------------------
-.. figure:: /docs/images/Cover_apoferritin.png
+.. figure:: /docs/images/12.Cover_apoferritin.png
    :align: right
    :height: 96
    :alt: 00.ReconstructedVolume.png
