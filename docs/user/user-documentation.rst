@@ -74,6 +74,8 @@ Beta-galactosidase data. \
 You may download a fully solved project of this tutorial from
 `here <http://scipion.cnb.csic.es/downloads/scipion/data/FEICourse.tgz>`__.
 
+`scipion\_tutorial\_mouse_apoferritin.pdf <https://github.com/I2PC/scipion/wiki/tutorials/tutorial_image_processing.pdf>`__
+
 
 Full processing video tutorial
 ------------------------------
