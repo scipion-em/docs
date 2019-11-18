@@ -74,20 +74,6 @@ Beta-galactosidase data. \
 You may download a fully solved project of this tutorial from
 `here <http://scipion.cnb.csic.es/downloads/scipion/data/FEICourse.tgz>`__.
 
-Image processing in Scipion 2.0.0
-------------------------
-.. figure:: /docs/images/Cover_apoferritin.png
-   :align: right
-   :height: 96
-   :alt: 00.Cover_apoferritin.png
-
-This tutorial presents a complete
-workflow of Cryo-EM single particles inside Scipion. It is focused on
-demonstrate the combination of different EM-packages with high focus on Xmipp higres. \
-
-*Guide*:
-`scipion\_tutorial\_mouse_apoferritin.pdf <https://github.com/I2PC/scipion/wiki/tutorials/tutorial_image_processing.pdf>`__
-
 
 Full processing video tutorial
 ------------------------------
@@ -99,6 +85,20 @@ Full processing video tutorial
 
 Know more about the `theory and practice <http://i2pc.es/coss/Docencia/ImageProcessing/imageProcessingInEM.pdf>`_ behind Image Processing in EM.
 
+
+Image processing in Scipion 2.0.0
+------------------------
+.. figure:: /docs/images/Cover_apoferritin.png
+   :align: right
+   :height: 96
+   :alt: 00.ReconstructedVolume.png
+This tutorial presents a complete
+workflow of Cryo-EM single particles inside Scipion. It is focused on
+demonstrate the combination of different EM-packages with high focus on Xmipp higres. \
+
+*Guide*:
+
+`scipion\_tutorial\_image\_processing\_mouse\_apoferritin.pdf <https://github.com/I2PC/scipion/wiki/tutorials/tutorial_image_processing.pdf>`__
 
 Model Building
 --------------
