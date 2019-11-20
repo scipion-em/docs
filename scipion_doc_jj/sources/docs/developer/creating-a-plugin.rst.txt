@@ -67,13 +67,6 @@ This means that it will be a folder named **scipion-em-package** with the struct
 (explained below in the second part) and it will contain a folder **package** that is a Python module
 with functions and classes required by Scipion (explained below).
 
-Code migration from Scipion to an independent plugin
-====================================================
-
-First of all, maybe you want to migrate code from Scipion to an independent
-plugin. If so, please see `how to keep the git history of that code part
-<how-to-migrate-from-scipion-to-plugin>`_
-
 Plugin overview
 ===============
 
@@ -155,7 +148,7 @@ bibtex.py
 ^^^^^^^^^
 
 This submodule is not supposed to be imported directly, it should contain the bibtex string
-literal as the Python doc string. Scipion will take care of parse the bibtex reference and
+literal as the Python doc string. Scipion will take care of parsing the bibtex reference and
 incorporate into the plugin module.
 
 .. code-block:: python
