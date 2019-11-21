@@ -212,9 +212,8 @@ them, there is no need for a separate constants.py file.
 Convert
 ^^^^^^^
 
-This submodule might contain two files: ``convert.py`` with all functions used for conversion between
-base classes and programs inside the plugin; ``dataimport.py`` with import classes that are used in
-``pyworkflow/em/protocol/protocol_import/``. In cases when there are only few conversion functions, the
+This submodule might contain all functions used for conversion between Scipion objects and metadata files needed
+by the programs inside the plugin. In cases when there are only few conversion functions, the
 submodule folder can be replaced by a single ``convert.py`` file.
 
 Viewers
