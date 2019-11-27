@@ -4,8 +4,6 @@
 
 .. _creating-a-plugin:
 
-.. contents:: Table of Contents
-
 =================
 Creating a plugin
 =================
@@ -25,19 +23,20 @@ This document is organized in two main parts:
 
 2. Necessary files structure and the process for distributing a Plugin in the Python de-facto repository PyPI.
 
-We will use Relion as an example, so we recommend to clone and take a look at
-`Relion's repository <https://github.com/scipion-em/scipion-em-relion>`_.
+
+.. contents:: Table of Contents
 
 Where to start: scipion-em-template
 ===================================
 
 This repository contains a `Scipion template <https://github.com/scipion-em/scipion-em-template>`_ plugin with "git
 tags" describing the steps taken to build it. It is the perfect starting point for a practical following of the next
-sections. Although this whole page is referred to Relion's repository, the template has been conceived to offer a
+sections. Although this whole page is referred to
+`Relion's repository <https://github.com/scipion-em/scipion-em-relion>`_., the template has been conceived to offer a
 simple practical example that can be easily edited for a better understanding of Scipion Plugin development. Relion is
 a real product with the corresponding complexity, so the recommendation is to follow the explanations approached in this
 page and observe them in a real product while creating a simple one based on the template to consolidate the knowledge
-and make the process more pratical.
+and make the process more practical.
 
 Thus, the recommendation is to install the template as a plugin in developer mode, which means that all the changes
 made will be observable in Scipion. To do this, clone the template repository in a desired location, and then execute
@@ -66,6 +65,7 @@ recommend the following conventions:
 This means that it will be a folder named **scipion-em-package** with the structure of a standard Python package
 (explained below in the second part) and it will contain a folder **package** that is a Python module
 with functions and classes required by Scipion (explained below).
+
 
 Plugin overview
 ===============
