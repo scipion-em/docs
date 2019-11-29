@@ -4,13 +4,10 @@
 
 .. _creating a protocol:
 
-.. contents:: Table of Contents
-
 
 ===================
 Creating a protocol
 ===================
-
 
 In Scipion, we define ``Protocol`` as a processing task that involves the
 execution of several steps. Each step can execute Python code or call
@@ -25,6 +22,9 @@ We are going to use a 2D classification protocol (maximum likelihood in
 Xmipp) as an example to illustrate the development of a new protocol.
 This small guide will cover the basics of creating a new protocol. In each
 section we will provide links to more detailed information when needed.
+
+.. contents:: Table of Contents
+
 
 Protocol Definition: overview
 =============================
@@ -304,6 +304,7 @@ Even when a protocol runs its steps without parallelization, one
 particular step can take advantage of a multiprocessor and use MPI or
 threads in a particular program command line.
 
+
 Steps execution
 ===============
 
@@ -400,7 +401,6 @@ protocol. It should also define the relationship between the newly created
 output objects and the input.
 
 In our case, the result of the protocol is a ``SetOfClasses2D``, which
-.
 is created by the following code:
 
 .. code-block:: python
@@ -441,6 +441,7 @@ as outputs, which can be done using method ``_defineOutputs``. Finally, the rela
 between the source and the destination objects should be defined. This can be carried out with methods
 ``_defineSourceRelation``, ``_defineTransformRelation`` or ``_defineCtfRelation``, depending on the
 objects implied in the protocol.
+
 
 Additional Functions (optional)
 ===============================
@@ -608,6 +609,7 @@ viewer is able to handle.
 
 The details for developing a new viewer will be described in
 :doc:`How to develop Viewers <creating-a-viewer>`.
+
 
 TODO
 ====
