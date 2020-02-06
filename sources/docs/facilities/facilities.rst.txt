@@ -47,8 +47,7 @@ Scipion v.2.0 - Diocletian `updates/introduce a big number of streaming tools
 We review and analyze in deep the use and the combination of these on-the-fly
 tools and protocols for facilities in the `D. Maluenda et.al. 'Flexible
 workflows for on-the-fly electron microscopy single particle image processing
-using Scipion' Acta Cryst. (2019). Dxx, yy-zz <linkToPaper>`_ paper
-(not published, yet. Please contact us to ask a preprint).
+using Scipion' Acta Cryst. (2019). D75, 882-894 <https://doi.org/10.1107/S2059798319011860>`_ paper.
 
 On top of that, we have paid special attention to the data flow management including
 the `Trigger data <https://github.com/I2PC/scipion-em-xmipp/blob/648ebe3a4f8dc2f3022332c080fb3d300d273bd7/
