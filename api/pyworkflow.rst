@@ -14,12 +14,12 @@ Subpackages
 .. toctree::
 
     pyworkflow.apps
-    pyworkflow.em
     pyworkflow.gui
-    pyworkflow.install
     pyworkflow.mapper
     pyworkflow.project
     pyworkflow.protocol
+    pyworkflow.resources
+    pyworkflow.tests
     pyworkflow.utils
     pyworkflow.webservices
 
