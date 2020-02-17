@@ -34,8 +34,8 @@ Step 2: Dependencies
 ====================
 
 To install Scipion some libraries are required. You can install them with:
-(this example is for Ubuntu16, see `Installing Dependencies <dependencies>`_ for
-others distributions):
+(this example is for **Ubuntu16**, see `Installing Dependencies <dependencies>`_ for
+**others distributions**):
 
 ::
 
