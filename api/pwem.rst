@@ -2,7 +2,7 @@
    :width: 250
    :alt: scipion logo
 
-.. _pyworkflow.rst:
+.. _pwem.rst:
 
 ==================
 em package
