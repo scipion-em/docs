@@ -20,6 +20,7 @@ Submodules
 
 .. toctree::
 
+   pyworkflow.constants
    pyworkflow.object
    pyworkflow.plugin
    pyworkflow.viewer
