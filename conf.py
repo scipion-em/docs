@@ -20,8 +20,8 @@ sys.path.insert(0, os.path.join(SCIPION_HOME, 'software/em/xmipp/bindings/python
 sys.path.insert(0, os.path.join(SCIPION_HOME, 'software/em/xmipp/lib/'))
 sys.path.insert(0, os.path.join(SCIPION_HOME, 'scipion-em/'))
 sys.path.insert(0, os.path.join(SCIPION_HOME, 'scipion-pyworkflow/'))
-sys.path.insert(0, os.path.join(SCIPION_HOME, 'scipion-em/pwem'))
-sys.path.insert(0, os.path.join(SCIPION_HOME, 'scipion-pyworkflow/pyworkflow'))
+sys.path.insert(0, os.path.join(SCIPION_HOME, 'scipion-em/pwem/'))
+sys.path.insert(0, os.path.join(SCIPION_HOME, 'scipion-pyworkflow/pyworkflow/'))
 sys.path.insert(0, os.path.join(SCIPION_HOME))
 
 
