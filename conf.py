@@ -29,7 +29,7 @@ sys.path.insert(0, os.path.join(SCIPION_HOME))
 # -- Project information -----------------------------------------------------
 
 project = u'Scipion'
-copyright = u'2019, Scipion team'
+copyright = u'2020, Scipion team'
 author = u'Scipion team'
 
 # The short X.Y version
