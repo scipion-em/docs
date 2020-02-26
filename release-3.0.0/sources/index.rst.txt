@@ -56,7 +56,8 @@ later on.
    :titlesonly:
    :caption: API Documentation
 
-   api/pyworkflow
+   api/pyworkflow/pyworkflow
+   api/pwem/pwem
 
 .. _contact:
 
