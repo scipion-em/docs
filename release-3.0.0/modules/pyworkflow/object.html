@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../static/jquery.js"></script>
-        <script type="text/javascript" src="../../static/underscore.js"></script>
-        <script type="text/javascript" src="../../static/doctools.js"></script>
-        <script type="text/javascript" src="../../static/language_data.js"></script>
+        <script src="../../static/jquery.js"></script>
+        <script src="../../static/underscore.js"></script>
+        <script src="../../static/doctools.js"></script>
+        <script src="../../static/language_data.js"></script>
     
     <script type="text/javascript" src="../../static/js/theme.js"></script>
 
@@ -33,7 +33,6 @@
   
   <link rel="stylesheet" href="../../static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="../../_static/banner.css" type="text/css" />
   <link rel="stylesheet" href="../../static/custom.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -206,10 +205,12 @@
 <span class="sd">The Object class is the root in the hierarchy and some other</span>
 <span class="sd">basic classes.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-
-<span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">izip</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">import</span> <span class="nn">datetime</span> <span class="k">as</span> <span class="nn">dt</span>
+
+<span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils.reflection</span> <span class="kn">import</span> <span class="n">getSubclasses</span>
 
 
 <span class="c1"># Binary relations always involve two objects, we </span>
@@ -217,6 +218,12 @@
 <span class="c1"># constants reflect which direction of the relation we refer</span>
 <span class="n">RELATION_CHILDS</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">RELATION_PARENTS</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c1"># There are other relations related to data provenance,</span>
+<span class="c1"># which object were used to produce a result (source of it)</span>
+<span class="n">RELATION_SOURCE</span> <span class="o">=</span> <span class="s1">&#39;relation_datasource&#39;</span>
+<span class="n">RELATION_TRANSFORM</span> <span class="o">=</span> <span class="s1">&#39;relation_transform&#39;</span>
+
 
 <span class="c1"># Then column name of the parent id relation</span>
 <span class="n">OBJECT_PARENT_ID</span> <span class="o">=</span> <span class="s1">&#39;object_parent_id&#39;</span>
@@ -226,18 +233,18 @@
     <span class="sd">&quot;&quot;&quot; All objects in our Domain should inherit from this class</span>
 <span class="sd">    that will contains all base properties&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">object</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_objIsPointer</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;objIsPointer&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="c1"># True if will be treated as a reference for storage</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_objId</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;objId&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="c1"># Unique identifier of this object in some context</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_objParentId</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;objParentId&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="c1"># identifier of the parent object</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_objName</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;objName&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="c1"># The name of the object will contains the whole path of ancestors</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_objLabel</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;objLabel&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="c1"># This will serve to label the objects</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_objIsPointer</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;objIsPointer&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>  <span class="c1"># True if will be treated as a reference for storage</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_objId</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;objId&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># Unique identifier of this object in some context</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_objParentId</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;objParentId&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># identifier of the parent object</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_objName</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;objName&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>  <span class="c1"># The name of the object will contains the whole path of ancestors</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_objLabel</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;objLabel&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>  <span class="c1"># This will serve to label the objects</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_objComment</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;objComment&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_objTag</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;objTag&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="c1"># This attribute serve to make some annotation on the object.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_objDoStore</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;objDoStore&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span> <span class="c1"># True if this object will be stored from his parent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_objTag</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;objTag&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># This attribute serve to make some annotation on the object.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_objDoStore</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;objDoStore&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>  <span class="c1"># True if this object will be stored from his parent</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_objCreation</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_objParent</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># Reference to parent object</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_objParent</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Reference to parent object</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_objEnabled</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
@@ -251,7 +258,7 @@
     <span class="k">def</span> <span class="nf">getDoc</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__doc__</span> <span class="ow">or</span> <span class="s1">&#39;&#39;</span></div>
 
-    <span class="c1">#FIXME: This function should be renamed to hasAttribute when we address that issue</span>
+    <span class="c1"># FIXME: This function should be renamed to hasAttribute when we address that issue</span>
 <div class="viewcode-block" id="Object.hasAttributeExt"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Object.hasAttributeExt">[docs]</a>    <span class="k">def</span> <span class="nf">hasAttributeExt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrName</span><span class="p">):</span>
         <span class="n">attrList</span> <span class="o">=</span> <span class="n">attrName</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
         <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span>
@@ -265,7 +272,7 @@
 <div class="viewcode-block" id="Object.hasAttribute"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Object.hasAttribute">[docs]</a>    <span class="k">def</span> <span class="nf">hasAttribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrName</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrName</span><span class="p">)</span></div>
 
-    <span class="c1">#FIXME: This function is not symmetric with setAttributeValue</span>
+    <span class="c1"># FIXME: This function is not symmetric with setAttributeValue</span>
 <div class="viewcode-block" id="Object.getAttributeValue"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Object.getAttributeValue">[docs]</a>    <span class="k">def</span> <span class="nf">getAttributeValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrName</span><span class="p">,</span> <span class="n">defaultValue</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Get the attribute value given its name.</span>
 <span class="sd">        Equivalent to getattr(self, name).get() </span>
@@ -278,7 +285,7 @@
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">Object</span><span class="p">):</span>
             <span class="n">value</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="n">attr</span> <span class="c1"># behave well for non-Object attributes</span>
+            <span class="n">value</span> <span class="o">=</span> <span class="n">attr</span>  <span class="c1"># behave well for non-Object attributes</span>
         <span class="k">return</span> <span class="n">value</span></div>
     
 <div class="viewcode-block" id="Object.setAttributeValue"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Object.setAttributeValue">[docs]</a>    <span class="k">def</span> <span class="nf">setAttributeValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrName</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">ignoreMissing</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -303,22 +310,22 @@
 <div class="viewcode-block" id="Object.getAttributes"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Object.getAttributes">[docs]</a>    <span class="k">def</span> <span class="nf">getAttributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the list of attributes than are</span>
 <span class="sd">        subclasses of Object&quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="n">Object</span><span class="p">):</span>
-                <span class="k">yield</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>        </div>
+                <span class="k">yield</span> <span class="n">key</span><span class="p">,</span> <span class="n">attr</span></div>
                 
 <div class="viewcode-block" id="Object.getAttributesToStore"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Object.getAttributesToStore">[docs]</a>    <span class="k">def</span> <span class="nf">getAttributesToStore</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the list of attributes than are</span>
 <span class="sd">        subclasses of Object and will be stored&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">getAttributes</span><span class="p">():</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="s1">&#39;_objDoStore&#39;</span><span class="p">):</span>
-                <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;Object.getAttributesToStore: attribute &#39;</span><span class="si">%s</span><span class="s2">&#39; seems to &quot;</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Object.getAttributesToStore: attribute &#39;</span><span class="si">%s</span><span class="s2">&#39; seems to &quot;</span>
                       <span class="s2">&quot;be overwritten,&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
-                <span class="nb">print</span> <span class="p">(</span><span class="s2">&quot;   since &#39;_objDoStore&#39; was not found. &quot;</span>
-                       <span class="s2">&quot;Ignoring attribute. &quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   since &#39;_objDoStore&#39; was not found. &quot;</span>
+                      <span class="s2">&quot;Ignoring attribute. &quot;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">attr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">attr</span><span class="o">.</span><span class="n">_objDoStore</span><span class="p">:</span>
-                    <span class="k">yield</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span></div>
+                    <span class="k">yield</span> <span class="n">key</span><span class="p">,</span> <span class="n">attr</span></div>
 
 <div class="viewcode-block" id="Object.isPointer"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Object.isPointer">[docs]</a>    <span class="k">def</span> <span class="nf">isPointer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;If this is true, the value field is a pointer </span>
@@ -332,7 +339,7 @@
 <div class="viewcode-block" id="Object.set"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Object.set">[docs]</a>    <span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set the internal value, if it is different from None</span>
 <span class="sd">        call the convert function in subclasses&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convertValue</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>            
         <span class="bp">self</span><span class="o">.</span><span class="n">_objValue</span> <span class="o">=</span> <span class="n">value</span></div>
     
@@ -343,7 +350,7 @@
 <div class="viewcode-block" id="Object.trace"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Object.trace">[docs]</a>    <span class="k">def</span> <span class="nf">trace</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Add an observer when the set method is called. &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">set</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">__setTrace</span><span class="p">:</span>
-            <span class="k">pass</span> <span class="c1">#print &quot;trace already set&quot;</span>
+            <span class="k">pass</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">set</span> 
             <span class="bp">self</span><span class="o">.</span><span class="n">set</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__setTrace</span>
@@ -372,7 +379,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">setObjId</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span></div>
         
 <div class="viewcode-block" id="Object.hasObjId"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Object.hasObjId">[docs]</a>    <span class="k">def</span> <span class="nf">hasObjId</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objId</span> <span class="ow">is</span> <span class="kc">None</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objId</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
     
 <div class="viewcode-block" id="Object.cleanObjId"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Object.cleanObjId">[docs]</a>    <span class="k">def</span> <span class="nf">cleanObjId</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; This function will set to None this object id</span>
@@ -423,7 +430,7 @@
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_objId</span><span class="p">)</span></div>
     
 <div class="viewcode-block" id="Object.getName"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Object.getName">[docs]</a>    <span class="k">def</span> <span class="nf">getName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1">#TODO: REMOVE THIS FUNCTION, SINCE IT DOES NOT COMPLAIN WITH _objX naming</span>
+        <span class="c1"># TODO: REMOVE THIS FUNCTION, SINCE IT DOES NOT COMPLAIN WITH _objX naming</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objName</span></div>
     
 <div class="viewcode-block" id="Object.getObjName"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Object.getObjName">[docs]</a>    <span class="k">def</span> <span class="nf">getObjName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -466,18 +473,28 @@
 <div class="viewcode-block" id="Object.setStore"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Object.setStore">[docs]</a>    <span class="k">def</span> <span class="nf">setStore</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;set the store flag&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_objDoStore</span> <span class="o">=</span> <span class="n">value</span></div>
-    
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Issue found in scipion-em-xmipp/xmipp3/protocols/protocol_extract_particles_pairs.py (_setupBasicProperties)</span>
+        <span class="c1"># TypeError: unhashable type: &#39;Micrograph&#39;</span>
+        <span class="c1"># Solution: Hashability makes an object usable as a dictionary key and a set member, because these data</span>
+        <span class="c1"># structures use the hash value internally. All of Python’s immutable built_in objects are hashable, while no</span>
+        <span class="c1"># mutable containers (such as lists or dictionaries) are. Objects which are instances of user-defined classes</span>
+        <span class="c1"># are hashable by default; they all compare unequal, and their hash value is their id().</span>
+        <span class="c1"># https://docs.python.org/3.1/glossary.html</span>
+        <span class="k">return</span> <span class="nb">id</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Comparison for scalars should be by value</span>
 <span class="sd">        and for other objects by reference&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objValue</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objValue</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_objValue</span>
     
 <div class="viewcode-block" id="Object.equalAttributes"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Object.equalAttributes">[docs]</a>    <span class="k">def</span> <span class="nf">equalAttributes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="p">[],</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Compare that all attributes are equal&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v1</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">getAttributes</span><span class="p">():</span>
-            <span class="c1">#v1 = getattr(self, k) # This is necessary because of FakedObject simulation of getattr</span>
+            <span class="c1"># v1 = getattr(self, k) # This is necessary because of FakedObject simulation of getattr</span>
             <span class="c1"># Skip comparison of attribute names in &#39;ignore&#39; list</span>
             <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">ignore</span><span class="p">:</span>
                 <span class="k">continue</span>
@@ -488,9 +505,9 @@
                 <span class="n">comp</span> <span class="o">=</span> <span class="n">v1</span> <span class="o">==</span> <span class="n">v2</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">comp</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-                    <span class="nb">print</span> <span class="s2">&quot;Different attributes: &quot;</span>
-                    <span class="nb">print</span> <span class="s2">&quot;self.</span><span class="si">%s</span><span class="s2"> = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v1</span><span class="p">)</span>
-                    <span class="nb">print</span> <span class="s2">&quot;other.</span><span class="si">%s</span><span class="s2"> = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Different attributes: &quot;</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;self.</span><span class="si">%s</span><span class="s2"> = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v1</span><span class="p">))</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;other.</span><span class="si">%s</span><span class="s2"> = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v2</span><span class="p">))</span>
                 <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="kc">True</span></div>
             
@@ -563,7 +580,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">setObjLabel</span><span class="p">(</span><span class="n">attrDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;object.label&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">setObjComment</span><span class="p">(</span><span class="n">attrDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;object.comment&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
 
-        <span class="k">for</span> <span class="n">attrName</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">attrDict</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">attrName</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">attrDict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">attrName</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;object.&#39;</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">setAttributeValue</span><span class="p">(</span><span class="n">attrName</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">ignoreMissing</span><span class="p">)</span></div>
             
@@ -631,7 +648,7 @@
 <span class="sd">            has been properly set.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Copy basic object data</span>
-        <span class="c1">#self._objName = other._objName</span>
+        <span class="c1"># self._objName = other._objName</span>
         <span class="k">if</span> <span class="n">copyId</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_objId</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">_objId</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_objValue</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">_objValue</span>
@@ -686,16 +703,16 @@
         <span class="sd">&quot;&quot;&quot;Print object and all its attributes.</span>
 <span class="sd">        Mainly for debugging&quot;&quot;&quot;</span>
         <span class="n">tab</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span> <span class="o">*</span> <span class="p">(</span><span class="n">level</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span>
-        <span class="n">idStr</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="c1">#&#39; (id = %s, pid = %s)&#39; % (self.getObjId(), self._objParentId)</span>
+        <span class="n">idStr</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>  <span class="c1"># &#39; (id = %s, pid = %s)&#39; % (self.getObjId(), self._objParentId)</span>
         <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="nb">print</span> <span class="n">tab</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getClassName</span><span class="p">(),</span> <span class="n">idStr</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getClassName</span><span class="p">(),</span> <span class="n">idStr</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;submitTemplate&#39;</span><span class="p">:</span> <span class="c1"># Skip this because very large value</span>
+            <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;submitTemplate&#39;</span><span class="p">:</span>  <span class="c1"># Skip this because very large value</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="s1">&#39;...&#39;</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getObjValue</span><span class="p">()</span>
                 
-            <span class="nb">print</span> <span class="n">tab</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">),</span> <span class="n">idStr</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">tab</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> = </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">),</span> <span class="n">idStr</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">getAttributes</span><span class="p">():</span>
             <span class="n">v</span><span class="o">.</span><span class="n">printAll</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">level</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span></div>
             
@@ -710,7 +727,7 @@
     <span class="sd">&quot;&quot;&quot;This is based on Object, but keep the list</span>
 <span class="sd">    of the attributes to store in the same order</span>
 <span class="sd">    of insertion, this can be useful where order matters&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_attributes&#39;</span><span class="p">,</span> <span class="p">[])</span>
         <span class="n">Object</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
@@ -729,10 +746,10 @@
                     <span class="k">return</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="kc">False</span>
     
-    <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span> <span class="ow">and</span>
             <span class="nb">issubclass</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="n">Object</span><span class="p">)</span> <span class="ow">and</span>
-            <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__attrPointed</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">_objDoStore</span><span class="p">):</span>
+                <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__attrPointed</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">and</span> <span class="n">value</span><span class="o">.</span><span class="n">_objDoStore</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="n">Object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
     
@@ -740,7 +757,7 @@
         <span class="sd">&quot;&quot;&quot;Return the list of attributes than are</span>
 <span class="sd">        subclasses of Object and will be stored&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attributes</span><span class="p">:</span>
-            <span class="k">yield</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span></div>
+            <span class="k">yield</span> <span class="n">key</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span></div>
                 
 <div class="viewcode-block" id="OrderedObject.deleteAttribute"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.OrderedObject.deleteAttribute">[docs]</a>    <span class="k">def</span> <span class="nf">deleteAttribute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrName</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Delete an attribute. &quot;&quot;&quot;</span>
@@ -758,26 +775,46 @@
         <span class="sd">&quot;&quot;&quot;Compare that all attributes are equal&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objValue</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">_objValue</span></div>
     
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation of the scalar value&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
-    
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Comparison for scalars should be by value</span>
-<span class="sd">        and for other objects by reference. &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Object</span><span class="p">):</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="n">value</span>
 
-    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-    
-    <span class="k">def</span> <span class="nf">__cmp__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__cmp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Comparison implementation for scalars. &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">Object</span><span class="p">):</span>
-            <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="k">return</span> <span class="nb">cmp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">value</span><span class="p">)</span>
-       
+        <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Object</span><span class="p">)</span> <span class="k">else</span> <span class="n">other</span>
+        <span class="c1"># cmp does not longer exist in Python3, so we will follow</span>
+        <span class="c1"># the recommend replacement: (a &gt; b) - (a &lt; b)</span>
+        <span class="c1"># https://docs.python.org/3.0/whatsnew/3.0.html#ordering-comparisons</span>
+
+        <span class="c1"># Consider None values</span>
+        <span class="k">if</span> <span class="n">a</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">b</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="n">a</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">b</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">a</span> <span class="o">&gt;</span> <span class="n">b</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">a</span> <span class="o">&lt;</span> <span class="n">b</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Comparison for scalars should be by value while</span>
+<span class="sd">         for other objects by reference. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="fm">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="fm">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="fm">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__cmp</span><span class="p">(</span><span class="n">other</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">0</span>
+
 <div class="viewcode-block" id="Scalar.get"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Scalar.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get the value, if internal value is None</span>
 <span class="sd">        the default argument passed is returned. &quot;&quot;&quot;</span>
@@ -836,14 +873,14 @@
         <span class="sd">&quot;&quot;&quot; Add 1 to the current value. &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_objValue</span> <span class="o">+=</span> <span class="mi">1</span></div>
         
-    <span class="k">def</span> <span class="nf">__float__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__float__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
     
-    <span class="k">def</span> <span class="nf">__int__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__int__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
     
     <span class="k">def</span> <span class="nf">__long__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">long</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">())</span></div>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">())</span></div>
     
         
 <div class="viewcode-block" id="String"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.String">[docs]</a><span class="k">class</span> <span class="nc">String</span><span class="p">(</span><span class="n">Scalar</span><span class="p">):</span>
@@ -916,7 +953,7 @@
         
         <span class="k">return</span> <span class="kc">False</span></div>
     
-    <span class="k">def</span> <span class="nf">__float__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__float__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
         
         
@@ -927,7 +964,7 @@
         <span class="n">t</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">value</span>
-        <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="nb">str</span> <span class="ow">or</span> <span class="n">t</span> <span class="ow">is</span> <span class="n">unicode</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
             <span class="n">v</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
             <span class="k">return</span> <span class="n">v</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span> <span class="ow">or</span> <span class="n">v</span> <span class="o">==</span> <span class="s1">&#39;1&#39;</span>
         <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> 
@@ -937,7 +974,7 @@
             <span class="k">return</span> <span class="kc">False</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> 
     
-    <span class="k">def</span> <span class="nf">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__bool__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>  </div>
     
     
@@ -947,7 +984,7 @@
     <span class="n">EXTENDED_ITEMID</span> <span class="o">=</span> <span class="s1">&#39;__itemid__&#39;</span>
     <span class="n">_ERRORS</span> <span class="o">=</span> <span class="p">{}</span>
     
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">Object</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">objIsPointer</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="c1"># The _extended attribute will be used to point to attributes of a</span>
         <span class="c1"># pointed object or the id of an item inside a set</span>
@@ -956,7 +993,7 @@
         <span class="k">if</span> <span class="s1">&#39;extended&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">setExtended</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;extended&#39;</span><span class="p">))</span> 
                
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;String representation of a pointer&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasValue</span><span class="p">():</span>
             <span class="n">className</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getObjValue</span><span class="p">()</span><span class="o">.</span><span class="n">getClassName</span><span class="p">()</span>
@@ -966,7 +1003,7 @@
     
     <span class="k">def</span> <span class="nf">__clean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extended</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Remove old attributes conventions. &quot;&quot;&quot;</span>
-        <span class="c1">#TODO: This replacements are needed now by backward compatibility</span>
+        <span class="c1"># TODO: This replacements are needed now by backward compatibility</span>
         <span class="c1"># reasons, when we used __attribute__ and __item__ to mark both cases</span>
         <span class="c1"># in a future the following two lines can be removed.</span>
         <span class="n">ext</span> <span class="o">=</span> <span class="n">extended</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">EXTENDED_ATTR</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
@@ -989,7 +1026,7 @@
             <span class="n">value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objValue</span>
             <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">isdigit</span><span class="p">():</span>
-                    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">)]</span> <span class="c1"># item case</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">value</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">)]</span>  <span class="c1"># item case</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1008,7 +1045,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_extended</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span></div>
         
 <div class="viewcode-block" id="Pointer.hasExtended"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Pointer.hasExtended">[docs]</a>    <span class="k">def</span> <span class="nf">hasExtended</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_extended</span><span class="o">.</span><span class="n">get</span><span class="p">())</span> <span class="c1"># consider empty string as false</span></div>
+        <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_extended</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>  <span class="c1"># consider empty string as false</span></div>
     
 <div class="viewcode-block" id="Pointer.getExtended"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Pointer.getExtended">[docs]</a>    <span class="k">def</span> <span class="nf">getExtended</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__clean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_extended</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">))</span></div>
@@ -1048,7 +1085,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">setExtendedParts</span><span class="p">(</span><span class="n">parts</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
         
 <div class="viewcode-block" id="Pointer.getAttributes"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Pointer.getAttributes">[docs]</a>    <span class="k">def</span> <span class="nf">getAttributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">yield</span> <span class="p">(</span><span class="s1">&#39;_extended&#39;</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_extended&#39;</span><span class="p">))</span></div>
+        <span class="k">yield</span> <span class="s1">&#39;_extended&#39;</span><span class="p">,</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_extended&#39;</span><span class="p">)</span></div>
         
 <div class="viewcode-block" id="Pointer.pointsNone"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Pointer.pointsNone">[docs]</a>    <span class="k">def</span> <span class="nf">pointsNone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span></div>
@@ -1069,19 +1106,19 @@
     <span class="n">ITEM_PREFIX</span> <span class="o">=</span> <span class="s1">&#39;__item__&#39;</span>
     
     <span class="sd">&quot;&quot;&quot;Class to store a list of objects&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">list</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">Object</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         
-    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ITEM_PREFIX</span><span class="p">):</span>
             <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stringToIndex</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
         <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;List object has not attribute: &quot;</span> <span class="o">+</span> <span class="n">name</span><span class="p">)</span>
             
-    <span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;__item__&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+    <span class="k">def</span> <span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;__item__&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="nb">object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
@@ -1089,10 +1126,10 @@
 <div class="viewcode-block" id="List.getAttributes"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.List.getAttributes">[docs]</a>    <span class="k">def</span> <span class="nf">getAttributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># First yield all attributes not contained in the list</span>
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">Object</span><span class="o">.</span><span class="n">getAttributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="k">yield</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">name</span><span class="p">,</span> <span class="n">attr</span>
         <span class="c1"># Now yield elements contained in the list</span>
         <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-            <span class="k">yield</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_indexToString</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">item</span><span class="p">)</span></div>
+            <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">_indexToString</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="n">item</span></div>
             
     <span class="k">def</span> <span class="nf">_indexToString</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the way the string index is generated.</span>
@@ -1107,10 +1144,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">strIndex</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ITEM_PREFIX</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span> <span class="o">-</span> <span class="mi">1</span>
             
-    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">list</span><span class="o">.</span><span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-<div class="viewcode-block" id="List.getSize"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.List.getSize">[docs]</a>    <span class="k">def</span> <span class="nf">getSize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="c1"># Just to have similar API than Set</span>
+<div class="viewcode-block" id="List.getSize"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.List.getSize">[docs]</a>    <span class="k">def</span> <span class="nf">getSize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>  <span class="c1"># Just to have similar API than Set</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
     
 <div class="viewcode-block" id="List.isEmpty"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.List.isEmpty">[docs]</a>    <span class="k">def</span> <span class="nf">isEmpty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1121,7 +1158,7 @@
         
     <span class="k">def</span> <span class="nf">_convertValue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Value should be a list.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span>  <span class="nb">list</span><span class="p">)):</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;List.set: value should be a list.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
@@ -1130,7 +1167,7 @@
     
         
 <div class="viewcode-block" id="PointerList"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.PointerList">[docs]</a><span class="k">class</span> <span class="nc">PointerList</span><span class="p">(</span><span class="n">List</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">List</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         
 <div class="viewcode-block" id="PointerList.append"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.PointerList.append">[docs]</a>    <span class="k">def</span> <span class="nf">append</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
@@ -1155,7 +1192,7 @@
     <span class="sd">&quot;&quot;&quot;This class will store a list of objects</span>
 <span class="sd">    in a single DB row separated by comma.</span>
 <span class="sd">    pType: the type of the list elements, int, bool, str&quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pType</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pType</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">Scalar</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="nb">list</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pType</span> <span class="o">=</span> <span class="n">pType</span>
@@ -1165,14 +1202,15 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">unicode</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">):</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pType</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
             <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">value</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pType</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;CsvList.set: Invalid value type: &quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;CsvList.set: Invalid value type: &quot;</span><span class="p">,</span>
+                                <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
             
 <div class="viewcode-block" id="CsvList.getObjValue"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.CsvList.getObjValue">[docs]</a>    <span class="k">def</span> <span class="nf">getObjValue</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_objValue</span> <span class="o">=</span> <span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="bp">self</span><span class="p">))</span>
@@ -1181,7 +1219,7 @@
 <div class="viewcode-block" id="CsvList.get"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.CsvList.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getObjValue</span><span class="p">()</span></div>
     
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">list</span><span class="o">.</span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
      
 <div class="viewcode-block" id="CsvList.isEmpty"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.CsvList.isEmpty">[docs]</a>    <span class="k">def</span> <span class="nf">isEmpty</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1190,11 +1228,11 @@
 <div class="viewcode-block" id="CsvList.clear"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.CsvList.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">del</span> <span class="bp">self</span><span class="p">[:]</span></div>
 
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Comparison for scalars should be by value</span>
 <span class="sd">        and for other objects by reference.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">izip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span></div>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="Set"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Set">[docs]</a><span class="k">class</span> <span class="nc">Set</span><span class="p">(</span><span class="n">OrderedObject</span><span class="p">):</span>
@@ -1202,24 +1240,27 @@
 <span class="sd">    It will use an extra sqlite file to store the elements.</span>
 <span class="sd">    All items will have an unique id that identifies each element in the set.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">ITEM_TYPE</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># This property should be defined to know the item type</span>
+    <span class="n">ITEM_TYPE</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># This property should be defined to know the item type</span>
     
     <span class="c1"># This will be used for stream Set where data is populated on the fly</span>
     <span class="n">STREAM_OPEN</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">STREAM_CLOSED</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="n">FILE_TEMPLATE_NAME</span> <span class="o">=</span> <span class="s1">&#39;set</span><span class="si">%s</span><span class="s1">.sqlite&#39;</span>
+    <span class="n">indexes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_index&#39;</span><span class="p">]</span>
     
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> 
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> 
                  <span class="n">mapperClass</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">classesDict</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="c1"># Use the object value to store the filename</span>
         <span class="n">OrderedObject</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mapper</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_idCount</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># cached value of the number of images</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># cached value of the number of images</span>
         <span class="c1"># It is a bit contradictory that initially a set is Closed</span>
         <span class="c1"># but this is the default behaviour of the Set before Streamming extension</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_streamState</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">STREAM_CLOSED</span><span class="p">)</span>  
         <span class="bp">self</span><span class="o">.</span><span class="n">setMapperClass</span><span class="p">(</span><span class="n">mapperClass</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_mapperPath</span> <span class="o">=</span> <span class="n">CsvList</span><span class="p">()</span> <span class="c1"># sqlite filename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_mapperPath</span> <span class="o">=</span> <span class="n">CsvList</span><span class="p">()</span>  <span class="c1"># sqlite filename</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_representative</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_classesDict</span> <span class="o">=</span> <span class="n">classesDict</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_indexes</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;indexes&#39;</span><span class="p">,</span> <span class="p">[])</span>
@@ -1246,15 +1287,15 @@
 <div class="viewcode-block" id="Set.setMapperClass"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Set.setMapperClass">[docs]</a>    <span class="k">def</span> <span class="nf">setMapperClass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">MapperClass</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Set the mapper to be used for storage. &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">MapperClass</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="kn">from</span> <span class="nn">pyworkflow.mapper.sqlite</span> <span class="k">import</span> <span class="n">SqliteFlatMapper</span>
+            <span class="kn">from</span> <span class="nn">pyworkflow.mapper.sqlite</span> <span class="kn">import</span> <span class="n">SqliteFlatMapper</span>
             <span class="n">MapperClass</span> <span class="o">=</span> <span class="n">SqliteFlatMapper</span>
         <span class="n">Object</span><span class="o">.</span><span class="fm">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_MapperClass&#39;</span><span class="p">,</span> <span class="n">MapperClass</span><span class="p">)</span></div>
         
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">itemId</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">itemId</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Get the image with the given id. &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMapper</span><span class="p">()</span><span class="o">.</span><span class="n">selectById</span><span class="p">(</span><span class="n">itemId</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">itemId</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">itemId</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; element in Set &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMapper</span><span class="p">()</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">itemId</span><span class="p">)</span>
 
@@ -1263,7 +1304,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMapper</span><span class="p">()</span><span class="o">.</span><span class="n">selectAll</span><span class="p">(</span><span class="n">orderBy</span><span class="o">=</span><span class="n">orderBy</span><span class="p">,</span>
                                            <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span>
                                            <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">,</span>
-                                           <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">)</span><span class="c1">#has flat mapper, iterate is true</span></div>
+                                           <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">)</span>  <span class="c1"># has flat mapper, iterate is true</span></div>
 
 <div class="viewcode-block" id="Set.getFirstItem"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Set.getFirstItem">[docs]</a>    <span class="k">def</span> <span class="nf">getFirstItem</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return the first item in the Set. &quot;&quot;&quot;</span>
@@ -1277,11 +1318,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">firstItem</span></div>
     
-    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Iterate over the set of images. &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterItems</span><span class="p">()</span>
        
-    <span class="k">def</span> <span class="nf">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__len__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
     
 <div class="viewcode-block" id="Set.getSize"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Set.getSize">[docs]</a>    <span class="k">def</span> <span class="nf">getSize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1313,7 +1354,7 @@
         <span class="k">if</span> <span class="n">properties</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_getMapper</span><span class="p">()</span><span class="o">.</span><span class="n">setProperty</span><span class="p">(</span><span class="s1">&#39;self&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getClassName</span><span class="p">())</span>
             <span class="n">objDict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getObjDict</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">objDict</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">objDict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_getMapper</span><span class="p">()</span><span class="o">.</span><span class="n">setProperty</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_getMapper</span><span class="p">()</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
     
@@ -1333,7 +1374,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mapper</span><span class="o">.</span><span class="n">count</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_idCount</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mapper</span><span class="o">.</span><span class="n">maxId</span><span class="p">()</span></div>
            
-    <span class="k">def</span> <span class="nf">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Close connections to db when destroy this object</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mapper</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -1376,7 +1417,7 @@
         <span class="sd">&quot;&quot;&quot; Update an existing item. &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_getMapper</span><span class="p">()</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">item</span><span class="p">)</span></div>
                 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%-20s</span><span class="s2"> (</span><span class="si">%d</span><span class="s2"> items</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getClassName</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSize</span><span class="p">(),</span>
                                        <span class="bp">self</span><span class="o">.</span><span class="n">_appendStreamState</span><span class="p">())</span>
 
@@ -1408,7 +1449,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span> <span class="o">==</span> <span class="n">y</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span> <span class="ow">and</span>
                    <span class="n">x</span><span class="o">.</span><span class="n">equalAttributes</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">ignore</span><span class="o">=</span><span class="n">ignore</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-                   <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">izip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span></div>
+                   <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span></div>
         
 <div class="viewcode-block" id="Set.hasProperty"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Set.hasProperty">[docs]</a>    <span class="k">def</span> <span class="nf">hasProperty</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMapper</span><span class="p">()</span><span class="o">.</span><span class="n">hasProperty</span><span class="p">(</span><span class="n">key</span><span class="p">)</span></div>
@@ -1459,8 +1500,24 @@
 <span class="sd">        This function will allow to append more items</span>
 <span class="sd">        to an existing set.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_getMapper</span><span class="p">()</span><span class="o">.</span><span class="n">enableAppend</span><span class="p">()</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_getMapper</span><span class="p">()</span><span class="o">.</span><span class="n">enableAppend</span><span class="p">()</span></div>
 
+<div class="viewcode-block" id="Set.create"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Set.create">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Create a set and set the filename using the suffix.</span>
+<span class="sd">        If the file exists, it will be delete. &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">template</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">template</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">FILE_TEMPLATE_NAME</span>
+
+        <span class="n">setFn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">template</span> <span class="o">%</span> <span class="n">suffix</span><span class="p">)</span>
+        <span class="c1"># Close the connection to the database if</span>
+        <span class="c1"># it is open before deleting the file</span>
+        <span class="n">utils</span><span class="o">.</span><span class="n">cleanPath</span><span class="p">(</span><span class="n">setFn</span><span class="p">)</span>
+        <span class="kn">import</span> <span class="nn">pyworkflow.mapper</span> <span class="k">as</span> <span class="nn">pwmapper</span>
+        <span class="n">pwmapper</span><span class="o">.</span><span class="n">SqliteDb</span><span class="o">.</span><span class="n">closeConnection</span><span class="p">(</span><span class="n">setFn</span><span class="p">)</span>
+        <span class="n">setObj</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">setFn</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">setObj</span></div></div>
 
 <div class="viewcode-block" id="ObjectWrap"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.ObjectWrap">[docs]</a><span class="k">def</span> <span class="nf">ObjectWrap</span><span class="p">(</span><span class="n">value</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This function will act as a simple Factory</span>
@@ -1468,7 +1525,7 @@
     <span class="n">t</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">Object</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">value</span>
-    <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="nb">int</span> <span class="ow">or</span> <span class="n">t</span> <span class="ow">is</span> <span class="n">long</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="nb">int</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">Integer</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="nb">bool</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">Boolean</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
@@ -1486,16 +1543,20 @@
 
 <div class="viewcode-block" id="Dict"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Dict">[docs]</a><span class="k">class</span> <span class="nc">Dict</span><span class="p">(</span><span class="nb">dict</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Simple wrapper around dict class to have a default value. &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_default</span> <span class="o">=</span> <span class="n">default</span>
         <span class="nb">dict</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Get the image with the given id. &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_default</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">True</span></div>
+
+
+<span class="c1"># Define a global dict with all basic defined objects</span>
+<span class="n">OBJECTS_DICT</span> <span class="o">=</span> <span class="n">getSubclasses</span><span class="p">(</span><span class="n">Object</span><span class="p">,</span> <span class="nb">globals</span><span class="p">())</span>
 </pre></div>
 
            </div>
@@ -1523,21 +1584,6 @@
 
   </div>
   
-<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
-    <span class="rst-current-version" data-toggle="rst-current-version">
-        <span class="fa fa-book"> Other Versions</span>
-        v: release-3.0.0
-        <span class="fa fa-caret-down"></span>
-    </span>
-    <div class="rst-other-versions">
-        <dl>
-            <dt>Branches</dt>
-            <dd><a href="../../../dm_facilitiesUpdate/index.html">dm_facilitiesUpdate</a></dd>
-            <dd><a href="../../../release-2.0.0/index.html">release-2.0.0</a></dd>
-            <dd><a href="object.html">release-3.0.0</a></dd>
-        </dl>
-    </div>
-</div>
 
 
   <script type="text/javascript">
