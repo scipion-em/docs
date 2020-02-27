@@ -73,6 +73,7 @@ later on.
    api/gautomatch/gautomatch
    api/gctf/gctf
    api/localrec/localrec
+   api/locscale/locscale
    api/motioncorr/motioncorr
    api/nysbc/nysbc
    api/phenix/phenix
@@ -80,6 +81,7 @@ later on.
    api/resmap/resmap
    api/sphire/sphire
    api/spider/spider
+   api/xmipp3/xmipp3
 
 
 .. _contact:
