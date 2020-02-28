@@ -21,10 +21,10 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script src="../../../_static/jquery.js"></script>
-        <script src="../../../_static/underscore.js"></script>
-        <script src="../../../_static/doctools.js"></script>
-        <script src="../../../_static/language_data.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -33,6 +33,7 @@
   
   <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/banner.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/custom.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -231,26 +232,27 @@
 <span class="sd">using different threads and the last one with MPI processes.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-
-
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">import</span> <span class="nn">threading</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">signal</span>
 <span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span>
+<span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span>
+<span class="kn">from</span> <span class="nn">multiprocessing.pool</span> <span class="k">import</span> <span class="n">ThreadPool</span><span class="p">,</span> <span class="ne">TimeoutError</span>
 
 <span class="kn">import</span> <span class="nn">pyworkflow.utils.process</span> <span class="k">as</span> <span class="nn">process</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.utils.path</span> <span class="kn">import</span> <span class="n">getParentFolder</span><span class="p">,</span> <span class="n">removeExt</span>
-<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">constants</span> <span class="k">as</span> <span class="n">cts</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils.path</span> <span class="k">import</span> <span class="n">getParentFolder</span><span class="p">,</span> <span class="n">removeExt</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="k">import</span> <span class="n">greenStr</span>
+<span class="kn">import</span> <span class="nn">constants</span> <span class="k">as</span> <span class="nn">cts</span>
 
-<span class="kn">from</span> <span class="nn">.launch</span> <span class="kn">import</span> <span class="n">_submit</span><span class="p">,</span> <span class="n">UNKNOWN_JOBID</span>
+<span class="kn">from</span> <span class="nn">launch</span> <span class="k">import</span> <span class="n">_submit</span><span class="p">,</span> <span class="n">UNKNOWN_JOBID</span>
+<span class="c1">#from retrying import retry</span>
 
-
-<div class="viewcode-block" id="StepExecutor"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.executor.html#pyworkflow.protocol.executor.StepExecutor">[docs]</a><span class="k">class</span> <span class="nc">StepExecutor</span><span class="p">:</span>
+<div class="viewcode-block" id="StepExecutor"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.executor.html#pyworkflow.protocol.executor.StepExecutor">[docs]</a><span class="k">class</span> <span class="nc">StepExecutor</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot; Run a list of Protocol steps. &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hostConfig</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hostConfig</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hostConfig</span> <span class="o">=</span> <span class="n">hostConfig</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gpuList</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cts</span><span class="o">.</span><span class="n">GPU_LIST</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
@@ -259,8 +261,8 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpuList</span></div>
 
 <div class="viewcode-block" id="StepExecutor.runJob"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.executor.html#pyworkflow.protocol.executor.StepExecutor.runJob">[docs]</a>    <span class="k">def</span> <span class="nf">runJob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">programName</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span>           
-               <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">numberOfThreads</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-               <span class="n">env</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+           <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">numberOfThreads</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> 
+           <span class="n">env</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; This function is a wrapper around runJob, </span>
 <span class="sd">        providing the host configuration. </span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -273,7 +275,7 @@
         <span class="sd">&quot;&quot;&quot; Return the n steps that are &#39;new&#39; and all its</span>
 <span class="sd">        dependencies have been finished, or None if none ready.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">rs</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># return a list of runnable steps</span>
+        <span class="n">rs</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># return a list of runnable steps</span>
 
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">:</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">getStatus</span><span class="p">()</span> <span class="o">==</span> <span class="n">cts</span><span class="o">.</span><span class="n">STATUS_NEW</span> <span class="ow">and</span>
@@ -333,12 +335,13 @@
                 <span class="n">stepsCheckCallback</span><span class="p">()</span>
                 <span class="n">lastCheck</span> <span class="o">=</span> <span class="n">now</span>
 
-        <span class="n">stepsCheckCallback</span><span class="p">()</span>  <span class="c1"># one last check to finalize stuff</span></div></div>
+
+        <span class="n">stepsCheckCallback</span><span class="p">()</span> <span class="c1"># one last check to finalize stuff</span></div></div>
 
 
 <div class="viewcode-block" id="StepThread"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.executor.html#pyworkflow.protocol.executor.StepThread">[docs]</a><span class="k">class</span> <span class="nc">StepThread</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Thread to run Steps in parallel. &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">thId</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">lock</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">thId</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">lock</span><span class="p">):</span>
         <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">thId</span> <span class="o">=</span> <span class="n">thId</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">step</span> <span class="o">=</span> <span class="n">step</span>
@@ -362,7 +365,7 @@
 
 <div class="viewcode-block" id="ThreadStepExecutor"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.executor.html#pyworkflow.protocol.executor.ThreadStepExecutor">[docs]</a><span class="k">class</span> <span class="nc">ThreadStepExecutor</span><span class="p">(</span><span class="n">StepExecutor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Run steps in parallel using threads. &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hostConfig</span><span class="p">,</span> <span class="n">nThreads</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hostConfig</span><span class="p">,</span> <span class="n">nThreads</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">StepExecutor</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hostConfig</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">numberOfProcs</span> <span class="o">=</span> <span class="n">nThreads</span>
         <span class="c1"># If the gpuList was specified, we need to distribute GPUs among</span>
@@ -380,8 +383,7 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># Expand gpuList repeating until reach nThreads items</span>
                 <span class="k">if</span> <span class="n">nThreads</span> <span class="o">&gt;</span> <span class="n">nGpu</span><span class="p">:</span>
-                    <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-                    <span class="n">newList</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gpuList</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">nThreads</span><span class="o">/</span><span class="n">nGpu</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">newList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpuList</span> <span class="o">*</span> <span class="p">(</span><span class="n">nThreads</span><span class="o">/</span><span class="n">nGpu</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">gpuList</span> <span class="o">=</span> <span class="n">newList</span><span class="p">[:</span><span class="n">nThreads</span><span class="p">]</span>
 
                 <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">gpu</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpuList</span><span class="p">):</span>
@@ -408,13 +410,13 @@
         <span class="n">sharedLock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
 
         <span class="n">runningSteps</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># currently running step in each node ({node: step})</span>
-        <span class="n">freeNodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numberOfProcs</span><span class="p">))</span>  <span class="c1"># available nodes to send jobs</span>
+        <span class="n">freeNodes</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numberOfProcs</span><span class="p">)</span>  <span class="c1"># available nodes to send jobs</span>
 
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="c1"># See which of the runningSteps are not really running anymore.</span>
             <span class="c1"># Update them and freeNodes, and call final callback for step.</span>
             <span class="k">with</span> <span class="n">sharedLock</span><span class="p">:</span>
-                <span class="n">nodesFinished</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span> <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">runningSteps</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+                <span class="n">nodesFinished</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span> <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">step</span> <span class="ow">in</span> <span class="n">runningSteps</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span>
                                  <span class="k">if</span> <span class="ow">not</span> <span class="n">step</span><span class="o">.</span><span class="n">isRunning</span><span class="p">()]</span>
             <span class="n">doContinue</span> <span class="o">=</span> <span class="kc">True</span>
             <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodesFinished</span><span class="p">:</span>
@@ -466,9 +468,8 @@
             <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">threading</span><span class="o">.</span><span class="n">current_thread</span><span class="p">():</span>
                 <span class="n">t</span><span class="o">.</span><span class="n">join</span><span class="p">()</span></div></div>
 
-
 <div class="viewcode-block" id="QueueStepExecutor"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.executor.html#pyworkflow.protocol.executor.QueueStepExecutor">[docs]</a><span class="k">class</span> <span class="nc">QueueStepExecutor</span><span class="p">(</span><span class="n">ThreadStepExecutor</span><span class="p">):</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hostConfig</span><span class="p">,</span> <span class="n">submitDict</span><span class="p">,</span> <span class="n">nThreads</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hostConfig</span><span class="p">,</span> <span class="n">submitDict</span><span class="p">,</span> <span class="n">nThreads</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">ThreadStepExecutor</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hostConfig</span><span class="p">,</span> <span class="n">nThreads</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">submitDict</span> <span class="o">=</span> <span class="n">submitDict</span>
         <span class="c1"># Command counter per thread</span>
@@ -481,13 +482,12 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">runJobs</span> <span class="o">=</span> <span class="n">StepExecutor</span><span class="o">.</span><span class="n">runSteps</span>
 
+
 <div class="viewcode-block" id="QueueStepExecutor.runJob"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.executor.html#pyworkflow.protocol.executor.QueueStepExecutor.runJob">[docs]</a>    <span class="k">def</span> <span class="nf">runJob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">programName</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">numberOfThreads</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">threadId</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">current_thread</span><span class="p">()</span><span class="o">.</span><span class="n">thId</span>
         <span class="n">submitDict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hostConfig</span><span class="o">.</span><span class="n">getQueuesDefault</span><span class="p">())</span>
         <span class="n">submitDict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">submitDict</span><span class="p">)</span>
-        <span class="n">submitDict</span><span class="p">[</span><span class="s1">&#39;JOB_COMMAND&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">buildRunCommand</span><span class="p">(</span><span class="n">programName</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="p">,</span>
-                                                            <span class="bp">self</span><span class="o">.</span><span class="n">hostConfig</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span>
-                                                            <span class="n">gpuList</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">())</span>
+        <span class="n">submitDict</span><span class="p">[</span><span class="s1">&#39;JOB_COMMAND&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">process</span><span class="o">.</span><span class="n">buildRunCommand</span><span class="p">(</span><span class="n">programName</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hostConfig</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">gpuList</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">threadCommands</span><span class="p">[</span><span class="n">threadId</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
         <span class="n">subthreadId</span> <span class="o">=</span> <span class="s1">&#39;-</span><span class="si">%s</span><span class="s1">-</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">threadId</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">threadCommands</span><span class="p">[</span><span class="n">threadId</span><span class="p">])</span>
         <span class="n">submitDict</span><span class="p">[</span><span class="s1">&#39;JOB_NAME&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">submitDict</span><span class="p">[</span><span class="s1">&#39;JOB_NAME&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">subthreadId</span>
@@ -512,6 +512,7 @@
 
         <span class="k">return</span> <span class="n">status</span></div>
 
+
     <span class="k">def</span> <span class="nf">_checkJobStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hostConfig</span><span class="p">,</span> <span class="n">jobid</span><span class="p">):</span>
 
         <span class="n">command</span> <span class="o">=</span> <span class="n">hostConfig</span><span class="o">.</span><span class="n">getCheckCommand</span><span class="p">()</span> <span class="o">%</span> <span class="p">{</span><span class="s2">&quot;JOB_ID&quot;</span><span class="p">:</span> <span class="n">jobid</span><span class="p">}</span>
@@ -525,7 +526,7 @@
         <span class="k">if</span> <span class="n">out</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">cts</span><span class="o">.</span><span class="n">STATUS_FINISHED</span>
         <span class="c1"># If some string is returned we use the JOB_DONE_REGEX variable (if present) to infer the status</span>
-        <span class="k">elif</span> <span class="n">jobDoneRegex</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">jobDoneRegex</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">s</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">jobDoneRegex</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">s</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">cts</span><span class="o">.</span><span class="n">STATUS_FINISHED</span>
@@ -535,12 +536,11 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">cts</span><span class="o">.</span><span class="n">STATUS_RUNNING</span></div>
 
-
 <div class="viewcode-block" id="MPIStepExecutor"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.executor.html#pyworkflow.protocol.executor.MPIStepExecutor">[docs]</a><span class="k">class</span> <span class="nc">MPIStepExecutor</span><span class="p">(</span><span class="n">ThreadStepExecutor</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Run steps in parallel using threads.</span>
 <span class="sd">    But call runJob through MPI workers.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hostConfig</span><span class="p">,</span> <span class="n">nMPI</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hostConfig</span><span class="p">,</span> <span class="n">nMPI</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">ThreadStepExecutor</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hostConfig</span><span class="p">,</span> <span class="n">nMPI</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">comm</span> <span class="o">=</span> <span class="n">comm</span>
     
@@ -548,7 +548,7 @@
                <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">numberOfThreads</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># Import mpi here so if MPI4py was not properly compiled</span>
         <span class="c1"># we can still run in parallel with threads.</span>
-        <span class="kn">from</span> <span class="nn">pyworkflow.utils.mpi</span> <span class="kn">import</span> <span class="n">runJobMPI</span>
+        <span class="kn">from</span> <span class="nn">pyworkflow.utils.mpi</span> <span class="k">import</span> <span class="n">runJobMPI</span>
         <span class="n">node</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">current_thread</span><span class="p">()</span><span class="o">.</span><span class="n">thId</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="n">runJobMPI</span><span class="p">(</span><span class="n">programName</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">comm</span><span class="p">,</span> <span class="n">node</span><span class="p">,</span>
                   <span class="n">numberOfMpi</span><span class="p">,</span> <span class="n">hostConfig</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">hostConfig</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">cwd</span><span class="p">,</span>
@@ -567,7 +567,7 @@
 
         <span class="c1"># Import mpi here so if MPI4py was not properly compiled</span>
         <span class="c1"># we can still run in parallel with threads.</span>
-        <span class="kn">from</span> <span class="nn">pyworkflow.utils.mpi</span> <span class="kn">import</span> <span class="n">TAG_RUN_JOB</span>
+        <span class="kn">from</span> <span class="nn">pyworkflow.utils.mpi</span> <span class="k">import</span> <span class="n">TAG_RUN_JOB</span>
 
         <span class="c1"># Send special command &#39;None&#39; to MPI slaves to notify them</span>
         <span class="c1"># that there are no more jobs to do and they can finish.</span>
@@ -600,6 +600,22 @@
 
   </div>
   
+<div class="rst-versions" data-toggle="rst-versions" role="note" aria-label="versions">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+        <span class="fa fa-book"> Other Versions</span>
+        v: release-3.0.0
+        <span class="fa fa-caret-down"></span>
+    </span>
+    <div class="rst-other-versions">
+        <dl>
+            <dt>Branches</dt>
+            <dd><a href="../../../../dm_facilitiesUpdate/index.html">dm_facilitiesUpdate</a></dd>
+            <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
+            <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
+            <dd><a href="executor.html">release-3.0.0</a></dd>
+        </dl>
+    </div>
+</div>
 
 
   <script type="text/javascript">
