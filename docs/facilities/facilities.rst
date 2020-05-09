@@ -78,7 +78,7 @@ Moreover, we are also working in the monitor protocols, those special protocols
 that constantly check how the execution of other protocols is going. We have
 developed several GUIs that are refreshed periodically and produce a graphical
 summary (e.g, CTF estimated values, system load, etc).
-This summary has been implemente in two diferent flavours. The first one uses pure HTML while the second one takes advantage of `Grafana  <https://grafana.com>`_ (an open source analytics and monitoring framework). For those facilities with a HTML server already   installed  the HTML solution will be easier to implement although less configurable. An example report generated in *HTML* format can be seen at our 
+This summary has been implemente in two diferent flavours. The first one uses pure HTML while the second one takes advantage of `Grafana  <https://grafana.com>`_ (an open source analytics and monitoring framework). For those facilities with a HTML server already   installed  the HTML solution will be easier to implement although less configurable. An example report generated in *HTML* format can be seen 
 `here <http://scipion.cnb.csic.es/scipionbox/lastHTMLReport/>`_ while `here <http://scipion.cnb.csic.es:3000/lastHTMLReport/>`_ you can see a Grafana based report (at present Grafana server can only be accesed locally. Learn `how to customize the reports <customize-html-report>`_ according to
 your facilities' needs.
 
