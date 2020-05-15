@@ -13,7 +13,7 @@ How to Customiza the Activity Reports
 
 Intro
 -----
-There is a type of protocols called monitors which are used to produce live analysis plots, generate reports or raise alerts when some problems are detected. A monitor example is the **CTF-monitor**, that checks the computed defocus values for each micrograph as they are generated. **CTF-monitor** may raise an alert if the defocus values are above or below certain thresholds. An spetial case of this monitors is the **monitor summary** which encapsulates the **CTF Monitor**, the **system monitor** and the **movie gain monitor** and continuosly creates a report.
+There is a type of protocols called monitors which are used to produce live analysis plots, generate reports or raise alerts when some problems are detected. A monitor example is the **CTF-monitor**, that checks the computed defocus values for each micrograph as they are generated. **CTF-monitor** may raise an alert if the defocus values are above or below certain thresholds. An special case of this monitors is the **monitor summary** which encapsulates the **CTF Monitor**, the **system monitor** and the **movie gain monitor** and continuosly creates a report.
 
 In this section, we will focus on the technical details regarding how these reports are generated and the options we have to customize them. 
 
