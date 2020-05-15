@@ -10,15 +10,6 @@ HTML report customization
 
 .. :contents:: Table of Contents
 
-Intro
------
-
-We can use the summary monitor to track a number of things while our input
-protocols run: it encapsulates the CTF Monitor, the system monitor and the movie
-gain monitor. All these monitors have some graphs that we can check in the HTML
-Report. Here we will focus on the technical details of the HTML report and the
-options we have to customize it using some examples.
-
 
 0. Before we start
 ------------------
