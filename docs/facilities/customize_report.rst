@@ -5,9 +5,9 @@
 
 .. _customize-html-report:
 
-=========================
+=====================================
 How to Customiza the Activity Reports
-=========================
+=====================================
 
 .. :contents:: Table of Contents
 
@@ -20,7 +20,7 @@ In this section, we will focus on the technical details regarding how these repo
 Implementation
 --------------
 
- The above mentioned summary has been implemente in two diferent flavours:  The first one uses pure HTML while the second one takes advantage of `Grafana <https://grafana.com/>` (an open source analytics and monitoring framework). For those facilities with a HTML server already installed the HTML solution will be easier to implement although less configurable. Examples of monitors reports generated in *HTML* format can be seen at
+ The above mentioned summary has been implemente in two diferent flavours:  The first one uses pure HTML while the second one takes advantage of `Grafana <https://grafana.com/>`_ (an open source analytics and monitoring framework). For those facilities with a HTML server already installed the HTML solution will be easier to implement although less configurable. Examples of monitors reports generated in *HTML* format can be seen at
 `http://scipion.cnb.csic.es/scipionbox/lastHTMLReport/ <http://scipion.cnb.csic.es/scipionbox/lastHTMLReport/>`_ while in URL `http://scipion.cnb.csic.es:3000/lastHTMLReport/ <http://scipion.cnb.csic.es:3000/lastHTMLReport/>`_ you can see a Grafana based report. Note that those facilities which already use a LIMS-like solution (laboratory information management system) may find the Grafana based solution easier to customize in order to integrate their LIMS system with scipion.
 
 Implementation detail of the different monitor report system may be found in the follwing two links:
