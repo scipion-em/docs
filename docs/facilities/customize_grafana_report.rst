@@ -12,7 +12,10 @@ Grafana, InfluxDB report customization
 
 Intro
 -----
-InfluxDB is a time series database built specifically for storing time series data, and Grafana is a visualization tool for this kind of data. Below are some basics on how to set up your Grafana dashboard with InfluxDB and how to use the Grafana InfluxDB solution to display the output of Scipion monitors. We will show here how to configure the system in order to allow you to visualize what you want, the way that you want.
+InfluxDB is a time series database built specifically for storing time series data, and Grafana is a visualization tool for this kind of data. Below are some basics on how to set up your Grafana dashboard with InfluxDB and how to use the Grafana InfluxDB solution to display the output of Scipion monitors. We will show here how to configure the system in order to allow you to visualize what you want, the way that you want. In Summary the general idea is, 
+Scipion **summary monitor** is the agent responsible for gathering and aggregating data, like the defocus of each of the collected Movies. InfluxDB will store the data, and expose it to Grafana, which will display it to the final users..
+
+
 
 Setting UP Grafana and Influxdb
 -------------------------------
@@ -36,13 +39,64 @@ We will not discuss here how to install or do the basic configuration of InfluxD
 
 You may check that the database is running using the command line cliente *influx*
 
-.. code-block:: bash
-    $ influx
-    > show databases
-    name: databases
-    name
-    ----
-    _internal
+ .. code-block:: bash
+
+      $ influx
+      > show databases
+      name: databases
+      name
+      ----
+      _internal
+
+At this point you may create an admin user. Type inside the client **influx**
+
+ .. code-block:: sql
+    CREATE USER admin WITH PASSWORD 'password1' WITH ALL PRIVILEGES
+    CREATE USER "scipion_writer" WITH PASSWORD 'password2'
+
+Enable secure transmission
+__________________________
+In our setup we have secured our instances with HTTPS via secure certificates.
+You may find a description of the process in the `URL <https://devconnected.com/how-to-setup-telegraf-influxdb-and-grafana-on-linux/>`_
+ 
+  532  sudo certtool --generate-privkey --outfile server-key.pem --bits 2048
+  533  sudo certtool --generate-self-signed --load-privkey server-key.prm --outfile server-cert.pem
+chown influxdb.influxdb influxdb*
+
+Edit file sudo vi /etc/influxdb/influxdb.conf
+     [http]
+  # Determines whether HTTP endpoint is enabled.
+  enabled = true
+
+  # Determines whether the Flux query endpoint is enabled.
+  flux-enabled = true
+
+  # Determines whether the Flux query logging is enabled.
+  # flux-log-enabled = false
+
+  # The bind address used by the HTTP service.
+  bind-address = ":8086"
+
+  # Determines whether user authentication is enabled over HTTP/HTTPS.
+  auth-enabled = true
+https-enabled = true
+
+# The SSL certificate to use when HTTPS is enabled.
+https-certificate = "/etc/ssl/influxdb/server-cert.pem"
+# https-certificate = "/etc/ssl/certs/influxdb.crt"
+
+
+# Use a separate private key location.
+https-private-key = "/etc/ssl/influxdb/server-key.pem"
+# https-private-key = "/etc/ssl/certs/influxdb.key"
+
+
+Restart6 service: sudo systemctl restart influxdb.service
+influx -ssl  -unsafeSsl -host nolan.cnb.csic.es
+auth
+use scipion
+
+
 
 
 
