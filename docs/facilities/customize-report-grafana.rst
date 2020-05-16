@@ -119,9 +119,26 @@ First create certificate
     * chown ams:hadoop grafana.key
     * chmod 400 grafana.crt
     * chmod 400 grafana.key
-* Edit  grafana.ini
+* Edit  grafana.ini and modify the following lines
+    * protocol = https
+    * http_addr = 0.0.0.0
+    * cert_file =  /etc/grafana/grafana.crt
+    * cert_key = /etc/grafana/grafana.key
+* Reboot grafana and you should be able to connect using https (default user name and password admin/admin)
+* missing how to import a dahboard
 
 
+Export Dashboard
+
+While Dashboard is open, click "Share" icon on top of the page and select "Export" tab to save it to a JSON file.
+
+
+Import Dashboard
+
+While on Dashboard home page, click "Home" menu on the left top corner and select "Import dashboard" option to upload a JSON file.
+
+
+Export Data Sources
 
 
 InfluxData’s “How to use Grafana with InfluxDB” webinar explains how to use Grafana UI to set up graphs and use InfluxDB Query Builder. 
