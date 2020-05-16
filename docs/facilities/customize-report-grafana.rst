@@ -95,54 +95,32 @@ You may find a description of the process in the https://devconnected.com/how-to
     > CREATE DATABASE scipion
     > GRANT ALL ON scipion TO scipion_writer
 
-* check you may access influx service from the computer that will run scipion
- 
- 
+* check you may access influx service from the computer that will run scipion 
+    * you may need to open port 8086 in your influxdb server
+    * log in remote compute and execute: influx -ssl -unsafeSsl -host host_withInflux.xxx.yy.zz
 
- 
-  532  sudo certtool --generate-privkey --outfile server-key.pem --bits 2048
-  533  sudo certtool --generate-self-signed --load-privkey server-key.prm --outfile server-cert.pem
-chown influxdb.influxdb influxdb*
-
-Edit file sudo vi /etc/influxdb/influxdb.conf
-     [http]
-  # Determines whether HTTP endpoint is enabled.
-  enabled = true
-
-  # Determines whether the Flux query endpoint is enabled.
-  flux-enabled = true
-
-  # Determines whether the Flux query logging is enabled.
-  # flux-log-enabled = false
-
-  # The bind address used by the HTTP service.
-  bind-address = ":8086"
-
-  # Determines whether user authentication is enabled over HTTP/HTTPS.
-  auth-enabled = true
-https-enabled = true
-
-# The SSL certificate to use when HTTPS is enabled.
-https-certificate = "/etc/ssl/influxdb/server-cert.pem"
-# https-certificate = "/etc/ssl/certs/influxdb.crt"
-
-
-# Use a separate private key location.
-https-private-key = "/etc/ssl/influxdb/server-key.pem"
-# https-private-key = "/etc/ssl/certs/influxdb.key"
-
-
-Restart6 service: sudo systemctl restart influxdb.service
-influx -ssl  -unsafeSsl -host nolan.cnb.csic.es
-auth
-use scipion
-
-
-
-
-
-Setting up graphs for Grafana Metrics
+Installing and setting up InfluxDb
 -------------------------------------
+
+Follow instruction available at  https://grafana.com/docs/grafana/latest/installation/
+
+Set up secure conection:
+First create certificate 
+
+* cd /etc/grafana
+* Create certificate: 
+  * openssl genrsa -out grafana.key 2048
+  * openssl req -new -key grafana.key -out grafana.csr
+  * openssl x509 -req -days 365 -in grafana.csr -signkey grafana.key -out grafana.crt
+* Set the certificate, key file ownership, and permissions so that they are accessible to Grafana.
+    * chown ams:hadoop grafana.crt
+    * chown ams:hadoop grafana.key
+    * chmod 400 grafana.crt
+    * chmod 400 grafana.key
+* Edit  grafana.ini
+
+
+
 
 InfluxData’s “How to use Grafana with InfluxDB” webinar explains how to use Grafana UI to set up graphs and use InfluxDB Query Builder.
 
