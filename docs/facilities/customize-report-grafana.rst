@@ -57,7 +57,15 @@ At this point you may create an admin user. Type inside the client **influx**
 Enable secure transmission
 __________________________
 In our setup we have secured our instances with HTTPS via secure certificates.
-You may find a description of the process in the `URL <https://devconnected.com/how-to-setup-telegraf-influxdb-and-grafana-on-linux/>`_
+You may find a description of the process in the https://devconnected.com/how-to-setup-telegraf-influxdb-and-grafana-on-linux/
+
+ * Enable HTTP authentication on your InfluxDB server (set "auth-enabled = true" in /etc/influxdb/influxdb.conf)
+ * Create a private key for your InfluxDB server (cd /etc/ssl; mkdir influxdb && cd influxdb; certtool --generate-privkey --outfile server-key.pem --bits 2048)
+ * Create a public key for your InfluxDB server (certtool --generate-self-signed --load-privkey server-key.pem --outfile server-cert.pem)
+ * Set new files owner (chown influxdb:influxdb server-key.pem server-cert.pem)
+ * Enable HTTPS on your InfluxDB server
+
+
  
   532  sudo certtool --generate-privkey --outfile server-key.pem --bits 2048
   533  sudo certtool --generate-self-signed --load-privkey server-key.prm --outfile server-cert.pem
