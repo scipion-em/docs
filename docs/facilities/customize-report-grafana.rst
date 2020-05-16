@@ -96,11 +96,12 @@ You may find a description of the process in the https://devconnected.com/how-to
     > CREATE DATABASE scipion
     > GRANT ALL ON scipion TO scipion_writer
 
+
 * Check you can access influx service from the computer that will run scipion 
     * you may need to open port 8086 in your influxdb server
     * log in remote compute and execute: influx -ssl -unsafeSsl -host host_withInflux.xxx.yy.zz
 
-Installing and setting up InfluxDb
+Installing and setting up Grafana
 -------------------------------------
 
 Follow instruction available at  https://grafana.com/docs/grafana/latest/installation/
