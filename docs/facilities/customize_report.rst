@@ -26,6 +26,6 @@ The above mentioned **monitor summary^ protocol has been implemente in two difer
 
 Implementation detail of the different monitor report system may be found in the follwing two links:
 
-* `Pure HTML based <customize_report_html>`_
-* `Grafana, Influxdb based <customize_report_grafana>`_
+* `Pure HTML based <customize-report-html>`_
+* `Grafana, Influxdb based <customize-report-grafana>`_
 
