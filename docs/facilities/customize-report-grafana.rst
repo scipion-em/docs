@@ -72,6 +72,7 @@ You may find a description of the process in the https://devconnected.com/how-to
 * test secure conection works
 
  .. code-block:: bash
+
     $ influx -ssl -unsafeSsl -host localhost
     Connected to https://localhost:8086 version 1.8.0
     InfluxDB shell version: 1.8.0
@@ -81,7 +82,22 @@ You may find a description of the process in the https://devconnected.com/how-to
     > show databases
     name: databases
     name
+ * Create database "scipion" and grant access permision to scipion_writer (as admin user)
 
+ .. code-block:: bash
+
+    influx -ssl -unsafeSsl -host localhost
+    Connected to https://localhost:8086 version 1.8.0
+    InfluxDB shell version: 1.8.0
+    > auth
+    username: admin
+    password: 
+    > CREATE DATABASE scipion
+    > GRANT ALL ON scipion TO scipion_writer
+
+* check you may access influx service from the computer that will run scipion
+ 
+ 
 
  
   532  sudo certtool --generate-privkey --outfile server-key.pem --bits 2048
