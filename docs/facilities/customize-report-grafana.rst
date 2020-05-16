@@ -69,6 +69,18 @@ You may find a description of the process in the https://devconnected.com/how-to
      * https-certificate = "/etc/ssl/influxdb/server-cert.pem"
      * https-private-key = "/etc/ssl/influxdb/server-key.pem"
 * reboot Influx (systemctl restart influxdb)
+* test secure conection works
+
+ .. code-block:: bash
+    $ influx -ssl -unsafeSsl -host localhost
+    Connected to https://localhost:8086 version 1.8.0
+    InfluxDB shell version: 1.8.0
+    > auth
+    username: scipion_writer
+    password: 
+    > show databases
+    name: databases
+    name
 
 
  
