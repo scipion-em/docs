@@ -82,7 +82,8 @@ You may find a description of the process in the https://devconnected.com/how-to
     > show databases
     name: databases
     name
- * Create database "scipion" and grant access permision to scipion_writer (as admin user)
+
+* Create database "scipion" and grant access permision to scipion_writer (as admin user)
 
  .. code-block:: bash
 
@@ -95,7 +96,7 @@ You may find a description of the process in the https://devconnected.com/how-to
     > CREATE DATABASE scipion
     > GRANT ALL ON scipion TO scipion_writer
 
-* check you may access influx service from the computer that will run scipion 
+* Check you can access influx service from the computer that will run scipion 
     * you may need to open port 8086 in your influxdb server
     * log in remote compute and execute: influx -ssl -unsafeSsl -host host_withInflux.xxx.yy.zz
 
