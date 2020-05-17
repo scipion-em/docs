@@ -174,21 +174,13 @@ Log into Grafana and  add a data source (see details at https://grafana.com/docs
 Grafana create DashBoard
 ________________________
 
-A dashboard is a set of one or more panels organized and arranged into one or more rows. Grafana makes it easy to construct the right queries, and customize the display properties so that you can create the perfect dashboard for your need
+A dashboard is a set of one or more panels organized and arranged into one or more rows. We have created 5 dashboard for you. You may importing them from the  Dashboard home page, click "Home" menu on the left top corner and select "Import dashboard" option to upload the following JSON file.
 
-Export Dashboard
-
-While Dashboard is open, click "Share" icon on top of the page and select "Export" tab to save it to a JSON file.
-
-
-Import Dashboard
-
-While on Dashboard home page, click "Home" menu on the left top corner and select "Import dashboard" option to upload a JSON file.
+  * Sumary  
+  * CTF
+  * Gain
+  * System
+  * Images
 
 
-Export Data Sources
-
-
-InfluxData’s “How to use Grafana with InfluxDB” webinar explains how to use Grafana UI to set up graphs and use InfluxDB Query Builder. 
-
-
+TODO: loinks and secrets.
