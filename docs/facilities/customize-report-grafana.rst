@@ -127,6 +127,54 @@ First create certificate
 * Reboot grafana and you should be able to connect using https (default user name and password admin/admin)
 * missing how to import a dahboard
 
+Grafana create Data Source
+________________________
+
+Log into Grafana and  add a data source (see details at https://grafana.com/docs/grafana/latest/features/datasources/add-a-data-source/). Follows a table with the parameters used to create the data source:
+
+
++-------+-------------------------+---------+----+
+| Name  | InfluxDB-scipion        | Default | on |
++-------+-------------------------+---------+----+
+| HTTP                                           |
++-------+----------------------------------------+
+| URL   | https://localhost:8086                 |
++-------+----------------------------------------+
+|Access | Server (default)                       |
++-------+-------------+--------------------------+
+| Whitelisted Cookies |                          |
++---------------------+--------------------------+
+| Auth                                           |
++-----------------+-----+------------------+-----+
+| Basic auth      | on  | With Credentials | off |
++-----------------+-----+------------------+-----+
+|TLS Client Auth  | off | With CA Cert     |     |
++-----------------+-----+------------------+-----+
+| Skip TLS Verify | on                           | 
++------------------------+-----------------------+
+| Forward OAuth Identity | off                   |
++------------------------+-----------------------+
+| Basic Auth Details                             |
++-----------------+------------------------------+
+| User            | admin                        |
++-----------------+------------------------------+
+| Password        | xxxxx                        |
++-----------------+------------------------------+
+| InfluxDB Details                               |
++-----------------+------------------------------+
+| Database        | scipion                      |
++-----------------+------------------------------+
+| User            | admin                        |
++-----------------+------------------------------+
+| Password        | xxxxx                        |
++-----------------+------------------------------+
+| HTTP Method     | GET                          |
++-----------------+------------------------------+
+
+Grafana create DashBoard
+________________________
+
+A dashboard is a set of one or more panels organized and arranged into one or more rows. Grafana makes it easy to construct the right queries, and customize the display properties so that you can create the perfect dashboard for your need
 
 Export Dashboard
 
