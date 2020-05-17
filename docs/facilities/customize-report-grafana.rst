@@ -115,8 +115,8 @@ First create certificate
     * openssl req -new -key grafana.key -out grafana.csr
     * openssl x509 -req -days 365 -in grafana.csr -signkey grafana.key -out grafana.crt
 * Set the certificate, key file ownership, and permissions so that they are accessible to Grafana.
-    * chown ams:hadoop grafana.crt
-    * chown ams:hadoop grafana.key
+    * chown grafana.grafana grafana.crt
+    * chown grafana.grafana grafana.key
     * chmod 400 grafana.crt
     * chmod 400 grafana.key
 * Edit  grafana.ini and modify the following lines
