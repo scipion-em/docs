@@ -22,7 +22,7 @@ Setting UP Grafana and Influxdb
 
 For starters, download InfluxDB and Grafana. In our facilities we have used version 1.6 and 1.7 for grafana and 1.8 for influxdb but we are using the basic funtionality of these software so very likely other versions will also work.
 
-The basic setup is to have InfluxDB and Grafana connected together. InfluxDB has an API that defaults to port 8086 while Grafana’s API is on port 3000. And Grafana will call the InfluxDB API whenever it wants to query data. When you set up the InfluxData time series platform, you will need a collection agent collecting your metrics this collection agent wil the Scipion **summary monitor** (select the option *use grafana/influx*).
+The basic setup is to have InfluxDB and Grafana connected together. InfluxDB has an API that defaults to port 8086 while Grafana’s API is on port 3000. And Grafana will call the InfluxDB API whenever it wants to query data. When you set up the InfluxData time series platform, you will need a collection agent collecting your metrics this collection agent wil the Scipion**summary monitor**.
 
 InfluxDB is essentially a time series database process that runs on a server. That process can also run on the same box that Grafana runs on. Grafana has a very lightweight server-side application, and most of Grafana monitoring runs in the browser.
 
@@ -174,13 +174,85 @@ Log into Grafana and  add a data source (see details at https://grafana.com/docs
 Grafana create DashBoard
 ________________________
 
-A dashboard is a set of one or more panels organized and arranged into one or more rows. We have created 5 dashboard for you. You may importing them from the  Dashboard home page, click "Home" menu on the left top corner and select "Import dashboard" option to upload the following JSON file.
+A dashboard is a set of one or more panels organized and arranged into one or more rows. In our facility we use 5 dashboards. You may import them from Grafana  Dashboard home page, click "Home" menu on the left top corner and select "Import dashboard" option to upload the following JSON files.
 
-  * Sumary  
-  * CTF
-  * Gain
-  * System
-  * Images
+* `Summary <json/summary.json>`_: general description of the session acquisition 
+* `CTF <json/ctf.json>`_: data related with CTF such as defocus, astigmatism, etc
+* `Gain <json/summary.json>`_: microcope gain estimation 
+* `System <json/system.json>`_: cpu, memory, disk access, etc.
+* `Images <json/images.json>`_: gallery with micrographs, PSD, CTF, etc
 
+Scipion how to connect it to Influxdb
+_____________________________________
 
-TODO: loinks and secrets.
+The only missing piecce of this puzzle is how to make Scipion to send
+data to influxdb so Grafana may diaply it.  The protocol that perform this task is
+**summary monitor** (select the option *use grafana/influx*). This protocol search 
+for login information in a file called **secrets.py** which should be in the same 
+directory than **protocol_monitor_summary.py** (a template called secres_template.py is 
+available in the right directory). The file structure is
+
+```
+# This is a template for the auxiliary file that contains
+# the usernames, password and paths used to connecto to influx
+# (influx section)
+# and to transfer images between computers (paramiko section)
+# The usernames, passwords, keyfilepath and keytype has been encrypted
+# using the function enCrypt (see below)
+# this encryption is weak but at least will stop casual users
+
+# influx: information needed to acces to the "host"
+# running influxdb. If you are not encrypting your
+# communications set ssl = False
+usernameInflux='aW5mbHV4dXNlcm5hbWU='
+passwordInflux='aW5mbHV4cGFzc3dk'
+dataBase='scipion'
+hostinflux='influx-server.cnb.csic.es'
+port=8086
+ssl=True
+verify_ssl=False
+timeZone = "Europe/Madrid"
+
+# paramiko,  is a ssh client for python we use it to implement
+# sftp and transfer images from scipion host to grafana host
+# authentication is performed using username and a private key. 
+# The path to the private l¡key (keyfilepath) is encrypted and should be similar to
+# '/home/transferusername/.ssh/id_rsa' and the keyfiletype (also encrypted)
+# should be either "RSA" or "DSA"
+# Remember to add the PUBLIC key to the authorized_host file in hostparamiko
+usernameParamiko = 'dXNlcm5hbWVQYXJhbWlrbw=='
+passwordParamiko = None,
+keyfilepath = 'L2hvbWUvcm9iZXJ0by8uc3NoL2lkX3JzYQ=='
+keyfiletype = 'UlNB'
+remote_path = '/home/scipionbox/public_html/'
+hostparamiko = 'paramiko-erver.cnb.csic.es"
+
+import base64
+def enCrypt(message):
+    """Totally naive encription routine that will not
+    stop a hacker. Use it to encrypt usernames and password.
+    Ussage: enCrypt("myusername")"""
+
+    message_bytes = message.encode('ascii')
+    base64_bytes = base64.b64encode(message_bytes)
+    return base64_bytes.decode('ascii')
+
+``` 
+
+where usernames and passwords are naively encrypted using the function
+
+```
+import base64
+def enCrypt(message):
+    """Totally naive encription routine that will not
+    stop a hacker"""
+
+    message_bytes = message.encode('ascii')
+    base64_bytes = base64.b64encode(message_bytes)
+    return base64_bytes.decode('ascii')
+```
+
+The 
+
+Where is my project?
+____________________
