@@ -182,6 +182,10 @@ A dashboard is a set of one or more panels organized and arranged into one or mo
 * `System <json/system.json>`_: cpu, memory, disk access, etc.
 * `Images <json/images.json>`_: gallery with micrographs, PSD, CTF, etc
 
+Important The dashboard assume that the images are accesible at /usr/share/grafana/public/img/scipionbox. Please link the directory  remote_path to /usr/share/grafana/public/img/scipionbox. remote_path is defined in next section.
+
+
+
 Scipion how to connect it to Influxdb
 _____________________________________
 
