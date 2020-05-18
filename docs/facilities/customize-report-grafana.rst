@@ -192,67 +192,54 @@ for login information in a file called **secrets.py** which should be in the sam
 directory than **protocol_monitor_summary.py** (a template called secres_template.py is 
 available in the right directory). The file structure is
 
-```
-# This is a template for the auxiliary file that contains
-# the usernames, password and paths used to connecto to influx
-# (influx section)
-# and to transfer images between computers (paramiko section)
-# The usernames, passwords, keyfilepath and keytype has been encrypted
-# using the function enCrypt (see below)
-# this encryption is weak but at least will stop casual users
+ .. code-block:: sql
+ 
+    # This is a template for the auxiliary file that contains
+    # the usernames, password and paths used to connecto to influx
+    # (influx section)
+    # and to transfer images between computers (paramiko section)
+    # The usernames, passwords, keyfilepath and keytype has been encrypted
+    # using the function enCrypt (see below)
+    # this encryption is weak but at least will stop casual users
 
-# influx: information needed to acces to the "host"
-# running influxdb. If you are not encrypting your
-# communications set ssl = False
-usernameInflux='aW5mbHV4dXNlcm5hbWU='
-passwordInflux='aW5mbHV4cGFzc3dk'
-dataBase='scipion'
-hostinflux='influx-server.cnb.csic.es'
-port=8086
-ssl=True
-verify_ssl=False
-timeZone = "Europe/Madrid"
+    # influx: information needed to acces to the "host"
+    # running influxdb. If you are not encrypting your
+    # communications set ssl = False
+    usernameInflux='aW5mbHV4dXNlcm5hbWU='
+    passwordInflux='aW5mbHV4cGFzc3dk'
+    dataBase='scipion'
+    hostinflux='influx-server.cnb.csic.es'
+    port=8086
+    ssl=True
+    verify_ssl=False
+    timeZone = "Europe/Madrid"
+    
+    # paramiko,  is a ssh client for python we use it to implement
+    # sftp and transfer images from scipion host to grafana host
+    # authentication is performed using username and a private key. 
+    # The path to the private l¡key (keyfilepath) is encrypted and should be similar to
+    # '/home/transferusername/.ssh/id_rsa' and the keyfiletype (also encrypted)
+    # should be either "RSA" or "DSA"
+    # Remember to add the PUBLIC key to the authorized_host file in hostparamiko
+    usernameParamiko = 'dXNlcm5hbWVQYXJhbWlrbw=='
+    passwordParamiko = None,
+    keyfilepath = 'L2hvbWUvcm9iZXJ0by8uc3NoL2lkX3JzYQ=='
+    keyfiletype = 'UlNB'
+    remote_path = '/home/scipionbox/public_html/'
+    hostparamiko = 'paramiko-erver.cnb.csic.es"
 
-# paramiko,  is a ssh client for python we use it to implement
-# sftp and transfer images from scipion host to grafana host
-# authentication is performed using username and a private key. 
-# The path to the private l¡key (keyfilepath) is encrypted and should be similar to
-# '/home/transferusername/.ssh/id_rsa' and the keyfiletype (also encrypted)
-# should be either "RSA" or "DSA"
-# Remember to add the PUBLIC key to the authorized_host file in hostparamiko
-usernameParamiko = 'dXNlcm5hbWVQYXJhbWlrbw=='
-passwordParamiko = None,
-keyfilepath = 'L2hvbWUvcm9iZXJ0by8uc3NoL2lkX3JzYQ=='
-keyfiletype = 'UlNB'
-remote_path = '/home/scipionbox/public_html/'
-hostparamiko = 'paramiko-erver.cnb.csic.es"
+    import base64
+    def enCrypt(message):
+        """Totally naive encription routine that will not
+        stop a hacker. Use it to encrypt usernames and password.
+        Ussage: enCrypt("myusername")"""
 
-import base64
-def enCrypt(message):
-    """Totally naive encription routine that will not
-    stop a hacker. Use it to encrypt usernames and password.
-    Ussage: enCrypt("myusername")"""
-
-    message_bytes = message.encode('ascii')
-    base64_bytes = base64.b64encode(message_bytes)
-    return base64_bytes.decode('ascii')
-
-``` 
-
-where usernames and passwords are naively encrypted using the function
-
-```
-import base64
-def enCrypt(message):
-    """Totally naive encription routine that will not
-    stop a hacker"""
-
-    message_bytes = message.encode('ascii')
-    base64_bytes = base64.b64encode(message_bytes)
-    return base64_bytes.decode('ascii')
-```
-
-The 
+        message_bytes = message.encode('ascii')
+        base64_bytes = base64.b64encode(message_bytes)
+        return base64_bytes.decode('ascii')
+        
 
 Where is my project?
 ____________________
+
+Last but not least the report sohuld be accesible at the URL  https://grafanahost:8888/d/oYW5BSeWz/scipion_projects?var-project=scipion_project_name and a username and password will be needed to connect to grafana unless you have impleemnted anonymous authentification (see "https://grafana.com/docs/grafana/latest/auth/overview/#anonymous-authentication")
