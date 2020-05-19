@@ -109,6 +109,7 @@ Installing and setting up Grafana
 Follow instruction available at  https://grafana.com/docs/grafana/latest/installation/
 
 Set up secure conection:
+
 First create certificate 
 
 * cd /etc/grafana
@@ -116,7 +117,7 @@ First create certificate
     * openssl genrsa -out grafana.key 2048
     * openssl req -new -key grafana.key -out grafana.csr
     * openssl x509 -req -days 365 -in grafana.csr -signkey grafana.key -out grafana.crt
-* Set the certificate, key file ownership, and permissions so that they are accessible to Grafana.
+* Set the certificate, key file ownership, and permissions so that they are accessible by Grafana.
     * chown grafana.grafana grafana.crt
     * chown grafana.grafana grafana.key
     * chmod 400 grafana.crt
@@ -126,7 +127,8 @@ First create certificate
     * http_addr = 0.0.0.0
     * cert_file =  /etc/grafana/grafana.crt
     * cert_key = /etc/grafana/grafana.key
-* Reboot grafana and you should be able to connect using https (default user name and password admin/admin)
+* Reboot grafana and you should be able to connect using https://grafana_host:3000 (default user name and password admin/admin). [If you are working from home and your server is behind a firewall you may oipen an ssh tunnel using: ssh -L 8888:grafana_host:3000 user@ssh_host.cnb.csic.es, in this case Grafana URL will be https://localhost:8888]
+
 * missing how to import a dahboard
 
 Grafana create Data Source
@@ -243,6 +245,14 @@ available in the right directory). The file structure is
         message_bytes = message.encode('ascii')
         base64_bytes = base64.b64encode(message_bytes)
         return base64_bytes.decode('ascii')
+        
+Important: you will need to install the following modules in Scipion python:
+
+
+ .. code-block:: sql
+ 
+    ./scipion3 run pip install paramiko
+
         
 
 Where is my project?
