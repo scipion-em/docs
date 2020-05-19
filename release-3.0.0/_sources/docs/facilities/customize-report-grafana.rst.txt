@@ -22,7 +22,7 @@ Setting UP Grafana and Influxdb
 
 For starters, download InfluxDB and Grafana. In our facilities we have used version 1.6 and 1.7 for grafana and 1.8 for influxdb but we are using the basic funtionality of these software so very likely other versions will also work.
 
-The basic setup is to have InfluxDB and Grafana connected together. InfluxDB has an API that defaults to port 8086 while Grafana’s API is on port 3000. And Grafana will call the InfluxDB API whenever it wants to query data. When you set up the InfluxData time series platform, you will need a collection agent collecting your metrics this collection agent wil the Scipion **summary monitor** (select the option *use grafana/influx*).
+The basic setup is to have InfluxDB and Grafana connected together. InfluxDB has an API that defaults to port 8086 while Grafana’s API is on port 3000. And Grafana will call the InfluxDB API whenever it wants to query data. When you set up the InfluxData time series platform, you will need a collection agent collecting your metrics this collection agent wil the Scipion**summary monitor**.
 
 InfluxDB is essentially a time series database process that runs on a server. That process can also run on the same box that Grafana runs on. Grafana has a very lightweight server-side application, and most of Grafana monitoring runs in the browser.
 
@@ -115,8 +115,8 @@ First create certificate
     * openssl req -new -key grafana.key -out grafana.csr
     * openssl x509 -req -days 365 -in grafana.csr -signkey grafana.key -out grafana.crt
 * Set the certificate, key file ownership, and permissions so that they are accessible to Grafana.
-    * chown ams:hadoop grafana.crt
-    * chown ams:hadoop grafana.key
+    * chown grafana.grafana grafana.crt
+    * chown grafana.grafana grafana.key
     * chmod 400 grafana.crt
     * chmod 400 grafana.key
 * Edit  grafana.ini and modify the following lines
@@ -127,20 +127,123 @@ First create certificate
 * Reboot grafana and you should be able to connect using https (default user name and password admin/admin)
 * missing how to import a dahboard
 
+Grafana create Data Source
+________________________
 
-Export Dashboard
-
-While Dashboard is open, click "Share" icon on top of the page and select "Export" tab to save it to a JSON file.
-
-
-Import Dashboard
-
-While on Dashboard home page, click "Home" menu on the left top corner and select "Import dashboard" option to upload a JSON file.
+Log into Grafana and  add a data source (see details at https://grafana.com/docs/grafana/latest/features/datasources/add-a-data-source/). Follows a table with the parameters used to create the data source:
 
 
-Export Data Sources
++-------+-------------------------+---------+----+
+| Name  | InfluxDB-scipion        | Default | on |
++-------+-------------------------+---------+----+
+| HTTP                                           |
++-------+----------------------------------------+
+| URL   | https://localhost:8086                 |
++-------+----------------------------------------+
+|Access | Server (default)                       |
++-------+-------------+--------------------------+
+| Whitelisted Cookies |                          |
++---------------------+--------------------------+
+| Auth                                           |
++-----------------+-----+------------------+-----+
+| Basic auth      | on  | With Credentials | off |
++-----------------+-----+------------------+-----+
+|TLS Client Auth  | off | With CA Cert     |     |
++-----------------+-----+------------------+-----+
+| Skip TLS Verify | on                           | 
++------------------------+-----------------------+
+| Forward OAuth Identity | off                   |
++------------------------+-----------------------+
+| Basic Auth Details                             |
++-----------------+------------------------------+
+| User            | admin                        |
++-----------------+------------------------------+
+| Password        | xxxxx                        |
++-----------------+------------------------------+
+| InfluxDB Details                               |
++-----------------+------------------------------+
+| Database        | scipion                      |
++-----------------+------------------------------+
+| User            | admin                        |
++-----------------+------------------------------+
+| Password        | xxxxx                        |
++-----------------+------------------------------+
+| HTTP Method     | GET                          |
++-----------------+------------------------------+
+
+Grafana create DashBoard
+________________________
+
+A dashboard is a set of one or more panels organized and arranged into one or more rows. In our facility we use 5 dashboards. You may import them from Grafana  Dashboard home page, click "Home" menu on the left top corner and select "Import dashboard" option to upload the following JSON files.
+
+* `Summary <json/summary.json>`_: general description of the session acquisition 
+* `CTF <json/ctf.json>`_: data related with CTF such as defocus, astigmatism, etc
+* `Gain <json/summary.json>`_: microcope gain estimation 
+* `System <json/system.json>`_: cpu, memory, disk access, etc.
+* `Images <json/images.json>`_: gallery with micrographs, PSD, CTF, etc
+
+Important The dashboard assume that the images are accesible at /usr/share/grafana/public/img/scipionbox. Please link the directory  remote_path to /usr/share/grafana/public/img/scipionbox. remote_path is defined in next section.
 
 
-InfluxData’s “How to use Grafana with InfluxDB” webinar explains how to use Grafana UI to set up graphs and use InfluxDB Query Builder. 
 
+Scipion how to connect it to Influxdb
+_____________________________________
 
+The only missing piecce of this puzzle is how to make Scipion to send
+data to influxdb so Grafana may diaply it.  The protocol that perform this task is
+**summary monitor** (select the option *use grafana/influx*). This protocol search 
+for login information in a file called **secrets.py** which should be in the same 
+directory than **protocol_monitor_summary.py** (a template called secres_template.py is 
+available in the right directory). The file structure is
+
+ .. code-block:: sql
+ 
+    # This is a template for the auxiliary file that contains
+    # the usernames, password and paths used to connecto to influx
+    # (influx section)
+    # and to transfer images between computers (paramiko section)
+    # The usernames, passwords, keyfilepath and keytype has been encrypted
+    # using the function enCrypt (see below)
+    # this encryption is weak but at least will stop casual users
+
+    # influx: information needed to acces to the "host"
+    # running influxdb. If you are not encrypting your
+    # communications set ssl = False
+    usernameInflux='aW5mbHV4dXNlcm5hbWU='
+    passwordInflux='aW5mbHV4cGFzc3dk'
+    dataBase='scipion'
+    hostinflux='influx-server.cnb.csic.es'
+    port=8086
+    ssl=True
+    verify_ssl=False
+    timeZone = "Europe/Madrid"
+    
+    # paramiko,  is a ssh client for python we use it to implement
+    # sftp and transfer images from scipion host to grafana host
+    # authentication is performed using username and a private key. 
+    # The path to the private l¡key (keyfilepath) is encrypted and should be similar to
+    # '/home/transferusername/.ssh/id_rsa' and the keyfiletype (also encrypted)
+    # should be either "RSA" or "DSA"
+    # Remember to add the PUBLIC key to the authorized_host file in hostparamiko
+    usernameParamiko = 'dXNlcm5hbWVQYXJhbWlrbw=='
+    passwordParamiko = None,
+    keyfilepath = 'L2hvbWUvcm9iZXJ0by8uc3NoL2lkX3JzYQ=='
+    keyfiletype = 'UlNB'
+    remote_path = '/home/scipionbox/public_html/'
+    hostparamiko = 'paramiko-erver.cnb.csic.es"
+
+    import base64
+    def enCrypt(message):
+        """Totally naive encription routine that will not
+        stop a hacker. Use it to encrypt usernames and password.
+        Ussage: enCrypt("myusername")"""
+
+        message_bytes = message.encode('ascii')
+        base64_bytes = base64.b64encode(message_bytes)
+        return base64_bytes.decode('ascii')
+        
+
+Where is my project?
+____________________
+
+Last but not least the report sohuld be accesible at the URL  https://grafanahost:8888/d/oYW5BSeWz/scipion_projects?var-project=scipion_project_name and a username and password will be needed to connect to grafana unless you have impleemnted anonymous authentification (see "https://grafana.com/docs/grafana/latest/auth/overview/#anonymous-authentication")
