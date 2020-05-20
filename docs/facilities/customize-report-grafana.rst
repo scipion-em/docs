@@ -12,7 +12,7 @@ Grafana, InfluxDB report customization
 
 Intro
 -----
-InfluxDB is a time series database built specifically for storing time series data, and Grafana is a visualization tool for this kind of data. Below are some basics on how to set up your Grafana dashboard with InfluxDB and how to use the Grafana InfluxDB solution to display the output of Scipion monitors. In Summary, the general idea is, 
+InfluxDB is a time series database built specifically for storing time series data, and Grafana is a visualization tool for this kind of data. Below are some basics on how to set up your Grafana dashboard with InfluxDB and how to use the Grafana InfluxDB solution to display the output of Scipion monitors. In Summary the general idea is, 
 Scipion **summary monitor** is the agent responsible for gathering and aggregating data, like the defocus of each of the collected Movies. InfluxDB will store the data, and expose it to Grafana, which will display it to the final users.
 
 
@@ -84,8 +84,10 @@ You may find a description of the process in https://devconnected.com/how-to-set
     > show databases
     name: databases
     name
+    
+Note: The flag **unsafeSsl* is needed if you use a self-signed certificate.
 
-* Create database "scipion" and grant access permision to scipion_writer (as admin user)
+* Create database "scipion" and grant access permision to scipion_writer (as admin user) and to scipion_reader (as readonly user)
 
  .. code-block:: bash
 
@@ -97,6 +99,7 @@ You may find a description of the process in https://devconnected.com/how-to-set
     password: 
     > CREATE DATABASE scipion
     > GRANT ALL ON scipion TO scipion_writer
+    > GRANT READ ON scipion TO scipion_reader
 
 
 * Check you can access influx service from the computer that will run scipion 
@@ -127,9 +130,7 @@ First create certificate
     * http_addr = 0.0.0.0
     * cert_file =  /etc/grafana/grafana.crt
     * cert_key = /etc/grafana/grafana.key
-* Reboot grafana and you should be able to connect using https://grafana_host:3000 (default user name and password admin/admin). [If you are working from home and your server is behind a firewall you may oipen an ssh tunnel using: ssh -L 8888:grafana_host:3000 user@ssh_host.cnb.csic.es, in this case Grafana URL will be https://localhost:8888]
-
-* missing how to import a dahboard
+* Reboot grafana and you should be able to connect using https://grafana_host:3000 (default user name and password admin/admin). [If you are working from home and your server is behind a firewall you may open an ssh tunnel using: ssh -L 8888:grafana_host:3000 user@ssh_host.cnb.csic.es, in this case Grafana URL will be https://localhost:8888]
 
 Grafana create Data Source
 ________________________
@@ -155,7 +156,7 @@ Log into Grafana and  add a data source (see details at https://grafana.com/docs
 |TLS Client Auth  | off | With CA Cert     |     |
 +-----------------+-----+------------------+-----+
 | Skip TLS Verify | on                           | 
-+------------------------+-----------------------+
++-----------------+------+-----------------------+
 | Forward OAuth Identity | off                   |
 +------------------------+-----------------------+
 | Basic Auth Details                             |
@@ -194,10 +195,10 @@ Scipion how to connect it to Influxdb
 _____________________________________
 
 The only missing piecce of this puzzle is how to make Scipion to send
-data to influxdb so Grafana may diaply it.  The protocol that perform this task is
+data to influxdb so Grafana may display it.  The protocol that perform this task is
 **summary monitor** (select the option *use grafana/influx*). This protocol search 
 for login information in a file called **secrets.py** which should be in the same 
-directory than **protocol_monitor_summary.py** (a template called secres_template.py is 
+directory than **protocol_monitor_summary.py** (a template file called **secrest_template.py** is 
 available in the right directory). The file structure is
 
  .. code-block:: sql
@@ -258,4 +259,4 @@ Important: you will need to install the following modules in Scipion python:
 Where is my project?
 ____________________
 
-Last but not least the report sohuld be accesible at the URL  https://grafanahost:8888/d/oYW5BSeWz/scipion_projects?var-project=scipion_project_name and a username and password will be needed to connect to grafana unless you have impleemnted anonymous authentification (see "https://grafana.com/docs/grafana/latest/auth/overview/#anonymous-authentication")
+Last but not least the report sohuld be accesible at the URL  https://grafanahost:8888/d/oYW5BSeWz/scipion_projects?var-project=scipion_project_name and a username and password will be needed to connect to grafana unless you have implemented anonymous authentification (see "https://grafana.com/docs/grafana/latest/auth/overview/#anonymous-authentication")
