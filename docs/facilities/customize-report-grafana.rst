@@ -130,6 +130,7 @@ First create certificate
     * http_addr = 0.0.0.0
     * cert_file =  /etc/grafana/grafana.crt
     * cert_key = /etc/grafana/grafana.key
+    * you may waht to set **viewers_can_edit=true** so that users with view only permission may edit/inspect dashboard settings in the browser, but not save the modifications.
 * Reboot grafana and you should be able to connect using https://grafana_host:3000 (default user name and password admin/admin). [If you are working from home and your server is behind a firewall you may open an ssh tunnel using: ssh -L 8888:grafana_host:3000 user@ssh_host.cnb.csic.es, in this case Grafana URL will be https://localhost:8888]
 
 Grafana create Data Source
