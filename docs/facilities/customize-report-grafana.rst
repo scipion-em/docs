@@ -12,7 +12,7 @@ Grafana, InfluxDB report customization
 
 Intro
 -----
-InfluxDB is a time series database built specifically for storing time series data, and Grafana is a visualization tool for this kind of data. Below are some basics on how to set up your Grafana dashboard with InfluxDB and how to use the Grafana InfluxDB solution to display the output of Scipion monitors. We will show here how to configure the system in order to allow you to visualize what you want, the way that you want. In Summary, the general idea is, 
+InfluxDB is a time series database built specifically for storing time series data, and Grafana is a visualization tool for this kind of data. Below are some basics on how to set up your Grafana dashboard with InfluxDB and how to use the Grafana InfluxDB solution to display the output of Scipion monitors. In Summary, the general idea is, 
 Scipion **summary monitor** is the agent responsible for gathering and aggregating data, like the defocus of each of the collected Movies. InfluxDB will store the data, and expose it to Grafana, which will display it to the final users.
 
 
