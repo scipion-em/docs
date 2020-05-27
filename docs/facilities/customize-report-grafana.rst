@@ -262,4 +262,4 @@ Important: you will need to install the following modules in Scipion python:
 Where is my project?
 ____________________
 
-Last but not least the report sohuld be accesible at the URL  https://grafanahost:8888/d/oYW5BSeWz/scipion_projects?var-project=scipion_project_name and a username and password will be needed to connect to grafana unless you have implemented anonymous authentification (see "https://grafana.com/docs/grafana/latest/auth/overview/#anonymous-authentication")
+Last but not least the report should be accesible at the URL  https://grafanahost:8888/d/oYW5BSeWz/scipion_projects?var-project=scipion_project_name and a username and password will be needed to connect to grafana unless you have implemented anonymous authentification (see "https://grafana.com/docs/grafana/latest/auth/overview/#anonymous-authentication")
