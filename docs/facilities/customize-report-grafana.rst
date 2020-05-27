@@ -181,7 +181,7 @@ Log into Grafana and  add a data source (see details at https://grafana.com/docs
 Grafana create DashBoard
 ________________________
 
-A dashboard is a set of one or more panels organized and arranged into one or more rows. In our facility we use 5 dashboards. To import a dashboard click the + icon in the side menu, and then click Import. You may import dashboards directly from grafana.com. There we has uploaded the five dashboards used in our facility (just type de dashboard id in the text-window labeled as "Import via grafana.com) and fill the Folder parameter ("General" is a good pssibility). 
+A dashboard is a set of one or more panels organized and arranged into one or more rows. In our facility we use 5 dashboards. To import a dashboard click the + icon in the side menu, and then click Import. You may import dashboards directly from grafana.com. There we has uploaded the five dashboards used in our facility (just type de dashboard id in the text-window labeled as "Import via grafana.com) and fill the Folder and  Influxdb-scipion parameters ("General" and InfluxDb-scipion are good options). 
 
 * `Summary <https://grafana.com/grafana/dashboards/12351>`_ (ID=12351): general description of the session acquisition 
 * `CTF <https://grafana.com/grafana/dashboards/12352>`_ (ID=12352): data related with CTF such as defocus, astigmatism, etc
