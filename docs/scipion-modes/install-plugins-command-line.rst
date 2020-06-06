@@ -73,7 +73,7 @@ Regular install
 ~~~~~~~~~~~~~~~
 
 To install one of the plugins from the list (by default, all plugins are
-installed in ``software/lib/python2.7/site-packages`` and their binaries
+installed in ``../lib/python3.8/site-packages`` and their binaries
 in ``software/em``), run the install command with the name of the
 package. For example, to install Relion using 5 processors:
 
@@ -88,7 +88,7 @@ command:
 
 ::
 
-    ./scipion installp -p scipion-em-xmipp -j 5 -p scipion-em-relion -j 5 -p scipion-em-grigoriefflab
+    ./scipion installp -p scipion-em-xmipp -j 5 -p scipion-em-relion -j 5 -p scipion-em-cistem
 
 Installing binaries
 -------------------
@@ -117,15 +117,15 @@ This should show something like:
 ::
 
     [. . . ]
-    Example: /home/yaiza/git/scipion/scipion installb ctffind4 unblur-1.0.15
+    Example: /home/yaiza/git/scipion/scipion installb cistem relion-3.1
 
     Available binaries: ([ ] not installed, [X] seems already installed)
-                 relion       1.4 [ ]     1.4f [ ]      2.0 [ ]      2.1 [ ]      3.0 [ ]
-               xmippBin   3.18.08 [ ]
-               xmippSrc   3.18.08 [ ]
+                 relion       3.0 [ ]      3.1 [X]
+               xmippBin   3.20.07 [ ]
+               xmippSrc   3.20.07 [ ]
 
 Now we can install our preferred binaries:
 
 ::
 
-    scipion installb relion-2.1 -j 5
+    scipion installb relion-3.1 -j 5
