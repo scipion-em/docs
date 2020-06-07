@@ -30,7 +30,7 @@ MPI command
 ::
 
     [localhost]
-    PARALLEL_COMMAND = mpirun -np %%(JOB_NODES)d -bynode %%(COMMAND)s
+    PARALLEL_COMMAND = mpirun -np %_(JOB_NODES)d -bynode %_(COMMAND)s
 
 
 This variable reflects how to run programs using MPI in you computer.
@@ -75,9 +75,9 @@ id as 178.job, but this causes problems in some clusters.
 
 ::
 
-    SUBMIT_COMMAND = sbatch %%(JOB_SCRIPT)s
-    CANCEL_COMMAND = scancel %%(JOB_ID)s
-    CHECK_COMMAND = squeue -j %%(JOB_ID)s
+    SUBMIT_COMMAND = sbatch %_(JOB_SCRIPT)s
+    CANCEL_COMMAND = scancel %_(JOB_ID)s
+    CHECK_COMMAND = squeue -j %_(JOB_ID)s
 
 
 The previous variables are used to specify how to submit, cancel and
@@ -150,26 +150,26 @@ you can find a very simple tutorial about installing Slurm in Ubuntu.
 ::
 
     [localhost]
-    PARALLEL_COMMAND = mpirun -np %%(JOB_NODES)d -bynode %%(COMMAND)s
-NAME = SLURM
-MANDATORY = False
-SUBMIT_COMMAND = sbatch %%(JOB_SCRIPT)s
-CANCEL_COMMAND = scancel %%(JOB_ID)s
-CHECK_COMMAND = squeue -h -j %%(JOB_ID)s
-SUBMIT_TEMPLATE = #!/bin/bash
+    PARALLEL_COMMAND = mpirun -np %_(JOB_NODES)d -bynode %_(COMMAND)s
+    NAME = SLURM
+    MANDATORY = False
+    SUBMIT_COMMAND = sbatch %_(JOB_SCRIPT)s
+    CANCEL_COMMAND = scancel %_(JOB_ID)s
+    CHECK_COMMAND = squeue -h -j %_(JOB_ID)s
+    SUBMIT_TEMPLATE = #!/bin/bash
         ### Job name
-        #SBATCH -J %%(JOB_NAME)s
-        ### Outputs (we need to escape the job id as %%j)
-        #SBATCH -o %%(JOB_LOGS)s.out
-        #SBATCH -e %%(JOB_LOGS)s.err
+        #SBATCH -J %_(JOB_NAME)s
+        ### Outputs (we need to escape the job id as %_j)
+        #SBATCH -o %_(JOB_LOGS)s.out
+        #SBATCH -e %_(JOB_LOGS)s.err
         ### Partition (queue) name
         ### if the system has only 1 queue, it can be omited
         ### if you want to specify the queue, ensure the name in the scipion dialog matches
         ### a slurm partition, then leave only 1 # sign in the next line
-        ##### SBATCH -p %%(JOB_QUEUE)s
+        ##### SBATCH -p %_(JOB_QUEUE)s
 
         ### Specify time, number of nodes (tasks), cores and memory(MB) for your job
-        #SBATCH --time=%%(JOB_TIME)s:00:00 --ntasks=%%(JOB_NODES)d --cpus-per-task=%%(JOB_THREADS)d --mem=%%(JOB_MEMORY)s           --gres=gpu:%%(GPU_COUNT)s
+        #SBATCH --time=%_(JOB_TIME)s:00:00 --ntasks=%_(JOB_NODES)d --cpus-per-task=%_(JOB_THREADS)d --mem=%_(JOB_MEMORY)s           --gres=gpu:%_(GPU_COUNT)s
         # Use as working dir the path where sbatch was launched
         WORKDIR=$SLURM_SUBMIT_DIR
 
@@ -179,7 +179,7 @@ SUBMIT_TEMPLATE = #!/bin/bash
 
         cd $WORKDIR
         # Make a copy of node file
-        echo $SLURM_JOB_NODELIST > %%(JOB_NODEFILE)s
+        echo $SLURM_JOB_NODELIST > %_(JOB_NODEFILE)s
         # Calculate the number of processors allocated to this run.
         NPROCS=`wc -l < $SLURM_JOB_NODELIST`
         # Calculate the number of nodes allocated.
@@ -194,24 +194,24 @@ SUBMIT_TEMPLATE = #!/bin/bash
         echo $SLURM_JOB_NODELIST
         echo CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES
         #################################
-        # echo '%%(JOB_COMMAND)s' >> /tmp/slurm-jobs.log
-        %%(JOB_COMMAND)s
+        # echo '%_(JOB_COMMAND)s' >> /tmp/slurm-jobs.log
+        %_(JOB_COMMAND)s
         find "$SLURM_SUBMIT_DIR" -type f -user $USER -perm 644 -exec chmod 664 {} +
 
-QUEUES = {
-    "tesla": [["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
-              ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"],
-              ["GPU_COUNT", "1", "Number of GPUs", "Select the number of GPUs if protocol has been set up to use them"],
-              ["QUEUE_FOR_JOBS", "N", "Use queue for jobs", "Send individual jobs to queue"]],
-    "geforce": [["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
-                ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"],
-                ["GPU_COUNT", "1", "Number of GPUs", "Select the number of GPUs if protocol has been set up to use them"],
-                ["QUEUE_FOR_JOBS", "N", "Use queue for jobs", "Send individual jobs to queue"]],
-    "quadro": [["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
-               ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"],
-               ["GPU_COUNT", "1", "Number of GPUs", "Select the number of GPUs if protocol has been set up to use them"],
-               ["QUEUE_FOR_JOBS", "N", "Use queue for jobs", "Send individual jobs to queue"]]
-}
+    QUEUES = {
+        "tesla": [["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
+                  ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"],
+                  ["GPU_COUNT", "1", "Number of GPUs", "Select the number of GPUs if protocol has been set up to use them"],
+                  ["QUEUE_FOR_JOBS", "N", "Use queue for jobs", "Send individual jobs to queue"]],
+        "geforce": [["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
+                    ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"],
+                    ["GPU_COUNT", "1", "Number of GPUs", "Select the number of GPUs if protocol has been set up to use them"],
+                    ["QUEUE_FOR_JOBS", "N", "Use queue for jobs", "Send individual jobs to queue"]],
+        "quadro": [["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
+                   ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"],
+                   ["GPU_COUNT", "1", "Number of GPUs", "Select the number of GPUs if protocol has been set up to use them"],
+                   ["QUEUE_FOR_JOBS", "N", "Use queue for jobs", "Send individual jobs to queue"]]
+    }
 
 
 
@@ -221,25 +221,25 @@ Example for Torque-PBS
 ::
 
     [localhost]
-    PARALLEL_COMMAND = mpirun -np %%(JOB_NODES)d -bynode %%(COMMAND)s
+    PARALLEL_COMMAND = mpirun -np %_(JOB_NODES)d -bynode %_(COMMAND)s
     NAME = PBS/TORQUE
     MANDATORY = False
-    SUBMIT_COMMAND = qsub %%(JOB_SCRIPT)s
+    SUBMIT_COMMAND = qsub %_(JOB_SCRIPT)s
     SUBMIT_TEMPLATE = #!/bin/bash
             ### Inherit all current environment variables
             #PBS -V
             ### Job name
-            #PBS -N %%(JOB_NAME)s
+            #PBS -N %_(JOB_NAME)s
             ### Queue name
-            ###PBS -q %%(JOB_QUEUE)s
+            ###PBS -q %_(JOB_QUEUE)s
             ### Standard output and standard error messages
             #PBS -k eo
             ### Specify the number of nodes and thread (ppn) for your job.
-            #PBS -l nodes=%%(JOB_REAL_NODES)s:ppn=%%(CPUS_PER_NODE)s
+            #PBS -l nodes=%_(JOB_REAL_NODES)s:ppn=%_(CPUS_PER_NODE)s
             ### Tell PBS the anticipated run-time for your job, where walltime=HH:MM:SS
-            #PBS -l walltime=%%(JOB_HOURS)s:00:00
+            #PBS -l walltime=%_(JOB_HOURS)s:00:00
             # Memory per node
-            #PBS -l mem=%%(JOB_MEM)sg
+            #PBS -l mem=%_(JOB_MEM)sg
             # Use as working dir the path where qsub was launched
             WORKDIR=$PBS_O_WORKDIR
             #################################
@@ -248,7 +248,7 @@ Example for Torque-PBS
             ### Switch to the working directory;
             cd $WORKDIR
             # Make a copy of PBS_NODEFILE
-            cp $PBS_NODEFILE %%(JOB_NODEFILE)s
+            cp $PBS_NODEFILE %_(JOB_NODEFILE)s
             # Calculate the number of processors allocated to this run.
             NPROCS=`wc -l < $PBS_NODEFILE`
             # Calculate the number of nodes allocated.
@@ -261,9 +261,9 @@ Example for Torque-PBS
             echo PBS_NODEFILE:
             cat $PBS_NODEFILE
             #################################
-            %%(JOB_COMMAND)s
-    CANCEL_COMMAND = canceljob %%(JOB_ID)s
-    CHECK_COMMAND = qstat %%(JOB_ID)s
+            %_(JOB_COMMAND)s
+    CANCEL_COMMAND = canceljob %_(JOB_ID)s
+    CHECK_COMMAND = qstat %_(JOB_ID)s
     QUEUES = { "mypbsqueue": [ ["JOB_HOURS", "120", "Time (hours)", "Select the expected job time"], ["JOB_REAL_NODES", "1", "Nodes", "How many nodes the job needs"], ["CPUS_PER_NODE", "8", "CPUs", "How many CPUs/node to use"], ["JOB_MEM", "16", "Memory (GB)", "Define the memory per node for the job"] ] }
 
 
@@ -279,24 +279,24 @@ This example is based on a config originally adapted by `HPC@POLITO <http://www.
     PARALLEL_COMMAND = mpirun
     MANDATORY = False
     NAME = SGE
-    CANCEL_COMMAND = /opt/sge6/bin/linux-x64/qdel %%(JOB_ID)s
-    CHECK_COMMAND = /opt/sge6/bin/linux-x64/qstat -j %%(JOB_ID)s
-    SUBMIT_COMMAND = /opt/sge6/bin/linux-x64/qsub %%(JOB_SCRIPT)s
+    CANCEL_COMMAND = /opt/sge6/bin/linux-x64/qdel %_(JOB_ID)s
+    CHECK_COMMAND = /opt/sge6/bin/linux-x64/qstat -j %_(JOB_ID)s
+    SUBMIT_COMMAND = /opt/sge6/bin/linux-x64/qsub %_(JOB_SCRIPT)s
     SUBMIT_TEMPLATE = #!/bin/bash
         ###====================================================###
         #$ -V
         #$ -S /bin/bash
         #$ -cwd ### Use the current working directory
-        #$ -N scipion%%(JOB_NAME)s ### Job name
-        #$ -q %%(JOB_QUEUE)s ### Queue name
-        #$ -pe %%(JOB_PE)s %%(JOB_SLOTS)s
+        #$ -N scipion%_(JOB_NAME)s ### Job name
+        #$ -q %_(JOB_QUEUE)s ### Queue name
+        #$ -pe %_(JOB_PE)s %_(JOB_SLOTS)s
         #$ -j y ### Merge stdin and stdout
         ###=======================================================#
-        #$ -l h_rt=%%(JOB_HOURS)s:00:00 ### Max run Time
-        #$ -l vf=%%(JOB_MAX_MEM)sG
+        #$ -l h_rt=%_(JOB_HOURS)s:00:00 ### Max run Time
+        #$ -l vf=%_(JOB_MAX_MEM)sG
         ###=====================================================###
 
-        %%(JOB_COMMAND)s
+        %_(JOB_COMMAND)s
 
     QUEUES = {
             "ogequeue": [
