@@ -48,7 +48,7 @@ your system's configuration. For example, below is an excerpt of
     MPI_INCLUDE = /usr/include/mpi
     MPI_BINDIR = /usr/bin
     (...)
-    JAVA_HOME = /usr/lib/jvm/java-1.7.0-openjdk-amd64
+    JAVA_HOME = /usr/lib/jvm/java-8-openjdk
     JAVA_BINDIR = %(JAVA_HOME)s/bin
     (...)
 
@@ -74,7 +74,7 @@ the ``LINKFLAGS`` variable of ``scipion.conf``. For example:
 ::
 
     CUDA = True
-    LINKFLAGS = -L/opt/CUDA/cuda-5.5/lib64
+    LINKFLAGS = -L/opt/CUDA/cuda-8.0/lib64
     
 OpenCV flag
 ===========

@@ -40,7 +40,7 @@ In this case our protocol descends from a base class ``ProtClassify2D``
 which reflects the operation that this protocol performs. The list of protocols and
 how they interact with each other can be observed on the
 :doc:`Scipion EM classes - fig. general EM protocols hierarchy <scipion-em-classes>. The corresponding files
-are located in $SCIPION_HOME/pyworkflow/em/protocol.
+are located in pwem/protocol.
 
 Help icon message customization
 -------------------------------

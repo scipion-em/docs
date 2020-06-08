@@ -13,7 +13,7 @@ Each Plugin contains classes for  protocols, viewers, wizards, etc...allowing to
 package within the Scipion framework. Prior to version 2.0.0 Diocletian, the plugins' code was not completely isolated,
 it was under the ``scipion/pyworkflow/em/packages`` folder and hosted in the same central repository.
 
-For release 2.0.0 ("the pluginized version"), we worked hard to make the entire system more de-centralized
+Since release 2.0.0 ("the pluginized version") we worked hard to make the entire system more de-centralized
 and more standard. For that we re-factored the plugins to make them standard Python modules so that their
 code can be hosted in independent repositories and therefore, updated in different release cycles.
 
@@ -32,7 +32,7 @@ Where to start: scipion-em-template
 This repository contains a `Scipion template <https://github.com/scipion-em/scipion-em-template>`_ plugin with "git
 tags" describing the steps taken to build it. It is the perfect starting point for a practical following of the next
 sections. Although this whole page is referred to
-`Relion's repository <https://github.com/scipion-em/scipion-em-relion>`_., the template has been conceived to offer a
+`Relion's repository <https://github.com/scipion-em/scipion-em-relion>`_, the template has been conceived to offer a
 simple practical example that can be easily edited for a better understanding of Scipion Plugin development. Relion is
 a real product with the corresponding complexity, so the recommendation is to follow the explanations approached in this
 page and observe them in a real product while creating a simple one based on the template to consolidate the knowledge
@@ -96,38 +96,38 @@ For example, the Relion plugin has the following structure:
     $ cd ~/work/development/scipion-em-plugins/scipion-em-relion
     $ tree
     .
-    ├── LICENSE
-    ├── .gitignore
     ├── CHANGES.txt
-    ├── README.rst
+    ├── LICENSE
     ├── MANIFEST.in
-    ├── setup.py
-    └── relion
-        ├── __init__.py
-        ├── bibtex.py
-        ├── constants.py
-        ├── convert
-        │   ├── __init__.py
-        │   ├── convert.py
-        │   └── dataimport.py
-        ├── protocols
-        │   ├── __init__.py
-        │   ├── protocol_autopick.py
-        │   ├── protocol_autopick_v2.py
-        │   ├── protocol_base.py
-        │   ├── protocol_center_averages.py
-        │   ├── protocol_classify2d.py
-        │   ├── protocol_classify3d.py
-        │   ├── protocol_create_mask3d.py
-        │   ├── ...
-        ├── tests
-        │   ├── __init__.py
-        │   ├── test_convert_relion.py
-        │   ├── test_protocols_relion.py
-        │   └── test_workflow_relion.py
-        ├── viewers.py
-        ├── wizards.py
-        └── protocols.conf
+    ├── README.rst
+    ├── relion
+    │   ├── bibtex.py
+    │   ├── constants.py
+    │   ├── convert
+    │   │   ├── __init__.py
+    │   │   ├── convert30.py
+    │   │   ├── ...
+    │   ├── __init__.py
+    │   ├── objects.py
+    │   ├── protocols
+    │   │   ├── __init__.py
+    │   │   ├── protocol_assign_optic_groups.py
+    │   │   ├── protocol_autopick_log.py
+    │   │   ├── protocol_autopick.py
+    │   │   ├── ...
+    │   ├── protocols.conf
+    │   ├── relion_logo.png
+    │   ├── tests
+    │   │   ├── __init__.py
+    │   │   ├── test_convert_relion.py
+    │   │   ├── test_protocols_relion3.py
+    │   │   ├── ...
+    │   ├── viewers
+    │   │   ├── __init__.py
+    │   │   ├── viewer_base.py
+    │   │   ├── ...
+    │   ├── wizards.py
+    └── setup.py
 
 
 .. _standard-submodules:
@@ -211,18 +211,19 @@ them, there is no need for a separate constants.py file.
 
     from collections import OrderedDict
 
-    import pyworkflow.em.metadata as md
+    import pwem.emlib.metadata as md
+
+    # ----------------- Constants values ----------------------
 
     RELION_HOME = 'RELION_HOME'
     RELION_CUDA_LIB = 'RELION_CUDA_LIB'
 
     # Supported versions:
-    V2_0 = '2.0'
-    V2_1 = '2.1'
+    V3_0 = '3.0'
+    V3_1 = '3.1'
 
     MASK_FILL_ZERO = 0
     MASK_FILL_NOISE = 1
-    [. . .]
 
 Convert
 ^^^^^^^
@@ -257,55 +258,109 @@ the following structure:
 
 .. code-block:: cfg
 
-        [PROTOCOLS]
+    [PROTOCOLS]
     Protocols SPA = [
-        {"tag": "section", "text": "Imports", "icon": "bookmark.png", "children": []},
-        {"tag": "section", "text": "Movies", "openItem": "False", "children": []},
+        {"tag": "section", "text": "Imports", "icon": "bookmark.gif", "children": [
+        {"tag": "protocol", "value": "ProtImportMovies",      "text": "import movies"},
+        {"tag": "protocol", "value": "ProtImportMicrographs", "text": "import micrographs"},
+        {"tag": "protocol", "value": "ProtImportParticles",   "text": "import particles"},
+        {"tag": "protocol", "value": "ProtImportVolumes",     "text": "import volumes"},
+        {"tag": "section", "text": "more", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtImportCoordinates",   "text": "import coordinates"},
+        {"tag": "protocol", "value": "ProtImportCTF",   "text": "import ctfs"},
+        {"tag": "protocol", "value": "ProtImportPdb",   "text": "import atomic structure"},
+        {"tag": "protocol", "value": "ProtImportAverages",    "text": "import averages"},
+        {"tag": "protocol", "value": "ProtImportMask",        "text": "import masks"}
+        ]}
+        ]},
+        {"tag": "section", "text": "Movies", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtRelionMotioncor", "text": "default"}
+        ]},
         {"tag": "section", "text": "Micrographs", "children": [
-            {"tag": "protocol_group", "text": "CTF estimation", "openItem": "False", "children": [
-                {"tag": "protocol", "value": "ProtRelionExportCtf", "text": "default"}
-            ]}
+        {"tag": "protocol_group", "text": "CTF estimation", "openItem": "False", "children": [
+        {"tag": "section", "text": "more", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtRelionExportCtf", "text": "default"}
+        ]}
+        ]}
         ]},
         {"tag": "section", "text": "Particles", "children": [
-            {"tag": "protocol_group", "text": "Picking", "openItem": "False", "children": [
-                {"tag": "protocol", "value": "ProtRelion2Autopick",   "text": "default"},
-                {"tag": "protocol", "value": "ProtRelionAutopickLoG",   "text": "default"}
-            ]},
-            {"tag": "protocol_group", "text": "Extract", "openItem": "False", "children": [
-                {"tag": "protocol", "value": "ProtRelionExtractParticles",   "text": "default"},
-                {"tag": "protocol", "value": "ProtRelionExportParticles", "text": "default"},
-                {"tag": "protocol", "value": "ProtRelionSortParticles", "text": "default"}
-            ]},
-            {"tag": "protocol_group", "text": "Preprocess", "openItem": "False", "children": [
-                {"tag": "protocol", "value": "ProtRelionPreprocessParticles",  "text": "default"}
-            ]},
-            {"tag": "protocol_group", "text": "Filter", "openItem": "False", "children": []},
-            {"tag": "protocol_group", "text": "Mask", "openItem": "False", "children": []}
+        {"tag": "protocol_group", "text": "Picking", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtRelion2Autopick", "text": "default"},
+      {"tag": "protocol", "value": "ProtRelionAutopickLoG", "text": "default"}
+        ]},
+        {"tag": "protocol_group", "text": "Extract", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtRelionExtractParticles", "text": "default"},
+        {"tag": "section", "text": "more", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtRelionExportParticles", "text": "default"}
+        ]}
+        ]},
+        {"tag": "protocol_group", "text": "Preprocess", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtRelionPreprocessParticles", "text": "default"}
+        ]},
+        {"tag": "protocol_group", "text": "Filter", "openItem": "False", "children": []},
+        {"tag": "protocol_group", "text": "Mask", "openItem": "False", "children": []}
         ]},
         {"tag": "section", "text": "2D", "children": [
-            {"tag": "protocol_group", "text": "Align", "openItem": "False", "children": []},
-            {"tag": "protocol_group", "text": "Classify", "openItem": "False", "children": [
-                {"tag": "protocol", "value": "ProtRelionClassify2D",   "text": "default"}
-            ]}
+        {"tag": "protocol_group", "text": "Align", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtRelionCenterAverages", "text": "default"},
+        {"tag": "section", "text": "more", "openItem": "False", "children": []}
+        ]},
+        {"tag": "protocol_group", "text": "Classify", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtRelionClassify2D", "text": "default"},
+        {"tag": "section", "text": "more", "openItem": "False", "children": []}
+        ]}
         ]},
         {"tag": "section", "text": "3D", "children": [
-            {"tag": "protocol_group", "text": "Initial volume", "openItem": "False", "children": [
-                {"tag": "protocol", "value": "ProtRelionInitialModel",  "text": "default"}
-            ]},
-            {"tag": "protocol_group", "text": "Preprocess", "openItem": "False", "children": []},
-            {"tag": "protocol_group", "text": "Classify", "openItem": "False", "children": [
-                {"tag": "protocol", "value": "ProtRelionClassify3D",   "text": "default"}
-            ]},
-            {"tag": "protocol_group", "text": "Refine", "openItem": "False", "children": [
-                {"tag": "protocol", "value": "ProtRelionRefine3D",   "text": "default"},
-                {"tag": "protocol", "value": "ProtRelionCtfRefinement",   "text": "default"},
-                {"tag": "protocol", "value": "ProtRelionPolish", "text": "default"}
-            ]},
-            {"tag": "section", "text": "Resolution", "openItem": "False", "children": []},
-            {"tag": "protocol_group", "text": "Reconstruct", "openItem": "False", "children": [
-                {"tag": "protocol", "value": "ProtRelionReconstruct",   "text": "default"}
-            ]}
-        ]}]
+        {"tag": "protocol_group", "text": "Initial volume", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtRelionInitialModel", "text": "default"},
+        {"tag": "section", "text": "more", "openItem": "False", "children": []}
+        ]},
+        {"tag": "protocol_group", "text": "Preprocess", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtRelionCreateMask3D", "text": "default"},
+        {"tag": "section", "text": "more", "openItem": "False", "children": []}
+        ]},
+        {"tag": "protocol_group", "text": "Classify", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtRelionClassify3D", "text": "default"}
+        ]},
+        {"tag": "protocol_group", "text": "Refine", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtRelionRefine3D", "text": "default"},
+      {"tag": "protocol", "value": "ProtRelionCtfRefinement", "text": "default"},
+      {"tag": "protocol", "value": "ProtRelionBayesianPolishing", "text": "default"},
+      {"tag": "protocol", "value": "ProtRelionMultiBody", "text": "default"},
+        {"tag": "section", "text": "more", "openItem": "False", "children": []}
+        ]},
+        {"tag": "protocol_group", "text": "Postprocess", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtRelionPostprocess", "text": "default"}
+        ]},
+        {"tag": "protocol_group", "text": "Analysis", "openItem": "False", "children": [
+        {"tag": "section", "text": "Heterogeneity", "openItem": "False", "children": []},
+        {"tag": "section", "text": "Validation", "openItem": "False", "children": []},
+        {"tag": "section", "text": "Resolution", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtRelionLocalRes", "text": "default"}
+        ]},
+        {"tag": "section", "text": "more", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtRelionExpandSymmetry", "text": "default"},
+      {"tag": "protocol", "value": "ProtRelionSubtract", "text": "default"},
+      {"tag": "protocol", "value": "ProtRelionSymmetrizeVolume", "text": "default"}
+        ]}
+        ]},
+        {"tag": "protocol_group", "text": "Reconstruct", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtRelionReconstruct", "text": "default"}
+        ]}
+        ]},
+        {"tag": "section", "text": "Tools", "openItem": "False", "children": [
+        {"tag": "protocol_group", "text": "Sets", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtSubSet",   "text": "default"},
+        {"tag": "protocol", "value": "ProtUnionSet", "text": "default"},
+        {"tag": "protocol", "value": "ProtSplitSet", "text": "default"}
+        ]}
+        ]},
+        {"tag": "section", "text": "Exports", "openItem": "False", "children": [
+        {"tag": "protocol", "value": "ProtRelionExportCtf", "text": "default"},
+      {"tag": "protocol", "value": "ProtRelionExportParticles", "text": "default"},
+        {"tag": "protocol", "value": "ProtExportDataBases", "text": "export to DB"}]
+        }]
+
 
 logo.png
 ^^^^^^^^
@@ -362,26 +417,26 @@ plugin-level references:
 .. code-block:: python
 
     import os
-    import pyworkflow.em
     import pyworkflow.utils as pwutils
+    import pwem
 
-    from .constants import RELION_HOME, V2_0, V2_1, RELION_CUDA_LIB
+    from .constants import *
 
     _logo = "relion_logo.png"
-    _references = ['Scheres2012a', 'Scheres2012b', 'Kimanius2016']
+    _references = ['Scheres2012a', 'Scheres2012b', 'Kimanius2016', 'Zivanov2018']
 
 
 Define the Plugin class
 -----------------------
 
-Additionally, it is necessary to add a Plugin class (subclass from :class:`pyworkflow.plugin.Plugin`), which contains much of the
+Additionally, it is necessary to add a Plugin class (subclass from :class:`pwem.Plugin`), which contains much of the
 logic related with the plugin's variables, environment, associated binaries and paths.
 
 .. code-block:: python
 
-    class Plugin(pyworkflow.em.Plugin):
+    class Plugin(pwem.Plugin):
         _homeVar = RELION_HOME
-        _supportedVersions = [V2_0, V2_1]
+        _supportedVersions = [V3_0, V3_1]
 
 
 _homeVar
@@ -399,15 +454,15 @@ _defineVariables
 ~~~~~~~~~~~~~~~~
 
 Here is where we give the Plugin's environment variables a default value. In the case of Relion, we only have the
-``RELION_HOME``, which points to the binaries of the plugin and by default would be ``relion-2.1``
+``RELION_HOME``, which points to the binaries of the plugin and by default would be ``relion-3.1``
 
 .. code-block:: python
 
     @classmethod
     def _defineVariables(cls):
-        cls._defineEmVar(RELION_HOME, 'relion-2.1')
+        cls._defineEmVar(RELION_HOME, 'relion-3.1')
 
-There are two functions defined in the :doc:`plugin class </api/pyworkflow.plugin>` that may be useful here:
+There are two functions defined in the :doc:`plugin class </api/pwem.Plugin>` that may be useful here:
 ``_defineEmVar`` and ``_defineVar``. The first one will add the path to ``software/em`` to the variable
 (which is the default place to install binaries). The second will store the value as is.
 We only need ``defineEmVar`` in Relion, since the binary location is the only variable we'll declare.
@@ -422,29 +477,36 @@ variables in order to run the plugin.
     @classmethod
     def getEnviron(cls):
         """ Setup the environment variables needed to launch Relion. """
-
         environ = pwutils.Environ(os.environ)
-        binPath = cls.getHome('bin')
-        libPath = cls.getHome('lib') + ":" + cls.getHome('lib64')
+        binPath = os.pathsep.join([cls.getHome('bin'),
+                                   pwem.Config.MPI_BINDIR])
+        libPath = os.pathsep.join([cls.getHome('lib'),
+                                   cls.getHome('lib64'),
+                                   pwem.Config.MPI_LIBDIR,
+                                   ])
 
         if binPath not in environ['PATH']:
             environ.update({'PATH': binPath,
                             'LD_LIBRARY_PATH': libPath,
-                            'SCIPION_MPI_FLAGS': os.environ.get('RELION_MPI_FLAGS', ''),
                             }, position=pwutils.Environ.BEGIN)
 
         # Take Scipion CUDA library path
-        cudaLib = environ.getFirst((RELION_CUDA_LIB, 'CUDA_LIB'))
+        cudaLib = environ.get(RELION_CUDA_LIB, pwem.Config.CUDA_LIB)
         environ.addLibrary(cudaLib)
 
-        return environ
+        if 'RELION_MPI_LIB' in os.environ:
+            environ.addLibrary(os.environ['RELION_MPI_LIB'])
 
+        if 'RELION_MPI_BIN' in os.environ:
+            environ.set('PATH', os.environ['RELION_MPI_BIN'],
+                        position=pwutils.Environ.BEGIN)
+        return environ
 
 Implement validateInstallation() (Optional)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 In the plugin class, we can overwrite the validateInstallation function. In the case of Relion this is not overwritten,
 so this plugin will use Scipion's default validate installation. You can check the current implementation in
-``pyworkflow/plugin.py``.
+``scipion-pyworkflow/pyworkflow/plugin.py``.
 
 Defining the plugin binaries (Optional)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -456,52 +518,31 @@ this binary will be installed automatically when we get this plugin (unless spec
 .. code-block:: python
 
     # this goes inside class RelionPlugin(Plugin):
-    def defineBinaries(self, env):
-        relion_commands = [('./INSTALL.sh -j %d' % env.getProcessors(),
-                                  ['relion_build.log',
-                                   'bin/relion_refine'])]
-
-        env.addPackage('relion', version='1.4',
-                       tar='relion-1.4.tgz',
-                       commands=relion_commands)
-
-        env.addPackage('relion', version='1.4f',
-                       tar='relion-1.4_float.tgz',
-                       commands=relion_commands)
-
+    @classmethod
+    def defineBinaries(cls, env):
         # Define FFTW3 path variables
-        relion_vars = [('FFTW_LIB', SW_LIB),
-                       ('FFTW_INCLUDE', SW_INC)]
+        relion_vars = {'FFTW_LIB': env.getLibFolder(),
+                       'FFTW_INCLUDE': env.getIncludeFolder()}
 
-        relion2_commands = [('cmake -DGUI=OFF -DCMAKE_INSTALL_PREFIX=./ .', []),
-                            ('make -j %d' % env.getProcessors(), ['bin/relion_refine'])]
+        relion_commands = [('cmake -DGUI=OFF -DCMAKE_INSTALL_PREFIX=./ .', []),
+                           ('make -j %d' % env.getProcessors(),
+                            ['bin/relion_refine'])]
 
-        env.addPackage('relion', version='2.0',
-                       tar='relion-2.0.4.tgz',
-                       commands=relion2_commands,
+        env.addPackage('relion', version='3.0',
+                       url='https://github.com/3dem/relion/archive/3.0.tar.gz',
+                       commands=relion_commands,
                        updateCuda=True,
                        vars=relion_vars)
 
-        env.addPackage('relion', version='2.1',
-                      tar='relion-2.1.tgz',
-                      commands=relion2_commands,
-                      updateCuda=True,
-                      vars=relion_vars,
-                      default=True)
+        env.addPackage('relion', version='3.1',
+                       tar='relion-3.1.tgz',
+                       commands=relion_commands,
+                       updateCuda=True,
+                       vars=relion_vars,
+                       default=True)
 
 
 You can find more information about how to add a packages or a module `[here] <scipion-installation-system>`_.
-
-
-Register plugin
----------------
-
-To finish, we must register the plugin with the following line. This is very important so that Scipion distinguishes
-this from other python modules as a plugin.
-
-.. code-block:: python
-
-    pyworkflow.em.Domain.registerPlugin(__name__)
 
 Creating the protocols
 ======================
@@ -527,13 +568,13 @@ your plugin into a pip package.
 
 .. code-block:: bash
 
-    scipion run python pyworkflow/install/inspect_plugins.py relion
+    scipion inspect relion
 
 * List your tests and copy the one you want to run:
 
 .. code-block:: bash
 
-    scipion test --show --grep relion
+    scipion test --grep relion
 
 .. _publishing-to-pypi:
 
@@ -571,18 +612,21 @@ Here we present a synthesized version:
 
     setup(
         name='scipion-em-relion',  # Required
-        version='1.0.0a',  # Required
+        version='3.0.0',  # Required
         description='A python wrapper to use relion within Scipion',  # Required
         long_description=long_description,  # Optional
         url='https://github.com/scipion-em/scipion-em-relion',  # Optional, but very important
         author='Relion authors',  # Optional
         author_email='some@human.com',  # Optional
-        keywords='scipion cryoem imageprocessing scipion-1.2',  # Optional
+        keywords='scipion cryoem imageprocessing scipion-3.0',  # Optional
         packages=find_packages(),
+        install_requires=['scipion-em'],
         package_data={  #!!!!!! Required if we have a logo!!!!!
            'relion': ['logo.png'],
         }
-
+        entry_points={  # Required for plugin discovery
+        'pyworkflow.plugin': 'relion = relion'
+        },
     )
 
 CHANGES.txt (optional)
@@ -650,7 +694,7 @@ you can use the ``PYTHONPATH`` as described above. Additionally, if you want to 
     $SCIPION_HOME/scipion installp -p /home/me/myplugin --devel
 
 
-The ``PYTHONPATH`` approach will provide you with all execution features (protocols, wizzards, all should work).
+The ``PYTHONPATH`` approach will provide you with all execution features (protocols, wizards, all should work).
 The only additional thing you are getting with this is testing the installation of the plugin as a pip package,
 or for convenience, to forget about the ``PYTHONPATH`` and, still have a live code reacting to latest git pulls
 or branch changes.
@@ -714,7 +758,7 @@ choices:
 
 .. code-block:: bash
 
-    $SCIPION_HOME/scipion installp -p scipion_grigoriefflab
+    $SCIPION_HOME/scipion installp -p scipion-em-relion
 
 This command does two things:
 1. Gets the package from pypi
@@ -724,26 +768,24 @@ If no errors happen, we get an output similar to this one:
 
 .. code-block:: bash
 
-    /home/yaiza/git/scipion/software/bin/python /home/yaiza/git/scipion/scipion installp -p scipion-em-relion
+    scipion installp -p scipion-em-relion
 
-    Scipion  pluginization_install_config (2018-04-11) 0ee533a
+    Scipion v3.0 () devel
 
-    python  /home/yaiza/git/scipion/install/install-plugin.py /home/yaiza/git/scipion/scipion installp -p scipion-em-relion
     Building scipion-em-relion ...
-    python /home/yaiza/git/scipion/software/lib/python2.7/site-packages/pip install /home/yaiza/git/scipion-em-relion
-    Processing /home/yaiza/git/scipion-em-relion
-    Installing collected packages: scipion-em-relion
-      Running setup.py install for scipion-em-relion: started
-        Running setup.py install for scipion-em-relion: finished with status 'done'
-    Successfully installed scipion-em-relion-1.0a0
-    Done (1.01 seconds)
-    [. . .]
-    Building relion-2.1 ...
-    ...Relion binaries installation log goes here
+    /home/azazello/.conda/envs/.scipion3env/bin/python -m pip install scipion-em-relion==3.0.0
+    Collecting scipion-em-relion==3.0.0
+    Downloading scipion-em-relion-3.0.0.tar.gz (21 kB)
+    Requirement already satisfied: scipion-em in ./scipion-em (from scipion-em-relion==3.0.0) (1.0.2)
     ...
-    Done (0.20 seconds)
+    Successfully built scipion-em-relion
+    Installing collected packages: scipion-em-relion
+    Successfully installed scipion-em-relion-3.0.0
+    Done (1.94 seconds)
+    Building relion-3.1
+    ...
+    Done (132.00 seconds)
 
-    Process finished with exit code 0
 
 * Uninstalling plugin and all binaries installed
 
@@ -761,13 +803,13 @@ If no errors happen, we get an output similar to this one:
 
 .. code-block:: bash
 
-    $SCIPION_HOME/scipion installb relion-2.1
+    $SCIPION_HOME/scipion installb relion-3.1
 
 * Uninstall specific plugin binaries
 
 .. code-block:: bash
 
-    $SCIPION_HOME/scipion uninstallb relion-2.0
+    $SCIPION_HOME/scipion uninstallb relion-3.0
 
 Testing as pip package
 ----------------------
@@ -777,7 +819,7 @@ Testing as pip package
 
   .. code-block:: bash
 
-    scipion test em.packages.relion.tests.test_***
+    scipion test relion.tests.test_***
 
 
 * Open the test project:
@@ -831,11 +873,11 @@ Create and upload distribution
 To upload your distribution to pypi, you'll need to `create an account
 <https://packaging.python.org/tutorials/distributing-packages/#create-an-account>`_.
 
-* Install twine if you don't have it (latest stable compatible with Python 2.7 is version 1.15.0)
+* Install twine if you don't have it (latest stable compatible with Python 3.8 is version 3.1.1)
 
 .. code-block:: bash
 
-    pip install twine==1.15.0
+    pip install twine==3.1.1
 
 
 * Create the source distribution (at least! You can also create a Built distribution. Read more in the official
@@ -845,7 +887,7 @@ To upload your distribution to pypi, you'll need to `create an account
 
     cd $PLUGIN_HOME
     rm -rf dist/*    # To clean the already uploaded modules
-    python setup.py sdist
+    scipion python setup.py sdist
 
 It is convenient to check your ``*egg-info/SOURCES.TXT`` and see if you miss any file (pay special attention to
 non-python files that you might have forgot to include in ``MANIFEST.in`` or in your ``setup.py``, like the logo).
@@ -854,9 +896,9 @@ non-python files that you might have forgot to include in ``MANIFEST.in`` or in 
 
 .. code-block:: bash
 
-    cd $PLUGIN_HOME && twine upload dist/* -c "scipion-2.0"
+    cd $PLUGIN_HOME && twine upload dist/* -c "scipion-3.0"
 
-This means that this release we're uploading will be available for Scipion version 2.0 or higher.
+This means that this release we're uploading will be available for Scipion version 3.0 or higher.
 The scipion version must follow the pattern used above (scipion-X.Y(.Z))
 Now our plugin is on `PyPI <https://pypi.org/project/scipion-em-relion>`_.
 
@@ -882,4 +924,4 @@ Install from pip
 
   .. code-block:: bash
 
-      scipion test em.packages.relion.tests.test_***
+      scipion test relion.tests.test_***
