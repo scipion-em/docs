@@ -22,11 +22,11 @@ Create Issues in GitHub
 =======================
 
 If you have an account on `GitHub <http://github.com>`__ (It is very quick to create a new one),
-you can `Open a New Issue <https://github.com/I2PC/scipion/issues/new>`__
+you can `Open a New Issue <https://github.com/scipion-em/scipion-pyworkflow/issues/new>`__
 to report a bug or suggest a new feature
 
 Join us on Slack
 ================
 
 We have a slack channel where our most active members keep in touch daily. You can request access on
-scipion@cnb.csic.es .
+scipion@cnb.csic.es

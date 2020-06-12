@@ -28,7 +28,7 @@ Extending Scipion
 -----------------
 
 Scipion can be 'easily' extended by `Creating a Plugin <creating-a-plugin>`_ to
-do an specific task or to introduce a new software package:
+do a specific task or to introduce a new software package:
 
 * `Creating a protocol <creating-a-protocol>`_
 *  Integrating parameter Wizards
