@@ -157,6 +157,8 @@ you can find a very simple tutorial about installing Slurm in Ubuntu.
     CANCEL_COMMAND = scancel %_(JOB_ID)s
     CHECK_COMMAND = squeue -h -j %_(JOB_ID)s
     SUBMIT_TEMPLATE = #!/bin/bash
+        ### Inherit all current environment variables
+        #SBATCH --export=ALL    
         ### Job name
         #SBATCH -J %_(JOB_NAME)s
         ### Outputs (we need to escape the job id as %_j)
