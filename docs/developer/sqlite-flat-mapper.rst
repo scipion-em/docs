@@ -16,7 +16,7 @@ Objects to store
 In general any big list/collection with homogeneous content is a good
 candidate to be used with the flat mapper. SetOfParticles, SetOfClasses,
 SetOfVolumes, and any class that inherits form Set ( at
-pyworkflow.object.py) is a good candidate to be persisted with the flat
+pyworkflow/object.py) is a good candidate to be persisted with the flat
 mapper.
 
 Any other big, homogeneous list, even if it doesn't extends Set, will
@@ -112,17 +112,9 @@ Objects table
 
 The main table that will hold all the values of the set is the
 **Objects** table. Every objects table is composed by 2 type of columns:
-\* Fixed columns (5): This part is common among all databases created by
-this mapper. This columns are used to store common attributes regardless
-which object is being stored. **id, enabled, label, comment and
-creation**. \* Variable columns: These columns are specific for each
-object, but theirs names do not matches with the object attribute name.
-Instead, are named from c1 to cn, being n the number of attributes of
-the object to persist
 
-Going back to our case, since our Lego Particle objects have 14
-attributes (5 of them are the fixed ones), the Objects table should have
-14 fields: 5 fixed + 9 variables (named from c1 to c9).
+* Fixed columns (5): This part is common among all databases created by this mapper. This columns are used to store common attributes regardless which object is being stored. **id, enabled, label, comment and creation**.
+* Variable columns: These columns are specific for each object, but theirs names do not matches with the object attribute name. Instead, are named from c1 to cn, being the number of attributes of the object to persist. Going back to our case, since our Lego Particle objects have 14 attributes (5 of them are the fixed ones), the Objects table should have 14 fields: 5 fixed + 9 variables (named from c1 to c9).
 
 Let's have a look at the table:
 

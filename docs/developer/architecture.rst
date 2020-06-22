@@ -130,10 +130,10 @@ Data
 On top of this base, the objects related to EM were developed. Again, we
 have two main types of objects: Data and Protocols. Data objects are the
 inputs/outputs of the operations and they contain the underlying files and
-formats used by each EM package. Examples of Data objects are: :class:`Image <pyworkflow.em.data.Image>`,
-:class:`Micrograph<pyworkflow.em.data.Micrograph>`, :class:`Volume<pyworkflow.em.data.Volume>`,
-:class:`CTF<pyworkflow.em.data.CTFModel>`, :class:`SetOfImages<pyworkflow.em.data.SetOfImages>`,
-:class:`SetOfMicrographs<pyworkflow.em.data.SetOfMicrographs>` ..etc. Protocols
+formats used by each EM package. Examples of Data objects are: :class:`Image <pwem.objects.data.Image>`,
+:class:`Micrograph<pwem.objects.data.Micrograph>`, :class:`Volume<pwem.objects.data.Volume>`,
+:class:`CTF<pwem.objects.data.CTFModel>`, :class:`SetOfImages<pwem.objects.data.SetOfImages>`,
+:class:`SetOfMicrographs<pwem.objects.data.SetOfMicrographs>` ..etc. Protocols
 are the wrappers to the logical operations (such as: Filtering,
 Alignment, Classification, Refinement...etc) which usually involve the
 call to one or several command line programs. Protocols are in charge of
@@ -232,7 +232,7 @@ will provide an interface for storing, updating and retrieving objects
 while hiding the implementation details and the underlying storage.
 
 Currently we have implemented two mappers base on sqlite
-(``$SCIPION_HOME/pyworkflow/mapper/sqlite.py``). One of them is
+(``.../pyworkflow/mapper/sqlite.py``). One of them is
 designed to store objects' relationships and easily insert new objects
 without needing to create new SQL tables. Actually, there are only two
 tables: *Objects* and *Relations*. The first one stores one row for
