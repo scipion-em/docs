@@ -30,7 +30,7 @@ attribute is stored in a single row. For every row a set of fields are
 stored for every attribute:
 
 -  *id*: unique identifier of the attribute.
--  *parent\_id*: parent identifier of the attribute.
+-  *parent_id*: parent identifier of the attribute.
 -  *name*: name of the attribute in the object. If the attribute is a
    child then this field is built concatenating the ancestors of the
    attribute and ending with its name (see figure below). If the
@@ -38,12 +38,14 @@ stored for every attribute:
    object is stored.
 -  *classname*: class type of the attribute.
 -  *value*: value of the attribute.
--  *label:free* text to tag the attribute.
+-  *label*: free text to tag the attribute.
 -  *comment*: free text to describe the attribute.
 -  *creation*: creation date of the object.
 
 When storing the object, the value of the column “name” of a child
 attribute is built dynamically to keep trace of the child-parent
 relationship.
+
+.. image:: /docs/images/mapper/sqlite_mapper_objects.png
 
 .. todo: The image depicted below shows the structure of the table and an object stored in it:
