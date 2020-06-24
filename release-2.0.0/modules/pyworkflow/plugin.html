@@ -176,7 +176,7 @@
 <span></span><span class="c1"># **************************************************************************</span>
 <span class="c1"># *</span>
 <span class="c1"># * Authors:     Yaiza Rancel (cyrancel@cnb.csic.es) [1]</span>
-<span class="c1"># *              Pablo Conesa (pconse@cnb.csic.es) [1]</span>
+<span class="c1"># *              Pablo Conesa (pconesa@cnb.csic.es) [1]</span>
 <span class="c1"># *              J.M. De la Rosa Trevin (delarosatrevin@scilifelab.se) [2]</span>
 <span class="c1"># *</span>
 <span class="c1"># * [1] Unidad de  Bioinformatica of Centro Nacional de Biotecnologia , CSIC</span>
@@ -201,22 +201,27 @@
 <span class="c1"># *  e-mail address &#39;scipion@cnb.csic.es&#39;</span>
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
+<span class="kn">import</span> <span class="nn">glob</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">importlib</span>
-<span class="kn">import</span> <span class="nn">pkgutil</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">types</span>
 <span class="kn">import</span> <span class="nn">pkg_resources</span>
 <span class="kn">from</span> <span class="nn">email</span> <span class="k">import</span> <span class="n">message_from_string</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">abc</span> <span class="k">import</span> <span class="n">ABCMeta</span><span class="p">,</span> <span class="n">abstractmethod</span>
 
+<span class="kn">import</span> <span class="nn">pyworkflow</span> <span class="k">as</span> <span class="nn">pw</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.install</span> <span class="k">import</span> <span class="n">Environment</span>
+<span class="kn">import</span> <span class="nn">pyworkflow.object</span> <span class="k">as</span> <span class="nn">pwobj</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.template</span> <span class="k">import</span> <span class="n">Template</span>
+
+<span class="kn">from</span> <span class="nn">.constants</span> <span class="k">import</span> <span class="o">*</span>
 
 
 <div class="viewcode-block" id="Domain"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain">[docs]</a><span class="k">class</span> <span class="nc">Domain</span><span class="p">:</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Class to represent the application domain.</span>
+    <span class="sd">&quot;&quot;&quot; Class to represent the application domain.</span>
 <span class="sd">    It will allow to specify new objects, protocols, viewers and wizards</span>
 <span class="sd">    through the registration of new plugins.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -224,7 +229,7 @@
     <span class="c1"># The following classes should be defined in subclasses of Domain</span>
     <span class="n">_name</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">_protocolClass</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">_objectClass</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_objectClass</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">Object</span>
     <span class="n">_viewerClass</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">_wizardClass</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">_baseClasses</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Update this with the base classes of the Domain</span>
@@ -236,31 +241,17 @@
     <span class="n">_viewers</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">_wizards</span> <span class="o">=</span> <span class="p">{}</span>
 
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">__getSubmodule</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">subname</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">subname</span><span class="p">))</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-            <span class="c1"># FIXME: The following is a quick and dirty way to filter</span>
-            <span class="c1"># when the submodule is not present</span>
-            <span class="k">if</span> <span class="n">msg</span> <span class="o">!=</span> <span class="s1">&#39;No module named </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">subname</span><span class="p">:</span>
-                <span class="n">pwutils</span><span class="o">.</span><span class="n">pluginNotFound</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">subname</span><span class="p">),</span> <span class="n">msg</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">None</span>
-
 <div class="viewcode-block" id="Domain.registerPlugin"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain.registerPlugin">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">registerPlugin</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Register a new plugin. This function should only be called</span>
-<span class="sd">        when creating a class with __metaclass__=PluginMeta that will</span>
-<span class="sd">        trigger this.</span>
+        <span class="sd">&quot;&quot;&quot; Register a new plugin. This function should only be called when</span>
+<span class="sd">        creating a class with __metaclass__=PluginMeta that will trigger this.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">m</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_plugins</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">m</span>  <span class="c1"># Register the name to as a plugin</span>
-        <span class="c1"># TODO: Load subclasses (protocols, viewers, wizards)</span>
 
         <span class="c1"># Define variables</span>
         <span class="n">m</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">_defineVariables</span><span class="p">()</span>
-
+        <span class="n">m</span><span class="o">.</span><span class="n">Domain</span> <span class="o">=</span> <span class="bp">cls</span>  <span class="c1"># Register the domain class for this module</span>
+        <span class="c1"># TODO avoid loading bibtex here and make a lazy load like the rest.</span>
         <span class="c1"># Load bibtex</span>
         <span class="n">m</span><span class="o">.</span><span class="n">_bibtex</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">bib</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__getSubmodule</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s1">&#39;bibtex&#39;</span><span class="p">)</span>
@@ -269,47 +260,41 @@
                 <span class="n">m</span><span class="o">.</span><span class="n">_bibtex</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">parseBibTex</span><span class="p">(</span><span class="n">bib</span><span class="o">.</span><span class="vm">__doc__</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="k">pass</span>
-
-        <span class="k">return</span> <span class="n">m</span></div>
-
-    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">__isPlugin</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Return True if the module is a Scipion plugin. &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_plugins</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_plugins</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">m</span>  <span class="c1"># Register the name to as a plugin</span></div>
 
 <div class="viewcode-block" id="Domain.getPlugins"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain.getPlugins">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">getPlugins</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return existing plugins for this Domain. &quot;&quot;&quot;</span>
         <span class="n">loaded</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s1">&#39;_pluginsLoaded&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">loaded</span><span class="p">:</span>  <span class="c1"># Load plugin only once</span>
-            <span class="k">for</span> <span class="n">p</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">isModule</span> <span class="ow">in</span> <span class="n">pkgutil</span><span class="o">.</span><span class="n">iter_modules</span><span class="p">():</span>
-                <span class="k">if</span> <span class="n">isModule</span><span class="p">:</span>
-                    <span class="k">try</span><span class="p">:</span>
-                        <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
-                        <span class="c1"># NOTE: After importing the modules they will</span>
-                        <span class="c1"># automatically being register if they has</span>
-                        <span class="c1"># called Domain.registerPlugin(__name__)</span>
-                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                        <span class="k">pass</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_discoverPlugins</span><span class="p">()</span>
             <span class="bp">cls</span><span class="o">.</span><span class="n">_pluginsLoaded</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_plugins</span><span class="p">)</span></div>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_discoverPlugins</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">entry_point</span> <span class="ow">in</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">iter_entry_points</span><span class="p">(</span><span class="s1">&#39;pyworkflow.plugin&#39;</span><span class="p">):</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">registerPlugin</span><span class="p">(</span><span class="n">entry_point</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_discoverGUIPlugins</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">entry_point</span> <span class="ow">in</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">iter_entry_points</span><span class="p">(</span><span class="s1">&#39;pyworkflow.guiplugin&#39;</span><span class="p">):</span>
+            <span class="n">entry_point</span><span class="o">.</span><span class="n">load</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Domain.getPlugin"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain.getPlugin">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">getPlugin</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Load a given plugin name. &quot;&quot;&quot;</span>
         <span class="n">m</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__isPlugin</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Invalid plugin &#39;</span><span class="si">%s</span><span class="s2">&#39;. &quot;</span>
-                            <span class="s2">&quot;Class Plugin with __metaclass__=PluginMeta &quot;</span>
-                            <span class="s2">&quot;not found&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">)</span>
+        <span class="c1"># if not cls.__isPlugin(m):</span>
+        <span class="c1">#     raise Exception(&quot;Invalid plugin &#39;%s&#39;. &quot;</span>
+        <span class="c1">#                     &quot;Class Plugin with __metaclass__=PluginMeta &quot;</span>
+        <span class="c1">#                     &quot;not found&quot; % name)</span>
         <span class="k">return</span> <span class="n">m</span></div>
 
 <div class="viewcode-block" id="Domain.refreshPlugin"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain.refreshPlugin">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">refreshPlugin</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Refresh a given plugin name. &quot;&quot;&quot;</span>
-        <span class="kn">import</span> <span class="nn">types</span>
-
         <span class="n">plugin</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getPlugin</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">plugin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">fn</span> <span class="o">=</span> <span class="n">plugin</span><span class="o">.</span><span class="vm">__file__</span>
@@ -318,10 +303,8 @@
             <span class="n">module_visit_path</span> <span class="o">=</span> <span class="p">{</span><span class="n">fn</span><span class="p">}</span>
             <span class="k">del</span> <span class="n">fn</span>
 
-            <span class="k">def</span> <span class="nf">get_recursive_molules</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
-                <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">                Get all plugin modules recursively</span>
-<span class="sd">                &quot;&quot;&quot;</span>
+            <span class="k">def</span> <span class="nf">get_recursive_modules</span><span class="p">(</span><span class="n">module</span><span class="p">):</span>
+                <span class="sd">&quot;&quot;&quot; Get all plugin modules recursively &quot;&quot;&quot;</span>
                 <span class="k">for</span> <span class="n">module_child</span> <span class="ow">in</span> <span class="nb">vars</span><span class="p">(</span><span class="n">module</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">module_child</span><span class="p">,</span> <span class="n">types</span><span class="o">.</span><span class="n">ModuleType</span><span class="p">):</span>
                         <span class="n">fn_child</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">module_child</span><span class="p">,</span> <span class="s2">&quot;__file__&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -330,15 +313,15 @@
                             <span class="k">if</span> <span class="n">fn_child</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">module_visit_path</span><span class="p">:</span>
                                 <span class="n">module_visit</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">module_child</span><span class="p">)</span>
                                 <span class="n">module_visit_path</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">fn_child</span><span class="p">)</span>
-                                <span class="n">get_recursive_molules</span><span class="p">(</span><span class="n">module_child</span><span class="p">)</span>
+                                <span class="n">get_recursive_modules</span><span class="p">(</span><span class="n">module_child</span><span class="p">)</span>
 
-            <span class="n">get_recursive_molules</span><span class="p">(</span><span class="n">plugin</span><span class="p">)</span>
+            <span class="n">get_recursive_modules</span><span class="p">(</span><span class="n">plugin</span><span class="p">)</span>
             <span class="c1"># reload all plugin modules</span>
 
             <span class="k">while</span> <span class="n">module_visit</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">module</span> <span class="ow">in</span> <span class="n">module_visit</span><span class="p">:</span>
                     <span class="k">try</span><span class="p">:</span>
-                        <span class="n">reload</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+                        <span class="n">importlib</span><span class="o">.</span><span class="n">reload</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
                         <span class="n">module_visit</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
                         <span class="k">break</span>
                     <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
@@ -363,7 +346,7 @@
                         <span class="k">if</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">BaseClass</span><span class="p">):</span>
                             <span class="bp">cls</span><span class="o">.</span><span class="n">_baseClasses</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">attr</span>
 
-            <span class="k">for</span> <span class="n">pluginName</span><span class="p">,</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getPlugins</span><span class="p">()</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">pluginName</span><span class="p">,</span> <span class="n">plugin</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getPlugins</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">sub</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__getSubmodule</span><span class="p">(</span><span class="n">pluginName</span><span class="p">,</span> <span class="n">submoduleName</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">sub</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getModuleClasses</span><span class="p">(</span><span class="n">sub</span><span class="p">):</span>
@@ -391,7 +374,6 @@
 
 <div class="viewcode-block" id="Domain.getModuleClasses"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain.getModuleClasses">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">getModuleClasses</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">module</span><span class="p">):</span>
-
         <span class="c1"># Dir was used before but dir returns all imported elements</span>
         <span class="c1"># included those imported to be BaseClasses.</span>
         <span class="c1"># return dir(module)</span>
@@ -404,36 +386,264 @@
             <span class="k">if</span> <span class="n">moduleName</span> <span class="ow">in</span> <span class="n">declaredClass</span><span class="o">.</span><span class="vm">__module__</span><span class="p">:</span>
                 <span class="k">yield</span> <span class="n">name</span></div>
 
-
 <div class="viewcode-block" id="Domain.getProtocols"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain.getProtocols">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">getProtocols</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Return all Protocol subclasses from all plugins for this domain.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; Return all Protocol subclasses from all plugins for this domain.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__getSubclasses</span><span class="p">(</span><span class="s1">&#39;protocols&#39;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_protocolClass</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Domain.getObjects"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain.getObjects">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">getObjects</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Return all EMObject subclasses from all plugins for this domain.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; Return all EMObject subclasses from all plugins for this domain.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__getSubclasses</span><span class="p">(</span><span class="s1">&#39;objects&#39;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_objectClass</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Domain.getViewers"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain.getViewers">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">getViewers</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Return all Viewer subclasses from all plugins for this domain.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; Return all Viewer subclasses from all plugins for this domain.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__getSubclasses</span><span class="p">(</span><span class="s1">&#39;viewers&#39;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_viewerClass</span><span class="p">,</span>
                                    <span class="n">updateBaseClasses</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Domain.getWizards"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain.getWizards">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">getWizards</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Return all Wizard subclasses from all plugins for this domain.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; Return all Wizard subclasses from all plugins for this domain.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__getSubclasses</span><span class="p">(</span><span class="s1">&#39;wizards&#39;</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_wizardClass</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Domain.getMapperDict"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain.getMapperDict">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getMapperDict</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return a dictionary that can be used with subclasses of Mapper</span>
+<span class="sd">        to store/retrieve objects (including protocols) defined in this</span>
+<span class="sd">        Domain. &quot;&quot;&quot;</span>
+        <span class="n">mapperDict</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s1">&#39;__mapperDict&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">mapperDict</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">mapperDict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">pwobj</span><span class="o">.</span><span class="n">OBJECTS_DICT</span><span class="p">)</span>
+            <span class="n">mapperDict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">getObjects</span><span class="p">())</span>
+            <span class="n">mapperDict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">getProtocols</span><span class="p">())</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">__mapperDict</span> <span class="o">=</span> <span class="n">mapperDict</span>
+
+        <span class="k">return</span> <span class="n">mapperDict</span></div>
 
 <div class="viewcode-block" id="Domain.getName"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain.getName">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">getName</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_name</span></div></div>
+        <span class="sd">&quot;&quot;&quot; Return the name of this Domain. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_name</span></div>
 
+<div class="viewcode-block" id="Domain.importFromPlugin"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain.importFromPlugin">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">importFromPlugin</span><span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">objects</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">errorMsg</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">doRaise</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; This method try to import either a list of objects from the</span>
+<span class="sd">            module/plugin or the whole module/plugin and returns what is</span>
+<span class="sd">            imported if not fails.</span>
+<span class="sd">            When the import fails (due to the plugin or the object is not found),</span>
+<span class="sd">            it prints a common message + optional errorMsg;</span>
+<span class="sd">            or it raise an error with the same message, if doRaise is True.</span>
+
+<span class="sd">         -&gt; Usages:</span>
+
+<span class="sd">             # Import the whole plugin &#39;plugin1&#39; as &#39;plug1&#39;</span>
+<span class="sd">             plug1 = importFromPlugin(&#39;plugin1&#39;)</span>
+
+<span class="sd">             # Import a plugin&#39;s module</span>
+<span class="sd">             pl1Cons = importFromPlugin(&#39;plug1.constants&#39;)</span>
+
+<span class="sd">             # Import a single class from a plugin&#39;s module</span>
+<span class="sd">             p1prot1 = importFromPlugin(&#39;plug1.protocols&#39;, &#39;prot1&#39;)</span>
+
+<span class="sd">             # Import some classes from a plugin&#39;s module,</span>
+<span class="sd">             #   the returned tuple has the same length of the second argument</span>
+<span class="sd">             pt1, pt2, ... = importFromPlugin(&#39;plugin1.protocols&#39;,</span>
+<span class="sd">                                              [&#39;pt1&#39;, &#39;pt2&#39;, ...])</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">_tryImportFromPlugin</span><span class="p">(</span><span class="n">submodule</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">submodule</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># Import only the module</span>
+                    <span class="n">output</span> <span class="o">=</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">module</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># Import the class of that module</span>
+                    <span class="n">output</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">module</span><span class="p">),</span> <span class="n">submodule</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">output</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">plugName</span> <span class="o">=</span> <span class="n">module</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># The Main module is the plugin</span>
+                <span class="n">errMsg</span> <span class="o">=</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="k">if</span> <span class="n">errorMsg</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span>
+                          <span class="k">else</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">. </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">errorMsg</span><span class="p">))</span>
+                <span class="n">Domain</span><span class="o">.</span><span class="n">__pluginNotFound</span><span class="p">(</span><span class="n">plugName</span><span class="p">,</span> <span class="n">errMsg</span><span class="p">,</span> <span class="n">doRaise</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">objects</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">objects</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">_tryImportFromPlugin</span><span class="p">(</span><span class="n">objects</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">objects</span><span class="p">:</span>
+                <span class="n">output</span> <span class="o">+=</span> <span class="p">(</span><span class="n">_tryImportFromPlugin</span><span class="p">(</span><span class="n">obj</span><span class="p">),</span> <span class="p">)</span>  <span class="c1"># append in tuple</span>
+        <span class="k">return</span> <span class="n">output</span></div>
+
+<div class="viewcode-block" id="Domain.findClass"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain.findClass">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">findClass</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">className</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Find a class object given its name.</span>
+<span class="sd">        The search will start with protocols and then with protocols.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># FIXME: Why not also Viewers, Wizards?</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getProtocols</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">className</span><span class="p">,</span>
+                                   <span class="bp">cls</span><span class="o">.</span><span class="n">getObjects</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">className</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">c</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;findClass: class &#39;</span><span class="si">%s</span><span class="s2">&#39; not found.&quot;</span> <span class="o">%</span> <span class="n">className</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">c</span></div>
+
+<div class="viewcode-block" id="Domain.findSubClasses"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain.findSubClasses">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">findSubClasses</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">classDict</span><span class="p">,</span> <span class="n">className</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Find all subclasses of a give className. &quot;&quot;&quot;</span>
+        <span class="n">clsObj</span> <span class="o">=</span> <span class="n">classDict</span><span class="p">[</span><span class="n">className</span><span class="p">]</span>
+        <span class="n">subclasses</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">classDict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">clsObj</span><span class="p">):</span>
+                <span class="n">subclasses</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+        <span class="k">return</span> <span class="n">subclasses</span></div>
+
+<div class="viewcode-block" id="Domain.getPreferredViewers"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain.getPreferredViewers">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getPreferredViewers</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">className</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Find and import the preferred viewers for this class. &quot;&quot;&quot;</span>
+        <span class="n">viewerNames</span> <span class="o">=</span> <span class="n">pw</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">VIEWERS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">className</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viewerNames</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="n">viewerNames</span> <span class="o">=</span> <span class="p">[</span><span class="n">viewerNames</span><span class="p">]</span>
+        <span class="n">viewers</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># we will try to import them and store here</span>
+        <span class="k">for</span> <span class="n">prefViewerStr</span> <span class="ow">in</span> <span class="n">viewerNames</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">viewerModule</span><span class="p">,</span> <span class="n">viewerClassName</span> <span class="o">=</span> <span class="n">prefViewerStr</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">prefViewer</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">importFromPlugin</span><span class="p">(</span><span class="n">viewerModule</span><span class="p">,</span>
+                                                  <span class="n">viewerClassName</span><span class="p">,</span>
+                                                  <span class="n">doRaise</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">viewers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prefViewer</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t load </span><span class="se">\&quot;</span><span class="si">%s</span><span class="se">\&quot;</span><span class="s2"> as preferred viewer.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                      <span class="s2">&quot;There might be a typo in your VIEWERS variable &quot;</span>
+                      <span class="s2">&quot;or an error in the viewer&#39;s plugin installation&quot;</span>
+                      <span class="o">%</span> <span class="n">prefViewerStr</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">viewers</span></div>
+
+<div class="viewcode-block" id="Domain.findViewers"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain.findViewers">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">findViewers</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">className</span><span class="p">,</span> <span class="n">environment</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Find the available viewers in this Domain for this class. &quot;&quot;&quot;</span>
+        <span class="n">viewers</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">clazz</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">findClass</span><span class="p">(</span><span class="n">className</span><span class="p">)</span>
+            <span class="n">baseClasses</span> <span class="o">=</span> <span class="n">clazz</span><span class="o">.</span><span class="n">mro</span><span class="p">()</span>
+            <span class="n">preferredViewers</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getPreferredViewers</span><span class="p">(</span><span class="n">className</span><span class="p">)</span>
+            <span class="n">preferedFlag</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="k">for</span> <span class="n">viewer</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getViewers</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">environment</span> <span class="ow">in</span> <span class="n">viewer</span><span class="o">.</span><span class="n">_environments</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">viewer</span><span class="o">.</span><span class="n">_targets</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">baseClasses</span><span class="p">:</span>
+                            <span class="k">for</span> <span class="n">prefViewer</span> <span class="ow">in</span> <span class="n">preferredViewers</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="n">viewer</span> <span class="ow">is</span> <span class="n">prefViewer</span><span class="p">:</span>
+                                    <span class="n">viewers</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">viewer</span><span class="p">)</span>
+                                    <span class="n">preferedFlag</span> <span class="o">=</span> <span class="mi">1</span>
+                                    <span class="k">break</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="n">t</span> <span class="o">==</span> <span class="n">clazz</span><span class="p">:</span>
+                                    <span class="n">viewers</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">preferedFlag</span><span class="p">,</span> <span class="n">viewer</span><span class="p">)</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                    <span class="n">viewers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+                                <span class="k">break</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Catch if there is a missing plugin, we will get Legacy which triggers and Exception</span>
+            <span class="k">pass</span>
+
+        <span class="k">return</span> <span class="n">viewers</span></div>
+
+<div class="viewcode-block" id="Domain.findWizards"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain.findWizards">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">findWizards</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">environment</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Find available wizards for this class, in this Domain.</span>
+<span class="sd">        Params:</span>
+<span class="sd">            protocols: Protocol instance for which wizards will be search.</span>
+<span class="sd">            environment: The environment name for wizards (e.g TKINTER)</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            a dict with the paramName and wizards for this class.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">__findWizardsFromDict</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">environment</span><span class="p">,</span>
+                                         <span class="bp">cls</span><span class="o">.</span><span class="n">getWizards</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="Domain.printInfo"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Domain.printInfo">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">printInfo</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Simple function (mainly for debugging) that prints basic</span>
+<span class="sd">        information about this Domain. &quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Domain: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_name</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;     objects: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_objects</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;   protocols: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_protocols</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;     viewers: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_viewers</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;     wizards: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">_wizards</span><span class="p">))</span></div>
+
+    <span class="c1"># ---------- Private methods of Domain class ------------------------------</span>
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__pluginNotFound</span><span class="p">(</span><span class="n">plugName</span><span class="p">,</span> <span class="n">errorMsg</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">doRaise</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Prints or raise (depending on the doRaise) telling why it is failing</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">hint</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;   Check the plugin manager (Configuration-&gt;Plugins in &quot;</span>
+                <span class="s2">&quot;Scipion manager window) </span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># the str casting is to work with Exceptions as errorMsg</span>
+        <span class="k">if</span> <span class="s1">&#39;No module named </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">plugName</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">errorMsg</span><span class="p">):</span>
+            <span class="n">msgStr</span> <span class="o">=</span> <span class="s2">&quot; &gt; </span><span class="si">%s</span><span class="s2"> plugin not found. </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">plugName</span><span class="p">,</span> <span class="n">errorMsg</span><span class="p">)</span>
+            <span class="n">hint</span> <span class="o">+=</span> <span class="s2">&quot;   or use &#39;scipion installp --help&#39; in the command line &quot;</span>
+            <span class="n">hint</span> <span class="o">+=</span> <span class="s2">&quot;to install it.&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">msgStr</span> <span class="o">=</span> <span class="s2">&quot; &gt; error when importing from </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">plugName</span><span class="p">,</span> <span class="n">errorMsg</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">errorMsg</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>  <span class="c1"># if empty we know nothing...</span>
+                <span class="n">hint</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;   or use &#39;scipion installp --help --checkUpdates&#39; &quot;</span>
+                         <span class="s2">&quot;in the command line to check for upgrades,</span><span class="se">\n</span><span class="s2">   &quot;</span>
+                         <span class="s2">&quot;it could be a versions compatibility issue.&quot;</span><span class="p">)</span>
+
+        <span class="n">stackList</span> <span class="o">=</span> <span class="n">traceback</span><span class="o">.</span><span class="n">extract_stack</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">stackList</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">callIdx</span> <span class="o">=</span> <span class="o">-</span><span class="mi">3</span>  <span class="c1"># We use the most probable index as default</span>
+            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">stackLine</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">stackList</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">stackLine</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;/unittest/loader.py&#39;</span><span class="p">):</span>
+                    <span class="n">callIdx</span> <span class="o">=</span> <span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">callIdx</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">callBy</span> <span class="o">=</span> <span class="n">stackList</span><span class="p">[</span><span class="n">callIdx</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">callBy</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;pyworkflow/plugin.py&#39;</span><span class="p">):</span>
+            <span class="c1"># This special case is to know why is failing and not where is called</span>
+            <span class="c1"># because we know that we call all plugins.protocols at the beginning</span>
+            <span class="n">calling</span> <span class="o">=</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exc</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">stackList</span><span class="p">[</span><span class="n">callIdx</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">calling</span> <span class="o">=</span> <span class="s2">&quot;  Called by </span><span class="si">%s</span><span class="s2">, line </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">callBy</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+
+        <span class="n">raiseMsg</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="s2"> </span><span class="si">%s</span><span class="se">\n</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">msgStr</span><span class="p">,</span> <span class="n">calling</span><span class="p">,</span> <span class="n">hint</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">doRaise</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">raiseMsg</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">raiseMsg</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__getSubmodule</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">subname</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">completeModuleText</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">subname</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">isModuleAFolder</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">importlib</span><span class="o">.</span><span class="n">import_module</span><span class="p">(</span><span class="n">completeModuleText</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="c1"># FIXME: The following is a quick and dirty way to filter</span>
+            <span class="c1"># when the submodule is not present</span>
+            <span class="k">if</span> <span class="n">msg</span> <span class="o">!=</span> <span class="s1">&#39;No module named </span><span class="se">\&#39;</span><span class="si">%s</span><span class="se">\&#39;</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">completeModuleText</span><span class="p">:</span>
+                <span class="n">Domain</span><span class="o">.</span><span class="n">__pluginNotFound</span><span class="p">(</span><span class="n">completeModuleText</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">__isPlugin</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return True if the module is a Scipion plugin. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">m</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_plugins</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">__findWizardsFromDict</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">environment</span><span class="p">,</span> <span class="n">wizDict</span><span class="p">):</span>
+        <span class="n">wizards</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">baseClasses</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="vm">__name__</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getClass</span><span class="p">()</span><span class="o">.</span><span class="n">mro</span><span class="p">()]</span>
+
+        <span class="k">for</span> <span class="n">wiz</span> <span class="ow">in</span> <span class="n">wizDict</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">environment</span> <span class="ow">in</span> <span class="n">wiz</span><span class="o">.</span><span class="n">_environments</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">params</span> <span class="ow">in</span> <span class="n">wiz</span><span class="o">.</span><span class="n">_targets</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="vm">__name__</span> <span class="ow">in</span> <span class="n">baseClasses</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+                            <span class="n">wizards</span><span class="p">[</span><span class="n">p</span><span class="p">]</span> <span class="o">=</span> <span class="n">wiz</span>
+        <span class="k">return</span> <span class="n">wizards</span></div>
 
 
 <div class="viewcode-block" id="Plugin"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Plugin">[docs]</a><span class="k">class</span> <span class="nc">Plugin</span><span class="p">:</span>
@@ -443,25 +653,41 @@
     <span class="n">_homeVar</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>  <span class="c1"># Change in subclasses to define the &quot;home&quot; variable</span>
     <span class="n">_pathVars</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">_supportedVersions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="n">_url</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>  <span class="c1"># For the plugin</span>
+    <span class="n">_condaActivationCmd</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_defineVar</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">varName</span><span class="p">,</span> <span class="n">defaultValue</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Internal method to define variables from the environment. &quot;&quot;&quot;</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_vars</span><span class="p">[</span><span class="n">varName</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">varName</span><span class="p">,</span> <span class="n">defaultValue</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot; Internal method to define variables trying to get it from the environment first. &quot;&quot;&quot;</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_addVar</span><span class="p">(</span><span class="n">varName</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">varName</span><span class="p">,</span> <span class="n">defaultValue</span><span class="p">))</span>
 
     <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">_defineEmVar</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">varName</span><span class="p">,</span> <span class="n">defaultValue</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Shortcut method to define variables by prepending EM_ROOT</span>
-<span class="sd">        to the default value.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_defineVar</span><span class="p">(</span><span class="n">varName</span><span class="p">,</span>
-                       <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">Environment</span><span class="o">.</span><span class="n">getEm</span><span class="p">(</span><span class="n">defaultValue</span><span class="p">)))</span>
+    <span class="k">def</span> <span class="nf">_addVar</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">varName</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Adds a variable to the local variable dictionary directly. Avoiding the environment&quot;&quot;&quot;</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_vars</span><span class="p">[</span><span class="n">varName</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 
 <div class="viewcode-block" id="Plugin.getEnviron"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Plugin.getEnviron">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="nd">@abstractmethod</span>
     <span class="k">def</span> <span class="nf">getEnviron</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Setup the environment variables needed to launch programs. &quot;&quot;&quot;</span>
         <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="Plugin.getCondaActivationCmd"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Plugin.getCondaActivationCmd">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getCondaActivationCmd</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_condaActivationCmd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">condaActivationCmd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CONDA_ACTIVATION_CMD_VAR</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="n">correctCondaActivationCmd</span> <span class="o">=</span> <span class="n">condaActivationCmd</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">pw</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">SCIPION_HOME</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">correctCondaActivationCmd</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING!!: </span><span class="si">%s</span><span class="s2"> variable not defined. &quot;</span>
+                      <span class="s2">&quot;Relying on conda being in the PATH&quot;</span> <span class="o">%</span> <span class="n">CONDA_ACTIVATION_CMD_VAR</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">correctCondaActivationCmd</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;;&quot;</span><span class="p">,</span> <span class="s2">&quot;&amp;&quot;</span><span class="p">]:</span>
+                <span class="n">correctCondaActivationCmd</span> <span class="o">+=</span> <span class="s2">&quot;&amp;&amp;&quot;</span>
+
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_condaActivationCmd</span> <span class="o">=</span> <span class="n">correctCondaActivationCmd</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_condaActivationCmd</span></div>
 
     <span class="nd">@classmethod</span>
     <span class="nd">@abstractmethod</span>
@@ -519,6 +745,10 @@
 
         <span class="k">return</span> <span class="s1">&#39;&#39;</span></div>
 
+<div class="viewcode-block" id="Plugin.getName"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Plugin.getName">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getName</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__module__</span></div>
+
 <div class="viewcode-block" id="Plugin.validateInstallation"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Plugin.validateInstallation">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">validateInstallation</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -530,7 +760,32 @@
         <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getVar</span><span class="p">(</span><span class="n">var</span><span class="p">))</span>
                    <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_pathVars</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">getVar</span><span class="p">(</span><span class="n">var</span><span class="p">))]</span>
 
-        <span class="k">return</span> <span class="p">([</span><span class="s2">&quot;Missing variables:&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">missing</span><span class="p">)</span> <span class="k">if</span> <span class="n">missing</span> <span class="k">else</span> <span class="p">[]</span></div></div>
+        <span class="k">return</span> <span class="p">([</span><span class="s2">&quot;Missing variables:&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">missing</span><span class="p">)</span> <span class="k">if</span> <span class="n">missing</span> <span class="k">else</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="Plugin.getPluginTemplateDir"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Plugin.getPluginTemplateDir">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getPluginTemplateDir</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pw</span><span class="o">.</span><span class="n">getModuleFolder</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">getName</span><span class="p">()),</span> <span class="s1">&#39;templates&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Plugin.getTemplates"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Plugin.getTemplates">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getTemplates</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Get the plugin templates from the templates directory.</span>
+<span class="sd">            If more than one template is found or passed, a dialog is raised</span>
+<span class="sd">            to choose one.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tempList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">pluginName</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span>
+        <span class="n">tDir</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getPluginTemplateDir</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tDir</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob1</span><span class="p">(</span><span class="n">tDir</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span> <span class="o">+</span> <span class="n">SCIPION_JSON_TEMPLATES</span><span class="p">):</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="n">pluginName</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tDir</span><span class="p">,</span> <span class="n">file</span><span class="p">))</span>
+                <span class="n">tempList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">tempList</span></div>
+
+<div class="viewcode-block" id="Plugin.getUrl"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.Plugin.getUrl">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getUrl</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">protClass</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Url for the plugin to point users to it&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_url</span></div></div>
 
 
 <div class="viewcode-block" id="PluginInfo"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.PluginInfo">[docs]</a><span class="k">class</span> <span class="nc">PluginInfo</span><span class="p">:</span>
@@ -567,6 +822,8 @@
 
 <div class="viewcode-block" id="PluginInfo.getKeywords"><a class="viewcode-back" href="../../api/pyworkflow.plugin.html#pyworkflow.plugin.PluginInfo.getKeywords">[docs]</a>    <span class="k">def</span> <span class="nf">getKeywords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Keywords&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span></div></div>
+
+
 
 </pre></div>
 
