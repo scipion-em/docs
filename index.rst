@@ -58,29 +58,6 @@ later on.
 
    api/pyworkflow/pyworkflow
    api/pwem/pwem
-   api/appion/appion
-   api/atomstructutils/atomstructutils
-   api/atsas/atsas
-   api/bamfordlab/bamfordlab
-   api/bsoft/bsoft/
-   api/ccp4/ccp4/
-   api/chimera/chimera
-   api/cistem/cistem/
-   api/cryoef/cryoef
-   api/cryosparc2/cryosparc2
-   api/eman2/eman2
-   api/emxlib/emxlib
-   api/gautomatch/gautomatch
-   api/gctf/gctf
-   api/localrec/localrec
-   api/locscale/locscale
-   api/motioncorr/motioncorr
-   api/nysbc/nysbc
-   api/phenix/phenix
-   api/relion/relion
-   api/resmap/resmap
-   api/sphire/sphire
-   api/spider/spider
    api/xmipp3/xmipp3
 
 
