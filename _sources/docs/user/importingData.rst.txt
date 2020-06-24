@@ -49,7 +49,7 @@ _MicName_ctffind3.log_ or _MicName_gctf.log_.
 
 Scipion can import coordinates from several picking programs:
 
-* **.box** files from EMAN1/2, Gautomatch, Gempicker
+* **.box** files from EMAN1/2, Gautomatch
 * **.json** files from EMAN2 (_info/*_info.json_ files in EMAN2 project folder)
 * **.pos** files from Xmipp3 (STAR format)
 * **.star** files from Relion, Gautomatch

@@ -20,7 +20,7 @@ Scipion **summary monitor** is the agent responsible for gathering and aggregati
 Setting UP Grafana and Influxdb
 -------------------------------
 
-For starters, download InfluxDB and Grafana. In our facilities we have used version 1.6 and 1.7 for grafana and 1.8 for influxdb but we are using the basic funtionality of these software so very likely other versions will also work.
+For starters, download InfluxDB and Grafana. In our facilities we have used version 1.6 and 1.7 for grafana and 1.8 for influxdb but we are using the basic functionality of these software so very likely other versions will also work.
 
 The basic setup is to have InfluxDB and Grafana connected together and Grafana will call the InfluxDB API whenever it wants to query data. When you set up the InfluxData time series platform, you will need a collection agent collecting your metrics this collection agent wil the Scipion **summary monitor**.
 
@@ -37,7 +37,7 @@ Installing and setting up InfluxDb
 ----------------------------------
 We will not discuss here how to install or do the basic configuration of InfluxDb since it is discussed elsewhere (see for example https://devconnected.com/how-to-install-influxdb-on-ubuntu-debian-in-2019/). 
 
-You may check that the database is running using the command line cliente *influx*
+You may check that the database is running using the command line client *influx*
 
  .. code-block:: bash
 
@@ -71,7 +71,7 @@ You may find a description of the process in https://devconnected.com/how-to-set
      * https-certificate = "/etc/ssl/influxdb/server-cert.pem"
      * https-private-key = "/etc/ssl/influxdb/server-key.pem"
 * reboot Influx (systemctl restart influxdb)
-* test secure conection works
+* test secure connection works
 
  .. code-block:: bash
 
@@ -87,7 +87,7 @@ You may find a description of the process in https://devconnected.com/how-to-set
     
 Note: The flag **unsafeSsl* is needed if you use a self-signed certificate.
 
-* Create database "scipion" and grant access permision to scipion_writer (as admin user) and to scipion_reader (as readonly user)
+* Create database "scipion" and grant access permission to scipion_writer (as admin user) and to scipion_reader (as readonly user)
 
  .. code-block:: bash
 
@@ -111,7 +111,7 @@ Installing and setting up Grafana
 
 Follow instruction available at  https://grafana.com/docs/grafana/latest/installation/
 
-Set up secure conection:
+Set up secure connection:
 
 First create certificate 
 
@@ -130,7 +130,7 @@ First create certificate
     * http_addr = 0.0.0.0
     * cert_file =  /etc/grafana/grafana.crt
     * cert_key = /etc/grafana/grafana.key
-    * you may waht to set **viewers_can_edit=true** so that users with view only permission may edit/inspect dashboard settings in the browser, but not save the modifications.
+    * you may want to set **viewers_can_edit=true** so that users with view only permission may edit/inspect dashboard settings in the browser, but not save the modifications.
 * Reboot grafana and you should be able to connect using https://grafana_host:3000 (default user name and password admin/admin). [If you are working from home and your server is behind a firewall you may open an ssh tunnel using: ssh -L 8888:grafana_host:3000 user@ssh_host.cnb.csic.es, in this case Grafana URL will be https://localhost:8888]
 * In addition to the default **admin** user you may create a readonly user (use server admin -> Users)
 
@@ -191,18 +191,18 @@ A dashboard is a set of one or more panels organized and arranged into one or mo
 
 
 
-Important The dashboard assume that the images are accesible at /usr/share/grafana/public/img/scipionbox. Please link the directory  remote_path to /usr/share/grafana/public/img/scipionbox. remote_path is defined in next section.
+Important The dashboard assume that the images are accessible at /usr/share/grafana/public/img/scipionbox. Please link the directory  remote_path to /usr/share/grafana/public/img/scipionbox. remote_path is defined in next section.
 
 
 
 Scipion how to connect it to Influxdb
 _____________________________________
 
-The only missing piecce of this puzzle is how to make Scipion to send
+The only missing piece of this puzzle is how to make Scipion to send
 data to influxdb so Grafana may display it.  The protocol that perform this task is
 **summary monitor** (select the option *use grafana/influx*). This protocol search 
 for login information in a file called **secrets.cfg** which should be in the 
-directory defined by the variable **EMFACILITIES_HOME** (a template file called **secrest_template.cfg** is 
+directory defined by the variable **EMFACILITIES_HOME** (a template file called **secret_template.cfg** is
 available in the plugin home directory). The file structure is
 
  .. code-block:: sql
@@ -210,7 +210,7 @@ available in the plugin home directory). The file structure is
     # using the function enCrypt (see below)
     # this encryption is weak but at least will stop casual users
 
-    # influx: information needed to acces to the "host"
+    # influx: information needed to access to the "host"
     # running influxdb. If you are not encrypting your
     # communications set ssl = False
     [influx]

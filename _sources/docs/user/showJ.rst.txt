@@ -84,7 +84,7 @@ Gallery Mode
 The gallery mode displays the renderable label selected or, in the case of
 volumes, volume slices, with a combo to iterate over the volumes. It is
 used, for example, to visualize particles, classes and volume slices. We
-can change the number of columns and rows and reslice volumes |number_of_colums, height=20|
+can change the number of columns and rows and reslice volumes |number_of_columns, height=20|
 Reslice allows us to visualize volume slices from: Front, Top, Left,
 Right and Bottom perspectives.
 

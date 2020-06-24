@@ -32,7 +32,7 @@ Getting ready: tagging release in git
     cd scipion
     git checkout <branch name>
 
-Ensure that `[Version, NickName and DateRelase] <https://github.com/I2PC/scipion/blob/bd81c8c3b3fb9ce30546b1e8835c3b543f130553/scipion#L43>`_.
+Ensure that `[Version, NickName and DateRelease] <https://github.com/I2PC/scipion/blob/bd81c8c3b3fb9ce30546b1e8835c3b543f130553/scipion#L43>`_.
 variables are updated in the scipion script
 
 
@@ -170,4 +170,4 @@ You will need to correct with mpi directories. For example:
 
 Now, two file are in the home directory ``scipion_<version>_<date>_source.tgz``
 and ``scipion_<version>_<date>_linux-64.tgz``. The first is the source package
-of the software, whereas the second is the precompilated binaries package.
+of the software, whereas the second is the precompiled binaries package.

@@ -53,7 +53,7 @@ Key changes for version 2.0 are:
 Streaming
 ----------
 1. New protocol from Xmipp to trigger data (movies, micrographs, particles...) only when a certain among of that data is reached, in three modes: in batches, full streaming, from streaming to static.
-2. Xmipp Movie Alignment is updated to work on GPU and to do local alignmen by means of splines fititings.
+2. Xmipp Movie Alignment is updated to work on GPU and to do local alignment by means of splines fititings.
 3. New protocol to select/discard movies on-the-fly depending on the shift jumps between frames or/and the total travel drift.
 4. Batch support for CTF estimation protocols.
 5. CTF selection and CTF discrepancy from Xmipp are merged on the CTF consensus in order to select/discard CTFs on-the-fly depending on three assertions types: common parameters (defocus range, resolution, astigmatism...), Xmipp criteria and discrepancy with an auxiliar CTF estimation.
@@ -61,7 +61,7 @@ Streaming
 7. CRYOLO automatic picking from Sphire now is available.
 8. Now the protocol extract coordinates is ready to follow streaming processing.
 9. New protocol to eliminate/select empty particles/classes in streaming processing.
-10. New GL2D protocol from Xmipp for 2D classificantion in streaming mode in two modes: static (when a particle is assigned to a class, it remains there), full streaming (continuosly updating the classes and re-assigning particles).
+10. New GL2D protocol from Xmipp for 2D classification in streaming mode in two modes: static (when a particle is assigned to a class, it remains there), full streaming (continuously updating the classes and re-assigning particles).
 11. More streaming methods available...
 
 New protocols & package updates
@@ -139,7 +139,7 @@ Other improvements and bug fixes
 * Monores Xmipp protocol to estimate local resolution has been accelerated.
 * Allow to merge sets with different attributes
 * Use double-click to select in Dialogs (more intuitive)
-* Allow to quickly rename a protocol label (rigth-click -> Rename option)
+* Allow to quickly rename a protocol label (right-click -> Rename option)
 * CTFModel now allows to have phaseShift information as part of the model
 * Picking wizard now allows to pick all micrographs at once (more efficient in some programs)
 * Bug fixed in Relion particles-extraction when using not integer scale

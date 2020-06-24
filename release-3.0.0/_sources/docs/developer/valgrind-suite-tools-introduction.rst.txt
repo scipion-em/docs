@@ -32,7 +32,7 @@ In this section we have included a brief description of some of the tools and th
 
 This tool performs memory analysis of the program: memory usage, memory leaks and others. This tool detects reads and writes of invalid memory, using uninitialised values, deallocating invalid memory, memory leaks, and others.
 
-To execute this anlysis the tool parameter must be set to “memcheck”:
+To execute this analysis the tool parameter must be set to “memcheck”:
 
 `valgrind --tool=memcheck [memcheck options] dummy [program options]`
 
@@ -48,7 +48,7 @@ To execute this analysis the tool parameter must be set to “cachegrind”:
 
 The information collected by cachegrind includes reads and writes access to the instruction and data caches, displaying the number of cache accesses and the misses access for every cache and level.
 
-Once executed the anaysis (that will run slowly) a summary will be printed summarizing the cache accesses. Also an output file will be created and it will store information that will be later parsed by the cg_annotate program. The default output file name is cachegrind.out.<pid> (where <pid> is the program's process ID), but it can be changed by using the “--cachegrind-out-file” option.
+Once executed the analysis (that will run slowly) a summary will be printed summarizing the cache accesses. Also an output file will be created and it will store information that will be later parsed by the cg_annotate program. The default output file name is cachegrind.out.<pid> (where <pid> is the program's process ID), but it can be changed by using the “--cachegrind-out-file” option.
 
 Once created, the output file must be parsed by the cg_annotate tool as follows:
 
@@ -94,7 +94,7 @@ These are the most common ways to invoke valgrind, depending on the type of exec
 
 Massif is a heap profiler. It measures how much heap memory your program uses. This tool is useful to analyze the amount of memory used by a program and to detect peaks of usage and where the memory can be deallocated as it is no longer used. By reducing the amount of memory allocated by a program the performance can be improved and also the memory requirements of the program can be reduced. This tool creates a report where the user can detect how much memory is in use and also what part of the source code allocated such memory.
 
-To execute this anlysis the tool parameter must be set to “massif”:
+To execute this analysis the tool parameter must be set to “massif”:
 
 `valgrind --tool=massif dummy [program options]`
 

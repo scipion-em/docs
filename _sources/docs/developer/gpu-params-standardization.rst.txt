@@ -20,7 +20,7 @@ Standardization of GPU parameters
 ----------------------------------
 
 We propose the introduction of the following parameters (name constants defined
-in `constanst.py <https://github.com/delarosatrevin/scipion/blob/cd1001579cdd4d53cbd4b8c666ead06c84e0303c/pyworkflow/protocol/constants.py#L67>`_):
+in `constants.py <https://github.com/delarosatrevin/scipion/blob/cd1001579cdd4d53cbd4b8c666ead06c84e0303c/pyworkflow/protocol/constants.py#L67>`_):
 
 * USE_GPU: a boolean parameter to ask if use the GPU or not in this protocol. Some programs only run in GPU, so the protocol should not define this parameter and the use of the GPU is compulsory.
 * GPU_LIST: a string parameter that define the list of GPU IDs that will be used by the protocol.

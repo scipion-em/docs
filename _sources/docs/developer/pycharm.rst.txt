@@ -64,7 +64,7 @@ inside the launcher script.
 Configuring the interpreter for plugins
 ---------------------------------------
 A proper configuration ofs pycharm will make your life easier when it comes to
-navigate the code from the plugin to Scipion and viceversa. It will allow
+navigate the code from the plugin to Scipion and vice versa. It will allow
 pycharm to understand your setup and make better suggestions for importing
 code or even identifying bugs. For it,  we need to add a new interpreter,
 since scipion provides it's own python. Go to:

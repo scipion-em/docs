@@ -46,7 +46,7 @@ authors.
 Installing plugins
 ==================
 
-At the begining, all plugins are uninstalled and appear with the
+At the beginning, all plugins are uninstalled and appear with the
 **UNINSTALLED** icon ( |unchecked_icon| ). If you want to install any
 plugin, you need to do the following two steps.
 
@@ -177,8 +177,8 @@ To execute the selected operation we just need to press the **execute
 operation** icon |execute_all_operations| like **Install** or
 **Uninstall** any plugin or binary
 
-Plugin Manager Glosary
-======================
+Plugin Manager Glossary
+=======================
 
 The Plugin Manager has a glossary of terms in the Help menu in the
 toolbar. This interface shows the icons that are used and their meaning

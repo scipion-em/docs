@@ -120,7 +120,7 @@ commands.
 
     - YES:
     moveFile(sourceFile, destFile)
-    cleanPatern(“*.log”)
+    cleanPattern(“*.log”)
     self._getExtraPath(“a”, “b”, “file.log”)
     - NO:
     runJob(“mv”, sourceFile + “ “ + destFile)

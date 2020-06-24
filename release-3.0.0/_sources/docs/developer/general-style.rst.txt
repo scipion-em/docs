@@ -164,7 +164,7 @@ Messages
 ~~~~~~~~
 
 Popup messages code is centralized in utils.js and are based on
-javascript messi library. Depending on the kind of message you would
+javascript messy library. Depending on the kind of message you would
 like to show you will have to call:
 
 * Info and help messages -> infoPopup

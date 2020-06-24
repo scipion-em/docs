@@ -12,7 +12,7 @@ For facilities
 ---------------
 Currently, scipion is being used every day in several facilities in Europe, US,
 Canada, Israel and Australia. If you are running a Cryo EM facility and want more
-info, please `contatct us <scipion@cnb.csic.es>`_. We will be happy to help you run
+info, please `contact us <scipion@cnb.csic.es>`_. We will be happy to help you run
 Scipion there. Also, we have a `Slack <https://scipion.slack.com>`_ framework to
 maintain a direct communication channel.
 
@@ -78,7 +78,7 @@ Moreover, we are also working in the monitor protocols, those special protocols
 that constantly check how the execution of other protocols is going. We have
 developed several GUIs that are refreshed periodically and produce a graphical
 summary (e.g, CTF estimated values, system load, etc). Examples of monitors reports generated in *HTML* format can be seen at
-`http://scipion.cnb.csic.es/scipionbox/lastHTMLReport/ <http://scipion.cnb.csic.es/scipionbox/lastHTMLReport/>`_ while in URL `http://scipion.cnb.csic.es:3000/lastHTMLReport/ <http://scipion.cnb.csic.es:3000/lastHTMLReport/>`_ you can see a Grafana based report. (Unfortunatelly, at present, Grafana server can only be accesed from within our local area network.) Learn `how to customize the reports <customize-report>`_ according to your facilities' needs. 
+`http://scipion.cnb.csic.es/scipionbox/lastHTMLReport/ <http://scipion.cnb.csic.es/scipionbox/lastHTMLReport/>`_ while in URL `http://scipion.cnb.csic.es:3000/lastHTMLReport/ <http://scipion.cnb.csic.es:3000/lastHTMLReport/>`_ you can see a Grafana based report. (Unfortunately, at present, Grafana server can only be accessed from within our local area network.) Learn `how to customize the reports <customize-report>`_ according to your facilities' needs.
 
 Finally, this `tutorial focused on streaming processing <acquisition-simulation>`_
 simulates a cryo-EM acquisition in order to sum up all the available facilities

@@ -112,10 +112,10 @@ program for bibtex files:
 Compiling Scipion in Opensuse
 =============================
 
-Scipion instalationin Opensuse sometimes involves a few drawbacks. Once
+Scipion installation in Opensuse sometimes involves a few drawbacks. Once
 in the terminal the compilation has been launched,
 ``./scipion install``, stop the installation (``Crtl+C``). It is
-neccesary to change the python version (download python 2.7.13). Copy
+necessary to change the python version (download python 2.7.13). Copy
 the download file to ``scipion\software\tmp\`` and edit next file
 ``scipion\software\install\script.py``
 

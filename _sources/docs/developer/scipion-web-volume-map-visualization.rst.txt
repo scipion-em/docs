@@ -142,7 +142,7 @@ We are going to look at each line function:
 
 . Open the exported file to read it.
 
-. Extract the html code that we need. After this you can include this html in your page, adding more static code (code that is always the same) taken from the exported file that is needed for the corect webGL visualization.
+. Extract the html code that we need. After this you can include this html in your page, adding more static code (code that is always the same) taken from the exported file that is needed for the correct webGL visualization.
 
 Problems
 -----------

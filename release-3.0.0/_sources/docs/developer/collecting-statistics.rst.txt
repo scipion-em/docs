@@ -18,7 +18,7 @@ Enabling or Disabling the Collection of Information
 
 You can enable or disable the collection of information at any time. If you wish to modify the default preference edit the file
 $HOME/.config/scipion/scipion.conf and set the variable
-SCIPION_NOTIFY to True/False is you wish to activate/deactive the collection of information.
+SCIPION_NOTIFY to True/False is you wish to activate/deactivate the collection of information.
 
 
 Information collected

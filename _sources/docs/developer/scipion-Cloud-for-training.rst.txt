@@ -41,7 +41,7 @@ Only AWS admin user can do that, but these are the steps.
 .. figure:: /docs/images/cloud/aws-i2pc-training-sg.png
    :alt: AWS console - Security Groups
 
-ssh is by default restricted to CNB IP range but it could be changed if neccessary.
+ssh is by default restricted to CNB IP range but it could be changed if necessary.
 
 * Click on ‘Review and launch’ and press ‘Launch’.
   A pop-up window will appear to select a security key pair. You can either select key i2pc-training or create a new one.
@@ -112,7 +112,7 @@ The following software is installed on the machine:
   * Gctf 1.06
   * Gautomatch 0.53
   * Eman 2.12
-  * Frealing 9.07
+  * Frealign 9.07
   * Motioncor2 1.0.2
   * Motioncorr 2.1
   * Relion 2.0
@@ -165,5 +165,5 @@ We could also use the FedCloud for training with the following considerations:
 
 FedCloud Scipion instance for training
 ------------------------------------------
-Currently there is not a proper image for Scipion training in the FedCloud, hoewever an instance could be launched using the ScipionCloud images on the AppDB and customized for the training.
+Currently there is not a proper image for Scipion training in the FedCloud, however an instance could be launched using the ScipionCloud images on the AppDB and customized for the training.
 

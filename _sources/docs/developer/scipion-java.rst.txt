@@ -14,7 +14,7 @@ pick particles either manually or automatically. Scipion source packages related
 to ShowJ and Particle Picking include:
 
 
-* xmipp.ij.commmons : Contains ImageJ-related classes (In ShowJ we use and
+* xmipp.ij.commons : Contains ImageJ-related classes (In ShowJ we use and
   extend ImageJ to display and process images), such as Xmipp canvas with
   customized events, Xmipp image window with our menu and imageplus loader.
 * xmipp.jni : Contains Java bindings with Xmipp C++ code

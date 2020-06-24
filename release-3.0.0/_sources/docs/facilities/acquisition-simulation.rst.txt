@@ -150,7 +150,7 @@ We have design this script in four logical steps:
 
 * `Reading the config file <https://github.com/I2PC/em-facilities/blob/8a31f7f5eed3dc73443266272c40b1da6432135d/
   usingAPI_demo/form_launcher.py#L470-L510>`_.
-* `Creating the wizard window using some Scipion-tKinter classes as base
+* `Creating the wizard window using some Scipion-tkinter classes as base
   <https://github.com/I2PC/em-facilities/blob/8a31f7f5eed3dc73443266272c40b1da6432135d/
   usingAPI_demo/form_launcher.py#L49-L133>`_.
 * `Filling the wizard with the fields <https://github.com/I2PC/em-facilities/blob/
@@ -189,7 +189,7 @@ For instance:
   only automatic picking is done and the particle size is estimated by *Xmipp*.
 * We can add optional protocols, such as *Optical flow* to do a high order local
   movie alignment, *Eman2-Sparx* to automatic picking, or adding more initial
-  volume reconstruction methods to the *Xmipp swarm init. vol. consesus* protocol,
+  volume reconstruction methods to the *Xmipp swarm init. vol. consensus* protocol,
   such as *Xmipp Ransac* and/or *Eman Initial Volume*.
   Note that *Xmipp Significance* is always used to estimate the initial model.
 

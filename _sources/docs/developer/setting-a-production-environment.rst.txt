@@ -56,7 +56,7 @@ Cloning the production environment
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Clone the service an ps-scripts repos (there are snapshots of them `[here] <http://scipion.cnb.csic.es/git/scipion-ps.tar.gz>`_ vand `[here] <http://scipion.cnb.csic.es/git/ps-scripts.tar.gz>`_). First clone the
-scipion (web) service repository, then inside it, the ps-scripts repository. We recomend to use /services as base directory, hence after
+scipion (web) service repository, then inside it, the ps-scripts repository. We recommend to use /services as base directory, hence after
 the 2 clones, you should find `/services/scipion/scripts`, `/services/scipion/scripts/etc`, ...
 
 Edit `etc/service.cfg` and update the service and service_root

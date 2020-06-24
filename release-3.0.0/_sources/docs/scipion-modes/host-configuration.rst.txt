@@ -176,7 +176,7 @@ you can find a very simple tutorial about installing Slurm in Ubuntu.
         WORKDIR=$SLURM_SUBMIT_DIR
 
         #################################
-        ### Set environment varible to know running mode is non interactive
+        ### Set environment variable to know running mode is non interactive
         export XMIPP_IN_QUEUE=1
 
         cd $WORKDIR
@@ -301,10 +301,10 @@ This example is based on a config originally adapted by `HPC@POLITO <http://www.
         %_(JOB_COMMAND)s
 
     QUEUES = {
-            "ogequeue": [
+            "sgequeue": [
                  ["JOB_QUEUE","all.q","Queue Name:","Select the target queue"],
                  ["JOB_SLOTS","16","Total cores:","(MPI tasks x threads)"],
-                 ["JOB_PE","orte", "Parallel Environment (PE):","Select the OGE Parallel Environment)"],
+                 ["JOB_PE","orte", "Parallel Environment (PE):","Select the SGE Parallel Environment)"],
                  ["JOB_HOURS","120", "Hours:","Maximum amount of time allowed for this job"],
                  ["JOB_MAX_MEM","64","Mem(GB/node):","Set the memory per node that this job needs"]
               ]

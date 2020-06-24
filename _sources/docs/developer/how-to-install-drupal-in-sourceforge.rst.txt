@@ -32,7 +32,7 @@ Filezilla.
 
 * Then go to /home/project-web/[project name]/htdocs/
 
-* Once everything is copied, go to the url with a browser, tipically
+* Once everything is copied, go to the url with a browser, typically
 [project name].sourceforge.net and go on with the configuration process.
 
 * When configuring the db provide the following information:
