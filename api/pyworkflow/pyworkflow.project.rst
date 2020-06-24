@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pyworkflow.project.config
    pyworkflow.project.manager

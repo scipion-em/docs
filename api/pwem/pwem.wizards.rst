@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pwem.wizards.wizard
    pwem.wizards.wizards

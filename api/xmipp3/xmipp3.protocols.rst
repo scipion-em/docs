@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    xmipp3.protocols.protocol_preprocess
    xmipp3.protocols.protocol_projmatch
@@ -13,6 +14,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    xmipp3.protocols.protocol_align_volume
    xmipp3.protocols.protocol_align_volume_and_particles
@@ -33,6 +35,7 @@ Submodules
    xmipp3.protocols.protocol_compare_reprojections
    xmipp3.protocols.protocol_consensus_classes3D
    xmipp3.protocols.protocol_consensus_local_ctf
+   xmipp3.protocols.protocol_convert_pdb
    xmipp3.protocols.protocol_create_gallery
    xmipp3.protocols.protocol_ctf_consensus
    xmipp3.protocols.protocol_ctf_correct_wiener2d
@@ -43,10 +46,10 @@ Submodules
    xmipp3.protocols.protocol_denoise_particles
    xmipp3.protocols.protocol_eliminate_empty_images
    xmipp3.protocols.protocol_enrich
+   xmipp3.protocols.protocol_extract_asymmetric_unit
    xmipp3.protocols.protocol_extract_particles
    xmipp3.protocols.protocol_extract_particles_movies
    xmipp3.protocols.protocol_extract_particles_pairs
-   xmipp3.protocols.protocol_extract_unit_cell
    xmipp3.protocols.protocol_generate_reprojections
    xmipp3.protocols.protocol_helical_parameters
    xmipp3.protocols.protocol_kerdensom
@@ -54,6 +57,7 @@ Submodules
    xmipp3.protocols.protocol_metaprotocol_create_output
    xmipp3.protocols.protocol_metaprotocol_create_subset
    xmipp3.protocols.protocol_metaprotocol_discrete_heterogeneity_scheduler
+   xmipp3.protocols.protocol_metaprotocol_golden_highres
    xmipp3.protocols.protocol_ml2d
    xmipp3.protocols.protocol_mltomo
    xmipp3.protocols.protocol_movie_average
@@ -96,6 +100,7 @@ Submodules
    xmipp3.protocols.protocol_structure_map_sph
    xmipp3.protocols.protocol_subtract_projection
    xmipp3.protocols.protocol_trigger_data
+   xmipp3.protocols.protocol_validate_fscq
    xmipp3.protocols.protocol_validate_nontilt
    xmipp3.protocols.protocol_validate_overfitting
    xmipp3.protocols.protocol_volume_deform_sph

@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    pwem.convert
    pwem.emlib
@@ -17,6 +18,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pwem.bibtex
    pwem.constants

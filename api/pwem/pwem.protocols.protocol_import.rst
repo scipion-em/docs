@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pwem.protocols.protocol_import.base
    pwem.protocols.protocol_import.coordinates

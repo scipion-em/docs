@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pwem.convert.atom_struct
    pwem.convert.headers

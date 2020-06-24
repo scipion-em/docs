@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pyworkflow.utils.dataset
    pyworkflow.utils.echo

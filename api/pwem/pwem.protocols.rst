@@ -5,8 +5,8 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-   pwem.protocols.monitors
    pwem.protocols.protocol_export
    pwem.protocols.protocol_import
 
@@ -14,6 +14,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pwem.protocols.parallel
    pwem.protocols.protocol
@@ -28,6 +29,7 @@ Submodules
    pwem.protocols.protocol_extract_coordinates
    pwem.protocols.protocol_micrographs
    pwem.protocols.protocol_movies
+   pwem.protocols.protocol_origin_sampling_volume
    pwem.protocols.protocol_particles
    pwem.protocols.protocol_particles_picking
    pwem.protocols.protocol_pdf_report

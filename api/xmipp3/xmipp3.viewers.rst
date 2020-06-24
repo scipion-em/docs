@@ -5,8 +5,8 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
-   xmipp3.viewers.nma_plotter
    xmipp3.viewers.plotter
    xmipp3.viewers.viewer
    xmipp3.viewers.viewer_analyze_local_ctf
@@ -16,7 +16,8 @@ Submodules
    xmipp3.viewers.viewer_deep_consensus
    xmipp3.viewers.viewer_deep_micrograph_cleaner
    xmipp3.viewers.viewer_eliminate_empty_images
-   xmipp3.viewers.viewer_extract_unit_cell
+   xmipp3.viewers.viewer_extract_asymmetric_unit
+   xmipp3.viewers.viewer_metaprotocol_golden_highres
    xmipp3.viewers.viewer_ml2d
    xmipp3.viewers.viewer_mltomo
    xmipp3.viewers.viewer_movie_alignment
@@ -33,6 +34,7 @@ Submodules
    xmipp3.viewers.viewer_split_volume
    xmipp3.viewers.viewer_structure_map_sph
    xmipp3.viewers.viewer_swarm
+   xmipp3.viewers.viewer_validate_fscq
    xmipp3.viewers.viewer_validate_nontilt
    xmipp3.viewers.viewer_validate_overfitting
    xmipp3.viewers.viewer_volume_deform_sph

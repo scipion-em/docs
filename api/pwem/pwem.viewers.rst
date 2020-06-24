@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pwem.viewers.filehandlers
    pwem.viewers.plotter
@@ -13,7 +14,6 @@ Submodules
    pwem.viewers.viewer_chimera
    pwem.viewers.viewer_fsc
    pwem.viewers.viewer_localres
-   pwem.viewers.viewer_monitors
    pwem.viewers.viewer_pdf
    pwem.viewers.viewer_sequence
    pwem.viewers.viewer_vmd

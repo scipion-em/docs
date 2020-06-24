@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    pyworkflow.apps
    pyworkflow.gui
@@ -19,10 +20,13 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
+   pyworkflow.config
    pyworkflow.constants
    pyworkflow.object
    pyworkflow.plugin
+   pyworkflow.template
    pyworkflow.viewer
    pyworkflow.wizard
 

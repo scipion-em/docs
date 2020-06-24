@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    xmipp3.protocols.protocol_projmatch.projmatch_form
    xmipp3.protocols.protocol_projmatch.projmatch_initialize

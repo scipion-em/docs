@@ -5,6 +5,7 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
    xmipp3.convert
    xmipp3.protocols
@@ -14,6 +15,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    xmipp3.base
    xmipp3.bibtex
