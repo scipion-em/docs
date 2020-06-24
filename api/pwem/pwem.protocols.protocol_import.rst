@@ -5,7 +5,6 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
 
    pwem.protocols.protocol_import.base
    pwem.protocols.protocol_import.coordinates
@@ -22,6 +21,6 @@ Module contents
 ---------------
 
 .. automodule:: pwem.protocols.protocol_import
-   :members:
-   :undoc-members:
-   :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:

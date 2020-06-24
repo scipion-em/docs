@@ -5,7 +5,6 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
 
    pyworkflow.webservices.config
    pyworkflow.webservices.notifier
@@ -15,6 +14,6 @@ Module contents
 ---------------
 
 .. automodule:: pyworkflow.webservices
-   :members:
-   :undoc-members:
-   :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:

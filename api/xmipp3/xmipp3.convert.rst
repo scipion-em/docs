@@ -5,7 +5,6 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
 
    xmipp3.convert.convert
    xmipp3.convert.dataimport
@@ -15,6 +14,6 @@ Module contents
 ---------------
 
 .. automodule:: xmipp3.convert
-   :members:
-   :undoc-members:
-   :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:
