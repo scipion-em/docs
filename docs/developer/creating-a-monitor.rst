@@ -628,7 +628,7 @@ Our test should be failing because we are not passing the
                              "have the expected lines: %s" % 2)
 
             # Check notifications are empty
-            self.assertEqual(0, len(testNotifier.getNotifications()), "Notifiactions are not empty!")
+            self.assertEqual(0, len(testNotifier.getNotifications()), "Notifications are not empty!")
 
             # Move the threshold to trigger notifications
             spaceMonitor.minimumFreeSpace = freeSpaceInGB + 1
@@ -636,7 +636,7 @@ Our test should be failing because we are not passing the
             spaceMonitor.step()
 
             # Check there is a notification
-            self.assertEqual(1, len(testNotifier.getNotifications()), "There isn't a notifiaction")
+            self.assertEqual(1, len(testNotifier.getNotifications()), "There isn't a notification")
 
     class TestNotifier():
         def __init__(self):
@@ -651,7 +651,7 @@ Our test should be failing because we are not passing the
 
 We have used the ``diskUsage()`` method to get the free space of the HD
 of the ``/tmp`` folder. We round it "down" and use that as the threshold for
-the SpaceMonitor. Afte the first step there should not be any
+the SpaceMonitor. After the first step there should not be any
 notification. After the first assertions, we add another to check there
 are no notifications. Secondly, we increase the threshold by one and
 call for a second time ``step()``. This time, there should be a
@@ -698,7 +698,7 @@ and right above our custom ``class TestNotifier``
         spaceMon = SpaceMonitor(10, workingDir=prot._getExtraPath())
         txtPath = spaceMon.getStorageFilePath()
 
-        # Wait for a minute maximun or if file exists
+        # Wait for a minute maximum or if file exists
         wait(lambda: not os.path.exists(txtPath), timeout=15)
 
         self.assertTrue(os.path.exists(txtPath), "Space monitor txt file not "

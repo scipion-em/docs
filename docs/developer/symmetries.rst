@@ -25,7 +25,7 @@ For each type we show in this page:
 
 Note: Is really hard to see the difference symmetries just looking to the images,
 instead download the PDB files, the axis.bild file and visualize them in chimera.
-In chimera command line type "represent sphere" to incresae the atoms size.
+In chimera command line type "represent sphere" to increase the atoms size.
 
 .. contents:: Table of Contents
     :local:

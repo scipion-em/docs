@@ -241,7 +241,7 @@ line in SConscript, but this time it will be a call to
   target. Usually this target is the Makefile itself, so by default, if we
   don't say anything, 'Makefile' will be used.
 * **deps**: same behavior as in AddModule, but in this case, no dep is
-  asumed by default.
+  assumed by default.
 * **default**: if nothing is passed, True is assumed.
 
 We can then write, to solve the exercise, the following line in

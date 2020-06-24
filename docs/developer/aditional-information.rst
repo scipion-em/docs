@@ -2,8 +2,8 @@
    :width: 250
    :alt: scipion logo
 
-.. _aditional-information:
+.. _additional-information:
 
 =========================
-Aditional information
+Additional information
 =========================

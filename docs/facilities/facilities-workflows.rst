@@ -252,7 +252,7 @@ opens a menu to choose the dynamic template to launch
 .. figure:: /docs/images/multiple-choice-scipion-demo.png
    :align: center
    :width: 400
-   :alt: multiple choise scipion demo
+   :alt: multiple choice scipion demo
 
 
 Using Scipion's API

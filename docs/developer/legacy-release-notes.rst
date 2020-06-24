@@ -14,7 +14,7 @@ v.0.2.2 Titanium (6 Feb 2014)
 * Export/Import workflow template in .json format
 * Improved Runs Graph: (expand/collapse, small nodes, tooltips and keep positions)
 * Get working the Relion polishing
-* Review and update of the tutorials (specially the introdocutory one)
+* Review and update of the tutorials (specially the introductory one)
 * Updated Spider protocols and tools
 * Last fixes after Initial Volume WebTool
 * MPI steps parallelization improved (95%)
@@ -94,7 +94,7 @@ v.0.0.8 Oxygen (18 Dic 2013)
 v.0.0.7 Nitrogen (11 Nov 2013)
 -------------------------------
 
-* Added relations (For CTF, Aligment is missing)
+* Added relations (For CTF, Alignment is missing)
 * Developed first SPIDER protocols (align, filter, dimension reduction and classification) MDA workflow
 * Included protocol viewer with Forms( ProtocolViewer) in Tkinter and Web
 * More wizards for Tkinter and Web (adapted for SPIDER protocols)

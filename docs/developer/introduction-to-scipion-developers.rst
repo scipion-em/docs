@@ -37,7 +37,7 @@ If you are new to Scipion, you will find useful to follow this steps:
 
 8.  See the introduction to the `Introduction to Scipion web <https://scipion-em.github.io/docs/docs/developer/introduction-scipion-web>`_.
 9.  Find complementary materials about Structural Biology and Electron
-    Microscopy in `Additional information <aditional-information>`_.
+    Microscopy in `Additional information <additional-information>`_.
 
 10. Join our mailing lists:
 
