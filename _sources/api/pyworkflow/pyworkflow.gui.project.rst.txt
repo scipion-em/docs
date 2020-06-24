@@ -5,7 +5,6 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
 
    pyworkflow.gui.project.base
    pyworkflow.gui.project.constants
@@ -20,6 +19,6 @@ Module contents
 ---------------
 
 .. automodule:: pyworkflow.gui.project
-   :members:
-   :undoc-members:
-   :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:

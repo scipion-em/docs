@@ -5,7 +5,6 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
 
    pwem.convert.atom_struct
    pwem.convert.headers
@@ -18,6 +17,6 @@ Module contents
 ---------------
 
 .. automodule:: pwem.convert
-   :members:
-   :undoc-members:
-   :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:

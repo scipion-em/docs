@@ -5,7 +5,6 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
 
    pyworkflow.mapper.mapper
    pyworkflow.mapper.sqlite
@@ -16,6 +15,6 @@ Module contents
 ---------------
 
 .. automodule:: pyworkflow.mapper
-   :members:
-   :undoc-members:
-   :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:

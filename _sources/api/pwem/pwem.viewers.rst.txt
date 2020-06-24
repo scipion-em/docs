@@ -5,7 +5,6 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
 
    pwem.viewers.filehandlers
    pwem.viewers.plotter
@@ -26,6 +25,6 @@ Module contents
 ---------------
 
 .. automodule:: pwem.viewers
-   :members:
-   :undoc-members:
-   :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:
