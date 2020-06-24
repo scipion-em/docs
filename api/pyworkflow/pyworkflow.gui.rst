@@ -5,15 +5,13 @@ Subpackages
 -----------
 
 .. toctree::
-   :maxdepth: 4
 
-   pyworkflow.gui.project
+    pyworkflow.gui.project
 
 Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
 
    pyworkflow.gui.browser
    pyworkflow.gui.canvas
@@ -33,6 +31,6 @@ Module contents
 ---------------
 
 .. automodule:: pyworkflow.gui
-   :members:
-   :undoc-members:
-   :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -5,22 +5,20 @@ Subpackages
 -----------
 
 .. toctree::
-   :maxdepth: 4
 
-   pyworkflow.apps
-   pyworkflow.gui
-   pyworkflow.mapper
-   pyworkflow.project
-   pyworkflow.protocol
-   pyworkflow.tests
-   pyworkflow.utils
-   pyworkflow.webservices
+    pyworkflow.apps
+    pyworkflow.gui
+    pyworkflow.mapper
+    pyworkflow.project
+    pyworkflow.protocol
+    pyworkflow.tests
+    pyworkflow.utils
+    pyworkflow.webservices
 
 Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
 
    pyworkflow.config
    pyworkflow.constants
@@ -34,6 +32,6 @@ Module contents
 ---------------
 
 .. automodule:: pyworkflow
-   :members:
-   :undoc-members:
-   :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:

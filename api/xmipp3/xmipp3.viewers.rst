@@ -5,7 +5,6 @@ Submodules
 ----------
 
 .. toctree::
-   :maxdepth: 4
 
    xmipp3.viewers.plotter
    xmipp3.viewers.viewer
@@ -44,6 +43,6 @@ Module contents
 ---------------
 
 .. automodule:: xmipp3.viewers
-   :members:
-   :undoc-members:
-   :show-inheritance:
+    :members:
+    :undoc-members:
+    :show-inheritance:
