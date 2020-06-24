@@ -46,6 +46,6 @@ When storing the object, the value of the column “name” of a child
 attribute is built dynamically to keep trace of the child-parent
 relationship.
 
-.. image:: /docs/images/mapper/sqlite_mapper_objects.png
+.. image:: /docs/images/mappers/sqlite_mapper_objects.png
 
 .. todo: The image depicted below shows the structure of the table and an object stored in it:

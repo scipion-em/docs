@@ -12,7 +12,7 @@ Electron microscopy image processing follows a common workflow.
 Protocols for the different image processing steps are represented below
 (click on image to see full size image).
 
-.. figure:: /dosc/images/classes_protocol.png
+.. figure:: /docs/images/classes_protocol.png
    :align: center
    :width: 900
    :height: 300
