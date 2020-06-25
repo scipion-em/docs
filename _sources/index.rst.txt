@@ -56,7 +56,6 @@ later on.
    :titlesonly:
    :caption: API Documentation
 
-   api/app/app
    api/appion/appion
    api/atomstructutils/atomstructutils
    api/atsas/atsas
@@ -84,6 +83,7 @@ later on.
    api/pwem/pwem
    api/relion/relion
    api/resmap/resmap
+   api/scipion/scipion
    api/sphire/sphire
    api/spider/spider
    api/tomo/tomo
