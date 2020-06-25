@@ -83,7 +83,7 @@ later on.
    api/pwem/pwem
    api/relion/relion
    api/resmap/resmap
-   api/app/scipion-app
+   api/app/app
    api/sphire/sphire
    api/spider/spider
    api/tomo/tomo
