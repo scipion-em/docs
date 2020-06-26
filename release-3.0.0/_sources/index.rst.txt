@@ -105,7 +105,7 @@ How to Contribute
 
 There are many ways to help make Scipion better:
 
-* `Open a New Issue <https://github.com/I2PC/scipion/issues/new>`__ to report bugs or suggest new features.We would like to hear from you.
+* ``Open a New Issue <https://github.com/scipion-em/scipion-pyworkflow/issues/new>`__ to report bugs or suggest new features.We would like to hear from you.
 
 * :ref:`Extend Scipion <extending-scipion>` with new protocols or packages (requires some Python programming skills).
 

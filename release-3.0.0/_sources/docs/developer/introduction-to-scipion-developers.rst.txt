@@ -44,4 +44,4 @@ If you are new to Scipion, you will find useful to follow this steps:
     * Scipion-developers: Join our slack space, request us to invite you scipion@cnb.csic.es
     * Scipion-users: https://sourceforge.net/projects/scipion/lists/scipion-users
 
-`Xmipp developers stuff <http://xmipp.cnb.csic.es/twiki/bin/view/Xmipp/DevelopersStuff>`_ contains info which might also be relevant to Scipion.
+`Xmipp developers stuff <https://github.com/I2PC/xmipp-portal/wiki/DevelopersStuff>`_ contains info which might also be relevant to Scipion.

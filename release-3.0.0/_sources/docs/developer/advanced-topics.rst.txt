@@ -41,7 +41,7 @@ this `[page] <scipion-commands>`_ to learn how.
 Profiling and Debugging
 -----------------------
 
-* Check what can be reused from here: http://xmipp.cnb.csic.es/twiki/bin/view/Xmipp/DebuggingProfiling, check with Juan if he has some NOTES about profiling
+* Check what can be reused from here: https://github.com/I2PC/xmipp-portal/wiki/DebuggingProfiling, check with Juan if he has some NOTES about profiling
 * `Profiling in C/C++: Valgrind <valgrind-suite-tools-introduction>`_
 * Debugging in Python: with PyCharm and WinPdb
 
