@@ -76,7 +76,7 @@ see  `[here] <https://github.com/I2PC/scipion/wiki/Picker#import-coordinates>`_
 ---------------
 
 Micrographs can be imported either directly from files (default option, see the
-list of `[supported formats] <http://xmipp.cnb.csic.es/twiki/bin/view/Xmipp/ImageFormats))>`_ or:
+list of `[supported formats] <https://github.com/I2PC/xmipp-portal/wiki/ImageFormats))>`_ or:
 
 * **emx** - EMX files follow Electron Microscopy Exchange format (details can be found `[here] <http://i2pc.cnb.csic.es/emx/LoadHome.htm>`_
 * **scipion** - you can provide **.sqlite** database file created previously with Scipion and containing all associated micrograph metadata
@@ -116,7 +116,7 @@ and **img_tilt_*.tif**, corresponding to micrographs **img_untilt_01.tif**,
 -----------------------------------------
 
 All other Scipion objects are imported directly from files. Look at the list
-of `[supported image formats] <(http://xmipp.cnb.csic.es/twiki/bin/view/Xmipp/ImageFormats)>`_.
+of `[supported image formats] <(https://github.com/I2PC/xmipp-portal/wiki/ImageFormats)>`_.
 Right now, DM4 files and new IMAGIC format are not fully supported yet
 (you still can import such files), but we are working on it.
 
