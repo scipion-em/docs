@@ -237,9 +237,12 @@
 <span class="kn">from</span> <span class="nn">pwem.constants</span> <span class="k">import</span> <span class="n">ALIGN_PROJ</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="k">import</span> <span class="n">ProtParticles</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="k">import</span> <span class="n">Float</span>
+<span class="kn">import</span> <span class="nn">pwem.emlib.metadata</span> <span class="k">as</span> <span class="nn">md</span>
 
 <span class="kn">import</span> <span class="nn">relion</span>
 <span class="kn">import</span> <span class="nn">relion.convert</span> <span class="k">as</span> <span class="nn">convert</span>
+<span class="kn">from</span> <span class="nn">relion.convert.convert31</span> <span class="k">import</span> <span class="n">Reader</span><span class="p">,</span> <span class="n">OpticsGroups</span>
+
 <span class="kn">from</span> <span class="nn">..objects</span> <span class="k">import</span> <span class="n">CtfRefineGlobalInfo</span>
 
 
@@ -433,12 +436,22 @@
         <span class="n">outImgsFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fileWithRefinedCTFName</span><span class="p">()</span>
         <span class="n">imgSet</span><span class="o">.</span><span class="n">setAlignmentProj</span><span class="p">()</span>
 
-        <span class="n">tableName</span> <span class="o">=</span> <span class="s1">&#39;particles@&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">IS_GT30</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
-        <span class="n">mdIter</span> <span class="o">=</span> <span class="n">convert</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">iterRows</span><span class="p">(</span><span class="n">tableName</span> <span class="o">+</span> <span class="n">outImgsFn</span><span class="p">,</span>
-                                        <span class="n">key</span><span class="o">=</span><span class="s1">&#39;rlnImageId&#39;</span><span class="p">)</span>
-        <span class="n">outImgSet</span><span class="o">.</span><span class="n">copyItems</span><span class="p">(</span><span class="n">imgSet</span><span class="p">,</span>
-                            <span class="n">updateItemCallback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_updateItemCtfBeamTilt</span><span class="p">,</span>
-                            <span class="n">itemDataIterator</span><span class="o">=</span><span class="n">mdIter</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">IS_GT30</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_optics</span> <span class="o">=</span> <span class="n">convert</span><span class="o">.</span><span class="n">getOpticsDict</span><span class="p">(</span><span class="n">outImgsFn</span><span class="p">)</span>
+            <span class="n">mdIter</span> <span class="o">=</span> <span class="n">convert</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">iterRows</span><span class="p">(</span><span class="s1">&#39;particles@&#39;</span> <span class="o">+</span> <span class="n">outImgsFn</span><span class="p">,</span>
+                                            <span class="n">key</span><span class="o">=</span><span class="s1">&#39;rlnImageId&#39;</span><span class="p">)</span>
+            <span class="n">outImgSet</span><span class="o">.</span><span class="n">copyItems</span><span class="p">(</span><span class="n">imgSet</span><span class="p">,</span>
+                                <span class="n">updateItemCallback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_updateItem31</span><span class="p">,</span>
+                                <span class="n">itemDataIterator</span><span class="o">=</span><span class="n">mdIter</span><span class="p">,</span>
+                                <span class="n">doClone</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">og</span> <span class="o">=</span> <span class="n">OpticsGroups</span><span class="o">.</span><span class="n">fromStar</span><span class="p">(</span><span class="n">outImgsFn</span><span class="p">)</span>
+            <span class="n">og</span><span class="o">.</span><span class="n">toImages</span><span class="p">(</span><span class="n">outImgSet</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mdIter</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">iterRows</span><span class="p">(</span><span class="n">outImgsFn</span><span class="p">,</span> <span class="n">sortByLabel</span><span class="o">=</span><span class="n">md</span><span class="o">.</span><span class="n">RLN_IMAGE_ID</span><span class="p">)</span>
+            <span class="n">outImgSet</span><span class="o">.</span><span class="n">copyItems</span><span class="p">(</span><span class="n">imgSet</span><span class="p">,</span>
+                                <span class="n">updateItemCallback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_updateItem30</span><span class="p">,</span>
+                                <span class="n">itemDataIterator</span><span class="o">=</span><span class="n">mdIter</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputParticles</span><span class="o">=</span><span class="n">outImgSet</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineTransformRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputParticles</span><span class="p">,</span> <span class="n">outImgSet</span><span class="p">)</span></div>
 
@@ -452,13 +465,18 @@
 <div class="viewcode-block" id="ProtRelionCtfRefinement.createGlobalInfoStep"><a class="viewcode-back" href="../../../api/relion/relion.protocols.protocol_ctf_refinement.html#relion.protocols.protocol_ctf_refinement.ProtRelionCtfRefinement.createGlobalInfoStep">[docs]</a>    <span class="k">def</span> <span class="nf">createGlobalInfoStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">createGlobalInfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fileWithAnalyzeInfo</span><span class="p">())</span></div>
 
-    <span class="k">def</span> <span class="nf">_updateItemCtfBeamTilt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_updateItem30</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
         <span class="n">particle</span><span class="o">.</span><span class="n">setCTF</span><span class="p">(</span><span class="n">convert</span><span class="o">.</span><span class="n">rowToCtfModel</span><span class="p">(</span><span class="n">row</span><span class="p">))</span>
         <span class="c1"># TODO: Add other field from the .star file when other options?</span>
         <span class="c1"># check if beamtilt is available and save it</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="s1">&#39;rlnBeamTiltX&#39;</span><span class="p">):</span>
             <span class="n">particle</span><span class="o">.</span><span class="n">_rlnBeamTiltX</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">rlnBeamTiltX</span><span class="p">)</span>
             <span class="n">particle</span><span class="o">.</span><span class="n">_rlnBeamTiltY</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">rlnBeamTiltY</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_updateItem31</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+        <span class="n">Reader</span><span class="o">.</span><span class="n">rowToCtf</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">particle</span><span class="o">.</span><span class="n">getCTF</span><span class="p">())</span>
+        <span class="c1"># Reader.rowToAcquisition(self._optics[row.rlnOpticsGroup],</span>
+        <span class="c1">#                         particle.getAcquisition())</span>
 
     <span class="c1"># --------------------------- INFO functions ------------------------------</span>
     <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -521,6 +539,9 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
+            <dd><a href="../../../dm_facilitiesUpdate/index.html">dm_facilitiesUpdate</a></dd>
+            <dd><a href="../../../gh-pages/index.html">gh-pages</a></dd>
+            <dd><a href="../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../release-3.0.0/_modules/relion/protocols/protocol_ctf_refinement.html">release-3.0.0</a></dd>
         </dl>
     </div>
