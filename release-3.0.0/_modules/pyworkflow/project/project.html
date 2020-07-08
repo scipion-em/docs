@@ -245,7 +245,8 @@
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.mapper</span> <span class="k">import</span> <span class="n">SqliteMapper</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="k">import</span> <span class="p">(</span><span class="n">MODE_RESTART</span><span class="p">,</span> <span class="n">MODE_CONTINUE</span><span class="p">,</span>
-                                           <span class="n">STATUS_INTERACTIVE</span><span class="p">,</span> <span class="n">ACTIVE_STATUS</span><span class="p">)</span>
+                                           <span class="n">STATUS_INTERACTIVE</span><span class="p">,</span> <span class="n">ACTIVE_STATUS</span><span class="p">,</span> <span class="n">UNKNOWN_JOBID</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.protocol.protocol</span> <span class="k">import</span> <span class="n">ProtImportBase</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">config</span>
 
@@ -263,7 +264,6 @@
 <span class="c1"># Regex to get numbering suffix and automatically propose runName</span>
 <span class="n">REGEX_NUMBER_ENDING</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;(?P&lt;prefix&gt;.+)(?P&lt;number&gt;\(\d*\))\s*$&#39;</span><span class="p">)</span>
 <span class="n">REGEX_NUMBER_ENDING_CP</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;(?P&lt;prefix&gt;.+\s\(copy)(?P&lt;number&gt;.*)\)\s*$&#39;</span><span class="p">)</span>
-
 
 <div class="viewcode-block" id="Project"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project">[docs]</a><span class="k">class</span> <span class="nc">Project</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This class will handle all information </span>
@@ -840,7 +840,9 @@
             <span class="n">pwutils</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">copyFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbPath</span><span class="p">,</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getDbPath</span><span class="p">())</span>
 
         <span class="c1"># Launch the protocol, the jobId should be set after this call</span>
-        <span class="n">pwprot</span><span class="o">.</span><span class="n">launch</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">wait</span><span class="p">)</span>
+        <span class="n">jobId</span> <span class="o">=</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">launch</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">wait</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">jobId</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">jobId</span> <span class="o">==</span> <span class="n">UNKNOWN_JOBID</span><span class="p">:</span>
+            <span class="n">protocol</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="n">pwprot</span><span class="o">.</span><span class="n">STATUS_FAILED</span><span class="p">)</span>
 
         <span class="c1"># Commit changes</span>
         <span class="k">if</span> <span class="n">wait</span><span class="p">:</span>  <span class="c1"># This is only useful for launching tests...</span>
@@ -1834,9 +1836,7 @@
 
         <span class="k">for</span> <span class="n">prot</span> <span class="ow">in</span> <span class="n">runs</span><span class="p">:</span>
             <span class="n">broken</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="c1"># FIXME: Remove the em.ProtImport here</span>
-            <span class="c1"># FIXME (maybe create a base import class?)</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prot</span><span class="p">,</span> <span class="n">pwem</span><span class="o">.</span><span class="n">protocols</span><span class="o">.</span><span class="n">ProtImport</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prot</span><span class="p">,</span> <span class="n">ProtImportBase</span><span class="p">):</span>
                 <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">prot</span><span class="o">.</span><span class="n">iterOutputAttributes</span><span class="p">():</span>
                     <span class="n">fn</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">getFiles</span><span class="p">()</span>
                     <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">attr</span><span class="o">.</span><span class="n">getFiles</span><span class="p">():</span>
