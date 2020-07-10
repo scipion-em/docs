@@ -106,7 +106,7 @@ CentOS with virtualenv
     sudo yum install gcc gcc-c++ make openmpi-devel python3-devel python3-tkinter wget fftw-devel hdf5-devel libtiff-devel libjpeg-devel sqlite-devel.x86_64 java-1.8.0-openjdk-devel
     export PATH=$PATH:/usr/lib64/openmpi/bin/:/usr/local/cuda/bin
     python3 -m pip install --user scipion-installer
-    python3 -m scipioninstaller /path/where/you/want/scipion -venv
+    python3 -m scipioninstaller /path/where/you/want/scipion -venv -j 4
 
 
 Launching scipion3
