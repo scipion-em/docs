@@ -70,6 +70,7 @@ Ubuntu with conda
 
     sudo apt-get install gcc g++ libopenmpi-dev make
     conda activate
+    export PATH=$PATH:/usr/local/cuda/bin
     pip install --user scipion-installer
     python -m scipioninstaller /path/where/you/want/scipion -j 4
 
@@ -79,6 +80,7 @@ Ubuntu with virtualenv
 ::
 
     sudo apt-get install gcc g++ make libopenmpi-dev python3-tk libfftw3-dev libhdf5-dev libtiff-dev libjpeg-dev libsqlite3-dev openjdk-8-jdk
+    export PATH=$PATH:/usr/local/cuda/bin
     python -m pip install --user scipion-installer
     python -m scipioninstaller /path/where/you/want/scipion -venv -j 4
 
@@ -88,7 +90,7 @@ CentOS with conda
 ::
 
     sudo yum install gcc gcc-c++ openmpi-devel
-    export PATH=$PATH:/usr/lib64/openmpi/bin/
+    export PATH=$PATH:/usr/lib64/openmpi/bin/:/usr/local/cuda/bin
     conda activate
     pip install --user scipion-installer
     python3 -m scipioninstaller /path/where/you/want/scipion -j 4
@@ -102,7 +104,7 @@ CentOS with virtualenv
     sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
     sudo dnf -y --enablerepo=PowerTools install libaec-devel
     sudo yum install gcc gcc-c++ make openmpi-devel python3-devel python3-tkinter wget fftw-devel hdf5-devel libtiff-devel libjpeg-devel sqlite-devel.x86_64 java-1.8.0-openjdk-devel
-    export PATH=$PATH:/usr/lib64/openmpi/bin/
+    export PATH=$PATH:/usr/lib64/openmpi/bin/:/usr/local/cuda/bin
     python3 -m pip install --user scipion-installer
     python3 -m scipioninstaller /path/where/you/want/scipion -venv
 
