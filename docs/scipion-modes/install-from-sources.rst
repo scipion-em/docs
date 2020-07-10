@@ -98,7 +98,8 @@ CentOS with virtualenv
 ----------------------
 
 ::
-
+    sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
+    sudo dnf -y --enablerepo=PowerTools install libaec-devel
     sudo yum install gcc gcc-c++ make openmpi-devel python3-devel python3-tkinter wget fftw-devel hdf5-devel libtiff-devel libjpeg-devel sqlite-devel.x86_64 java-1.8.0-openjdk-devel
     export PATH=$PATH:/usr/lib64/openmpi/bin/
     python3 -m pip install --user scipion-installer
