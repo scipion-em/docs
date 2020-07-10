@@ -87,7 +87,7 @@ CentOS with conda
 
 ::
 
-    yum install gcc gcc-c++ openmpi-devel
+    sudo yum install gcc gcc-c++ openmpi-devel
     export PATH=$PATH:/usr/lib64/openmpi/bin/
     conda activate
     pip install --user scipion-installer
@@ -99,7 +99,7 @@ CentOS with virtualenv
 
 ::
 
-    yum install gcc gcc-c++ make openmpi-devel python3-devel python3-tkinter wget fftw-devel hdf5-devel libtiff-devel libjpeg-devel sqlite-devel.x86_64 java-1.8.0-openjdk-devel
+    sudo yum install gcc gcc-c++ make openmpi-devel python3-devel python3-tkinter wget fftw-devel hdf5-devel libtiff-devel libjpeg-devel sqlite-devel.x86_64 java-1.8.0-openjdk-devel
     export PATH=$PATH:/usr/lib64/openmpi/bin/
     python3 -m pip install --user scipion-installer
     python3 -m scipioninstaller /path/where/you/want/scipion -venv
