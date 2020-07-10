@@ -68,8 +68,9 @@ Ubuntu with conda
 
 ::
 
-    sudo apt-get install gcc g++ libopenmpi-dev make
+    sudo apt-get install gcc-8 g++-8 libopenmpi-dev make
     conda activate
+    export CXX_CUDA=g++-8
     export PATH=$PATH:/usr/local/cuda/bin
     pip install --user scipion-installer
     python -m scipioninstaller /path/where/you/want/scipion -j 4
