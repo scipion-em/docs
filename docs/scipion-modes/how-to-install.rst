@@ -2,7 +2,7 @@
    :width: 250
    :alt: scipion logo
 
-.. _install-from-sources:
+.. _how-to-install:
 
 =======================
 Installing Scipion v3.0
