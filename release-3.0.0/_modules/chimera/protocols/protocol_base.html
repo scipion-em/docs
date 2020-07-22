@@ -82,7 +82,7 @@
             
               <p class="caption"><span class="caption-text">Set up</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../docs/scipion-modes/install-from-sources.html">Installing Scipion v2.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../docs/scipion-modes/install-from-sources.html">Installing Scipion v3.0</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../docs/scipion-modes/scipion-configuration.html">Scipion configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../docs/scipion-modes/host-configuration.html">Host configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../docs/user/troubleshooting.html">Troubleshooting</a></li>
@@ -237,6 +237,8 @@
 
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="k">import</span> <span class="n">VERSION_3_0</span>
 
+<span class="kn">from</span> <span class="nn">..constants</span> <span class="k">import</span> <span class="n">CHIMERA_CONFIG_FILE</span>
+
 <span class="k">try</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">AtomStruct</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
@@ -260,7 +262,7 @@
 <span class="kn">from</span> <span class="nn">pyworkflow.utils.properties</span> <span class="k">import</span> <span class="n">Message</span>
 
 <span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Plugin</span>
-
+<span class="kn">import</span> <span class="nn">configparser</span>
 
 <div class="viewcode-block" id="ChimeraProtBase"><a class="viewcode-back" href="../../../api/chimera/chimera.protocols.protocol_base.html#chimera.protocols.protocol_base.ChimeraProtBase">[docs]</a><span class="k">class</span> <span class="nc">ChimeraProtBase</span><span class="p">(</span><span class="n">EMProtocol</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Base class  for chimera protocol&quot;&quot;&quot;</span>
@@ -320,16 +322,6 @@
         <span class="c1"># building script file including the coordinate axes and the input</span>
         <span class="c1"># volume with samplingRate and Origin information</span>
         <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="n">chimeraScriptFileName</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;from chimera import runCommand</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-
-        <span class="c1"># create coherent header</span>
-        <span class="n">createScriptFile</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># model id pdb</span>
-                         <span class="mi">1</span><span class="p">,</span>  <span class="c1"># model id 3D map</span>
-                         <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">chimeraPdbTemplateFileName</span><span class="p">),</span>
-                         <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">chimeraMapTemplateFileName</span><span class="p">),</span>
-                         <span class="n">f</span><span class="p">,</span>
-                         <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">sessionFile</span><span class="p">),</span>
-                         <span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputVolume</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">_inputVol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdbFileToBeRefined</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getVolume</span><span class="p">()</span>
@@ -349,90 +341,113 @@
         <span class="n">Chimera</span><span class="o">.</span><span class="n">createCoordinateAxisFile</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span>
                                          <span class="n">bildFileName</span><span class="o">=</span><span class="n">tmpFileName</span><span class="p">,</span>
                                          <span class="n">sampling</span><span class="o">=</span><span class="n">sampling</span><span class="p">)</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;runCommand(&#39;open </span><span class="si">%s</span><span class="s2">&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tmpFileName</span><span class="p">)</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;runCommand(&#39;cofr 0,0,0&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># set center of coordinates</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;open </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tmpFileName</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;cofr 0,0,0</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># set center of coordinates</span>
 
         <span class="c1"># input vol with its origin coordinates</span>
-        <span class="n">pdbModelCounter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">pdbModelCounter</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="n">_inputVol</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">pdbModelCounter</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">x_input</span><span class="p">,</span> <span class="n">y_input</span><span class="p">,</span> <span class="n">z_input</span> <span class="o">=</span> <span class="n">_inputVol</span><span class="o">.</span><span class="n">getShiftsFromOrigin</span><span class="p">()</span>
             <span class="n">inputVolFileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">ImageHandler</span><span class="o">.</span><span class="n">removeFileType</span><span class="p">(</span>
                 <span class="n">_inputVol</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()))</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;runCommand(&#39;open </span><span class="si">%s</span><span class="s2">&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">inputVolFileName</span><span class="p">)</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;runCommand(&#39;volume #</span><span class="si">%d</span><span class="s2"> style surface voxelSize </span><span class="si">%f</span><span class="s2">&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;open </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">inputVolFileName</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;volume #</span><span class="si">%d</span><span class="s2"> style surface voxelSize </span><span class="si">%f</span><span class="se">\n</span><span class="s2">&quot;</span>
                     <span class="o">%</span> <span class="p">(</span><span class="n">pdbModelCounter</span><span class="p">,</span> <span class="n">_inputVol</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()))</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;runCommand(&#39;volume #</span><span class="si">%d</span><span class="s2"> origin </span><span class="si">%0.2f</span><span class="s2">,</span><span class="si">%0.2f</span><span class="s2">,</span><span class="si">%0.2f</span><span class="s2">&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;volume #</span><span class="si">%d</span><span class="s2"> origin </span><span class="si">%0.2f</span><span class="s2">,</span><span class="si">%0.2f</span><span class="s2">,</span><span class="si">%0.2f</span><span class="se">\n</span><span class="s2">&quot;</span>
                     <span class="o">%</span> <span class="p">(</span><span class="n">pdbModelCounter</span><span class="p">,</span> <span class="n">x_input</span><span class="p">,</span> <span class="n">y_input</span><span class="p">,</span> <span class="n">z_input</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputVolumes</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">vol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputVolumes</span><span class="p">:</span>
                 <span class="n">pdbModelCounter</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;runCommand(&#39;open </span><span class="si">%s</span><span class="s2">&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">vol</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;open </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">vol</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
                 <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">vol</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getShiftsFromOrigin</span><span class="p">()</span>
-                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;runCommand(&#39;volume #</span><span class="si">%d</span><span class="s2"> style surface voxelSize </span><span class="si">%f</span><span class="s2">&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;volume #</span><span class="si">%d</span><span class="s2"> style surface voxelSize </span><span class="si">%f</span><span class="se">\n</span><span class="s2">&quot;</span>
                         <span class="o">%</span> <span class="p">(</span><span class="n">pdbModelCounter</span><span class="p">,</span> <span class="n">vol</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()))</span>
-                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;runCommand(&#39;volume #</span><span class="si">%d</span><span class="s2"> origin </span><span class="si">%0.2f</span><span class="s2">,</span><span class="si">%0.2f</span><span class="s2">,</span><span class="si">%0.2f</span><span class="s2">&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;volume #</span><span class="si">%d</span><span class="s2"> origin </span><span class="si">%0.2f</span><span class="s2">,</span><span class="si">%0.2f</span><span class="s2">,</span><span class="si">%0.2f</span><span class="se">\n</span><span class="s2">&quot;</span>
                         <span class="o">%</span> <span class="p">(</span><span class="n">pdbModelCounter</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdbFileToBeRefined</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">pdbModelCounter</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="n">pdbFileToBeRefined</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdbFileToBeRefined</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;runCommand(&#39;open </span><span class="si">%s</span><span class="s2">&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;open </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span>
                 <span class="n">pdbFileToBeRefined</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()))</span>
             <span class="k">if</span> <span class="n">pdbFileToBeRefined</span><span class="o">.</span><span class="n">hasOrigin</span><span class="p">():</span>
                 <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="p">(</span><span class="n">pdbFileToBeRefined</span><span class="o">.</span><span class="n">getOrigin</span><span class="p">()</span><span class="o">.</span><span class="n">getShifts</span><span class="p">())</span>
-                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;runCommand(&#39;move </span><span class="si">%0.2f</span><span class="s2">,</span><span class="si">%0.2f</span><span class="s2">,</span><span class="si">%0.2f</span><span class="s2"> model #</span><span class="si">%d</span><span class="s2"> &quot;</span>
-                        <span class="s2">&quot;coord #0&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">pdbModelCounter</span><span class="p">))</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;move </span><span class="si">%0.2f</span><span class="s2">,</span><span class="si">%0.2f</span><span class="s2">,</span><span class="si">%0.2f</span><span class="s2"> model #</span><span class="si">%d</span><span class="s2"> &quot;</span>
+                        <span class="s2">&quot;coord #0</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">pdbModelCounter</span><span class="p">))</span>
 
         <span class="c1"># Alignment of sequence and structure</span>
         <span class="k">if</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;inputSequence&#39;</span><span class="p">)</span> <span class="ow">and</span>
                 <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;inputStructureChain&#39;</span><span class="p">)):</span>
             <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputSequence</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">inputStructureChain</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
-                <span class="n">pdbModelCounter</span> <span class="o">=</span> <span class="mi">2</span>
-                <span class="n">models</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">structureHandler</span><span class="o">.</span><span class="n">getModelsChains</span><span class="p">()</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">models</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;runCommand(&#39;select #</span><span class="si">%d</span><span class="s2">.</span><span class="si">%s</span><span class="s2">:.</span><span class="si">%s</span><span class="s2">&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span>
-                            <span class="o">%</span> <span class="p">(</span><span class="n">pdbModelCounter</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedModel</span><span class="p">),</span>
-                               <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedChain</span><span class="p">)))</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;runCommand(&#39;select #</span><span class="si">%d</span><span class="s2">:.</span><span class="si">%s</span><span class="s2">&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span>
-                            <span class="o">%</span> <span class="p">(</span><span class="n">pdbModelCounter</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedChain</span><span class="p">)))</span>
-                <span class="c1"># f.write(&quot;runCommand(&#39;sequence selection&#39;)\n&quot;) # To open</span>
-                <span class="c1"># only the</span>
-                <span class="c1"># sequence of</span>
-                <span class="c1"># the selected</span>
-                <span class="c1"># chain</span>
+                <span class="n">pdbModelCounter</span> <span class="o">=</span> <span class="mi">3</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;select #</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedModel</span><span class="p">),</span>
+                           <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedChain</span><span class="p">)))</span>
+
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getOutFastaSequencesFile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">alignmentFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getOutFastaSequencesFile</span><span class="p">()</span>
-                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;runCommand(&#39;open </span><span class="si">%s</span><span class="s2">&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">alignmentFile</span><span class="p">)</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;open </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">alignmentFile</span><span class="p">)</span>
 
         <span class="c1"># other pdb files</span>
         <span class="k">for</span> <span class="n">pdb</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputPdbFiles</span><span class="p">:</span>
             <span class="n">pdbModelCounter</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;runCommand(&#39;open </span><span class="si">%s</span><span class="s2">&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">pdb</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;open </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">pdb</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
             <span class="p">)</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()))</span>
             <span class="k">if</span> <span class="n">pdb</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">hasOrigin</span><span class="p">():</span>
                 <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">pdb</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getOrigin</span><span class="p">()</span><span class="o">.</span><span class="n">getShifts</span><span class="p">()</span>
-                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;runCommand(&#39;move </span><span class="si">%0.2f</span><span class="s2">,</span><span class="si">%0.2f</span><span class="s2">,</span><span class="si">%0.2f</span><span class="s2"> model #</span><span class="si">%d</span><span class="s2"> &quot;</span>
-                        <span class="s2">&quot;coord #0&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">pdbModelCounter</span><span class="p">))</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;move </span><span class="si">%0.2f</span><span class="s2">,</span><span class="si">%0.2f</span><span class="s2">,</span><span class="si">%0.2f</span><span class="s2"> model #</span><span class="si">%d</span><span class="s2"> &quot;</span>
+                        <span class="s2">&quot;coord #0</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">pdbModelCounter</span><span class="p">))</span>
             <span class="c1"># TODO: Check this this this this this this</span>
 
+        <span class="c1"># Go to extra dir and save there the output of</span>
+        <span class="c1"># scipionwrite</span>
+        <span class="c1">#f.write(&#39;cd %s&#39; % os.path.abspath(</span>
+        <span class="c1">#    self._getExtraPath()))</span>
+        <span class="c1"># save config file with information</span>
+        <span class="c1"># this is information is pased from scipion to chimerax</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
+        <span class="n">_chimeraPdbTemplateFileName</span> <span class="o">=</span> \
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span>
+                <span class="n">chimeraPdbTemplateFileName</span><span class="p">))</span>
+        <span class="n">_chimeraMapTemplateFileName</span> <span class="o">=</span> \
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span>
+                <span class="n">chimeraMapTemplateFileName</span><span class="p">))</span>
+        <span class="n">_sessionFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">sessionFile</span><span class="p">))</span>
+        <span class="n">protId</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;chimerax&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;chimerapdbtemplatefilename&#39;</span><span class="p">:</span>
+                                  <span class="n">_chimeraPdbTemplateFileName</span> <span class="o">%</span> <span class="n">protId</span><span class="p">,</span>
+                              <span class="s1">&#39;chimeramaptemplatefilename&#39;</span><span class="p">:</span>
+                                  <span class="n">_chimeraMapTemplateFileName</span> <span class="o">%</span> <span class="n">protId</span><span class="p">,</span>
+                              <span class="s1">&#39;sessionfile&#39;</span><span class="p">:</span> <span class="n">_sessionFile</span><span class="p">,</span>
+                              <span class="s1">&#39;enablebundle&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                              <span class="s1">&#39;protid&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()}</span>
+                              <span class="c1"># set to True when</span>
+                              <span class="c1"># protocol finished</span>
+                              <span class="c1"># viewers will check this configuration file</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">CHIMERA_CONFIG_FILE</span><span class="p">),</span>
+                  <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">configfile</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">configfile</span><span class="p">)</span>
+
         <span class="c1"># run the text:</span>
+        <span class="n">_chimeraScriptFileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="n">chimeraScriptFileName</span><span class="p">))</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extraCommands</span><span class="o">.</span><span class="n">get</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extraCommands</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
-            <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot; --nogui --script &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span>
-                <span class="n">chimeraScriptFileName</span><span class="p">)</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot; --nogui &quot;</span> <span class="o">+</span> <span class="n">_chimeraScriptFileName</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot; --script &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="n">chimeraScriptFileName</span><span class="p">)</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">_chimeraScriptFileName</span>
 
         <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Launching: &#39;</span> <span class="o">+</span> <span class="n">Plugin</span><span class="o">.</span><span class="n">getProgram</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">args</span><span class="p">)</span>
 
         <span class="c1"># run in the background</span>
-        <span class="n">Chimera</span><span class="o">.</span><span class="n">runProgram</span><span class="p">(</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getProgram</span><span class="p">(),</span> <span class="n">args</span><span class="p">)</span></div>
+        <span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">())</span>
+        <span class="n">Chimera</span><span class="o">.</span><span class="n">runProgram</span><span class="p">(</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getProgram</span><span class="p">(),</span> <span class="n">args</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">cwd</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ChimeraProtBase.createOutput"><a class="viewcode-back" href="../../../api/chimera/chimera.protocols.protocol_base.html#chimera.protocols.protocol_base.ChimeraProtBase.createOutput">[docs]</a>    <span class="k">def</span> <span class="nf">createOutput</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Copy the PDB structure and register the output object.</span>
@@ -461,11 +476,20 @@
                 <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
                 <span class="n">pdb</span> <span class="o">=</span> <span class="n">AtomStruct</span><span class="p">()</span>
                 <span class="n">pdb</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
-                <span class="n">keyword</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.pdb&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.cif&quot;</span><span class="p">):</span>
+                    <span class="n">keyword</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.cif&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span><span class="s2">&quot;_&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">keyword</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.pdb&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
                 <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="n">keyword</span><span class="p">:</span> <span class="n">pdb</span><span class="p">}</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
-
-
+                <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># upodate config file flag enablebundle</span>
+        <span class="c1"># so scipionwrite is disabled</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">CHIMERA_CONFIG_FILE</span><span class="p">))</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;chimerax&#39;</span><span class="p">,</span> <span class="s1">&#39;enablebundle&#39;</span><span class="p">,</span> <span class="s1">&#39;False&#39;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">CHIMERA_CONFIG_FILE</span><span class="p">),</span>
+                  <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">configfile</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">configfile</span><span class="p">)</span></div>
     <span class="c1"># --------------------------- INFO functions ----------------------------</span>
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
