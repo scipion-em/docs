@@ -18,6 +18,7 @@ Submodules
    chimera.constants
    chimera.convert
    chimera.editList
+   chimera.getchimera
    chimera.parser_h1
    chimera.wizards
 

@@ -222,7 +222,11 @@ available in the plugin home directory). The file structure is
     ssl=True
     verify_ssl=False
     timeZone =Europe/Madrid
-
+    # add this number of hours to time reported
+    # by the computer. USeful if time is not set ptoperly
+    # in your computer
+    timeDelta=0
+    
     # paramiko,  is a ssh client for python we use it to implement
     # sftp and transfer images from scipion host to grafana host
     # authentication is performed using username and a private key. 

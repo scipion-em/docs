@@ -16,6 +16,7 @@ Submodules
 .. toctree::
 
    tomo.objects
+   tomo.utils
 
 Module contents
 ---------------
