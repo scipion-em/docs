@@ -164,10 +164,12 @@ Fixing fonts in a conda installation
 ------------------------------------
 This will fix the fonts issue when using a conda installation
 
-conda activate .scipion3env (all commands below are inside this env)
-conda remove tk --force (removes bad tk)
-wget https://anaconda.org/scipion/tk/8.6.10/download/linux-64/tk-8.6.10-h14c3975_1005.tar.bz2
-conda install tk-8.6.10-h14c3975_1005.tar.bz2
+::
+
+    conda activate .scipion3env
+    conda remove tk --force
+    wget https://anaconda.org/scipion/tk/8.6.10/download/linux-64/tk-8.6.10-h14c3975_1005.tar.bz2
+    conda install tk-8.6.10-h14c3975_1005.tar.bz2
 
 Test the installation and learn how to use Scipion
 --------------------------------------------------
