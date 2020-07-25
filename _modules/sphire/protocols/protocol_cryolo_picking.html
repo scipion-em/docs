@@ -239,6 +239,7 @@
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">glob</span>
 
+<span class="kn">import</span> <span class="nn">pwem</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="k">import</span> <span class="n">Config</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="k">import</span> <span class="n">Integer</span>
@@ -330,6 +331,10 @@
                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Maximum number of particles in the image. Only for &quot;</span>
                            <span class="s2">&quot;the memory handling. Keep the default value of &quot;</span>
                            <span class="s2">&quot;600 or 1000.&quot;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addHidden</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">USE_GPU</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                       <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Use GPU (vs CPU)&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Set to true if you want to use GPU implementation &quot;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addHidden</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">GPU_LIST</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">StringParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;0&#39;</span><span class="p">,</span>
                        <span class="n">expertLevel</span><span class="o">=</span><span class="n">cons</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
                        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Choose GPU IDs&quot;</span><span class="p">,</span>
@@ -404,7 +409,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lowPassFilter</span><span class="p">:</span>
             <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --otf&#39;</span>
 
-        <span class="n">Plugin</span><span class="o">.</span><span class="n">runCryolo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;cryolo_predict.py&#39;</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+        <span class="n">Plugin</span><span class="o">.</span><span class="n">runCryolo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;cryolo_predict.py&#39;</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">useCpu</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">useGpu</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
         <span class="c1"># Move output files to a common location</span>
         <span class="n">dirs2Move</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workingDir</span><span class="p">,</span> <span class="nb">dir</span><span class="p">)</span> <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;CBOX&#39;</span><span class="p">,</span> <span class="s1">&#39;DISTR&#39;</span><span class="p">]]</span>
@@ -452,6 +457,11 @@
 
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">validateMsgs</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">useGpu</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getCondaActivationCmd</span><span class="p">()</span> <span class="o">+</span>
+                                                <span class="n">Plugin</span><span class="o">.</span><span class="n">getVar</span><span class="p">(</span><span class="n">CRYOLO_ENV_ACTIVATION_CPU</span><span class="p">))):</span>
+            <span class="n">validateMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;CPU implementation of crYOLO is not installed, &quot;</span>
+                                <span class="s2">&quot;install &#39;cryoloCPU&#39; or use the GPU implementation.&quot;</span><span class="p">)</span>
 
         <span class="n">nprocs</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfThreads</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
         <span class="k">if</span> <span class="n">nprocs</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">()):</span>
@@ -583,6 +593,7 @@
             <dd><a href="../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../release-3.0.0/_modules/sphire/protocols/protocol_cryolo_picking.html">release-3.0.0</a></dd>
             <dd><a href="../../../scipion3_instalation/index.html">scipion3_instalation</a></dd>
+            <dd><a href="../../../update_scipion_modes/index.html">update_scipion_modes</a></dd>
         </dl>
     </div>
 </div>

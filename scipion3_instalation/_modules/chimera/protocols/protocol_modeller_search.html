@@ -236,13 +236,18 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">pwem</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="k">import</span> <span class="n">VERSION_1_2</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="k">import</span> <span class="n">copyFile</span>
+
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">ChimeraProtBase</span>
 
 <span class="kn">from</span> <span class="nn">pwem.convert.atom_struct</span> <span class="k">import</span> <span class="n">AtomicStructHandler</span>
 
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">import</span> <span class="p">(</span><span class="n">PointerParam</span><span class="p">,</span>
                                         <span class="n">StringParam</span><span class="p">,</span>
-                                        <span class="n">MultiPointerParam</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">)</span>
+                                        <span class="n">MultiPointerParam</span><span class="p">,</span>
+                                        <span class="n">BooleanParam</span><span class="p">,</span>
+                                        <span class="n">EnumParam</span><span class="p">,</span>
+                                        <span class="n">PathParam</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pwem.convert.sequence</span> <span class="k">import</span> <span class="p">(</span><span class="n">SequenceHandler</span><span class="p">,</span>
                                    <span class="n">saveFileSequencesToAlign</span><span class="p">,</span>
                                    <span class="n">alignClustalSequences</span><span class="p">,</span>
@@ -262,13 +267,16 @@
     <span class="n">_program</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
     <span class="n">_version</span> <span class="o">=</span> <span class="n">VERSION_1_2</span>
 
-    <span class="n">SEQUENCEFILENAME</span> <span class="o">=</span> <span class="s1">&#39;_sequence.fasta&#39;</span>
-    <span class="n">INFILE</span> <span class="o">=</span> <span class="s2">&quot;unaligned.fasta&quot;</span>
-    <span class="n">OUTFILE</span> <span class="o">=</span> <span class="s2">&quot;aligned.fasta&quot;</span>
+    <span class="n">INFILE1</span> <span class="o">=</span> <span class="s2">&quot;unaligned_1.fasta&quot;</span>
+    <span class="n">OUTFILE1</span> <span class="o">=</span> <span class="s2">&quot;aligned_1.fasta&quot;</span>
+    <span class="n">INFILE2</span> <span class="o">=</span> <span class="s2">&quot;unaligned_2.fasta&quot;</span>
+    <span class="n">OUTFILE2</span> <span class="o">=</span> <span class="s2">&quot;aligned_2.fasta&quot;</span>
     <span class="n">TWOSEQUENCES</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">MULTIPLESEQUENCES</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">ProgramToAlign1</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Bio.pairwise2&#39;</span><span class="p">,</span> <span class="s1">&#39;Clustal Omega&#39;</span><span class="p">,</span> <span class="s1">&#39;MUSCLE&#39;</span><span class="p">]</span>
     <span class="n">ProgramToAlign2</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Clustal Omega&#39;</span><span class="p">,</span> <span class="s1">&#39;MUSCLE&#39;</span><span class="p">]</span>
+    <span class="n">OptionForAligning</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="s1">&#39;Additional sequences to align&#39;</span><span class="p">,</span>
+                          <span class="s1">&#39;Provide your own sequence alignment&#39;</span><span class="p">]</span>
 
     <span class="c1"># --------------------------- DEFINE param functions --------------------</span>
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="n">doHelp</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -291,27 +299,42 @@
                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Chain &quot;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Select a particular chain of the atomic &quot;</span>
                               <span class="s2">&quot;structure.&quot;</span><span class="p">)</span>
-        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputSequence&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s2">&quot;Sequence&quot;</span><span class="p">,</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputSequence1&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s2">&quot;Sequence&quot;</span><span class="p">,</span>
                          <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Target sequence&#39;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                          <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Input the aminoacid sequence to align with the &quot;</span>
                               <span class="s2">&quot;structure template sequence.&quot;</span><span class="p">)</span>
-        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;additionalSequencesToAlign&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span>
-                         <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Additional sequences to align?&#39;</span><span class="p">,</span>
-                         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select YES if you want to add some more &#39;</span>
-                              <span class="s1">&#39;sequences to accomplish the alignment. This &#39;</span>
-                              <span class="s1">&#39;option is recommendable when the first two &#39;</span>
-                              <span class="s1">&#39;sequences are not very similar.&#39;</span><span class="p">)</span>
-        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputSequencesToAlign&#39;</span><span class="p">,</span> <span class="n">MultiPointerParam</span><span class="p">,</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;optionForAligning1&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
+                         <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">OptionForAligning</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Options to improve the alignment:&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;None: Option by default. Only the template and the &quot;</span>
+                              <span class="s2">&quot;target sequences will be included in the alignment. &quot;</span>
+                              <span class="s2">&quot;This option is recommendable when these two sequences &quot;</span>
+                              <span class="s2">&quot;are very similar. Otherwise, select any of the two &quot;</span>
+                              <span class="s2">&quot;additional options:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                              <span class="s2">&quot;Additional sequences to align: Select this option &quot;</span>
+                              <span class="s2">&quot;if you want to add some more sequences to accomplish &quot;</span>
+                              <span class="s2">&quot;the alignment.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                              <span class="s2">&quot;Provide your own sequence alignment: Your alignment&quot;</span>
+                              <span class="s2">&quot;should include both the target and the template &quot;</span>
+                              <span class="s2">&quot;sequences.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputYourOwnSequenceAlignment1&#39;</span><span class="p">,</span> <span class="n">PathParam</span><span class="p">,</span>
+                         <span class="n">pointerClass</span><span class="o">=</span><span class="s2">&quot;File&quot;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;optionForAligning1 == 2&#39;</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Sequence alignment input&#39;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Input your own sequence alignment.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                              <span class="s2">&quot;ChimeraX allowed formats accessible here: &quot;</span>
+                              <span class="s2">&quot;https://www.cgl.ucsf.edu/chimerax/docs/user/commands/open.html#sequence &quot;</span><span class="p">)</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputSequencesToAlign1&#39;</span><span class="p">,</span> <span class="n">MultiPointerParam</span><span class="p">,</span>
                          <span class="n">pointerClass</span><span class="o">=</span><span class="s2">&quot;Sequence&quot;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;additionalSequencesToAlign == True&#39;</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;optionForAligning1 == 1&#39;</span><span class="p">,</span>
                          <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Other sequences to align&#39;</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;In case you need to load more sequences to &quot;</span>
                               <span class="s2">&quot;align, you can load them here.&quot;</span><span class="p">)</span>
-        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputProgramToAlign1&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputProgramToAlign1_1&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
                          <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ProgramToAlign1</span><span class="p">,</span>
                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Alignment tool for two sequences:&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;additionalSequencesToAlign == False&#39;</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;optionForAligning1 == 0&#39;</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Select a program to accomplish the sequence&quot;</span>
                               <span class="s2">&quot;alignment:</span><span class="se">\n\n</span><span class="s2">Biophyton module &quot;</span>
                               <span class="s2">&quot;Bio.pairwise2 (&quot;</span>
@@ -337,10 +360,10 @@
                               <span class="s2">&quot;Install muscle if you choose this option &quot;</span>
                               <span class="s2">&quot;for the first time by &#39;sudo apt install &quot;</span>
                               <span class="s2">&quot;muscle&#39;.&quot;</span><span class="p">)</span>
-        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputProgramToAlign2&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputProgramToAlign2_1&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
                          <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ProgramToAlign2</span><span class="p">,</span>
                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Multiple alignment tool:&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;additionalSequencesToAlign == True&#39;</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;optionForAligning1 == 1&#39;</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Select a program to accomplish the sequence&quot;</span>
                               <span class="s2">&quot;alignment:</span><span class="se">\n\n</span><span class="s2">Clustal Omega &quot;</span>
                               <span class="s2">&quot;program (http://www.clustal.org/omega/, &quot;</span>
@@ -356,7 +379,105 @@
                               <span class="s2">&quot;Install muscle if you choose this option &quot;</span>
                               <span class="s2">&quot;for the first time by &#39;sudo apt install &quot;</span>
                               <span class="s2">&quot;muscle&#39;.&quot;</span><span class="p">)</span>
-
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;additionalTargetSequence&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Additional target sequence to include?&#39;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select YES if you want to add an additional &#39;</span>
+                              <span class="s1">&#39;target sequence to model according a different &#39;</span>
+                              <span class="s1">&#39;chain of the structure template. This &#39;</span>
+                              <span class="s1">&#39;option is recommendable when you want to model &#39;</span>
+                              <span class="s1">&#39;the two interacting elements of a particular complex&#39;</span>
+                              <span class="s1">&#39; at the same time.&#39;</span><span class="p">)</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;selectStructureChain&#39;</span><span class="p">,</span> <span class="n">StringParam</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;additionalTargetSequence == True&#39;</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Chain &quot;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Select a particular chain of the atomic &quot;</span>
+                              <span class="s2">&quot;structure.&quot;</span><span class="p">)</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputSequence2&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s2">&quot;Sequence&quot;</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;additionalTargetSequence == True&#39;</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Target sequence&#39;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                         <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Input the aminoacid sequence to align with the &quot;</span>
+                              <span class="s2">&quot;structure template sequence.&quot;</span><span class="p">)</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;optionForAligning2&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
+                         <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">OptionForAligning</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;additionalTargetSequence == True&#39;</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Options to improve the alignment:&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;None: Option by default. Only the template and the &quot;</span>
+                              <span class="s2">&quot;target sequences will be included in the alignment. &quot;</span>
+                              <span class="s2">&quot;This option is recommendable when these two sequences &quot;</span>
+                              <span class="s2">&quot;are very similar. Otherwise, select any of the two &quot;</span>
+                              <span class="s2">&quot;additional options:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                              <span class="s2">&quot;Additional sequences to align: Select this option &quot;</span>
+                              <span class="s2">&quot;if you want to add some more sequences to accomplish &quot;</span>
+                              <span class="s2">&quot;the alignment.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                              <span class="s2">&quot;Provide your own sequence alignment: Your alignment&quot;</span>
+                              <span class="s2">&quot;should include both the target and the template &quot;</span>
+                              <span class="s2">&quot;sequences.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputYourOwnSequenceAlignment2&#39;</span><span class="p">,</span> <span class="n">PathParam</span><span class="p">,</span>
+                         <span class="n">pointerClass</span><span class="o">=</span><span class="s2">&quot;File&quot;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;optionForAligning2 == 2 and &#39;</span>
+                                   <span class="s1">&#39;additionalTargetSequence == True&#39;</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Sequence alignment input&#39;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Input your own sequence alignment.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                              <span class="s2">&quot;ChimeraX allowed formats accessible here: &quot;</span>
+                              <span class="s2">&quot;https://www.cgl.ucsf.edu/chimerax/docs/user/commands/open.html#sequence &quot;</span><span class="p">)</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputSequencesToAlign2&#39;</span><span class="p">,</span> <span class="n">MultiPointerParam</span><span class="p">,</span>
+                         <span class="n">pointerClass</span><span class="o">=</span><span class="s2">&quot;Sequence&quot;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;optionForAligning2 == 1 and &#39;</span>
+                                   <span class="s1">&#39;additionalTargetSequence == True&#39;</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Other sequences to align&#39;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;In case you need to load more sequences to &quot;</span>
+                              <span class="s2">&quot;align, you can load them here.&quot;</span><span class="p">)</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputProgramToAlign1_2&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
+                         <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ProgramToAlign1</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Alignment tool for two sequences:&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;optionForAligning2 == 0 and &#39;</span>
+                                   <span class="s1">&#39;additionalTargetSequence == True&#39;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Select a program to accomplish the sequence&quot;</span>
+                              <span class="s2">&quot;alignment:</span><span class="se">\n\n</span><span class="s2">Biophyton module &quot;</span>
+                              <span class="s2">&quot;Bio.pairwise2 (&quot;</span>
+                              <span class="s2">&quot;http://biopython.org/DIST/docs/api/&quot;</span>
+                              <span class="s2">&quot;Bio.pairwise2-module.html). Built-in &quot;</span>
+                              <span class="s2">&quot;program to align two &quot;</span>
+                              <span class="s2">&quot;sequences. The global &quot;</span>
+                              <span class="s2">&quot;alignment algorithm from the EMBOSS suite &quot;</span>
+                              <span class="s2">&quot;has been implemented with match/mismatch &quot;</span>
+                              <span class="s2">&quot;scores of 3/-1 and gap penalties &quot;</span>
+                              <span class="s2">&quot;(open/extend) of &quot;</span>
+                              <span class="s2">&quot;3/2.</span><span class="se">\n\n</span><span class="s2">Clustal Omega &quot;</span>
+                              <span class="s2">&quot;program (http://www.clustal.org/omega/, &quot;</span>
+                              <span class="s2">&quot;https://doi.org/10.1038/msb.2011.75): &quot;</span>
+                              <span class="s2">&quot;Multiple sequence alignment tool. Install &quot;</span>
+                              <span class="s2">&quot;clustalo if you choose this option for &quot;</span>
+                              <span class="s2">&quot;the first time by &#39;sudo apt-get install &quot;</span>
+                              <span class="s2">&quot;clustalo&#39;.</span><span class="se">\n\n</span><span class="s2">MUSCLE program stands for &quot;</span>
+                              <span class="s2">&quot;MUltiple Sequence Comparison by &quot;</span>
+                              <span class="s2">&quot;Log- Expectation(&quot;</span>
+                              <span class="s2">&quot;http://www.drive5.com/muscle/muscle.html, &quot;</span>
+                              <span class="s2">&quot;https://doi.org/10.1093/nar/gkh340). &quot;</span>
+                              <span class="s2">&quot;Install muscle if you choose this option &quot;</span>
+                              <span class="s2">&quot;for the first time by &#39;sudo apt install &quot;</span>
+                              <span class="s2">&quot;muscle&#39;.&quot;</span><span class="p">)</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputProgramToAlign2_2&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
+                         <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ProgramToAlign2</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Multiple alignment tool:&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;optionForAligning2 == 1 and &#39;</span>
+                                   <span class="s1">&#39;additionalTargetSequence == True&#39;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Select a program to accomplish the sequence&quot;</span>
+                              <span class="s2">&quot;alignment:</span><span class="se">\n\n</span><span class="s2">Clustal Omega &quot;</span>
+                              <span class="s2">&quot;program (http://www.clustal.org/omega/, &quot;</span>
+                              <span class="s2">&quot;https://doi.org/10.1038/msb.2011.75): &quot;</span>
+                              <span class="s2">&quot;Multiple sequence alignment tool. Install &quot;</span>
+                              <span class="s2">&quot;clustalo if you choose this option for &quot;</span>
+                              <span class="s2">&quot;the first time by &#39;sudo apt-get install &quot;</span>
+                              <span class="s2">&quot;clustalo&#39;.</span><span class="se">\n\n</span><span class="s2">MUSCLE program stands for &quot;</span>
+                              <span class="s2">&quot;MUltiple Sequence Comparison by &quot;</span>
+                              <span class="s2">&quot;Log- Expectation(&quot;</span>
+                              <span class="s2">&quot;http://www.drive5.com/muscle/muscle.html, &quot;</span>
+                              <span class="s2">&quot;https://doi.org/10.1093/nar/gkh340). &quot;</span>
+                              <span class="s2">&quot;Install muscle if you choose this option &quot;</span>
+                              <span class="s2">&quot;for the first time by &#39;sudo apt install &quot;</span>
+                              <span class="s2">&quot;muscle&#39;.&quot;</span><span class="p">)</span>
         <span class="n">formBase</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="s2">&quot;Step 1:</span><span class="se">\n</span><span class="s2">In the sequence window your target &quot;</span>
                          <span class="s2">&quot;sequence (and other additional sequences that you &quot;</span>
                          <span class="s2">&quot;want to use in  the alignment) will appear aligned to &quot;</span>
@@ -393,16 +514,64 @@
     <span class="c1"># --------------------------- INSERT steps functions --------------------</span>
 
 <div class="viewcode-block" id="ChimeraModelFromTemplate.prerequisitesStep"><a class="viewcode-back" href="../../../api/chimera/chimera.protocols.protocol_modeller_search.html#chimera.protocols.protocol_modeller_search.ChimeraModelFromTemplate.prerequisitesStep">[docs]</a>    <span class="k">def</span> <span class="nf">prerequisitesStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># read PDB</span>
+        <span class="n">fileName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_readPDB</span><span class="p">()</span>
+
         <span class="c1"># get pdb sequence</span>
         <span class="kn">import</span> <span class="nn">json</span>
         <span class="n">chainIdDict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputStructureChain</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
-        <span class="c1"># read PDB</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">structureHandler</span> <span class="o">=</span> <span class="n">AtomicStructHandler</span><span class="p">()</span>
-        <span class="n">fileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdbFileToBeRefined</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">structureHandler</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fileName</span><span class="p">)</span>
+        <span class="n">userSeq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSequence1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>  <span class="c1"># SEQ object from Scipion</span>
 
+        <span class="n">inFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">INFILE1</span>
+        <span class="n">outFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">OUTFILE1</span>
+
+        <span class="n">addSeq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optionForAligning1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+        <span class="n">yourAlignment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputYourOwnSequenceAlignment1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+        <span class="n">inputSeqAlign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSequencesToAlign1</span>
+
+        <span class="n">programToAlign1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputProgramToAlign1_1</span>
+
+        <span class="n">programToAlign2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputProgramToAlign2_1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">prePreRequisites</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="n">chainIdDict</span><span class="p">,</span> <span class="n">userSeq</span><span class="p">,</span>
+                              <span class="n">inFile</span><span class="p">,</span> <span class="n">outFile</span><span class="p">,</span> <span class="n">addSeq</span><span class="p">,</span> <span class="n">yourAlignment</span><span class="p">,</span>
+                              <span class="n">inputSeqAlign</span><span class="p">,</span> <span class="n">programToAlign1</span><span class="p">,</span>
+                              <span class="n">programToAlign2</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">selectedChain1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selectedChain</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">additionalTargetSequence</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">chainIdDict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectStructureChain</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+
+            <span class="n">userSeq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSequence2</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>  <span class="c1"># SEQ object from Scipion</span>
+
+            <span class="n">inFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">INFILE2</span>
+            <span class="n">outFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">OUTFILE2</span>
+
+            <span class="n">addSeq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optionForAligning2</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+            <span class="n">yourAlignment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputYourOwnSequenceAlignment2</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+            <span class="n">inputSeqAlign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSequencesToAlign2</span>
+
+            <span class="n">programToAlign1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputProgramToAlign1_2</span>
+
+            <span class="n">programToAlign2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputProgramToAlign2_2</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">prePreRequisites</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="n">chainIdDict</span><span class="p">,</span> <span class="n">userSeq</span><span class="p">,</span>
+                                  <span class="n">inFile</span><span class="p">,</span> <span class="n">outFile</span><span class="p">,</span> <span class="n">addSeq</span><span class="p">,</span> <span class="n">yourAlignment</span><span class="p">,</span>
+                                  <span class="n">inputSeqAlign</span><span class="p">,</span> <span class="n">programToAlign1</span><span class="p">,</span>
+                                  <span class="n">programToAlign2</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">selectedChain2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selectedChain</span></div>
+
+<div class="viewcode-block" id="ChimeraModelFromTemplate.prePreRequisites"><a class="viewcode-back" href="../../../api/chimera/chimera.protocols.protocol_modeller_search.html#chimera.protocols.protocol_modeller_search.ChimeraModelFromTemplate.prePreRequisites">[docs]</a>    <span class="k">def</span> <span class="nf">prePreRequisites</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileName</span><span class="p">,</span> <span class="n">chainIdDict</span><span class="p">,</span> <span class="n">userSeq</span><span class="p">,</span> <span class="n">inFile</span><span class="p">,</span> \
+                         <span class="n">outFile</span><span class="p">,</span> <span class="n">addSeq</span><span class="p">,</span> <span class="n">yourAlignment</span><span class="p">,</span> <span class="n">inputSeqAlign</span><span class="p">,</span> \
+                         <span class="n">programToAlign1</span><span class="p">,</span> <span class="n">programToAlign2</span><span class="p">):</span>
         <span class="c1"># get sequence of structure chain with id chainId (selected by the user)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">selectedModel</span> <span class="o">=</span> <span class="n">chainIdDict</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">selectedChain</span> <span class="o">=</span> <span class="n">chainIdDict</span><span class="p">[</span><span class="s1">&#39;chain&#39;</span><span class="p">]</span>
@@ -423,7 +592,7 @@
 
         <span class="c1"># start user imported target sequence</span>
         <span class="c1"># get target sequence imported by the user</span>
-        <span class="n">userSeq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSequence</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>  <span class="c1"># SEQ object from Scipion</span>
+
         <span class="n">targetSeqID</span> <span class="o">=</span> <span class="n">userSeq</span><span class="o">.</span><span class="n">getId</span><span class="p">()</span>  <span class="c1"># ID associated to SEQ object (str)</span>
         <span class="n">userSequence</span> <span class="o">=</span> <span class="n">userSeq</span><span class="o">.</span><span class="n">getSequence</span><span class="p">()</span>  <span class="c1"># sequence associated to</span>
         <span class="c1"># that SEQ object (str)</span>
@@ -439,14 +608,14 @@
 
         <span class="c1"># align sequences and save them to disk, -this will be chimera input-</span>
         <span class="c1"># get all sequences in a fasta file</span>
-        <span class="n">inFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getInFastaSequencesFile</span><span class="p">()</span>
-        <span class="n">outFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getOutFastaSequencesFile</span><span class="p">()</span>
+        <span class="n">inFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getInFastaSequencesFile</span><span class="p">(</span><span class="n">inFile</span><span class="p">)</span>
+        <span class="n">outFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getOutFastaSequencesFile</span><span class="p">(</span><span class="n">outFile</span><span class="p">)</span>
 
         <span class="c1"># get the alignment of sequences</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">additionalSequencesToAlign</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">addSeq</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">saveFileSequencesToAlign</span><span class="p">(</span><span class="n">SeqDic</span><span class="p">,</span> <span class="n">inFile</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">inputSequencesToAlign</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputProgramToAlign1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> \
+            <span class="n">inputSeqAlign</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">programToAlign1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> \
                     <span class="bp">self</span><span class="o">.</span><span class="n">ProgramToAlign1</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;Bio.pairwise2&#39;</span><span class="p">):</span>
                 <span class="c1"># Only the two first sequences will be included in the alignment</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">alignment</span> <span class="o">=</span> <span class="n">alignBioPairwise2Sequences</span><span class="p">(</span>
@@ -455,17 +624,17 @@
                     <span class="n">outFile</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># All the sequences will be included in the alignment</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputProgramToAlign1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> \
+                <span class="k">if</span> <span class="n">programToAlign1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> \
                         <span class="bp">self</span><span class="o">.</span><span class="n">ProgramToAlign1</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;Clustal Omega&#39;</span><span class="p">):</span>
                     <span class="n">cline</span> <span class="o">=</span> <span class="n">alignClustalSequences</span><span class="p">(</span><span class="n">inFile</span><span class="p">,</span> <span class="n">outFile</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">cline</span> <span class="o">=</span> <span class="n">alignMuscleSequences</span><span class="p">(</span><span class="n">inFile</span><span class="p">,</span> <span class="n">outFile</span><span class="p">)</span>
                 <span class="n">args</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="n">cline</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">addSeq</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="c1"># if there are additional sequences imported by the user</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSequencesToAlign</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSequencesToAlign</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">inputSeqAlign</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">seq</span> <span class="ow">in</span> <span class="n">inputSeqAlign</span><span class="p">:</span>
                     <span class="n">seq</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
                     <span class="n">ID</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">getId</span><span class="p">()</span>
                     <span class="n">sequence</span> <span class="o">=</span> <span class="n">seq</span><span class="o">.</span><span class="n">getSequence</span><span class="p">()</span>
@@ -481,20 +650,32 @@
             <span class="c1"># outFile = self._getOutFastaSequencesFile()</span>
 
             <span class="c1"># All the sequences will be included in the alignment</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputProgramToAlign2</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ProgramToAlign2</span><span class="o">.</span><span class="n">index</span><span class="p">(</span>
+            <span class="k">if</span> <span class="n">programToAlign2</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ProgramToAlign2</span><span class="o">.</span><span class="n">index</span><span class="p">(</span>
                     <span class="s1">&#39;Clustal Omega&#39;</span><span class="p">):</span>
                 <span class="n">cline</span> <span class="o">=</span> <span class="n">alignClustalSequences</span><span class="p">(</span><span class="n">inFile</span><span class="p">,</span> <span class="n">outFile</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">cline</span> <span class="o">=</span> <span class="n">alignMuscleSequences</span><span class="p">(</span><span class="n">inFile</span><span class="p">,</span> <span class="n">outFile</span><span class="p">)</span>
             <span class="n">args</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="n">cline</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="n">cline</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_getInFastaSequencesFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">INFILENAME</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">INFILE</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">aligmentFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">yourAlignment</span><span class="p">)</span>
+            <span class="n">outFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">aligmentFile</span><span class="p">)</span>
+            <span class="n">copyFile</span><span class="p">(</span><span class="n">yourAlignment</span><span class="p">,</span> <span class="n">outFile</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_readPDB</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">structureHandler</span> <span class="o">=</span> <span class="n">AtomicStructHandler</span><span class="p">()</span>
+        <span class="n">fileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdbFileToBeRefined</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">structureHandler</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fileName</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fileName</span>
+
+    <span class="k">def</span> <span class="nf">_getInFastaSequencesFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inFile</span><span class="p">):</span>
+        <span class="n">INFILENAME</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="n">inFile</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">INFILENAME</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_getOutFastaSequencesFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">OUTFILENAME</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTFILE</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_getOutFastaSequencesFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outFile</span><span class="p">):</span>
+        <span class="n">OUTFILENAME</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">outFile</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">OUTFILENAME</span><span class="p">)</span>
 
     <span class="c1"># def validate(self):</span>
@@ -553,6 +734,7 @@
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../../release-3.0.0/index.html">release-3.0.0</a></dd>
             <dd><a href="protocol_modeller_search.html">scipion3_instalation</a></dd>
+            <dd><a href="../../../../update_scipion_modes/index.html">update_scipion_modes</a></dd>
         </dl>
     </div>
 </div>
