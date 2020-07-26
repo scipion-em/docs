@@ -6,6 +6,7 @@ Submodules
 
 .. toctree::
 
+   eman2.viewers.viewers
    eman2.viewers.viewers_data
    eman2.viewers.views_tkinter_tree
 
