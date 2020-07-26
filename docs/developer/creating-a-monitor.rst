@@ -13,7 +13,7 @@ What is a monitor?
 
 A monitor is a non-GUI class which main action would be to do something,
 periodically and notify any possible "listeners". All code presented in this guide is available in
-our `docs repository <https://github.com/scipion-em/docs/tree/release-2.0.0/code_examples/monitor_tutorial>`_
+our `docs repository <https://github.com/scipion-em/docs/tree/release-3.0.0/code_examples/monitor_tutorial>`_
 
 Monitors anatomy
 ================
