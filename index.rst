@@ -66,6 +66,7 @@ later on.
    api/cistem/cistem
    api/cryoef/cryoef
    api/cryosparc2/cryosparc2
+   api/deepfinder/deepfinder
    api/dynamo/dynamo
    api/eman2/eman2
    api/emxlib/emxlib
@@ -87,8 +88,12 @@ later on.
    api/sphire/sphire
    api/spider/spider
    api/tomo/tomo
+   api/tomoj/tomoj
    api/topaz/topaz
+   api/xmipp2/xmipp2
    api/xmipp3/xmipp3
+   api/xmipptomo/xmipptomo
+
 
 
 .. _contact:
