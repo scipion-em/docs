@@ -16,7 +16,7 @@ This is the command used to generate config files or analyze them if you already
 
 ::
 
-    ./scipion config
+    ./scipion3 config
 
 The configuration files generated with this command are in two locations:
 
@@ -32,7 +32,7 @@ The configuration files generated with this command are in two locations:
         - ``<your-scipion-home>/config/protocols.conf`` with the list of protocols available in the Scipion
           installation. Not to be messed with unless you're a developer and have a good known reason to do so.
 
-``scipion config`` might tell you it is not able to find some of the
+``scipion3 config`` might tell you it is not able to find some of the
 paths. In this case, you should edit ``config/scipion.conf`` to reflect
 your system's configuration. For example, below is an excerpt of
 ``config/scipion.conf`` adapted for an Ubuntu computer:
@@ -52,7 +52,7 @@ your system's configuration. For example, below is an excerpt of
     JAVA_BINDIR = %(JAVA_HOME)s/bin
     (...)
 
-Once ``config/scipion.conf`` is changed, run ``./scipion config`` again.
+Once ``config/scipion.conf`` is changed, run ``./scipion3 config`` again.
 
 
 If you have configuration files from previous installations, you may
@@ -60,7 +60,7 @@ want to use this instead:
 
 ::
 
-    ./scipion config --overwrite
+    ./scipion3 config --overwrite
 
 
 GPU variables
@@ -104,4 +104,4 @@ In this case, the config file must be a union of the ``~/.config/scipion/scipion
 
 ::
 
-    ./scipion --config <scipion.conf PATH>
+    ./scipion3 --config <scipion.conf PATH>

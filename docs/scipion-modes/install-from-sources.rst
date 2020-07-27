@@ -164,10 +164,12 @@ Fixing fonts in a conda installation
 ------------------------------------
 This will fix the fonts issue when using a conda installation
 
-conda activate .scipion3env (all commands below are inside this env)
-conda remove tk --force (removes bad tk)
-wget https://anaconda.org/scipion/tk/8.6.10/download/linux-64/tk-8.6.10-h14c3975_1005.tar.bz2
-conda install tk-8.6.10-h14c3975_1005.tar.bz2
+::
+
+    conda activate .scipion3env (all commands below are inside this env)
+    conda remove tk --force (removes bad tk)
+    wget https://anaconda.org/scipion/tk/8.6.10/download/linux-64/tk-8.6.10-h14c3975_1005.tar.bz2
+    conda install tk-8.6.10-h14c3975_1005.tar.bz2
 
 Test the installation and learn how to use Scipion
 --------------------------------------------------
@@ -193,7 +195,7 @@ Now run:
     ./scipion3 config
 
 You will be asked to share **scipion usage only** data. Sharing `usage
-data <https://scipion-em.github.io/docs/release-2.0.0/docs/developer/collecting-statistics.html>`_
+data <https://scipion-em.github.io/docs/docs/developer/collecting-statistics.html>`_
 will help to make Scipion better.
 
 This command will generate 3 configuration files at <SCIPION_HOME>/config.
@@ -201,7 +203,7 @@ This command will generate 3 configuration files at <SCIPION_HOME>/config.
 If everything is OK (all green in the output) you can proceed to the
 next step. If there is a problem (red colored output), you will need to
 edit ``config/scipion.conf`` file in your preferred text editor and run
-``./scipion config`` again.
+``./scipion3 config`` again.
 
 One known change for **Ubuntu 18** and **CentOS** are the MPI paths in
 ``<your_scipion_home>/config/scipion.conf``:
@@ -230,7 +232,7 @@ probably will want to check :doc:`how to configure an execution
 host <host-configuration>`.
 
 If you have problems compiling Scipion, see
-`Troubleshooting <https://scipion-em.github.io/docs/release-2.0.0/docs/user/troubleshooting.html>`__
+`Troubleshooting <https://scipion-em.github.io/docs/docs/user/troubleshooting.html>`__
 page.
 
 

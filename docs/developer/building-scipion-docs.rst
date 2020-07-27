@@ -12,7 +12,7 @@ Scipion's documentation is built using `Sphinx <http://www.sphinx-doc.org>`_ and
 `GitHub pages <https://pages.github.com/>`_. Sphinx uses certain files like ``*.rst`` files and Sphinx's config
 ``conf.py`` to build the docs on HTML, which we can later copy to some server. In our case, we the different versions
 of our docs on the `docs GitHub repository <https://github.com/scipion-em/docs>`_ . At the time of this writing we have
-only one version, the branch ``release-2.0.0``, but we'll have more versions in the future.
+only one version, the branch ``release-3.0.0``, but we'll have more versions in the future.
 The branch ``gh-pages`` contains the **built**
 documentation for all versions (i.e. HTML files). When new commits are pushed to this branch,
 https://scipion-em.github.io/docs/ will update and reflect them automatically.
@@ -122,7 +122,7 @@ local changes. The command used for this:
 
 .. code-block:: bash
 
-    (sphinx-env) $ scipion run /home/yaiza/sphinx-env/bin/sphinx-versioning build -r release-2.0.0 /home/yaiza/git/scipion-docs /home/yaiza/git/scipion_gh_pages
+    (sphinx-env) $ scipion run /home/yaiza/sphinx-env/bin/sphinx-versioning build -r release-3.0.0 /home/yaiza/git/scipion-docs /home/yaiza/git/scipion_gh_pages
 
 After executing this we should be able see the docs with version support by opening
 ``/home/yaiza/git/scipion_gh_pages/index.html`` with our browser.
@@ -130,7 +130,7 @@ After executing this we should be able see the docs with version support by open
 We can also trigger this command with the following run configuration in PyCharm:
 
 * **Script path**: ``/home/yaiza/git/scipion/scipion``
-* **Parameters**: ``run /home/yaiza/sphinx-env/bin/sphinx-versioning build -r release-2.0.0 /home/yaiza/git/scipion-docs /home/yaiza/git/scipion_gh_pages``
+* **Parameters**: ``run /home/yaiza/sphinx-env/bin/sphinx-versioning build -r release-3.0.0 /home/yaiza/git/scipion-docs /home/yaiza/git/scipion_gh_pages``
 * **Python interpreter**: The one from our ``sphinx-env``
 * **Working directory**: Our ``scipion-docs`` repo dir
 
@@ -150,11 +150,11 @@ Once we are happy with the build, we can push our docs. For this we must run thi
 
 .. code-block:: bash
 
-    (sphinx-env) $ scipion run /home/yaiza/sphinx-env/bin/sphinx-versioning push -r release-2.0.0 /home/yaiza/git/scipion-docs gh-pages .
+    (sphinx-env) $ scipion run /home/yaiza/sphinx-env/bin/sphinx-versioning push -r release-3.0.0 /home/yaiza/git/scipion-docs gh-pages .
 
 The PyCharm run configuration is the same as before except for the parameters:
 
-* **Parameters** : ``run /home/yaiza/sphinx-env/bin/sphinx-versioning push -r release-2.0.0 /home/yaiza/git/scipion-docs gh-pages``
+* **Parameters** : ``run /home/yaiza/sphinx-env/bin/sphinx-versioning push -r release-3.0.0 /home/yaiza/git/scipion-docs gh-pages``
 
 .. image:: /docs/images/dev-tools/pycharm_sphinxversion_push.png
    :alt: PyCharm run config for sphinx-version push

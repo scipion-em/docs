@@ -313,12 +313,11 @@ The missing library can be installed using:
 bigtiff in Claudio
 ==================
 
-We have updated the tiff library to handle BIGtiff data and it will be
+We have updated the tiff library to handle BIGtiff data and it is
 available from Scipion version 2.0.0. If you are running Claudio
 (v1.2.1) there are some steps you can follow to enable Scipion to work
 with bigtiff data. Please, take into account that this hasn't been
-extensively tested but all our tests where successful. Our
-recommendation would be to wait for v2.0 release (Spring 2019 aprox.).
+extensively tested but all our tests where successful.
 
 **Fix:**
 
