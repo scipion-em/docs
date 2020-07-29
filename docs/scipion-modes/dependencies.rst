@@ -75,38 +75,23 @@ Note: Use **dnf install** instead of **yum** if your Fedora is recent
 
  Note: To be able to run python 2.7 (Scipion requirement), run `scl enable python27 bash`.
 
--  **Note 1** - gcc and g++
-
-You might already have g++ and gcc installed, but it is important to
-have version 5 for compatibility with certain plugins like Xmipp3. Apart
-from installing them, you'll need to set them as defaults (e.g. updating
-the links resulting of typing ``which gcc`` and ``which g++`` to point
-to ``gcc-5`` and ``g++-5`` respectively, or using update alternatives as
-suggested
-`here <https://askubuntu.com/questions/1087150/install-gcc-5-on-ubuntu-18-04>`__
-).
 
 -  **Note 2** - CUDA recommendations:
 
 The following table contains the current compatibility of the plugins
 that use CUDA and have some restrictions with the CUDA versions. To
 maximize compatibility with all plugins we recommend to install
-**CUDA-8.0**, but it's up to you to choose a different version depending
+**CUDA-10.1**, but it's up to you to choose a different version depending
 on the plugins you'd like to use (depending on this you might not need
 CUDA at all).
 
-+------------------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+
-| Cuda version ->        |     5.0    |     6.0    |     6.5    |     7.0    |     7.5    |     8.0    |     9.0    |     9.1    |     9.2    |    10.1    |    10.2    |
-+========================+============+============+============+============+============+============+============+============+============+============+============+
-| motioncor2             |            |            |            |            |            |      X     |            |      X     |      X     |      X     |      X     |
-+------------------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+
-| gctf                   |      X     |      X     |      X     |      X     |      X     |      X     |            |      X     |      X     |      X     |            |
-+------------------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+
-| gautomatch             |            |            |            |      X     |      X     |      X     |            |            |            |      X     |            |
-+------------------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+
-| resmap                 |            |            |            |            |            |      X     |      X     |      X     |            |      X     |            |
-+------------------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+
-| xmipp                  |            |            |            |            |            |      X     |            |            |            |            |            |
-+------------------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+------------+
-
++------------------------+------------+------------+------------+------------+------------+------------+
+| Cuda version ->        |     8.0    |     9.0    |     9.1    |     9.2    |    10.1    |    10.2    |
++========================+============+============+============+============+============+============+
+| motioncor2  (1.3.2)    |      X     |            |            |      X     |      X     |      X     |
++------------------------+------------+------------+------------+------------+------------+------------+
+| gctf (1.18)            |      X     |      X     |      X     |            |      X     |            |
++------------------------+------------+------------+------------+------------+------------+------------+
+| gautomatch (0.56)      |      X     |            |            |            |      X     |            |
++------------------------+------------+------------+------------+------------+------------+------------+
 
