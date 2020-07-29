@@ -14,12 +14,12 @@ We aim to introduce a few concepts that we think will give any IT/developer a go
 
 * Developing a Protocol
 
-  * `Create a Basic Protocol <https://scipion-em.github.io/docs/release-2.0.0/docs/developer/creating-a-protocol.html>`_
+  * `Create a Basic Protocol <https://scipion-em.github.io/docs/docs/developer/creating-a-protocol.html>`_
 
    Things to do here common to the rest:
 
     * create a package: em/packages/myfacility
 
 * [Streamifying a protocol]
-* `Developing a monitor <https://scipion-em.github.io/docs/release-2.0.0/docs/developer/creating-a-monitor.html>`_
-* `The Summary monitor and report customization <https://scipion-em.github.io/docs/release-2.0.0/docs/developer/customize-html-report.html>`_
+* `Developing a monitor <https://scipion-em.github.io/docs/docs/developer/creating-a-monitor.html>`_
+* `The Summary monitor and report customization <https://scipion-em.github.io/docs/docs/developer/customize-html-report.html>`_

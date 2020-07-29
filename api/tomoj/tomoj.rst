@@ -1,4 +1,4 @@
-eman2 package
+tomoj package
 =============
 
 Subpackages
@@ -6,25 +6,20 @@ Subpackages
 
 .. toctree::
 
-    eman2.convert
-    eman2.protocols
-    eman2.viewers
+    tomoj.protocols
 
 Submodules
 ----------
 
 .. toctree::
 
-   eman2.bibtex
-   eman2.constants
-   eman2.e2converter
-   eman2.e2ih
-   eman2.wizards
+   tomoj.bibtex
+   tomoj.constants
 
 Module contents
 ---------------
 
-.. automodule:: eman2
+.. automodule:: tomoj
     :members:
     :undoc-members:
     :show-inheritance:

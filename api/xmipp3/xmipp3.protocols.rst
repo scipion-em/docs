@@ -74,6 +74,7 @@ Submodules
    xmipp3.protocols.protocol_particle_pick_pairs
    xmipp3.protocols.protocol_particle_pick_remove_duplicates
    xmipp3.protocols.protocol_pick_noise
+   xmipp3.protocols.protocol_postProcessing_deepPostProcessing
    xmipp3.protocols.protocol_preprocess_micrographs
    xmipp3.protocols.protocol_random_conical_tilt
    xmipp3.protocols.protocol_ransac

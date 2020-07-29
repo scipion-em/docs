@@ -58,7 +58,37 @@ For example, below is an excerpt of
     CISTEM_HOME = %(EM_ROOT)s/cistem-1.0.0-beta
     (...)
 
-Once ``config/scipion.conf`` is changed, run ``./scipion config`` again.
+Once ``config/scipion.conf`` is changed, run ``./scipion3 config`` again.
+
+If you have configuration files from previous installations, you may
+want to use this instead:
+
+::
+
+    ./scipion3 config --overwrite
+
+
+GPU variables
+=============
+
+To install the GPU programs, you will need to set CUDA to True in
+``scipion.conf``. If CUDA is installed in a non-standard location, you
+will need to specify where to find CUDA libraries. For this, you can use
+the ``LINKFLAGS`` variable of ``scipion.conf``. For example:
+
+::
+
+    CUDA = True
+    LINKFLAGS = -L/opt/CUDA/cuda-8.0/lib64
+    
+OpenCV flag
+===========
+
+To install Xmipp without OpenCV and, then skipping the programs using it (Optical Alignment and Volume Enrich), you will need to set OPENCV to False in ``scipion.conf``:
+
+::
+
+    OPENCV = False
 
 
 Running Scipion in multi-users environment
