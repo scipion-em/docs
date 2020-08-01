@@ -10,8 +10,7 @@ Creating a plugin
 
 A **Plugin** for Scipion is a Python module that meets some extra requirements.
 Each Plugin contains classes for  protocols, viewers, wizards, etc...allowing to use the functionality of a given EM
-package within the Scipion framework. Prior to version 2.0.0 Diocletian, the plugins' code was not completely isolated,
-it was under the ``scipion/pyworkflow/em/packages`` folder and hosted in the same central repository.
+package within the Scipion framework.
 
 Since release 2.0.0 ("the pluginized version") we worked hard to make the entire system more de-centralized
 and more standard. For that we re-factored the plugins to make them standard Python modules so that their
@@ -59,7 +58,7 @@ made will be observable in Scipion. To do this:
 
 .. code-block:: bash
 
-    $SCIPION_HOME/scipion installp -p [PATH_WHERE_CLONED]/scipion-em-myplugin --devel
+    $SCIPION_HOME/scipion3 installp -p [PATH_WHERE_CLONED]/scipion-em-myplugin --devel
 
 Then, open Scipion and create a new project or open an existing one. The template example can be found in the left
 panel, with selected Protocols SPA as selected View in section Tools > Greetings. Another quick access to it consists on
@@ -549,33 +548,6 @@ Creating the protocols
 
 You can read more detailed information on the :doc:`implementation of protocol <creating-a-protocol>`.
 
-Testing the Plugin as python module
-===================================
-
-Once you think your :ref:`standard submodules <standard-submodules>` have some basic functionality, you're ready to test
-how your code behaves within Scipion. For example, you may want to run some of your unit tests before you convert
-your plugin into a pip package.
-
-* In your terminal, add the plugin directory to ``PYTHONPATH``. This will make our plugin available as a python module
-  when we launch Scipion. While we develop and change our code, every time we launch Scipion we will have
-  our changes available.
-
-.. code-block:: bash
-
-    export PYTHONPATH=/path/to/scipion-em-relion
-
-* Check if all submodules are imported correctly
-
-.. code-block:: bash
-
-    scipion inspect relion
-
-* List your tests and copy the one you want to run:
-
-.. code-block:: bash
-
-    scipion test --grep relion
-
 .. _publishing-to-pypi:
 
 Publishing the Plugin to PyPI
@@ -628,6 +600,8 @@ Here we present a synthesized version:
         'pyworkflow.plugin': 'relion = relion'
         },
     )
+
+Pay special attention to entry_points, that is the mechanism to tell scipion that this is a scipion plugin.
 
 CHANGES.txt (optional)
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -691,13 +665,26 @@ you can use the ``PYTHONPATH`` as described above. Additionally, if you want to 
 
 .. code-block:: bash
 
-    $SCIPION_HOME/scipion installp -p /home/me/myplugin --devel
+    $SCIPION_HOME/scipion3 installp -p /home/me/myplugin --devel
 
 
-The ``PYTHONPATH`` approach will provide you with all execution features (protocols, wizards, all should work).
-The only additional thing you are getting with this is testing the installation of the plugin as a pip package,
-or for convenience, to forget about the ``PYTHONPATH`` and, still have a live code reacting to latest git pulls
-or branch changes.
+Testing the Plugin
+~~~~~~~~~~~~~~~~~~
+Once you think your :ref:`standard submodules <standard-submodules>` have some basic functionality, and the plugin ins installed
+you're ready to test how your code behaves within Scipion. It has to have a pip package structure.
+
+Once installed you are ready to troubleshoot your plugin structure with:
+
+.. code-block:: bash
+
+    scipion3 inspect relion
+
+* List your tests and copy the one you want to run:
+
+.. code-block:: bash
+
+    scipion3 test --grep relion
+
 
 Get plugins.json
 ~~~~~~~~~~~~~~~~
@@ -750,15 +737,14 @@ configuration. Remember to replace the example provided with the right path:
 Installation script
 ~~~~~~~~~~~~~~~~~~~
 
-Scipion has a script to handle plugin installation / uninstallation. Use this script in a new
-terminal or reset the ``PYTHONPATH`` variable that we defined at the beginning. We have a few (un)installation
+Scipion has a script to handle plugin installation / uninstallation. We have a few (un)installation
 choices:
 
 * Installing plugin and default binaries:
 
 .. code-block:: bash
 
-    $SCIPION_HOME/scipion installp -p scipion-em-relion
+    $SCIPION_HOME/scipion3 installp -p scipion-em-relion
 
 This command does two things:
 1. Gets the package from pypi
@@ -768,7 +754,7 @@ If no errors happen, we get an output similar to this one:
 
 .. code-block:: bash
 
-    scipion installp -p scipion-em-relion
+    scipion3 installp -p scipion-em-relion
 
     Scipion v3.0 () devel
 
@@ -791,42 +777,42 @@ If no errors happen, we get an output similar to this one:
 
 .. code-block:: bash
 
-    $SCIPION_HOME/scipion uninstallp -p scipion-em-relion
+    $SCIPION_HOME/scipion3 uninstallp -p scipion-em-relion
 
 * We can use the flag --noBin to both install and uninstall without binaries:
 
 .. code-block:: bash
 
-    $SCIPION_HOME/scipion installp -p scipion-em-relion --noBin
+    $SCIPION_HOME/scipion3 installp -p scipion-em-relion --noBin
 
 * Install specific plugin binaries (only works if we have done `installp` first).
 
 .. code-block:: bash
 
-    $SCIPION_HOME/scipion installb relion-3.1
+    $SCIPION_HOME/scipion3 installb relion-3.1
 
 * Uninstall specific plugin binaries
 
 .. code-block:: bash
 
-    $SCIPION_HOME/scipion uninstallb relion-3.0
+    $SCIPION_HOME/scipion3 uninstallb relion-3.0
 
-Testing as pip package
-----------------------
+Running your tests
+------------------
 
 * With your plugin and binaries installed, it is recommended to run some of your plugin's tests to check
   everything is in order:
 
   .. code-block:: bash
 
-    scipion test relion.tests.test_***
+    scipion3 test relion.tests.test_***
 
 
 * Open the test project:
 
 .. code-block:: bash
 
-    scipion last
+    scipion3 last
 
 First, inspect the protocol output to make sure there's nothing weird; then, open the
 protocol box to see if our logo and references are there. It's important to do this step because
@@ -839,14 +825,14 @@ If you need an additional dataset you can do this and host it where ever you wan
 Let's assume you need a new dataset...
 
 * usually you work first locally until you are happy with your data set.
-* Decide where to host it and upload it. For that scipion will:
+* Decide where to host it and upload it. For that scipion3 will:
 * Generate a ``MANIFEST`` file
 * rsync it to your server, you will need to provide a login info (like user@server.com, and a remote folder location.
 * type something like:
 
 .. code-block:: bash
 
-    scipion testdata --upload myplugin123_testdata -l user@server.com -rf /path/at/the/server/for/your/datasets
+    scipion3 testdata --upload myplugin123_testdata -l user@server.com -rf /path/at/the/server/for/your/datasets
 
 
 Please note that the dataset name must be unique, so better prefix it with the plugin name. ``-l`` is the login for your
@@ -887,7 +873,7 @@ To upload your distribution to pypi, you'll need to `create an account
 
     cd $PLUGIN_HOME
     rm -rf dist/*    # To clean the already uploaded modules
-    scipion python setup.py sdist
+    scipion3 python setup.py sdist
 
 It is convenient to check your ``*egg-info/SOURCES.TXT`` and see if you miss any file (pay special attention to
 non-python files that you might have forgot to include in ``MANIFEST.in`` or in your ``setup.py``, like the logo).
@@ -909,7 +895,7 @@ Install from pip
 
 .. code-block:: bash
 
-    $SCIPION_HOME/scipion uninstallp -p scipion-em-relion
+    $SCIPION_HOME/scipion3 uninstallp -p scipion-em-relion
 
 * Remove ``SCIPION_PLUGIN_JSON`` from ``~/.config/scipion/scipion.conf``  IF YOUR PLUGIN IS IN ALREADY IN
   http://scipion.i2pc.es/getplugins. IF NOT DON'T DO THIS. Just remove ``pluginSourceUrl`` from your plugin's dict.
@@ -918,10 +904,10 @@ Install from pip
 
 .. code-block:: bash
 
-    $SCIPION_HOME/scipion installp -p scipion-em-relion
+    $SCIPION_HOME/scipion3 installp -p scipion-em-relion
 
 * Test again (yes, again)
 
   .. code-block:: bash
 
-      scipion test relion.tests.test_***
+      scipion3 test relion.tests.test_***

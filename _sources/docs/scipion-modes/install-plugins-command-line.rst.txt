@@ -21,7 +21,7 @@ You can see the up-to-date list of available plugins with this command:
 
 ::
 
-    ./scipion installp --help
+    ./scipion3 installp --help
 
 This will also show the instructions to use the installp command line
 tool.
@@ -31,7 +31,7 @@ Checking plugin updates
 
 ::
 
-     scipion installp --checkUpdates
+     scipion3 installp --checkUpdates
 
 Listing plugin binaries
 -----------------------
@@ -40,7 +40,7 @@ This will show the available binaries for our installed plugins:
 
 ::
 
-    scipion installb --help
+    scipion3 installb --help
 
 Installing
 ==========
@@ -64,7 +64,7 @@ in devel mode by pointing the path after the ``-p`` flag:
 
 ::
 
-    scipion installp -p ~/scipion-em-relion --devel
+    scipion3 installp -p ~/scipion-em-relion --devel
 
 Changes made to the plugin should now be available when you launch
 Scipion.
@@ -72,14 +72,13 @@ Scipion.
 Regular install
 ~~~~~~~~~~~~~~~
 
-To install one of the plugins from the list (by default, all plugins are
-installed in ``../lib/python3.8/site-packages`` and their binaries
-in ``software/em``), run the install command with the name of the
+To install one of the plugins from the list run the install
+command with the name of the
 package. For example, to install Relion using 5 processors:
 
 ::
 
-    ./scipion installp -p scipion-em-relion -j 5
+    ./scipion3 installp -p scipion-em-relion -j 5
 
 You may replace ``-j 5`` by the number of cores available in your
 machine or remove it altogether if you only wish to use one (will be
@@ -88,7 +87,7 @@ command:
 
 ::
 
-    ./scipion installp -p scipion-em-xmipp -j 5 -p scipion-em-relion -j 5 -p scipion-em-cistem
+    ./scipion3 installp -p scipion-em-xmipp -j 5 -p scipion-em-relion -j 5 -p scipion-em-cistem
 
 Installing binaries
 -------------------
@@ -110,22 +109,37 @@ We list all available binary versions:
 
 ::
 
-    ./scipion installb --help
+    ./scipion installb
 
 This should show something like:
 
 ::
 
     [. . . ]
-    Example: /home/yaiza/git/scipion/scipion installb cistem relion-3.1
+    Example: scipion3 installb cistem relion-3.1
 
     Available binaries: ([ ] not installed, [X] seems already installed)
-                 relion       3.0 [ ]      3.1 [X]
-               xmippBin   3.20.07 [ ]
-               xmippSrc   3.20.07 [ ]
+    chimerax                 1.0     [X]
+    cistem                   1.0.0-beta[X]
+    cryolo                   1.6.1   [X]
+    cryolo_model             201910  [ ]     202002_N63[X]
+    cryolo_negstain_model    20190226[ ]
+    ctffind4                 4.1.13  [ ]
+    deepLearningToolkit      0.2     [X]
+    dynamo                   1.146   [X]
+    eman                     2.3     [ ]     2.31    [X]     3.0.0-alpha[X]
+    gautomatch               0.53    [ ]     0.56    [X]
+    gctf                     1.06    [ ]     1.18    [X]
+    imod                     4.10.42 [X]
+    janni_model              20190703[ ]
+    maxit                    10.1    [X]
+    motioncor2               1.2.3   [ ]     1.2.6   [ ]     1.3.0   [ ]     1.3.1   [X]     1.3.2   [X]
+    relion                   3.0     [ ]     3.1.0   [ ]
+    resmap                   1.95    [X]
+    xmippSrc                 3.20.07b1[ ]
 
 Now we can install our preferred binaries:
 
 ::
 
-    scipion installb relion-3.1 -j 5
+    scipion3 installb relion-3.1 -j 5
