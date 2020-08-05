@@ -240,6 +240,7 @@
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">import</span> <span class="p">(</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span>
                                         <span class="n">LEVEL_ADVANCED</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="k">import</span> <span class="n">ProtInitialVolume</span><span class="p">,</span> <span class="n">ProtClassify3D</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="k">import</span> <span class="n">replaceExt</span><span class="p">,</span> <span class="n">createLink</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="k">import</span> <span class="n">ProtCryosparcBase</span>
 <span class="kn">from</span> <span class="nn">..convert</span> <span class="k">import</span> <span class="o">*</span>
@@ -612,12 +613,41 @@
             <span class="n">index</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="n">cryosparcToLocation</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="s1">&#39;rlnReferenceImage&#39;</span><span class="p">))</span>
             <span class="c1"># Store info indexed by id, we need to store the row.clone() since</span>
             <span class="c1"># the same reference is used for iteration</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_classesInfo</span><span class="p">[</span><span class="n">classNumber</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">fn</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">clone</span><span class="p">())</span>
+            <span class="n">scaledFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getScaledAveragesFile</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_classesInfo</span><span class="p">[</span><span class="n">classNumber</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">scaledFile</span><span class="p">,</span> <span class="n">row</span><span class="o">.</span><span class="n">clone</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">_getScaledAveragesFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csAveragesFile</span><span class="p">):</span>
+
+        <span class="c1"># For the moment this is the best possible result, scaling from 128 to 300 does not render</span>
+        <span class="c1"># nice results apart that the factor turns to 299x299.</span>
+        <span class="c1"># But without this the representative subset is wrong.</span>
+        <span class="c1"># return csAveragesFile</span>
+
+        <span class="n">scaledFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getScaledAveragesFileName</span><span class="p">(</span><span class="n">csAveragesFile</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">scaledFile</span><span class="p">):</span>
+
+            <span class="n">inputSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getInputParticles</span><span class="p">()</span><span class="o">.</span><span class="n">getDim</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">csSize</span> <span class="o">=</span> <span class="n">ImageHandler</span><span class="p">()</span><span class="o">.</span><span class="n">getDimensions</span><span class="p">(</span><span class="n">csAveragesFile</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">csSize</span> <span class="o">==</span> <span class="n">inputSize</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;No binning detected: linking averages cs file.&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">createLink</span><span class="p">(</span><span class="n">csAveragesFile</span><span class="p">,</span> <span class="n">scaledFile</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Scaling CS averages file to match particle size (</span><span class="si">%s</span><span class="s2"> -&gt; </span><span class="si">%s</span><span class="s2">).&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">csSize</span><span class="p">,</span> <span class="n">inputSize</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">ImageHandler</span><span class="o">.</span><span class="n">scaleSplines</span><span class="p">(</span><span class="n">csAveragesFile</span><span class="p">,</span> <span class="n">scaledFile</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
+                                          <span class="n">finalDimension</span><span class="o">=</span><span class="n">inputSize</span><span class="p">,</span>
+                                          <span class="n">forceVolume</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">scaledFile</span>
+
+    <span class="k">def</span> <span class="nf">_getScaledAveragesFileName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csAveragesFile</span><span class="p">):</span>
+
+        <span class="k">return</span> <span class="n">replaceExt</span><span class="p">(</span><span class="n">csAveragesFile</span><span class="p">,</span> <span class="s2">&quot;_scaled.mrc&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_fillClassesFromIter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">clsSet</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Create the SetOfClasses3D &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_loadClassesInfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;out_class&#39;</span><span class="p">))</span>
         <span class="n">outImgsFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;out_class&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_loadClassesInfo</span><span class="p">(</span><span class="n">outImgsFn</span><span class="p">)</span>
         <span class="n">clsSet</span><span class="o">.</span><span class="n">classifyItems</span><span class="p">(</span><span class="n">updateItemCallback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_updateParticle</span><span class="p">,</span>
                              <span class="n">updateClassCallback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_updateClass</span><span class="p">,</span>
                              <span class="n">itemDataIterator</span><span class="o">=</span><span class="n">md</span><span class="o">.</span><span class="n">iterRows</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span>
