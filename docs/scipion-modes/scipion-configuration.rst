@@ -64,17 +64,22 @@ are set to a certain path, determining a certain version. On the other hand, the
 variables that are not defined here will remain by default and a plugin update will
 eventually update them.
 
-Run ``./scipion3 config -p pluginModule`` to see the plugin-variables associated
-to a certain plugin. Note that ``pluginModule`` is the module name of the plugin
+Run
+
+::
+
+    ./scipion3 config -p pluginModule
+
+to see the plugin-variables associated
+to a certain plugin. Note that ``pluginModule`` is the module name of the plugin,
+check :ref:`the plugin's modules list <api/API_index/Plugins-API>`
 (e.g. ``xmipp3`` is the module of the ``scipion-em-xmipp`` plugin)
 
-.. comment::
-    Consider to add a correspondance table between plugin-name and module-name
-
-Once ``config/scipion.conf`` is changed, run ``./scipion3 config`` again to make some checks.
+Once ``config/scipion.conf`` is changed, run ``./scipion3 config`` again
+to make some checks.
 
 If you have configuration files from previous installations, you may
-want to use this instead:
+want to use this instead (consider to make a backup of you config files before):
 
 ::
 
