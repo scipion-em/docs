@@ -11,6 +11,7 @@ Submodules
    localrec.protocols.protocol_localized_extraction
    localrec.protocols.protocol_localized_set_origin
    localrec.protocols.protocol_localized_stitch
+   localrec.protocols.protocol_localized_subset
 
 Module contents
 ---------------
