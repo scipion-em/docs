@@ -51,6 +51,8 @@ later on.
 
 .. _api-docs:
 
+API docs
+
 .. toctree::
    :maxdepth: 1
    :titlesonly:
