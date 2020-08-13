@@ -11,6 +11,12 @@ In scipion3, configuration step is optional. Without a configuration file, scipi
 will run with default values and what is available in the system (usually what is exposed with PATH
 and LD_LIBRARY_PATH).
 
+If you want to know what are the default values type:
+
+::
+
+    scipion3 printenv
+
 In the moment default values does not work for you, you are going to need a config file.
 Cases for this is to customize installation of some binaries  (xmipp, relion) to use a specific mpi
 or cuda version or to tell a plugin to use a specific binary version.
@@ -72,7 +78,7 @@ Run
 
 to see the plugin-variables associated
 to a certain plugin. Note that ``pluginModule`` is the module name of the plugin,
-check :ref:`the plugin's modules list <api/API_index/Plugins-API>`
+check :ref:`the plugin's modules list </docs/api/Plugins-API>`
 (e.g. ``xmipp3`` is the module of the ``scipion-em-xmipp`` plugin)
 
 Once ``config/scipion.conf`` is changed, run ``./scipion3 config`` again
@@ -195,3 +201,10 @@ To fix the config from the console
 ::
 
     ./scipion3 --config <scipion.conf PATH>
+
+
+======
+
+If you have problems compiling Scipion, see
+`Troubleshooting <https://scipion-em.github.io/docs/release-2.0.0/docs/user/troubleshooting.html>`__
+page.
