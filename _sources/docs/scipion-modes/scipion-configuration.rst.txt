@@ -78,7 +78,7 @@ Run
 
 to see the plugin-variables associated to a certain plugin.
 Note that ``pluginPackage`` is the package name of the plugin,
-check :ref:`the plugin's packages list </docs/api/Plugins-API>`
+check :ref:`the plugin's packages list <Plugins-API>`
 (e.g. ``xmipp3`` is the package name for the ``scipion-em-xmipp`` plugin)
 
 Once ``config/scipion.conf`` is changed, run ``./scipion3 config`` again
