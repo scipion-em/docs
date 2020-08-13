@@ -51,8 +51,6 @@ later on.
 
 .. _api-docs:
 
-Check the Scipion's API documentation:
-
 .. toctree::
    :maxdepth: 1
    :titlesonly:
