@@ -58,6 +58,7 @@ later on.
 
    docs/api/Scipion-API
    docs/api/Plugins-API
+   docs/api/Xmipp-API
 
 
 .. _contact:
