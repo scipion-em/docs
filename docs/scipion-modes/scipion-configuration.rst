@@ -74,12 +74,12 @@ Run
 
 ::
 
-    ./scipion3 config -p pluginModule
+    ./scipion3 config -p pluginPackage
 
-to see the plugin-variables associated
-to a certain plugin. Note that ``pluginModule`` is the module name of the plugin,
-check :ref:`the plugin's modules list </docs/api/Plugins-API>`
-(e.g. ``xmipp3`` is the module of the ``scipion-em-xmipp`` plugin)
+to see the plugin-variables associated to a certain plugin.
+Note that ``pluginPackage`` is the package name of the plugin,
+check :ref:`the plugin's packages list </docs/api/Plugins-API>`
+(e.g. ``xmipp3`` is the package name for the ``scipion-em-xmipp`` plugin)
 
 Once ``config/scipion.conf`` is changed, run ``./scipion3 config`` again
 to make some checks.
@@ -124,6 +124,7 @@ some of the following config variables at ``config/scipion.conf``
     GCTF_CUDA_LIB = None  # Fill to override scipion CUDA_LIB
     MOTIONCOR2_CUDA_LIB = None  # Fill to override scipion CUDA_LIB
 
+See *** for more details regarding CUDA and Xmipp.
 
 MPI variables
 =============
@@ -140,6 +141,7 @@ by setting the following variables in the ``config/scipion.conf``
     MPI_LIBDIR = /usr/lib64/mpi/gcc/openmpi/lib
     MPI_INCLUDE = /usr/lib64/mpi/gcc/openmpi/include
 
+See *** for more details regarding MPI and Xmipp.
 
 JAVA variables
 ==============
@@ -162,6 +164,7 @@ You can fix a certain java toolkit by setting the following config variables at
 
 note that settings above are the default ones, then they will be used if not provided.
 
+See *** for more details regarding Java and Xmipp.
 
 OpenCV flag
 ===========
