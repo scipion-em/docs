@@ -56,9 +56,9 @@ later on.
    :titlesonly:
    :caption: API Documentation
 
-   docs/api/Scipion-API
-   docs/api/Plugins-API
-   docs/api/Xmipp-API
+   docs/api/scipion-API
+   docs/api/plugins-API
+   docs/api/xmipp-API
 
 
 .. _contact:
