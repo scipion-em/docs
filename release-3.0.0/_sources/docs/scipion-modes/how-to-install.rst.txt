@@ -176,60 +176,18 @@ Test the installation and learn how to use Scipion
 We also provide some :ref:`tests <Running-Tests>` and :ref:`tutorials <User-Documentation>`
 to check that all is fine and to learn how to use Scipion.
 
+
 Configure
 ---------
-Scipion3 can be run without any configuration file. If you want to know what are the default values
-type:
 
-::
+In scipion3, configuration step is optional. Without a configuration file, scipion and the plugins
+will run with default values and what is available in the system (usually what is exposed with PATH
+and LD_LIBRARY_PATH).
 
-    scipion3 printenv
+Please, check :ref:`Scipion's configuration page <scipion-configuration>` for more details.
 
-If you are installing Scipion in a cluster or you want to change the default values you
-can proceed to generate the configuration files. If you had a previous Scipion installation,
-it is a good idea to make a copy of your current home config file ``~/.config/scipion/scipion.conf``
-Now run:
-
-::
-
-    ./scipion3 config
-
-You will be asked to share **scipion usage only** data. Sharing `usage
-data <https://scipion-em.github.io/docs/release-2.0.0/docs/developer/collecting-statistics.html>`_
-will help to make Scipion better.
-
-This command will generate 3 configuration files at <SCIPION_HOME>/config.
-
-If everything is OK (all green in the output) you can proceed to the
-next step. If there is a problem (red colored output), you will need to
-edit ``config/scipion.conf`` file in your preferred text editor and run
-``./scipion config`` again.
-
-One known change for **Ubuntu 18** and **CentOS** are the MPI paths in
-``<your_scipion_home>/config/scipion.conf``:
-
-For **Ubuntu 18**:
-
-::
-
-   MPI_LIBDIR = /usr/lib/x86_64-linux-gnu/openmpi/lib
-   MPI_INCLUDE = /usr/lib/x86_64-linux-gnu/openmpi/include/
-
-For **CentOS**:
-
-::
-
-    MPI_BINDIR = /usr/lib64/openmpi/bin
-    MPI_LIBDIR = /usr/lib64/openmpi/lib
-    MPI_INCLUDE = /usr/include/openmpi-x86_64
-
-Read more about :doc:`editing the configuration file <scipion-configuration>`.
-
-The file ``config/hosts.conf`` contains some properties of the execution
-machine. This configuration file is particularly important for clusters
-that use a Queue System. If you are installing Scipion on a cluster, you
-probably will want to check :doc:`how to configure an execution
-host <host-configuration>`.
+Troubleshooting
+---------------
 
 If you have problems compiling Scipion, see
 `Troubleshooting <https://scipion-em.github.io/docs/release-2.0.0/docs/user/troubleshooting.html>`__
