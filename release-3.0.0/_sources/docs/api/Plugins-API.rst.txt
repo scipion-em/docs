@@ -10,6 +10,7 @@ Plugins API
 Find below the API documentation for all Scipion plugins
 
 .. toctree::
+    :titlesonly:
     :maxdepth: 1
 
    /api/appion/appion
