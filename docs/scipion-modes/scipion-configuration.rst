@@ -91,6 +91,8 @@ want to use this instead (consider to make a backup of you config files before):
 
     ./scipion3 config --overwrite
 
+Check also the `Xmipp documentation on the configuration <https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)>`_.
+
 
 GPU variables
 =============
@@ -124,7 +126,7 @@ some of the following config variables at ``config/scipion.conf``
     GCTF_CUDA_LIB = None  # Fill to override scipion CUDA_LIB
     MOTIONCOR2_CUDA_LIB = None  # Fill to override scipion CUDA_LIB
 
-See *** for more details regarding CUDA and Xmipp.
+Check also the `Xmipp-CUDA documentation <https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)#cuda-configuration>`_.
 
 MPI variables
 =============
@@ -141,7 +143,7 @@ by setting the following variables in the ``config/scipion.conf``
     MPI_LIBDIR = /usr/lib64/mpi/gcc/openmpi/lib
     MPI_INCLUDE = /usr/lib64/mpi/gcc/openmpi/include
 
-See *** for more details regarding MPI and Xmipp.
+Check also the `Xmipp-MPI documentation <https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)#mpi-configuration>`_.
 
 JAVA variables
 ==============
@@ -164,7 +166,8 @@ You can fix a certain java toolkit by setting the following config variables at
 
 note that settings above are the default ones, then they will be used if not provided.
 
-See *** for more details regarding Java and Xmipp.
+Check also the `Xmipp-Java documentation <https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)#java-configuration>`_.
+
 
 OpenCV flag
 ===========
@@ -176,6 +179,9 @@ you can set OPENCV to False in ``scipion.conf``:
 ::
 
     OPENCV = False
+
+Check also the `Xmipp-OpenCV documentation <https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)#opencv-configuration>`_.
+
 
 
 Running Scipion in multi-users environment
