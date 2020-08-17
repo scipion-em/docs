@@ -90,12 +90,12 @@ CentOS with conda
 
 ::
 
-    sudo yum install gcc gcc-c++ openmpi-devel
+    sudo yum -y install epel-release
+    sudo yum -y install libzstd-devel hdf5-devel gcc gcc-c++ openmpi-devel
     export PATH=$PATH:/usr/lib64/openmpi/bin/:/usr/local/cuda/bin
     conda activate
     pip install --user scipion-installer
     python3 -m scipioninstaller /path/where/you/want/scipion -j 4
-
 
 CentOS with virtualenv
 ----------------------
