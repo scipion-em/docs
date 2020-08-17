@@ -35,13 +35,14 @@ This is the command used to generate config files or analyze them if you already
 The configuration files generated with this command are in one location:
 
 * ``<your-scipion-home>/config`` contains configuration files for this Scipion installation,
-  which will be applied to everyone using it. There are three files stored here:
+  which will be applied to everyone using it. There are two files stored here:
 
         - ``<your-scipion-home>/config/scipion.conf`` with general variables to run scipion,
           install and use external libraries, etc. Also, all plugin-defined variables will be
           added for those plugins already installed.
         - ``<your-scipion-home>/config/hosts.conf`` with the host configuration.
           You can find more about it in the :ref:`host configuration page <host-configuration>`.
+        - ``<your-scipion-home>/config/protocols.conf`` with the protocols tree definition.
 
 * ``~/.config/scipion/scipion.conf`` will be read if present but scipion3 will never generate this file.
 This could be useful if you want to overwrite generic scipion3 configuration.
@@ -85,7 +86,7 @@ Once ``config/scipion.conf`` is changed, run ``./scipion3 config`` again
 to make some checks.
 
 If you have configuration files from previous installations, you may
-want to use this instead (consider to make a backup of you config files before):
+want to use this instead (consider to make a backup of your config files before):
 
 ::
 
@@ -158,7 +159,7 @@ You can fix a certain java toolkit by setting the following config variables at
 
 ::
 
-    JAVA_HOME = /usr/lib/jvm/java-*  # Fill * with you java version
+    JAVA_HOME = /usr/lib/jvm/java-*  # Fill * with your java version
     JAVA_BINDIR = %(JAVA_HOME)s/bin
     JAR = %(JAVA_BINDIR)s/jar
     JAVAC = %(JAVA_BINDIR)s/javac
