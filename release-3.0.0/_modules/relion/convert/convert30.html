@@ -105,8 +105,9 @@
 </ul>
 <p class="caption"><span class="caption-text">API Documentation</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../docs/api/Scipion-API.html">Scipion API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../docs/api/Plugins-API.html">Plugins API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../docs/api/scipion-API.html">Scipion API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../docs/api/plugins-API.html">Plugins API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../docs/api/xmipp-API.html">Xmipp API</a></li>
 </ul>
 <p class="caption"><span class="caption-text">Get in touch</span></p>
 <ul>
@@ -206,6 +207,11 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">import</span> <span class="nn">pwem</span>
+<span class="kn">import</span> <span class="nn">pwem.convert.transformations</span> <span class="k">as</span> <span class="nn">tfs</span>
+
 <span class="kn">from</span> <span class="nn">..constants</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">.convert_base</span> <span class="k">import</span> <span class="n">WriterBase</span><span class="p">,</span> <span class="n">ReaderBase</span>
 <span class="kn">from</span> <span class="nn">.convert_deprecated</span> <span class="k">import</span> <span class="n">rowToAlignment</span><span class="p">,</span> <span class="n">readSetOfParticles</span>
@@ -273,6 +279,15 @@
 
 <div class="viewcode-block" id="Reader"><a class="viewcode-back" href="../../../api/relion/relion.convert.convert30.html#relion.convert.convert30.Reader">[docs]</a><span class="k">class</span> <span class="nc">Reader</span><span class="p">(</span><span class="n">ReaderBase</span><span class="p">):</span>
 
+    <span class="n">ALIGNMENT_LABELS</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;rlnOriginX&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;rlnOriginY&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;rlnOriginZ&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;rlnAngleRot&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;rlnAngleTilt&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;rlnAnglePsi&quot;</span><span class="p">,</span>
+    <span class="p">]</span>
+
 <div class="viewcode-block" id="Reader.readSetOfParticles"><a class="viewcode-back" href="../../../api/relion/relion.convert.convert30.html#relion.convert.convert30.Reader.readSetOfParticles">[docs]</a>    <span class="k">def</span> <span class="nf">readSetOfParticles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">starFile</span><span class="p">,</span> <span class="n">partsSet</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Convert a star file into a set of particles.</span>
 
@@ -290,7 +305,71 @@
 
 <div class="viewcode-block" id="Reader.setParticleTransform"><a class="viewcode-back" href="../../../api/relion/relion.convert.convert30.html#relion.convert.convert30.Reader.setParticleTransform">[docs]</a>    <span class="k">def</span> <span class="nf">setParticleTransform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Set the transform values from the row. &quot;&quot;&quot;</span>
-        <span class="n">particle</span><span class="o">.</span><span class="n">setTransform</span><span class="p">(</span><span class="n">rowToAlignment</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignType</span><span class="p">))</span></div></div>
+
+        <span class="k">if</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_alignType</span> <span class="o">==</span> <span class="n">pwem</span><span class="o">.</span><span class="n">ALIGN_NONE</span><span class="p">)</span> <span class="ow">or</span>
+                <span class="ow">not</span> <span class="n">row</span><span class="o">.</span><span class="n">hasAnyColumn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ALIGNMENT_LABELS</span><span class="p">)):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setParticleTransform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__setParticleTransformNone</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Ensure the Transform object exists</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shifts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+            <span class="n">particle</span><span class="o">.</span><span class="n">setTransform</span><span class="p">(</span><span class="n">pwem</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">Transform</span><span class="p">())</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignType</span> <span class="o">==</span> <span class="n">pwem</span><span class="o">.</span><span class="n">ALIGN_2D</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setParticleTransform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__setParticleTransform2D</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignType</span> <span class="o">==</span> <span class="n">pwem</span><span class="o">.</span><span class="n">ALIGN_PROJ</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setParticleTransform</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__setParticleTransformProj</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Unexpected alignment type: </span><span class="si">%s</span><span class="s2">&quot;</span>
+                                <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignType</span><span class="p">)</span>
+
+        <span class="c1"># Call again the modified function</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setParticleTransform</span><span class="p">(</span><span class="n">particle</span><span class="p">,</span> <span class="n">row</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">__setParticleTransformNone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+        <span class="n">particle</span><span class="o">.</span><span class="n">setTransform</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__setParticleTransform2D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+        <span class="n">angles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_angles</span>
+        <span class="n">shifts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shifts</span>
+        <span class="n">ips</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_invPixelSize</span>
+
+        <span class="k">def</span> <span class="nf">_get</span><span class="p">(</span><span class="n">label</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="mf">0.</span><span class="p">))</span>
+
+        <span class="n">shifts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="s1">&#39;rlnOriginX&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="n">ips</span>
+        <span class="n">shifts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="s1">&#39;rlnOriginY&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="n">ips</span>
+        <span class="n">angles</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">_get</span><span class="p">(</span><span class="s1">&#39;rlnAnglePsi&#39;</span><span class="p">)</span>
+        <span class="n">radAngles</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">angles</span><span class="p">)</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">tfs</span><span class="o">.</span><span class="n">euler_matrix</span><span class="p">(</span><span class="n">radAngles</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">radAngles</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">radAngles</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;szyz&#39;</span><span class="p">)</span>
+        <span class="n">M</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">shifts</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">particle</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span><span class="o">.</span><span class="n">setMatrix</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__setParticleTransformProj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+        <span class="n">angles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_angles</span>
+        <span class="n">shifts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shifts</span>
+        <span class="n">ips</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_invPixelSize</span>
+
+        <span class="k">def</span> <span class="nf">_get</span><span class="p">(</span><span class="n">label</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="mf">0.</span><span class="p">))</span>
+
+        <span class="n">shifts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="s1">&#39;rlnOriginX&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="n">ips</span>
+        <span class="n">shifts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="s1">&#39;rlnOriginY&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="n">ips</span>
+        <span class="n">shifts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="s1">&#39;rlnOriginZ&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="n">ips</span>
+
+        <span class="n">angles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="s1">&#39;rlnAngleRot&#39;</span><span class="p">)</span>
+        <span class="n">angles</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="s1">&#39;rlnAngleTilt&#39;</span><span class="p">)</span>
+        <span class="n">angles</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="s1">&#39;rlnAnglePsi&#39;</span><span class="p">)</span>
+
+        <span class="n">radAngles</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">angles</span><span class="p">)</span>
+
+        <span class="c1"># TODO: jmrt: Maybe we should test performance and consider if keeping</span>
+        <span class="c1"># TODO: the matrix and not creating one everytime will make things faster</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">tfs</span><span class="o">.</span><span class="n">euler_matrix</span><span class="p">(</span><span class="n">radAngles</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">radAngles</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">radAngles</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="s1">&#39;szyz&#39;</span><span class="p">)</span>
+        <span class="n">M</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="n">shifts</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+        <span class="n">particle</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span><span class="o">.</span><span class="n">setMatrix</span><span class="p">(</span><span class="n">M</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -327,7 +406,6 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../../../dm_facilitiesUpdate/index.html">dm_facilitiesUpdate</a></dd>
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="convert30.html">release-3.0.0</a></dd>
