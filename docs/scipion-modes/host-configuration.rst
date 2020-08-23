@@ -8,12 +8,12 @@
 Host configuration
 ==================
 
-In Scipion the configuration file ``scipion/config/hosts.conf`` contains
+In Scipion the configuration file ``<SCIPION-HOME>/config/hosts.conf`` contains
 some properties of the execution machine. (In a future release we are
 planning to allow more than one machine to be configured and used to
 launch jobs). This configuration file is particularly important for
 clusters that use a Queue System. In this scenario, it is common that
-users should write a submission script to launch jobs to the cluster. In
+users should write a submission script to launch jobs on the cluster. In
 Scipion the submission scripts are generated from a template (that is
 setup once by the system administrator) and the users no longer need to
 care about it. In the following sections you can find the definition of
@@ -38,8 +38,8 @@ This variable should be set even if you are not using a cluster (for
 example in a multi-core machine). ``JOB_NODES`` will be replaced by the
 number of MPI selected by the user in the form and the ``COMMAND`` with the
 job launched by Scipion. This two should not be modified. In this
-example we are using two parameters of MPI in our computer: ``--np`` and
-``--bynode=``.
+example we are using two parameters of MPI in our computer: ``-np`` and
+``-bynode=``.
 
 
 Queue System
@@ -77,7 +77,7 @@ id as 178.job, but this causes problems in some clusters.
 
     SUBMIT_COMMAND = sbatch %_(JOB_SCRIPT)s
     CANCEL_COMMAND = scancel %_(JOB_ID)s
-    CHECK_COMMAND = squeue -j %_(JOB_ID)s
+    CHECK_COMMAND = squeue -h -j %_(JOB_ID)s
 
 
 The previous variables are used to specify how to submit, cancel and
@@ -114,8 +114,8 @@ used. It should be written as a JSON dictionary, where the key is the
 queue name and the value is a list of parameters. Each parameter is
 composed by a list of 4 values:
 
- 1. Variable Name, that can be used in the template to be replaced
- 2. The default value The variable
+ 1. Variable name, that can be used in the template to be replaced
+ 2. The default value
  3. The variable label that will be shown to the users in the GUI
  4. A help message that users can use to know the meaning of this queue parameter.
 
@@ -123,9 +123,10 @@ Keep in mind that the parameters defined here (like ``JOB_TIME``, in the example
 dialog as a string. Hence, in the template you will need to declare them as string (%s), even if they are integers (%d).
 See the Torque example (``JOB_HOURS`` parameter).
 
-The ``GPU_COUNT`` variable is only needed if the queue is configured to manage GPUs (for instance in slurm).
+The ``GPU_COUNT`` variable is only needed if the queue is configured to manage GPUs (for instance in Slurm).
 
-The ``QUEUE_FOR_JOBS`` variable is needed if you want to give the possibility to submit single jobs to the queue (by default Scipion submits the whole protocol run to the queue as a single job). The other variable involved in this mode is JOB_DONE_REGEX which is used to check for finished jobs. If unset (not in the config) then jobs are considered finished when the CHECK_COMMAND returns nothing (for instance, slurm). If the batch system returns some string that needs to be parsed to check the job status then use this variable to specify the regular expression to check for finished jobs. This check is done every 3 seconds making this kind of submission slower for fast jobs.
+The ``QUEUE_FOR_JOBS`` variable is needed if you want to give the possibility to submit single jobs to the queue (by default Scipion submits the whole protocol run to the queue as a single job).
+The other variable involved in this mode is JOB_DONE_REGEX which is used to check for finished jobs. If unset (not in the config) then jobs are considered finished when the CHECK_COMMAND returns nothing (for instance, slurm). If the batch system returns some string that needs to be parsed to check the job status then use this variable to specify the regular expression to check for finished jobs. This check is done every 3 seconds making this kind of submission slower for fast jobs.
 
 ::
 
