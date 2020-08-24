@@ -187,6 +187,11 @@ and LD_LIBRARY_PATH).
 
 Please, check :ref:`Scipion's configuration page <scipion-configuration>` for more details.
 
+Linking existing software
+-------------------------
+
+If you have an existing installation you want scipion to use instead of the one that scipion installs. Please, check :ref:`<Linking existing software <linking_existing_software>` for more details.
+
 Troubleshooting
 ---------------
 
