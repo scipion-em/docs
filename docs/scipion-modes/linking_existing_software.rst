@@ -9,7 +9,7 @@ Linking existing software
 =========================
 
 Scipion plugins can install most of the software that integrates and by default it will be done. You can avoid the installation of the binaries as described
-here docs/scipion-modes/install-plugins-command-line.html#install-plugin-without-binaries
+:ref:`here <install-plugins-command-line#install-plugin-without-binaries>`
 
 There are 2 ways to achieve this, though linking the installation folder or by editing the configuration file.
 
