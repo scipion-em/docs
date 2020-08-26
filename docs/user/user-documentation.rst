@@ -136,11 +136,15 @@ Scipion.
 
 Localized reconstruction in Scipion
 ---------------------------------
+.. figure:: /docs/images/fibre_map.png
+   :align: right
+   :height: 76
+   :alt: 00.ReconstructedVolume.png
 
 In this tutorial, we provide a step-by-step guide for handling symmetry mismatches in single-particle analysis using a new plugin called LocalRec (Ilca et al. (2015)) in Scipion (Abrishami et al. (2020)).
 
 *Guide*:
-`scipion\_tutorial\_localrec.pdf <https://github.com/LSB-Helsinki/tutorials/blob/master/LocalRec/localrec21_tutorial.pdf>`__\ 
+`scipion\_tutorial\_localrec.pdf <https://github.com/LSB-Helsinki/tutorials/blob/master/localrec/localrec21_tutorial.pdf?raw=true>`__\ 
 
 Processing How To's
 ===================
