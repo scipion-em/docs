@@ -134,6 +134,13 @@ Scipion.
 *Guide*:
 `scipion\_tutorial\_SAXS.pdf <https://github.com/I2PC/scipion/wiki/tutorials/tutorial_SAXS.pdf>`__\ 
 
+Localized reconstruction in Scipion
+---------------------------------
+
+In this tutorial, we provide a step-by-step guide for handling symmetry mismatches in single-particle analysis using a new plugin called LocalRec (Ilca et al. (2015)) in Scipion (Abrishami et al. (2020)).
+
+*Guide*:
+`scipion\_tutorial\_localrec.pdf <https://github.com/LSB-Helsinki/tutorials/blob/master/LocalRec/localrec21_tutorial.pdf>`__\ 
 
 Processing How To's
 ===================
