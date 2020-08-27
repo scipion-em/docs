@@ -91,7 +91,7 @@ CentOS with conda
 ::
 
     sudo yum -y install epel-release
-    sudo yum-config-manager --enable epe
+    sudo yum-config-manager --enable epel
     sudo yum -y install libzstd-devel hdf5-devel gcc gcc-c++ openmpi-devel
     export PATH=$PATH:/usr/lib64/openmpi/bin/:/usr/local/cuda/bin
     conda activate
