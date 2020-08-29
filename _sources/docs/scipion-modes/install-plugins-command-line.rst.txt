@@ -21,7 +21,7 @@ You can see the up-to-date list of available plugins with this command:
 
 ::
 
-    ./scipion3 installp --help
+    scipion3 installp --help
 
 This will also show the instructions to use the installp command line
 tool.
@@ -78,7 +78,7 @@ package. For example, to install Relion using 5 processors:
 
 ::
 
-    ./scipion3 installp -p scipion-em-relion -j 5
+    scipion3 installp -p scipion-em-relion -j 5
 
 You may replace ``-j 5`` by the number of cores available in your
 machine or remove it altogether if you only wish to use one (will be
@@ -87,7 +87,7 @@ command:
 
 ::
 
-    ./scipion3 installp -p scipion-em-xmipp -j 5 -p scipion-em-relion -j 5 -p scipion-em-cistem
+    scipion3 installp -p scipion-em-xmipp -j 5 -p scipion-em-relion -j 5 -p scipion-em-cistem
 
 Installing binaries
 -------------------
@@ -100,7 +100,7 @@ we install the plugin without binaries:
 
 ::
 
-    ./scipion installp -p scipion-em-relion -j 5 --noBin
+    scipion3 installp -p scipion-em-relion -j 5 --noBin
 
 Install specific binaries
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -109,7 +109,7 @@ We list all available binary versions:
 
 ::
 
-    ./scipion installb
+    scipion3 installb
 
 This should show something like:
 

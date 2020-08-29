@@ -157,7 +157,7 @@ To run the demo as it is, you need to have installed
 
 * scipion-em-motioncorr
 * scipion-em-grigoriefflab
-* scipion-em-eman
+* scipion-em-eman2
 
 .. code-block:: bash
 
@@ -263,8 +263,7 @@ a Python script using the `Scipion's API <https://scipion-em.github.io/docs/api/
 
 We have a repository destined to share Scipion's scripts potentially useful in
 `EM-facilities <https://github.com/I2PC/em-facilities>`_.
-Specially, we have an example of `creating a Scipion's project using the API
- <https://github.com/I2PC/em-facilities/blob/master/usingAPI_demo/acquisition_workflow.py>`_.
+Specially, we have an example of `creating a Scipion project using the API <https://github.com/I2PC/em-facilities/blob/master/usingAPI_demo/acquisition_workflow.py>`_.
 See the `acquisition simulation <acquisition-simulation>`_ section to learn how
 to use this script.
 
