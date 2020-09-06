@@ -204,7 +204,9 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This module implement some wizards</span>
+<span class="sd">This module implement some base classes and utils for wizards</span>
+<span class="sd">The content of this module is not discovered at runtime by pyworkflow.</span>
+<span class="sd">Usage of this content is though importing it</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
@@ -214,14 +216,21 @@
 <span class="kn">import</span> <span class="nn">pyworkflow.object</span> <span class="k">as</span> <span class="nn">pwobj</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.wizard</span> <span class="k">as</span> <span class="nn">pwizard</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.gui.dialog</span> <span class="k">as</span> <span class="nn">dialog</span>
-<span class="kn">from</span> <span class="nn">pwem</span> <span class="k">import</span> <span class="n">convertPixToLength</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">cm</span>
+<span class="kn">from</span> <span class="nn">pwem</span> <span class="k">import</span> <span class="n">convertPixToLength</span><span class="p">,</span> <span class="n">splitRange</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.gui.plotter</span> <span class="k">import</span> <span class="n">getHexColorList</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.gui.tree</span> <span class="k">import</span> <span class="n">BoundTree</span><span class="p">,</span> <span class="n">ListTreeProvider</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.gui.widgets</span> <span class="k">import</span> <span class="n">LabelSlider</span><span class="p">,</span> <span class="n">ExplanationText</span>
 
 <span class="kn">import</span> <span class="nn">pwem.constants</span> <span class="k">as</span> <span class="nn">emcts</span>
 <span class="kn">import</span> <span class="nn">pwem.objects</span> <span class="k">as</span> <span class="nn">emobj</span>
 <span class="kn">from</span> <span class="nn">pwem</span> <span class="k">import</span> <span class="n">emlib</span>
-
+<span class="kn">from</span> <span class="nn">pyworkflow.protocol</span> <span class="k">import</span> <span class="n">IntParam</span><span class="p">,</span> <span class="n">StringParam</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">LEVEL_ADVANCED</span>
+<span class="c1"># Color map wizard constants</span>
+<span class="n">HIGHEST_ATTR</span> <span class="o">=</span> <span class="s1">&#39;highest&#39;</span>
+<span class="n">LOWEST_ATTR</span> <span class="o">=</span> <span class="s1">&#39;lowest&#39;</span>
+<span class="n">INTERVAL_ATTR</span> <span class="o">=</span> <span class="s1">&#39;intervals&#39;</span>
+<span class="n">COLORMAP_ATTR</span> <span class="o">=</span> <span class="s1">&#39;colorMap&#39;</span>
 
 <span class="c1"># ===============================================================================</span>
 <span class="c1">#    Wizard EM base class</span>
@@ -303,37 +312,6 @@
 
 
 <span class="c1"># ===============================================================================</span>
-<span class="c1">#    Provider class (for objects used in the wizards)</span>
-<span class="c1"># ===============================================================================</span>
-
-<span class="c1"># Candidate to be moved to pyworkflow? Nothing em related and generic enough to be there.</span>
-<span class="c1"># class ListTreeProvider(TreeProvider):</span>
-<span class="c1">#     &quot;&quot;&quot; Simple list tree provider. &quot;&quot;&quot;</span>
-<span class="c1">#</span>
-<span class="c1">#     def __init__(self, objList=None):</span>
-<span class="c1">#         TreeProvider.__init__(self)</span>
-<span class="c1">#         self.objList = objList</span>
-<span class="c1">#         self.getColumns = lambda: [(&#39;Object&#39;, 150)]</span>
-<span class="c1">#         self.getObjects = lambda: self.objList</span>
-<span class="c1">#</span>
-<span class="c1">#     def getObjectInfo(self, obj):</span>
-<span class="c1">#         info = {&#39;key&#39;: obj.getObjId(), &#39;text&#39;: self.getText(obj), &#39;values&#39;: ()}</span>
-<span class="c1">#         return info</span>
-<span class="c1">#</span>
-<span class="c1">#     def getText(self, obj):</span>
-<span class="c1">#         &quot;&quot;&quot; Get the text to display for an object. &quot;&quot;&quot;</span>
-<span class="c1">#         index, fn = obj.getLocation()</span>
-<span class="c1">#         name = os.path.basename(fn)</span>
-<span class="c1">#         if index:</span>
-<span class="c1">#             name = &quot;%03d@%s&quot; % (index, name)</span>
-<span class="c1">#         return name</span>
-<span class="c1">#</span>
-<span class="c1">#     def getObjs(self):</span>
-<span class="c1">#         &quot;&quot;&quot; Get the objects. &quot;&quot;&quot;</span>
-<span class="c1">#         return self.objList</span>
-
-
-<span class="c1"># ===============================================================================</span>
 <span class="c1">#    Wizards base classes</span>
 <span class="c1"># ===============================================================================</span>
 
@@ -396,7 +374,11 @@
                                   <span class="n">maskRadius</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
                                   <span class="n">unit</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">resultYes</span><span class="p">():</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">getRadius</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">radiusSlider</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">units</span> <span class="o">==</span> <span class="n">emcts</span><span class="o">.</span><span class="n">UNIT_ANGSTROM</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">getRadiusAngstroms</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">radiusSlider</span><span class="p">))</span>  <span class="c1"># Must be an integer</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">getRadius</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">radiusSlider</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">dialog</span><span class="o">.</span><span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;Empty input&quot;</span><span class="p">,</span> <span class="s2">&quot;Select elements first&quot;</span><span class="p">,</span> <span class="n">form</span><span class="o">.</span><span class="n">root</span><span class="p">)</span></div>
 
@@ -417,8 +399,12 @@
                                        <span class="n">outerRadius</span><span class="o">=</span><span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                                        <span class="n">unit</span><span class="o">=</span><span class="n">units</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">resultYes</span><span class="p">():</span>
-                <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="n">label</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">d</span><span class="o">.</span><span class="n">getRadius</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">radiusSliderIn</span><span class="p">))</span>
-                <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="n">label</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">d</span><span class="o">.</span><span class="n">getRadius</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">radiusSliderOut</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">units</span> <span class="o">==</span> <span class="n">emcts</span><span class="o">.</span><span class="n">UNIT_ANGSTROM</span><span class="p">:</span>
+                    <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="n">label</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">d</span><span class="o">.</span><span class="n">getRadiusAngstroms</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">radiusSliderIn</span><span class="p">))</span>
+                    <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="n">label</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">d</span><span class="o">.</span><span class="n">getRadiusAngstroms</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">radiusSliderOut</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="n">label</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">d</span><span class="o">.</span><span class="n">getRadius</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">radiusSliderIn</span><span class="p">))</span>
+                    <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="n">label</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">d</span><span class="o">.</span><span class="n">getRadius</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">radiusSliderOut</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">dialog</span><span class="o">.</span><span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;Empty input&quot;</span><span class="p">,</span> <span class="s2">&quot;Select elements first&quot;</span><span class="p">,</span> <span class="n">form</span><span class="o">.</span><span class="n">root</span><span class="p">)</span></div>
 
@@ -531,6 +517,59 @@
                 <span class="n">ptr</span><span class="o">.</span><span class="n">setExtended</span><span class="p">(</span><span class="n">ptr</span><span class="o">.</span><span class="n">getExtended</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;._volume&quot;</span><span class="p">)</span>
                 <span class="c1">#                 ptr.set(pdb.getVolume())</span>
                 <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="s1">&#39;inputVol&#39;</span><span class="p">,</span> <span class="n">ptr</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ColorScaleWizardBase"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.ColorScaleWizardBase">[docs]</a><span class="k">class</span> <span class="nc">ColorScaleWizardBase</span><span class="p">(</span><span class="n">EmWizard</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Base wizard to edit color scale parameters</span>
+<span class="sd">    Usage:</span>
+<span class="sd">        1.- define new class inheriting this one</span>
+<span class="sd">        2.- declare _targets = ColorScaleWizardBase.defineTargets(youviewer) in a class scope, right after class definition.</span>
+<span class="sd">        3.- call ColorScaleWizardBase.defineColorScaleParams(group) in your viewer._defineParams</span>
+<span class="sd">        4.- use attributes in your plotting method</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ColorScaleWizardBase.defineTargets"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.ColorScaleWizardBase.defineTargets">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">defineTargets</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">viewersClass</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; :return targets list per each viewer class passed&quot;&quot;&quot;</span>
+        <span class="n">targets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">viewer</span> <span class="ow">in</span> <span class="n">viewersClass</span><span class="p">:</span>
+            <span class="n">targets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="p">(</span><span class="n">viewer</span><span class="p">,</span> <span class="p">[</span><span class="n">HIGHEST_ATTR</span><span class="p">,</span> <span class="n">LOWEST_ATTR</span><span class="p">,</span> <span class="n">INTERVAL_ATTR</span><span class="p">,</span> <span class="n">COLORMAP_ATTR</span><span class="p">]))</span>
+
+        <span class="k">return</span> <span class="n">targets</span></div>
+
+<div class="viewcode-block" id="ColorScaleWizardBase.show"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.ColorScaleWizardBase.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">viewer</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">protocol</span>
+
+        <span class="n">d</span> <span class="o">=</span> <span class="n">ColorScaleDialog</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">viewer</span><span class="o">.</span><span class="n">lowest</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">viewer</span><span class="o">.</span><span class="n">highest</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">viewer</span><span class="o">.</span><span class="n">intervals</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">viewer</span><span class="o">.</span><span class="n">colorMap</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+
+        <span class="c1"># If accepted</span>
+        <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">resultYes</span><span class="p">():</span>
+            <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="n">LOWEST_ATTR</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">getLowest</span><span class="p">())</span>
+            <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="n">HIGHEST_ATTR</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">getHighest</span><span class="p">())</span>
+            <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="n">INTERVAL_ATTR</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">getIntervals</span><span class="p">())</span>
+            <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="n">COLORMAP_ATTR</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">getColorPalette</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ColorScaleWizardBase.defineColorScaleParams"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.ColorScaleWizardBase.defineColorScaleParams">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">defineColorScaleParams</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">defaultHighest</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">defaultLowest</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">defaultIntervals</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">defaultColorMap</span><span class="o">=</span><span class="s2">&quot;jet&quot;</span><span class="p">):</span>
+
+        <span class="n">line</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="s2">&quot;Color scale options:&quot;</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Options to define the color scale limits, intervals (advanced) and color set. Useful when you have outliers ruinning your &quot;</span>
+                                 <span class="s2">&quot;visualization/plot.&quot;</span><span class="p">)</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="n">HIGHEST_ATTR</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">defaultHighest</span><span class="p">,</span>
+                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Highest&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Highest value for the scale&quot;</span><span class="p">)</span>
+
+        <span class="n">line</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="n">LOWEST_ATTR</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">defaultLowest</span><span class="p">,</span>
+                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Lowest&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;lowest value of the scale.&quot;</span><span class="p">)</span>
+
+        <span class="n">line</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="n">INTERVAL_ATTR</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">defaultIntervals</span><span class="p">,</span>
+                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Intervals&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Number of labels of the scale&quot;</span><span class="p">,</span>
+                       <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">)</span>
+
+        <span class="n">line</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="n">COLORMAP_ATTR</span><span class="p">,</span> <span class="n">StringParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">defaultColorMap</span><span class="p">,</span>
+                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Color set&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Combination of color for the scale&quot;</span><span class="p">)</span></div></div>
 
 
 <span class="c1"># ===============================================================================</span>
@@ -702,12 +741,17 @@
 <div class="viewcode-block" id="DownsampleDialog.getDownsample"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.DownsampleDialog.getDownsample">[docs]</a>    <span class="k">def</span> <span class="nf">getDownsample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">downVar</span><span class="o">.</span><span class="n">get</span><span class="p">())</span></div>
 
+<div class="viewcode-block" id="DownsampleDialog.manageMaskVals"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.DownsampleDialog.manageMaskVals">[docs]</a>    <span class="k">def</span> <span class="nf">manageMaskVals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># To be coded by each child, if necessary</span>
+        <span class="k">pass</span></div>
+
     <span class="k">def</span> <span class="nf">_itemSelected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lastObj</span> <span class="o">=</span> <span class="n">obj</span>
         <span class="n">ImagePreviewDialog</span><span class="o">.</span><span class="n">_itemSelected</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">)</span>
 
         <span class="n">dialog</span><span class="o">.</span><span class="n">FlashMessage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">message</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_computeRightPreview</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rightPreview</span><span class="o">.</span><span class="n">updateData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rightImage</span><span class="o">.</span><span class="n">getData</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">manageMaskVals</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_doPreview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastObj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -840,8 +884,8 @@
         <span class="c1"># Update both mask and sliders with the initial values</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">manageMaskVals</span><span class="p">()</span>
 
-<div class="viewcode-block" id="CtfDialog.getDownsample"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.CtfDialog.getDownsample">[docs]</a>    <span class="k">def</span> <span class="nf">getDownsample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="mf">1.0</span>  <span class="c1"># Micrograph previously downsample, not taken into account here</span></div>
+    <span class="c1"># def getDownsample(self):</span>
+    <span class="c1">#     return 1.0  # Micrograph previously downsample, not taken into account here</span>
 
 <div class="viewcode-block" id="CtfDialog.updateFreqRing"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.CtfDialog.updateFreqRing">[docs]</a>    <span class="k">def</span> <span class="nf">updateFreqRing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rightPreview</span><span class="o">.</span><span class="n">updateFreq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getLowFreq</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">getHighFreq</span><span class="p">())</span>
@@ -890,7 +934,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">var2set</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{:2.2f}</span><span class="s1"> rad/</span><span class="si">{}</span><span class="s1"> | </span><span class="si">{:5.1f}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">labSlider</span><span class="o">.</span><span class="n">slider</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
                                                              <span class="n">emcts</span><span class="o">.</span><span class="n">UNIT_ANGSTROM_SYMBOL</span><span class="p">,</span>
-                                                             <span class="n">sr</span><span class="o">/</span><span class="n">freqVal</span><span class="p">,</span>
+                                                             <span class="bp">self</span><span class="o">.</span><span class="n">getDownsample</span><span class="p">()</span><span class="o">*</span><span class="n">sr</span><span class="o">/</span><span class="n">freqVal</span><span class="p">,</span>
                                                              <span class="n">emcts</span><span class="o">.</span><span class="n">UNIT_ANGSTROM_SYMBOL</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="CtfDialog.getLowFreq"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.CtfDialog.getLowFreq">[docs]</a>    <span class="k">def</span> <span class="nf">getLowFreq</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1045,8 +1089,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">=</span> <span class="mi">256</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;unit&#39;</span><span class="p">,</span> <span class="n">emcts</span><span class="o">.</span><span class="n">UNIT_PIXEL</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">firstItem</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
-        <span class="n">first_item_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">firstItem</span><span class="o">.</span><span class="n">getDim</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">dim_par</span> <span class="o">=</span> <span class="n">first_item_dim</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dim_par</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">firstItem</span><span class="o">.</span><span class="n">getDim</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ratio</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim_par</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">previewLabel</span> <span class="o">=</span> <span class="s1">&#39;Central slice&#39;</span>
 
@@ -1064,6 +1107,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">iniRadius</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim_par</span> <span class="o">/</span> <span class="mi">2</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">iniRadius</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maskRadius</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">==</span> <span class="n">emcts</span><span class="o">.</span><span class="n">UNIT_ANGSTROM</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">iniRadius</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iniRadius</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span>
 
         <span class="n">listeners</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;&lt;Button-4&gt;&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">makeBigger</span><span class="p">,</span> <span class="s2">&quot;&lt;Button-5&gt;&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">makeSmaller</span><span class="p">}</span>
 
@@ -1123,20 +1169,24 @@
 <span class="sd">        Show the values selected for the inner and outer radius. If the units are angstroms (sampling_rate = 1,</span>
 <span class="sd">        it will show only one value to avoid redundancies</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pixVal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getRadius</span><span class="p">(</span><span class="n">radiusSlider</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">var2set</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{:6.1f}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">radiusSlider</span><span class="o">.</span><span class="n">slider</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">emcts</span><span class="o">.</span><span class="n">UNIT_PIXEL</span><span class="p">))</span>
+            <span class="n">var2set</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{:6.1f}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pixVal</span><span class="p">,</span> <span class="n">emcts</span><span class="o">.</span><span class="n">UNIT_PIXEL</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">var2set</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{:5.0f}</span><span class="s1"> pix | </span><span class="si">{:6.1f}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">radiusSlider</span><span class="o">.</span><span class="n">slider</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-                                                          <span class="n">convertPixToLength</span><span class="p">(</span><span class="n">radiusSlider</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span><span class="p">),</span>
+            <span class="n">var2set</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{:5.0f}</span><span class="s1"> pix | </span><span class="si">{:6.1f}</span><span class="s1"> </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pixVal</span><span class="p">,</span>
+                                                          <span class="bp">self</span><span class="o">.</span><span class="n">getRadiusAngstroms</span><span class="p">(</span><span class="n">radiusSlider</span><span class="p">),</span>
                                                           <span class="n">emcts</span><span class="o">.</span><span class="n">UNIT_ANGSTROM_SYMBOL</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="MaskPreviewDialog.getRadius"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.MaskPreviewDialog.getRadius">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">getRadius</span><span class="p">(</span><span class="n">radiusSlider</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">radiusSlider</span><span class="o">.</span><span class="n">get</span><span class="p">())</span></div>
+        <span class="k">return</span> <span class="n">radiusSlider</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="MaskPreviewDialog.setRadius"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.MaskPreviewDialog.setRadius">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">setRadius</span><span class="p">(</span><span class="n">radiusSlider</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
-        <span class="n">radiusSlider</span><span class="o">.</span><span class="n">slider</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">val</span><span class="p">))</span></div></div>
+        <span class="n">radiusSlider</span><span class="o">.</span><span class="n">slider</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">val</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="MaskPreviewDialog.getRadiusAngstroms"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.MaskPreviewDialog.getRadiusAngstroms">[docs]</a>    <span class="k">def</span> <span class="nf">getRadiusAngstroms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">radiusSlider</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">convertPixToLength</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span><span class="p">,</span> <span class="n">radiusSlider</span><span class="o">.</span><span class="n">get</span><span class="p">())</span></div></div>
 
 
 <div class="viewcode-block" id="MaskRadiiPreviewDialog"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.MaskRadiiPreviewDialog">[docs]</a><span class="k">class</span> <span class="nc">MaskRadiiPreviewDialog</span><span class="p">(</span><span class="n">MaskPreviewDialog</span><span class="p">):</span>
@@ -1153,6 +1203,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">innerRadius</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">outerRadius</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">outerRadius</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">outerRadius</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">dim_par</span> <span class="o">/</span> <span class="mi">2</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">outerRadius</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dim_par</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">==</span> <span class="n">emcts</span><span class="o">.</span><span class="n">UNIT_ANGSTROM</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">innerRadius</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">innerRadius</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outerRadius</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">innerRadius</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span>
 
         <span class="n">listeners</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;&lt;Button-4&gt;&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">makeBigger</span><span class="p">,</span> <span class="s2">&quot;&lt;Button-5&gt;&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">makeSmaller</span><span class="p">,</span>
                      <span class="s2">&quot;&lt;Up&gt;&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">upKeyPress</span><span class="p">,</span> <span class="s2">&quot;&lt;Down&gt;&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">downKeyPress</span><span class="p">}</span>
@@ -1284,10 +1338,156 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">innerRadius</span> <span class="o">=</span> <span class="n">new_val</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">manageMaskVals</span><span class="p">()</span></div></div>
 
-<span class="c1"># Moved to pyworkflow.gui.tree</span>
-<span class="c1"># class ListTreeProviderString(ListTreeProvider):</span>
-<span class="c1">#     def getText(self, obj):</span>
-<span class="c1">#         return obj.get()</span>
+<div class="viewcode-block" id="ColorScaleDialog"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.ColorScaleDialog">[docs]</a><span class="k">class</span> <span class="nc">ColorScaleDialog</span><span class="p">(</span><span class="n">dialog</span><span class="o">.</span><span class="n">Dialog</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; This will assist users to choose the color scale and range for</span>
+<span class="sd">    local resolution viewers</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentWindow</span><span class="p">,</span> <span class="n">lowest</span><span class="p">,</span> <span class="n">highest</span><span class="p">,</span> <span class="n">intervals</span><span class="p">,</span> <span class="n">colorPalette</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            :param highest: highest resolution value for the scale</span>
+<span class="sd">            :param lowest: lowest resolution value for the scale</span>
+<span class="sd">            :param intervals: number of labels for the scale</span>
+<span class="sd">            :param colorPalette: color palette to use</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">highest</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">DoubleVar</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">highest</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lowest</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">DoubleVar</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">lowest</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">IntVar</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">intervals</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colorPalette</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">colorPalette</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">()</span>
+
+        <span class="c1"># GUI attributes initialization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">palette</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="n">dialog</span><span class="o">.</span><span class="n">Dialog</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parentWindow</span><span class="p">,</span> <span class="s2">&quot;Color scale wizard&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;None&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Getters</span>
+<div class="viewcode-block" id="ColorScaleDialog.getIntervals"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.ColorScaleDialog.getIntervals">[docs]</a>    <span class="k">def</span> <span class="nf">getIntervals</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="o">.</span><span class="n">get</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ColorScaleDialog.getHighest"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.ColorScaleDialog.getHighest">[docs]</a>    <span class="k">def</span> <span class="nf">getHighest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">highest</span><span class="o">.</span><span class="n">get</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ColorScaleDialog.getLowest"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.ColorScaleDialog.getLowest">[docs]</a>    <span class="k">def</span> <span class="nf">getLowest</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lowest</span><span class="o">.</span><span class="n">get</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="ColorScaleDialog.getColorPalette"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.ColorScaleDialog.getColorPalette">[docs]</a>    <span class="k">def</span> <span class="nf">getColorPalette</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">colorPalette</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+
+    <span class="c1">### ----- GUI methods ------ ###</span>
+<div class="viewcode-block" id="ColorScaleDialog.body"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.ColorScaleDialog.body">[docs]</a>    <span class="k">def</span> <span class="nf">body</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">master</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Draws the main frame of the dialog&quot;&quot;&quot;</span>
+        <span class="n">body</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">body</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;news&quot;</span><span class="p">)</span>
+        <span class="n">body</span><span class="o">.</span><span class="n">grid_columnconfigure</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="c1"># GUI attributes</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">palette</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">palette</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;nes&#39;</span><span class="p">,</span>
+                          <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+        <span class="c1"># Params</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">body</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;news&#39;</span><span class="p">,</span>
+                      <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">&quot;&lt;Key&gt;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keyPressedOnParams</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_drawPalette</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fillParams</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_drawLabel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">count</span><span class="p">):</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">palette</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">value</span><span class="p">)</span>
+        <span class="n">label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">bg</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+        <span class="n">label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">count</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;news&#39;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_fillParams</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># Add highest scale value</span>
+        <span class="n">highValueLabel</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Highest:&quot;</span><span class="p">)</span>
+        <span class="n">highValueLabel</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;e&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_addEntry</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">highest</span><span class="p">)</span>
+
+        <span class="c1"># Add lowest value</span>
+        <span class="n">lowValueLabel</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Lowest:&quot;</span><span class="p">)</span>
+        <span class="n">lowValueLabel</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;e&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_addEntry</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">lowest</span><span class="p">)</span>
+
+
+        <span class="n">intervalsLabel</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Intervals:&quot;</span><span class="p">)</span>
+        <span class="n">intervalsLabel</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;e&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_addEntry</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">intervals</span><span class="p">)</span>
+
+        <span class="c1"># Palettes</span>
+        <span class="n">paletteLabel</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Color set:&quot;</span><span class="p">)</span>
+        <span class="n">paletteLabel</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;e&quot;</span><span class="p">)</span>
+
+        <span class="n">availablePalettes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getAvailablePalettes</span><span class="p">()</span>
+        <span class="n">opt</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Combobox</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">textvariable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">colorPalette</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span> <span class="n">availablePalettes</span><span class="p">)</span>
+        <span class="n">opt</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;news&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colorPalette</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_paletteChanged</span><span class="p">)</span>
+
+        <span class="c1"># Label to store information: number of color of the color map, e.g.</span>
+        <span class="n">infoLabel</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">textvariable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">infoLabel</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;news&quot;</span><span class="p">)</span>
+
+
+    <span class="k">def</span> <span class="nf">_addEntry</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">var</span><span class="p">):</span>
+        <span class="n">newEntry</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">textvariable</span><span class="o">=</span><span class="n">var</span><span class="p">)</span>
+        <span class="n">newEntry</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="n">column</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;news&quot;</span><span class="p">)</span>
+        <span class="n">newEntry</span><span class="o">.</span><span class="n">lift</span><span class="p">()</span>
+        <span class="c1"># Bind events</span>
+        <span class="n">newEntry</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">&quot;&lt;Return&gt;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_paramChanged</span><span class="p">)</span>
+        <span class="n">newEntry</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">&quot;&lt;FocusIn&gt;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selectAllText</span><span class="p">)</span>
+        <span class="n">newEntry</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">&quot;&lt;Button-1&gt;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_selectAllText</span><span class="p">)</span>
+        <span class="n">newEntry</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">&quot;&lt;FocusOut&gt;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_paramChanged</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_paletteChanged</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_drawPalette</span><span class="p">()</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> has </span><span class="si">%s</span><span class="s2"> colors.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getColorPalette</span><span class="p">(),</span> <span class="n">cm</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getColorPalette</span><span class="p">())</span><span class="o">.</span><span class="n">N</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_drawPalette</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Draws the palette using current values: palette, highest, lowest and intervals&quot;&quot;&quot;</span>
+        <span class="c1"># clean first</span>
+        <span class="k">for</span> <span class="n">widget</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">palette</span><span class="o">.</span><span class="n">winfo_children</span><span class="p">():</span>
+            <span class="n">widget</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+
+        <span class="c1"># get the colors</span>
+        <span class="n">colorList</span> <span class="o">=</span> <span class="n">getHexColorList</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getIntervals</span><span class="p">(),</span> <span class="n">colorName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getColorPalette</span><span class="p">())</span>
+
+        <span class="c1"># Get the label values</span>
+        <span class="n">labelValues</span> <span class="o">=</span> <span class="n">splitRange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getLowest</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">getHighest</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">getIntervals</span><span class="p">())</span>
+
+        <span class="c1"># Draw it</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">color</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">colorList</span><span class="p">,</span> <span class="n">labelValues</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_drawLabel</span><span class="p">(</span><span class="n">color</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="n">count</span> <span class="o">+</span> <span class="mi">1</span>
+
+    <span class="c1">### Events handling</span>
+    <span class="k">def</span> <span class="nf">_paramChanged</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="c1"># Handles change in palette Option</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_drawPalette</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_keyPressedOnParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="c1"># handles keypress on params frame</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;PASA key press&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">colorPalette</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;jet&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ColorScaleDialog.getAvailablePalettes"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizard.html#pwem.wizards.wizard.ColorScaleDialog.getAvailablePalettes">[docs]</a>    <span class="k">def</span> <span class="nf">getAvailablePalettes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns a list of all available palettes&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">cm</span><span class="o">.</span><span class="n">cmap_d</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
+
+    <span class="k">def</span> <span class="nf">_selectAllText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Select all the text of the widget that triggered the event&quot;&quot;&quot;</span>
+        <span class="c1"># select text</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">widget</span><span class="o">.</span><span class="n">select_range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;end&#39;</span><span class="p">)</span>
+        <span class="c1"># move cursor to the end</span>
+        <span class="n">event</span><span class="o">.</span><span class="n">widget</span><span class="o">.</span><span class="n">icursor</span><span class="p">(</span><span class="s1">&#39;end&#39;</span><span class="p">)</span></div>
+        <span class="c1"># stop propagation</span>
+        <span class="c1"># return &#39;break&#39;</span>
+
 
 </pre></div>
 
