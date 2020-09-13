@@ -249,10 +249,14 @@
 
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;applyShifts&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Apply particle shifts?&#39;</span><span class="p">,</span>
-                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Apply particle shifts from 2D alignment to &#39;</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Apply particle shifts (ONLY INTEGER PART) from 2D alignment to &#39;</span>
                            <span class="s1">&#39;recalculate new coordinates. This can be useful &#39;</span>
-                           <span class="s1">&#39;for re-centering particle coordinates.&#39;</span><span class="p">)</span>
+                           <span class="s1">&#39;for re-centering particle coordinates.</span><span class="se">\n</span><span class="s1">&#39;</span>
+                           <span class="s1">&#39;IMPORTANT: Only the integer part of the shifts will be applied in &#39;</span>
+                           <span class="s1">&#39;order to avoid interpolation. If you are re-extracting particles and &#39;</span>
+                           <span class="s1">&#39;want to apply the remaining decimal part of the shifts, set to  &quot;yes&quot; the &#39;</span>
+                           <span class="s1">&#39;option &quot;Were particle shifts applied?&quot; in alignment assign protocol.&#39;</span>
+        <span class="p">)</span>
         
         <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
@@ -335,13 +339,30 @@
         <span class="n">suffix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSuffix</span><span class="p">(</span><span class="n">partsIds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">if</span> <span class="n">partsIds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
         <span class="n">outputCoords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfCoordinates</span><span class="p">(</span><span class="n">inMics</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="n">suffix</span><span class="p">)</span>
 
+        <span class="c1"># Prepare a double key dictionary to do the match: micname and micId</span>
+        <span class="n">micDict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">mic</span> <span class="ow">in</span> <span class="n">inMics</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
+            <span class="c1"># Clone the mics! otherwise we will get pointers and</span>
+            <span class="c1"># will end up with the same mic in the dictionary.</span>
+            <span class="n">clonedMic</span> <span class="o">=</span> <span class="n">mic</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+            <span class="n">micDict</span><span class="p">[</span><span class="n">clonedMic</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()]</span><span class="o">=</span> <span class="n">clonedMic</span>
+            <span class="n">micDict</span><span class="p">[</span><span class="n">clonedMic</span><span class="o">.</span><span class="n">getMicName</span><span class="p">()]</span> <span class="o">=</span> <span class="n">clonedMic</span>
+
+
         <span class="k">def</span> <span class="nf">appendCoordFromParticle</span><span class="p">(</span><span class="n">part</span><span class="p">):</span>
             <span class="n">coord</span> <span class="o">=</span> <span class="n">part</span><span class="o">.</span><span class="n">getCoordinate</span><span class="p">()</span>
-            <span class="n">micKey</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">getMicId</span><span class="p">()</span>
-            <span class="n">mic</span> <span class="o">=</span> <span class="n">inMics</span><span class="p">[</span><span class="n">micKey</span><span class="p">]</span>
+
+            <span class="c1"># Try micname</span>
+            <span class="n">micName</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">getMicName</span><span class="p">()</span>
+            <span class="n">mic</span> <span class="o">=</span> <span class="n">micDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">micName</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="c1"># Try micid</span>
+            <span class="k">if</span> <span class="n">mic</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">micKey</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">getMicId</span><span class="p">()</span>
+                <span class="n">mic</span> <span class="o">=</span> <span class="n">micDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">micKey</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">mic</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Skipping particle, key </span><span class="si">%s</span><span class="s2"> not found&quot;</span> <span class="o">%</span> <span class="n">micKey</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Skipping particle, </span><span class="si">%s</span><span class="s2"> or id </span><span class="si">%s</span><span class="s2"> not found&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">micName</span><span class="p">,</span><span class="n">micKey</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">newCoord</span><span class="o">.</span><span class="n">copyObjId</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
                 <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">getPosition</span><span class="p">()</span>
@@ -561,16 +582,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">applyShifts</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">inputParticles</span><span class="o">.</span><span class="n">hasAlignment</span><span class="p">():</span>
             <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Input particles do not have alignment information!&#39;</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">errors</span>
-
-    <span class="k">def</span> <span class="nf">_warnings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">validateMsgs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">applyShifts</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-            <span class="n">validateMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Only the integer part of the shifts will be applied in order to avoid &quot;</span> <span class="o">+</span>
-                                <span class="s2">&quot;interpolation. If you are re-extracting particles and &quot;</span> <span class="o">+</span>
-                                <span class="s2">&quot;want to apply the remaining decimal part of the shifts, ask yes to the advance &quot;</span>
-                                <span class="s2">&quot;option &#39;Were particle shifts applied?&#39; in alignment assign protocol.&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">validateMsgs</span></div>
+        <span class="k">return</span> <span class="n">errors</span></div>
 </pre></div>
 
            </div>
