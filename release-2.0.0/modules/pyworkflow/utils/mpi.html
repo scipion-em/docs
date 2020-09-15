@@ -212,7 +212,7 @@
 
 <span class="kn">from</span> <span class="nn">.process</span> <span class="k">import</span> <span class="n">buildRunCommand</span><span class="p">,</span> <span class="n">runCommand</span>
 
-<span class="kn">from</span> <span class="nn">pyworkflow.utils.utils</span> <span class="k">import</span> <span class="n">getLocalHostName</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils.utils</span> <span class="k">import</span> <span class="n">getLocalHostName</span><span class="p">,</span> <span class="n">redStr</span>
 
 <span class="n">TIMEOUT</span> <span class="o">=</span> <span class="mi">60</span>  <span class="c1"># seconds trying to send/receive data through a socket</span>
 
@@ -232,13 +232,13 @@
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Sending command to </span><span class="si">%d</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dest</span><span class="p">,</span> <span class="n">command</span><span class="p">))</span>
 
     <span class="c1"># Send command with isend()</span>
-    <span class="n">req_send</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">isend</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="n">dest</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">)</span>
+    <span class="n">req_send</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">isend</span><span class="p">(</span><span class="n">dumps</span><span class="p">(</span><span class="n">command</span><span class="p">),</span> <span class="n">dest</span><span class="o">=</span><span class="n">dest</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">)</span>
     <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="p">()</span>
     <span class="k">while</span> <span class="ow">not</span> <span class="n">req_send</span><span class="o">.</span><span class="n">test</span><span class="p">()[</span><span class="mi">0</span><span class="p">]:</span>
         <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span> <span class="o">&gt;</span> <span class="n">TIMEOUT</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Timeout in process </span><span class="si">%d</span><span class="s2">, cannot send command &quot;</span>
-                            <span class="s2">&quot;to slave.&quot;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">())</span>
+                            <span class="s2">&quot;to worker </span><span class="si">%d</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">(),</span> <span class="n">dest</span><span class="p">))</span>
 
     <span class="c1"># Receive the result in a non-blocking way too (with irecv())</span>
     <span class="n">req_recv</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">irecv</span><span class="p">(</span><span class="n">source</span><span class="o">=</span><span class="n">dest</span><span class="p">,</span> <span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">)</span>
@@ -249,6 +249,8 @@
         <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># result will then be a string with the error</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">redStr</span><span class="p">(</span><span class="s2">&quot;Worker process </span><span class="si">%d</span><span class="s2"> has failed. Please check the terminal &quot;</span>
+                     <span class="s2">&quot;for details.&quot;</span> <span class="o">%</span> <span class="n">dest</span><span class="p">))</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">result</span><span class="p">))</span></div>
 
 
@@ -262,7 +264,7 @@
     <span class="k">if</span> <span class="n">cwd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">send</span><span class="p">(</span><span class="s2">&quot;cwd=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">cwd</span><span class="p">,</span> <span class="n">mpiComm</span><span class="p">,</span> <span class="n">mpiDest</span><span class="p">,</span> <span class="n">TAG_RUN_JOB</span><span class="o">+</span><span class="n">mpiDest</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">env</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">send</span><span class="p">(</span><span class="s2">&quot;env=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dumps</span><span class="p">(</span><span class="n">env</span><span class="p">),</span> <span class="n">mpiComm</span><span class="p">,</span> <span class="n">mpiDest</span><span class="p">,</span> <span class="n">TAG_RUN_JOB</span><span class="o">+</span><span class="n">mpiDest</span><span class="p">)</span>
+        <span class="n">send</span><span class="p">(</span><span class="s2">&quot;env=</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">env</span><span class="p">,</span> <span class="n">mpiComm</span><span class="p">,</span> <span class="n">mpiDest</span><span class="p">,</span> <span class="n">TAG_RUN_JOB</span><span class="o">+</span><span class="n">mpiDest</span><span class="p">)</span>
 
     <span class="n">send</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">mpiComm</span><span class="p">,</span> <span class="n">mpiDest</span><span class="p">,</span> <span class="n">TAG_RUN_JOB</span><span class="o">+</span><span class="n">mpiDest</span><span class="p">)</span></div>
 
@@ -273,10 +275,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">rank</span> <span class="o">=</span> <span class="n">mpiComm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
     <span class="n">hostname</span> <span class="o">=</span> <span class="n">getLocalHostName</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Running runJobMPISlave: &quot;</span><span class="p">,</span> <span class="n">rank</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Running MPIWorker: &quot;</span><span class="p">,</span> <span class="n">rank</span><span class="p">)</span>
 
     <span class="n">exitResult</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Timeout in process </span><span class="si">%d</span><span class="s2">, cannot send result to master.&quot;</span>
 
     <span class="c1"># Listen for commands until we get &#39;None&#39;</span>
     <span class="n">cwd</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># We run without changing directory by default</span>
@@ -291,10 +292,13 @@
                 <span class="k">break</span>
             <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Slave </span><span class="si">%s</span><span class="s2">(rank </span><span class="si">%d</span><span class="s2">) received command.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hostname</span><span class="p">,</span> <span class="n">rank</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Worker </span><span class="si">%s</span><span class="s2">(rank </span><span class="si">%d</span><span class="s2">) received command.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">hostname</span><span class="p">,</span> <span class="n">rank</span><span class="p">))</span>
+        <span class="c1"># We need to convert to string because req_recv.test() returns bytes or None</span>
         <span class="k">if</span> <span class="n">command</span> <span class="o">==</span> <span class="s1">&#39;None&#39;</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Stopping...&quot;</span><span class="p">)</span>
             <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">command</span> <span class="o">=</span> <span class="n">loads</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
 
         <span class="c1"># Run the command and get the result (exit code or exception)</span>
         <span class="k">try</span><span class="p">:</span>
@@ -302,17 +306,19 @@
                 <span class="n">cwd</span> <span class="o">=</span> <span class="n">command</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Changing to dir </span><span class="si">%s</span><span class="s2"> ...&quot;</span> <span class="o">%</span> <span class="n">cwd</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">command</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;env=&quot;</span><span class="p">):</span>
-                <span class="n">env</span> <span class="o">=</span> <span class="n">loads</span><span class="p">(</span><span class="n">command</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">env</span> <span class="o">=</span> <span class="n">command</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;=&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">env</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Setting the environment...&quot;</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">Config</span><span class="o">.</span><span class="n">debugOn</span><span class="p">():</span>
                     <span class="nb">print</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">command</span><span class="p">)</span>
                 <span class="n">runCommand</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">cwd</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span>
                 <span class="n">cwd</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># unset directory</span>
                 <span class="n">env</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># unset environment</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Timeout in process </span><span class="si">%d</span><span class="s2">, cannot send error message to master.&quot;</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Error in process </span><span class="si">%d</span><span class="s2"> (rank </span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">(),</span> <span class="n">rank</span><span class="p">))</span>
+            <span class="kn">import</span> <span class="nn">traceback</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
             <span class="n">exitResult</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
 
         <span class="c1"># Communicate to master, either error os success</span>
@@ -321,6 +327,7 @@
         <span class="k">while</span> <span class="ow">not</span> <span class="n">req_send</span><span class="o">.</span><span class="n">test</span><span class="p">()[</span><span class="mi">0</span><span class="p">]:</span>
             <span class="n">sleep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">t0</span> <span class="o">&gt;</span> <span class="n">TIMEOUT</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;  Error in process </span><span class="si">%d</span><span class="s2">, cannot send error message to master.&quot;</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">msg</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">())</span>
                 <span class="k">break</span></div>
 </pre></div>
