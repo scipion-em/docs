@@ -48,6 +48,8 @@ seems to be compatible with the majority of them. We recommend to have CUDA 10.1
 and being linked at /usr/local/cuda.  By default scipion will use /usr/local/cuda and xmipp
 installation is done against this path.
 
+Check the `config guide <scipion-configuration#gpu-variables>`_ for more detailed information.
+
 Conda (optional, recommended if you are not admin)
 ==================================================
 Although conda is not a requirement, it provides most of the dependencies Scipion and Xmipp
@@ -63,8 +65,13 @@ can be installed using conda or virtualenv. Conda installation has one drawback:
 properly the fonts in your system and you will end up with a font we didn't intend but readable and
 workable. Don't worry there is a `fix for this bellow <install-from-sources#fixing-fonts-in-a-conda-installation>`_.
 
-To install Scipion in development mode, just add the `-dev` flag in the last command of each recipe below
+If you have problems during the Scipion's installation, please, check our :ref:`Troubleshooting <troubleshooting>`_ page.
+
+To install Scipion in development mode, just add the ``-dev`` flag in the last command of each recipe below
 (git is needed in the development mode).
+
+In addition, you can replace the last command of each recipe below by
+``python -m scipioninstaller --help`` in order to figure out more options regarding the Scipion's installation.
 
 Ubuntu with conda
 -----------------
@@ -138,8 +145,10 @@ plugin, just follow the **For users** section below.
 
 For users
 ---------
-To list and install plugins you can use the plugin manager
-(recommended) or, alternatively, use the `command line tool <install-plugins-command-line>`__.
+Scipion installation includes also the Xmipp installation, by default.
+
+To list and install more plugins you can use the plugin manager
+(recommended) or, alternatively, use the `command line tool <install-plugins-command-line>`_.
 
 To open the plugin manager, please run Scipion
 
@@ -155,10 +164,15 @@ more details about plugin installation options.
 
 For developers
 --------------
-Developers might want to build xmipp from the latest development version, please head over
-`here <https://github.com/I2PC/xmipp/blob/devel/README.md>`__
-if this is your case. You might also want to check how to :ref:`install
-plugins from the command line <install-plugins-command-line>`.
+Scipion installation includes also the Xmipp installation, by default. If you have installed Scipion in devel mode,
+Xmipp should be also installed in devel mode at `<SCIPION_HOME>/xmipp-bundle`.
+See the `Xmipp structure guide <https://github.com/I2PC/xmipp/wiki/Xmipp-structure>`_ for more information regarding Xmipp.
+
+You might also want to check how to :ref:`install plugins from the command line <install-plugins-command-line>`
+in order to be able to also install some other plugins in development mode.
+Notice that some plugins can be installed in production mode (see section above) while others are in devel mode.
+To learn specific instructions regarding a devel installation of a given plugin, please, check the 'Readme' file in
+its github repository (usually at `scipion-em github account <https:github.com/scipion-em>`_ under the plugin's name).
 
 Optional steps
 ==============
@@ -174,16 +188,9 @@ This will fix the fonts issue when using conda installation
     wget https://anaconda.org/scipion/tk/8.6.10/download/linux-64/tk-8.6.10-h14c3975_1005.tar.bz2
     conda install tk-8.6.10-h14c3975_1005.tar.bz2
 
-Test the installation and learn how to use Scipion
---------------------------------------------------
-We also provide some :ref:`tests <Running-Tests>` and :ref:`tutorials <User-Documentation>`
-to check that all is fine and to learn how to use Scipion.
-
-
 Configure
 ---------
-
-In Scipion3 configuration step is optional. Without a configuration file, scipion and the plugins
+In Scipion3, configuration step is optional. Without a configuration file, Scipion and the plugins
 will run with default values and what is available in the system (usually what is exposed with PATH
 and LD_LIBRARY_PATH).
 
@@ -191,26 +198,22 @@ Please, check :ref:`Scipion's configuration page <scipion-configuration>` for mo
 
 Linking existing software
 -------------------------
+If you have an existing installation you want Scipion to use instead of the one that scipion installs.
+Please, check :ref:`<Linking existing software <linking-existing-software>` for more details.
 
-If you have an existing installation you want scipion to use instead of the one that scipion installs. Please, check :ref:`<Linking existing software <linking_existing_software>` for more details.
+Test the installation and learn how to use Scipion
+--------------------------------------------------
+-  Test your installation by running at least the *Small* and *Medium*
+   tests mentioned in :ref:`running tests page <Running-Tests>`.
+-  Complete some of the :ref:`Scipion Tutorials <User-Documentation>`.
 
-Troubleshooting
----------------
-
-If you have problems compiling Scipion, see
-`Troubleshooting <https://scipion-em.github.io/docs/release-2.0.0/docs/user/troubleshooting.html>`__
-page.
-
-
-
-Cleaning up (Optional)
-======================
-
+Cleaning up
+-----------
 After Scipion is installed and properly working (see how to run tests in
-the next section) one could clean some temporary files to free some disk
+the previous section) one could clean some temporary files to free some disk
 space after installation.
 
-Remove the files under ``software/tmp`` folder:
+Remove the files under ``software/tmp`` folder (if exists):
 
 ::
 
@@ -221,11 +224,3 @@ The downloaded .tgz files of the EM packages can also be removed:
 ::
 
     rm -rf sofware/em/*.tgz
-
-Tests and tutorials
-===================
-
--  Test your installation by running at least the *Small* and *Medium*
-   tests mentioned in :ref:`running tests page <Running-Tests>`.
--  Complete some of the :ref:`Scipion Tutorials <User-Documentation>`.
-
