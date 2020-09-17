@@ -186,12 +186,12 @@ would only need to write (in SConscript file) the following line.
 This means that if the user runs ``./scipion install --with-paramiko``,
 then a so-called paramiko python module is downloaded from
 http://scipionwiki.cnb.csic.es/files/scipion/software/python/paramiko-1.14.0.tgz
-URL to the `software/tmp` folder, decompressed as
+URL to the ``software/tmp`` folder, decompressed as
 ``software/paramiko/paramiko-1.14.0`` and then
 ``software/bin/python setup.py install --prefix=software`` will be
 executed, installing the module under
 software/lib/python2.7/site-packages/paramiko. The resulting log will be
-stored at `software/log/paramiko.log`. All those actions will be
+stored at ``software/log/paramiko.log``. All those actions will be
 committed just by adding that simple line.
 
 But... just a moment... wasn't it AddModule() instead of addModule()?
@@ -332,7 +332,7 @@ defined in `software/em/xmipp/scipion_sconscript`
 
 Most of the configuration of Xmipp compilation is done with environment
 variables. For example, if you need to specify CUDA settings, you can
-define the variables `CUDA_SDK_PATH`, `CUDA_LIB_PATH` and `CUDA`. As
+define the variables ``CUDA_SDK_PATH``, ``CUDA_LIB_PATH`` and ``CUDA``. As
 usual, it is easier to set those variables in the scipion config files.
-Again, for CUDA it would mean to edit `scipion.conf`, set `CUDA` to True
+Again, for CUDA it would mean to edit ``scipion.conf``, set ``CUDA`` to True
 (and change the other variables if needed).

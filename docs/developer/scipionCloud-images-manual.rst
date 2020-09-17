@@ -41,7 +41,7 @@ Scipion 1.2 (from github) is installed at /opt/scipion.
 
 There is an icon on desktop that starts scipion.
 
-Note: In the GPU appliance the desktop shortcut start Scipion through VirtualGL, this is to make chimera work on GPU powered machines. If you want to start it from the console run `vglrun /opt/scipion/scipion`.
+Note: In the GPU appliance the desktop shortcut start Scipion through VirtualGL, this is to make chimera work on GPU powered machines. If you want to start it from the console run ``vglrun /opt/scipion/scipion``.
 
 EM packages
 ------------

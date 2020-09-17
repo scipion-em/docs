@@ -73,7 +73,7 @@ Note: Use **dnf install** instead of **yum** if your Fedora is recent
     libxml2-devel readline-devel libquadmath libxslt-devel openmpi-devel libX11-devel libgfortran\
     freetype-devel scons fftw-devel opencv-devel curl centos-release-scl devtoolset-4 python27 git
 
- Note: To be able to run python 2.7 (Scipion requirement), run `scl enable python27 bash`.
+ Note: To be able to run python 2.7 (Scipion requirement), run ``scl enable python27 bash``.
 
 
 -  **Note 2** - CUDA recommendations:

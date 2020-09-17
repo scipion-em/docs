@@ -104,7 +104,7 @@ In this example we will remove the *DefocusU* column from the table:
 To do this, we have to go one step further and dig into the javascript code of
 the html report, which you can find `after the closing of </body>
 <https://github.com/I2PC/scipion/blob/master/pyworkflow/templates/execution.summary.template.html#L301>`_.
-The first bit of code we find is the variable `report`. This variable has a few
+The first bit of code we find is the variable ``report``. This variable has a few
 `%(keywords)s`, which are used by Scipion to transfer data from the protocols
 watched by the Summary Monitor to the HTML report.
 
@@ -181,7 +181,7 @@ keywords that are used by Scipion to provide data to the HTML report.
 In this example, we'll see where Scipion generates that data and modify it.
 Pay attention to the last step of example 2: the data of the defocusU column is
 accessed with `report.ctfData.defocusU[index]*1e-4`.
-In the report variable, we see that `ctfData` is assigned a keyword to be
+In the report variable, we see that ``ctfData`` is assigned a keyword to be
 replaced by Scipion:
 
 `pyworkflow/templates/execution.summary.template.html

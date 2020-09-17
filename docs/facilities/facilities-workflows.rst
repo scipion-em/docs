@@ -43,8 +43,8 @@ As any Scipion project, the directory placed at
 
     $SCIPION_USER_DATA/projects/myAcquisitionProject
 
-(where `$SCIPION_USER_DATA` usually is `~/ScipionUserData` and
-`myAcquisitionProject` is the project name to export) is a self contained
+(where ``$SCIPION_USER_DATA` usually is `~/ScipionUserData` and
+``myAcquisitionProject`` is the project name to export) is a self contained
 project directory and, then, it can be exported to any other computer
 in order to continue with an user-assisted and more in-deep processing
 by just coping this directory to the `$SCIPION_USER_DATA/projects` on the
