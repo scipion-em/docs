@@ -172,7 +172,7 @@ FAQ
 
 
 Troubleshooting
----------------------
+---------------
 :ref:`Troubleshooting <troubleshooting>`
 
 Relion in Scipion
