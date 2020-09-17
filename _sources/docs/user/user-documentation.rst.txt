@@ -168,12 +168,12 @@ masks, either interactively or through protocols.
 
 FAQ
 ---------
-`FAQ <faq>`__: Frequently Asked Questions
+:ref:`FAQ <faq>`: Frequently Asked Questions
 
 
 Troubleshooting
 ---------------------
-`Troubleshooting <troubleshooting>`__
+:ref:`Troubleshooting <troubleshooting>`
 
 Relion in Scipion
 -----------------------
