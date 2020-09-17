@@ -13,19 +13,125 @@ using Scipion.
 
 .. contents::
 
+Launcher scipion3 not found
+===========================
+The ``scipion3`` launcher is created at the end of the installation. Then, if the installation is not completed
+(Xmipp compilation have failed) it will not be created.
+
+If you want to run something like ``scipion3 config``, consider to run
+
+::
+
+    python -m scipioninstaller /path/where/you/want/scipion [-venv] -j 4 -dry
+
+where ``-venv`` must be included if you are using virtualenv, whereas it must not if conda is used.
+
+This command above will print a lot of information and, at the end, it prints the content of the launcher. Therefore,
+take that text and copy it in a file placed at ``<SCIPION_HOME>/scipion3`` and run ``chmod +x $SCIPION_HOME/scipion3``
+to make it executable. That's your launcher.
+
+General error while installing/compiling Xmipp (non-development installations)
+==============================================================================
+Scipion installation includes also the Xmipp compilation and installation, by default.
+You can install only Scipion (without Xmipp) by adding the ``-noXmipp`` flag to the installation command.
+
+Xmipp can be installed separately using the plugin manager or by
+
+::
+
+    scipion3 installp scipion-em-xmipp -j 4
+
+
+If you are getting an error during the Xmipp compilation, consider to check the
+:ref:`Scipion's configuration page<scipion-configuration>`_ or the
+`Xmipp's configuration page<https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)>`_.
+
+Xmipp bundle is placed at ``<SCIPION_HOME>/software/em/xmippSrc-v3.20.07`` (production mode), see the
+`Xmipp structure guide <https://github.com/I2PC/xmipp/wiki/Xmipp-structure>`_ for more information regarding Xmipp.
+
+You can manually set some variables in the ``<SCIPION_HOME>/software/em/xmippSrc-v3.20.07/xmipp.conf``. However, Scipion
+will automatically override this config file when recompiling Xmipp. To prevent this, ``export XMIPP_NOCONFIG=True`` or
+include ``XMIPP_NOCONFIG=True`` in the ``<SCIPION_HOME>/config/scipion.conf`` prior to trigger a new compilation.
+
+To retry the Xmipp compilation during the Scipion's installation, run
+
+::
+
+    python -m scipioninstaller /path/where/you/want/scipion [-venv] -j 4
+
+Alternativelly, if scipion3 is already installed you can go with the plugin manager or by running
+
+::
+
+    scipion3 installb xmippSrc -j 4
+
+If ``ERROR: Could not find target xmippSrc`` is gotten, try to run ``scipion3 installp scipion-em-xmipp -j 4``
+
+
+If the problem persist, don't hesitate to `contact us<contact-us>`_.
+
+
+General error while installing/compiling Xmipp (development installations)
+==============================================================================
+Scipion installation includes also the Xmipp compilation and installation, by default.
+You can install only Scipion (without Xmipp) by adding the ``-noXmipp`` flag to the installation command.
+
+Xmipp can be installed separately following the
+`Xmipp's installation guide<https://github.com/I2PC/xmipp#xmipp-as-a-standalone-bundle-for-developers>`_.
+
+If you are getting an error during the Xmipp compilation, consider to check the
+:ref:`Scipion's configuration page<scipion-configuration>`_ or the
+`Xmipp's configuration page<https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)>`_.
+
+Xmipp bundle is placed at ``<SCIPION_HOME>/xmipp-bundle`` (devel mode), see the
+`Xmipp structure guide <https://github.com/I2PC/xmipp/wiki/Xmipp-structure>`_ for more information regarding Xmipp.
+
+You can manually set some variables in the ``<SCIPION_HOME>/xmipp-bundle/xmipp.conf``. However, Scipion
+will automatically override this config file when recompiling Xmipp. To prevent this, `export XMIPP_NOCONFIG=True` or
+include ``XMIPP_NOCONFIG=True`` in the ``<SCIPION_HOME>/config/scipion.conf`` prior to trigger a new compilation.
+
+To retry the Xmipp compilation during the Scipion's installation, run
+
+::
+
+    python -m scipioninstaller /path/where/you/want/scipion [-venv] -j 4
+
+Alternativelly, if scipion3 is already installed you can go with
+
+::
+
+    scipion3 installb xmippDev -j 4
+
+If ``ERROR: Could not find target xmippSrc`` is gotten, try to run
+
+::
+
+    scipion3 installp -p <SCIPION_HOME>/xmipp-bundle/src/scipion-em-xmipp --devel -j 4
+
+
+If the problem persist, don't hesitate to `contact us<contact-us>`_.
+
+
 Installing Scipion/Xmipp from precompiled bundles
 =================================================
-We have checked the following Operative Systems for the installation using the precompiled bundles:
 
-- Centos7: works with Scipion_Centos and Xmipp_Centos
-- Ubuntu16: works with Scipion_Ubuntu and Xmipp_Debian
-- Ubuntu18: workks with Scipion_Ubuntu and Xmipp_Debian
-- OpenSUSE42.3: works with Scipion_Ubuntu and Xmipp_Debian
+From Scipion's version 3, no precompiled bundles are provided.
 
-For OpenSUSE15 and Debian, installation from sources is needed, so far.
+The reason is:
+
+  * Scipion is now a set of general Python modules which are installed from 'pip' and nothing needs to be compiled anymore.
+
+  * From Scipion's version 3, we have flexibilized the installation configuration. This makes things easier when compiling,
+  but becomes in an explosion of possibilities on final systems configuration (mostly related with different versions of common libraries).
+  This ends up making it impossible to predict what configuration is on your system to do a precompiled bundle for you.
+
+Nevertheless, we have experimented a noticeable stability when compiling in the different Linux distributions
+(and its most recently versions) during the beta-test period. However, if you are in some troubles, please,
+don't hesitate to `contact us<contact-us>`_.
+
 
 Fixing libjbig.so.0 not found in OpenSUSE42.3
-===================================
+=============================================
 
 When Scipion_Ubuntu precompiled bundle is installed, maybe a "libjbig.so.0 not found" error is raised.
 We have observed that OpenSUSE includes libjbig.so.2 and we have checked that is also valid,
@@ -38,7 +144,7 @@ thus we propose to link one to the other by
 Fixing fonts in Ubuntu 18
 =========================
 The Scipion font is not right in Ubuntu 18. A temporary fix for this is to
-move all TK and TCL files in `software/lib` and use the system ones.
+remove all TK and TCL files in `software/lib` and use the system/conda ones.
 
 
 Launching Eman boxer protocol
@@ -459,8 +565,8 @@ sh_alignment installation fails
 Some program in Xmipp use the **sh_alignent** library. If you get some of the errors
 below try the following:
 
-* **swig: Command not found**: Install `swig` in your computer,
-  ie. `sudo apt-get install swig` (`yum` in Centos distros and `zypper` in OpenSUSE).
+* **swig: Command not found**: Install ``swig`` in your computer,
+  ie. ``sudo apt-get install swig`` (``yum`` in Centos distros and ``zypper`` in OpenSUSE).
 
 
 Deep consensus fail due to index out of run.

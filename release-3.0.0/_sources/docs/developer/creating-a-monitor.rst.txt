@@ -153,7 +153,7 @@ uses it in the step method, printing it (temporarily).
 
     from space_monitor import SpaceMonitor, ProtMonitorSpace
 
-In addition, for Scipion to detect ``myfacility``, we need to add its container path to the `PYTHONPATH`.
+In addition, for Scipion to detect ``myfacility``, we need to add its container path to the ``PYTHONPATH``.
 Remember to do this in your terminal before you test anything related with this tutorial.
 
 .. code-block:: bash
@@ -187,7 +187,7 @@ We are going now to add some tests to check our progress.
 
             spaceMonitor.step()
 
-5. Run the test. Take into account that `PYTHONPATH` needs to be set.
+5. Run the test. Take into account that ``PYTHONPATH`` needs to be set.
 
 .. code-block:: bash
 
