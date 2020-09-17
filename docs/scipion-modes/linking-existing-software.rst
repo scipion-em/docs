@@ -2,7 +2,7 @@
    :width: 250
    :alt: scipion logo
 
-.. _linking existing software:
+.. _linking-existing-software:
 
 =========================
 Linking existing software
