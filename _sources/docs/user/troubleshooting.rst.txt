@@ -112,7 +112,7 @@ Alternativelly, if scipion3 is already installed you can go with
 
     scipion3 installb xmippDev -j 4
 
-If ``ERROR: Could not find target xmippSrc`` is gotten, try to run
+If ``ERROR: Could not find target xmippDev`` is gotten, try to run
 
 ::
 
@@ -129,14 +129,14 @@ From Scipion's version 3, no precompiled bundles are provided.
 
 The reason is:
 
-  * Scipion is now a set of general Python modules which are installed from 'pip' and nothing needs to be compiled anymore.
+  * Scipion is now a set of general Python modules, which are installed from 'pip' and nothing needs to be compiled anymore.
 
-  * From Scipion's version 3, we have flexibilized the installation configuration. This makes things easier when compiling,
+  * From Scipion's version 3, we have flexibilized the installation configuration. This makes things easier in compiling time,
     but becomes in an explosion of possibilities on final systems configuration (mostly related with different versions of common libraries).
-    This ends up making it impossible to predict what configuration is on your system to allow us to make a precompiled bundle for you.
+    This ends up making it impossible to predict what configuration is on your system, to allow us to make a precompiled bundle for you.
 
 Nevertheless, we have experimented a noticeable improvement in the stability in compilation time
-for the different Linux distributions (and its most recently versions) during the beta-test period.
+for the different Linux distributions (and its most recent versions) during the beta-test period.
 However, if you are in some troubles, please, don't hesitate to :ref:`contact us <contact-us>`.
 
 

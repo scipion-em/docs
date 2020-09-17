@@ -45,7 +45,7 @@ CUDA (optional, highly recommended)
 Many of the software that Scipion integrates use CUDA. You can have different CUDA versions
 installed and choose which CUDA to use for any particular software. Nevertheless, CUDA 10.1
 seems to be compatible with the majority of them. We recommend to have CUDA 10.1 installed
-and being linked at /usr/local/cuda.  By default scipion will use /usr/local/cuda and xmipp
+and being linked at ``/usr/local/cuda``.  By default scipion will use ``/usr/local/cuda`` and xmipp
 installation is done against this path.
 
 Check the `config guide <scipion-configuration#gpu-variables>`_ for more detailed information.
@@ -55,7 +55,7 @@ Conda (optional, recommended if you are not admin)
 Although conda is not a requirement, it provides most of the dependencies Scipion and Xmipp
 needs and can be installed without being admin/root.
 
-`Miniconda <https://docs.conda.io/en/latest/miniconda.html#linux-installers>`_ would be enough.
+`Miniconda <https://docs.conda.io/en/latest/miniconda.html#linux-installers>`__ would be enough.
 
 Scipion installation
 ====================
@@ -65,7 +65,8 @@ can be installed using conda or virtualenv. Conda installation has one drawback:
 properly the fonts in your system and you will end up with a font we didn't intend but readable and
 workable. Don't worry there is a `fix for this bellow <install-from-sources#fixing-fonts-in-a-conda-installation>`_.
 
-If you have problems during the Scipion's installation, please, check our :ref:`Troubleshooting <troubleshooting>` page.
+If you have problems during the Scipion's installation, please, check our
+`Troubleshooting <https://scipion-em.github.io/docs/docs/user/troubleshooting.html>`__ page.
 
 To install Scipion in development mode, just add the ``-dev`` flag in the last command of each recipe below
 (git is needed in the development mode).
@@ -165,14 +166,14 @@ more details about plugin installation options.
 For developers
 --------------
 Scipion installation also includes the Xmipp installation, by default. If you have installed Scipion in devel mode,
-Xmipp should be also installed in devel mode at `<SCIPION_HOME>/xmipp-bundle`.
+Xmipp should be also installed in devel mode at ``<SCIPION_HOME>/xmipp-bundle``.
 See the `Xmipp structure guide <https://github.com/I2PC/xmipp/wiki/Xmipp-structure>`_ for more information regarding Xmipp.
 
 You might also want to check how to :ref:`install plugins from the command line <install-plugins-command-line>`
 in order to also install some other plugins in development mode.
 Notice that some plugins can be installed in production mode (see section above) while others can be in devel mode.
 To learn specific instructions regarding a devel installation of a given plugin, please, check the 'Readme' file in
-its github repository (usually at `scipion-em github account <https:github.com/scipion-em>`_ under its plugin's name).
+its github repository (usually at `scipion-em github account <https://github.com/scipion-em>`_ under its plugin's name).
 
 Optional steps
 ==============
@@ -199,7 +200,7 @@ Please, check :ref:`Scipion's configuration page <scipion-configuration>` for mo
 Linking existing software
 -------------------------
 If you have an existing installation you want Scipion to use instead of the one that scipion installs.
-Please, check :ref:`<Linking existing software <linking_existing_software>` for more details.
+Please, check :ref:`<Linking existing software <linking-existing-software>` for more details.
 
 Test the installation and learn how to use Scipion
 --------------------------------------------------
