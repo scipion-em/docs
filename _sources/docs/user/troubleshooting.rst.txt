@@ -16,9 +16,15 @@ using Scipion.
 Launcher scipion3 not found
 ===========================
 The ``scipion3`` launcher is created at the end of the installation. Then, if the installation is not completed
-(Xmipp compilation have failed) it will not be created.
+(e.g. Xmipp compilation have failed) it will not be created.
 
-If you want to run something like ``scipion3 config``, consider to run
+If you want to run something like ``scipion3 config``, but you get an error like
+
+::
+
+    scipion3: command not found
+
+then, consider to run the Scipion's installer in *dry* mode in order to get some hints
 
 ::
 
@@ -26,13 +32,13 @@ If you want to run something like ``scipion3 config``, consider to run
 
 where ``-venv`` must be included if you are using virtualenv, whereas it must not if conda is used.
 
-This command above will print a lot of information and, at the end, it prints the content of the launcher. Therefore,
-take that text and copy it in a file placed at ``<SCIPION_HOME>/scipion3`` and run ``chmod +x $SCIPION_HOME/scipion3``
-to make it executable. That's your launcher.
+This command above prints a lot of information. Especially, at the end, it prints the content of the launcher. Therefore,
+take the text enclosed between horizontal lines and copy it in a file placed at ``<SCIPION_HOME>/scipion3`` and
+run ``chmod +x $SCIPION_HOME/scipion3`` to make it executable. That's your launcher.
 
 General error while installing/compiling Xmipp (non-development installations)
 ==============================================================================
-Scipion installation includes also the Xmipp compilation and installation, by default.
+Scipion installation also includes the Xmipp compilation and installation, by default.
 You can install only Scipion (without Xmipp) by adding the ``-noXmipp`` flag to the installation command.
 
 Xmipp can be installed separately using the plugin manager or by
@@ -43,8 +49,8 @@ Xmipp can be installed separately using the plugin manager or by
 
 
 If you are getting an error during the Xmipp compilation, consider to check the
-:ref:`Scipion's configuration page<scipion-configuration>`_ or the
-`Xmipp's configuration page<https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)>`_.
+:ref:`Scipion's configuration page <scipion-configuration>` or the
+`Xmipp's configuration page <https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)>`_.
 
 Xmipp bundle is placed at ``<SCIPION_HOME>/software/em/xmippSrc-v3.20.07`` (production mode), see the
 `Xmipp structure guide <https://github.com/I2PC/xmipp/wiki/Xmipp-structure>`_ for more information regarding Xmipp.
@@ -65,29 +71,33 @@ Alternativelly, if scipion3 is already installed you can go with the plugin mana
 
     scipion3 installb xmippSrc -j 4
 
-If ``ERROR: Could not find target xmippSrc`` is gotten, try to run ``scipion3 installp scipion-em-xmipp -j 4``
+If ``ERROR: Could not find target xmippSrc`` is gotten, try to run
+
+::
+
+    scipion3 installp scipion-em-xmipp -j 4
 
 
-If the problem persist, don't hesitate to `contact us<contact-us>`_.
+If the problem persist, don't hesitate to :ref:`contact us <contact-us>`.
 
 
 General error while installing/compiling Xmipp (development installations)
 ==============================================================================
-Scipion installation includes also the Xmipp compilation and installation, by default.
+Scipion installation also includes the Xmipp compilation and installation, by default.
 You can install only Scipion (without Xmipp) by adding the ``-noXmipp`` flag to the installation command.
 
 Xmipp can be installed separately following the
-`Xmipp's installation guide<https://github.com/I2PC/xmipp#xmipp-as-a-standalone-bundle-for-developers>`_.
+`Xmipp's installation guide <https://github.com/I2PC/xmipp#xmipp-as-a-standalone-bundle-for-developers>`_.
 
 If you are getting an error during the Xmipp compilation, consider to check the
-:ref:`Scipion's configuration page<scipion-configuration>`_ or the
-`Xmipp's configuration page<https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)>`_.
+:ref:`Scipion's configuration page<scipion-configuration>` or the
+`Xmipp's configuration page <https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)>`_.
 
 Xmipp bundle is placed at ``<SCIPION_HOME>/xmipp-bundle`` (devel mode), see the
 `Xmipp structure guide <https://github.com/I2PC/xmipp/wiki/Xmipp-structure>`_ for more information regarding Xmipp.
 
 You can manually set some variables in the ``<SCIPION_HOME>/xmipp-bundle/xmipp.conf``. However, Scipion
-will automatically override this config file when recompiling Xmipp. To prevent this, `export XMIPP_NOCONFIG=True` or
+will automatically override this config file when recompiling Xmipp. To prevent this, ``export XMIPP_NOCONFIG=True``\`\`[a-zA-Z0-9 ]*\`\` or
 include ``XMIPP_NOCONFIG=True`` in the ``<SCIPION_HOME>/config/scipion.conf`` prior to trigger a new compilation.
 
 To retry the Xmipp compilation during the Scipion's installation, run
@@ -109,7 +119,7 @@ If ``ERROR: Could not find target xmippSrc`` is gotten, try to run
     scipion3 installp -p <SCIPION_HOME>/xmipp-bundle/src/scipion-em-xmipp --devel -j 4
 
 
-If the problem persist, don't hesitate to `contact us<contact-us>`_.
+If the problem persist, don't hesitate to :ref:`contact us <contact-us>`.
 
 
 Installing Scipion/Xmipp from precompiled bundles
@@ -122,16 +132,20 @@ The reason is:
   * Scipion is now a set of general Python modules which are installed from 'pip' and nothing needs to be compiled anymore.
 
   * From Scipion's version 3, we have flexibilized the installation configuration. This makes things easier when compiling,
-  but becomes in an explosion of possibilities on final systems configuration (mostly related with different versions of common libraries).
-  This ends up making it impossible to predict what configuration is on your system to do a precompiled bundle for you.
+    but becomes in an explosion of possibilities on final systems configuration (mostly related with different versions of common libraries).
+    This ends up making it impossible to predict what configuration is on your system to allow us to make a precompiled bundle for you.
 
-Nevertheless, we have experimented a noticeable stability when compiling in the different Linux distributions
-(and its most recently versions) during the beta-test period. However, if you are in some troubles, please,
-don't hesitate to `contact us<contact-us>`_.
+Nevertheless, we have experimented a noticeable improvement in the stability in compilation time
+for the different Linux distributions (and its most recently versions) during the beta-test period.
+However, if you are in some troubles, please, don't hesitate to :ref:`contact us <contact-us>`.
 
+
+
+Troubleshooting for previous Scipion's versions
+===============================================
 
 Fixing libjbig.so.0 not found in OpenSUSE42.3
-=============================================
+---------------------------------------------
 
 When Scipion_Ubuntu precompiled bundle is installed, maybe a "libjbig.so.0 not found" error is raised.
 We have observed that OpenSUSE includes libjbig.so.2 and we have checked that is also valid,
@@ -142,31 +156,31 @@ thus we propose to link one to the other by
   sudo ln -s /usr/lib64/libjbig.so.2 /usr/lib64/libjbig.so.0
 
 Fixing fonts in Ubuntu 18
-=========================
+-------------------------
 The Scipion font is not right in Ubuntu 18. A temporary fix for this is to
 remove all TK and TCL files in `software/lib` and use the system/conda ones.
 
 
 Launching Eman boxer protocol
-=============================
+-----------------------------
 
 If you see an error like '*Cannot mix incompatible Qt library (version
 0x40806) with this library (version 0x40804)*'. This means the Qt
 installed on your computer is conflicting with the Qt distributed with
 EMAN2. In most cases it gets solved by removing the Qt that comes with
-EMAN2 from EMAN2DIR/extlib/lib.
+EMAN2 from ``EMAN2DIR/extlib/lib``.
 
 Relion3 compilation with CUDA8.0 and g++>6
-==========================================
+------------------------------------------
 
 If you are getting an error telling that g++ later than 6 is not supported 
 by nvcc8, you can set a lower g++ compiler in the ``$SCIPION_HOME/config/scipion.conf``
-for instance ``CC=gcc-5`` and ``CXX=g++-5``. To do that you need to have gcc/g++-5 installed. 
+for instance ``CC=gcc-5`` and ``CXX=g++-5``. To do that you need to have gcc/g++-5 installed.
 
 --------------
 
 Compiling Scipion with OpenCV
-=============================
+-----------------------------
 
 If you have problems compiling Scipion with OpenCV support (CUDA version
 >=6.5), e.g. opencv-2.4.9 compilation fails with an error:
@@ -175,7 +189,7 @@ If you have problems compiling Scipion with OpenCV support (CUDA version
 
     Error: target 'software/lib/libopencv_core.so' not built (after running 'make install > /home/user/soft/scipion/software/log/opencv_make_install.log 2>&1')
 
-And log file (*software/log/opencv\_make.log*) shows something like:
+And log file (``software/log/opencv\_make.log``) shows something like:
 
 ::
 
@@ -203,7 +217,7 @@ Then:
 5. Re-run ``scipion install``, opencv now should compile cleanly \*\*\*
 
 Scipion freezes after click on open bibtex
-==========================================
+------------------------------------------
 
 This likely happens because your machine doesn't have a default program
 to open bibtex. Type this in your terminal to set gedit as your default
@@ -216,7 +230,7 @@ program for bibtex files:
 --------------
 
 Compiling Scipion in Opensuse
-=============================
+-----------------------------
 
 Scipion installation in Opensuse sometimes involves a few drawbacks. Once
 in the terminal the compilation has been launched,
@@ -233,7 +247,7 @@ the installation by doing ``./scipion install``.
 --------------
 
 Endless list of CUDA related errors
-===================================
+-----------------------------------
 
 **Conditions** \* CUDA set to True (in ``config\scipion.conf``) \*
 Multiple CUDA versions are installed
@@ -260,7 +274,7 @@ make sure that all paths to \*CUDA\* and \*NVCC\* in
 --------------
 
 Requirement already satisfied
-=============================
+-----------------------------
 
 **Conditions** 1. you had Scipion already installed (from source) 2.
 later on you installed numpy again (e.g. with pandas) 3. you want to
@@ -297,7 +311,7 @@ run install again
 --------------
 
 ImportError: cannot import name HTTPSHandler
-============================================
+--------------------------------------------
 
 **Example**
 
@@ -337,7 +351,7 @@ Missing libssl-dev
 --------------
 
 Launching XMIPP3 CL2D protocol
-==============================
+------------------------------
 
 **Error: libmpi.so - No such file or directory**
 
@@ -359,11 +373,11 @@ cannot open.
 **Fix**
 
 Create a symbolic link to this library at the location of the libmpi.so
-library (`/usr/lib/` in Ubunut16 or `/usr/lib/x86_64-linux-gnu` in Ubuntu18).
+library (``/usr/lib/`` in Ubunut16 or ``/usr/lib/x86_64-linux-gnu`` in Ubuntu18).
 
 Example:
 
-Assuming that `ls /usr/lib/libmpi.so` find a file:
+Assuming that ``ls /usr/lib/libmpi.so`` find a file:
 
 .. code:: bash
 
@@ -376,7 +390,7 @@ We have experimented something similar with libmpi_cxx.so.1
     ln -s /usr/lib/libmpi_cxx.so /usr/lib/libmpi_cxx.so.1
 
 ImportError: libgfortran.so.3
-=============================
+-----------------------------
 
 This has been reported on an UBUNTU-18 machine using binaries, but may
 happen at compile time using sources. It was happening when launching
@@ -417,7 +431,7 @@ The missing library can be installed using:
 ``sudo apt-get install libgfortran3``
 
 bigtiff in Claudio
-==================
+------------------
 
 We have updated the tiff library to handle BIGtiff data and it is
 available from Scipion version 2.0.0. If you are running Claudio
@@ -447,7 +461,7 @@ If you are determined to move forward follow this steps:
 
 
 Install Xmipp3 in Diocletian
-============================
+----------------------------
 
 Because we haven't installed
 xmipp yet, you'll see a message saying something like this in the
@@ -534,7 +548,7 @@ And manually remove leftover elements:
    
 
 scikit-learn installation fails
-===============================
+-------------------------------
 
 If you are getting error while scipion tries to install scikit-learn python package, something like:
 
@@ -560,7 +574,7 @@ Try to run:
   scipion python -m pip install scikit-learn==0.17.1
 
 sh_alignment installation fails
-===============================
+-------------------------------
 
 Some program in Xmipp use the **sh_alignent** library. If you get some of the errors
 below try the following:
@@ -570,7 +584,7 @@ below try the following:
 
 
 Deep consensus fail due to index out of run.
-============================================
+--------------------------------------------
 
 We have find a bug reporting the following error:
 

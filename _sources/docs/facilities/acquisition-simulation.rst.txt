@@ -76,12 +76,12 @@ We can see two sections *Global* and *Microscope* getting the following paramete
     * *GAIN_PAT*: The bash pattern that the gain must match to be used (it must
       also be at the *deposition path* in this case).
     * *SCIPION_PROJECT*: Where to store the Scipion project.
-    * *SIMULATION*: If `True`, a `simulation <acquisition-simulation#id1>`_ is
+    * *SIMULATION*: If ``True``, a `simulation <acquisition-simulation#id1>`_ is
       performed by means of linking files from *RAWDATA_SIM* to
-      *DEPOSITION_PATH* every certain time. If `False`, no simulation is done
+      *DEPOSITION_PATH* every certain time. If ``False``, no simulation is done
       and *DEPOSITION_PATH* is expected to be automatically full.
     * *RAWDATA_SIM*: Where to find a data set to be used for the simulation
-      (ignored if `False` in the previous point).
+      (ignored if ``False`` in the previous point).
     * *NUM_CPU*: Number of system CPUs to optimize the workflow.
 
 * *MICROSCOPE*:
@@ -91,9 +91,9 @@ We can see two sections *Global* and *Microscope* getting the following paramete
     * *SAMPLING*: Sampling rate (in *A/px*).
     * *TIMEOUT*: General `timeout <https://scipion-em.github.io/docs/docs/facilities/
       facilities-workflows.html#streaming-workflows>`_ for the streaming mode and,
-      if *SIMULATION* is `True`, the simulated acquisition rate (in *s*).
-    * *INV_CONTR*: If `True` a contrast inversion is done before picking.
-      If `False`, no inversion of contrast is done.
+      if *SIMULATION* is ``True``, the simulated acquisition rate (in *s*).
+    * *INV_CONTR*: If ``True`` a contrast inversion is done before picking.
+      If ``False``, no inversion of contrast is done.
     * *PARTS2CLASS*: Number of particles to wait before to perform a 2D
       classification of a first batch.
 
@@ -179,7 +179,7 @@ to your single data.
 
 For instance:
 
-* We know that this sample belongs to the `d2` **symmetry group** and
+* We know that this sample belongs to the ``d2`` **symmetry group** and
   this will be used to estimate the initial model, however one can introduce any
   other symmetry group.
 * This movies have 16 frames, thus you cat skip some of them by indicating a
@@ -242,7 +242,7 @@ workflow at once by
 
     scipion python $SCIPION_HOME/pyworkflow/project/scripts/schedule.py projectName
 
-where `projectName` is the name of the project made in the previous section.
+where ``projectName`` is the name of the project made in the previous section.
 Alternatively, the whole workflow can also be launch from the GUI by selecting
 the *Import Movies > right-click > Restart workflow*.
 

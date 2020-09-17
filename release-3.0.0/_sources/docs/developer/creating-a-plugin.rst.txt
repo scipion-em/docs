@@ -785,7 +785,7 @@ If no errors happen, we get an output similar to this one:
 
     $SCIPION_HOME/scipion3 installp -p scipion-em-relion --noBin
 
-* Install specific plugin binaries (only works if we have done `installp` first).
+* Install specific plugin binaries (only works if we have done ``installp`` first).
 
 .. code-block:: bash
 

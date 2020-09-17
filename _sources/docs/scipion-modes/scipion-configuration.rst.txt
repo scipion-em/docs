@@ -82,7 +82,7 @@ Note that ``pluginPackage`` is the package name of the plugin,
 check :ref:`the plugin's packages list <Plugins-API>`
 (e.g. ``xmipp3`` is the package name for the ``scipion-em-xmipp`` plugin)
 
-Once ``config/scipion.conf`` is changed, run ``scipion3 config`` again
+Once ``config/scipion.conf`` is edited, run ``scipion3 config`` again
 to make some checks.
 
 If you have configuration files from previous installations, you may
@@ -187,18 +187,17 @@ Running Scipion in multi-users environment
 ==========================================
 
 In the case you want to install Scipion for multiple users, it is
-convenient to have a single ``scipion.conf`` file for all of them, otherwise, the
-each user must have a config file under his home folder as described above.
+convenient to have a single ``scipion.conf`` file for all of them, otherwise,
+each user must have a config file under his home folder as described above (*TODO: Is this according scipion3?*).
 
-We can launch Scipion with the --config parameter: ``--config <scipion.conf PATH>``.
-This parameter tells Scipion to be use a configuration file in a specific path.
-
-``--config`` will tell scipion3 to use that config and ONLY that one.
+We can launch Scipion with the ``--config </path/to/a/specific/scipion.conf>`` parameter.
+This parameter tells Scipion to use a configuration file placed in a specific path and **only** that one.
 
 NOTE: Scipion3 installer creates a launcher (python script) called scipion3. That file is
 good place to enforce using a common config file:
 
 Fragment of scipion3 script:
+
 ::
 
     (...)
@@ -206,6 +205,7 @@ Fragment of scipion3 script:
     (...)
 
 To fix the config from the console
+
 ::
 
     scipion3 --config <scipion.conf PATH>
@@ -213,6 +213,4 @@ To fix the config from the console
 
 ======
 
-If you have problems compiling Scipion, see
-`Troubleshooting <https://scipion-em.github.io/docs/release-3.0.0/docs/user/troubleshooting.html>`__
-page.
+If you have problems compiling Scipion, see :ref:`Troubleshooting <troubleshooting>` page.

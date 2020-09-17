@@ -62,7 +62,7 @@ This is how the remote desktop will look like:
    :width: 800
    :alt: noVNC-desktop
 
-To resize screen clicks on the Settings icon and choose `Remote resizing` as `Scaling mode`:
+To resize screen clicks on the Settings icon and choose ``Remote resizing`` as ``Scaling mode``:
 
 .. figure:: /docs/images/cloud/noVNC-resize.png
    :align: center
@@ -181,10 +181,10 @@ AWS EC2 allows to change type of an existing instance (it should be stopped firs
 This can be used to choose the best type for each step of the processing
 workflow although it should be carefully evaluated if the time waisted doing
 this compensate the performance gained on the step. For instance, if a GPU
-type is needed for `movie alignment` and then for `classification`,
-`CTF estimation` and `automatic picking` could be done on a non GPU machine to
+type is needed for ``movie alignment`` and then for ``classification``,
+``CTF estimation`` and ``automatic picking`` could be done on a non GPU machine to
 save some money, but it might not be worth the trouble to do it. However,
-`manual picking` which could be a tedious and long task could be done on a less
+``manual picking`` which could be a tedious and long task could be done on a less
 powerful (and cheaper) machine, or even locally.
 
 Storage

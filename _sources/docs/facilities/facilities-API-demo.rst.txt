@@ -25,13 +25,13 @@ inputs <facilities-API-demo#setting-em-objects-as-protocol-inputs>`_.
 First of all, we need to get all the `config <acquisition-simulation#config-file>`_
 and `user <acquisition-simulation#wizard-for-user-parameters>`_
 parameters retrieved in `previous steps <acquisition-simulation>`_.
-In this case, we have stored all these parameters in the `configDict` dictionary
+In this case, we have stored all these parameters in the ``configDict`` dictionary
 that is gotten as argument from the wizard
 (`form_launcher.py <https://github.com/I2PC/em-facilities/blob/master/usingAPI_demo/acquisition_workflow.py>`_).
 In addition, we import the *UPPER_CASE* constants from `constants.py
 <https://github.com/I2PC/em-facilities/blob/master/usingAPI_demo/constants.py>`_
 to ensure that we use the same that in the wizard
-and also to easy get values from the `configDict`.
+and also to easy get values from the ``configDict``.
 
 .. code-block:: python
 
@@ -43,7 +43,7 @@ and also to easy get values from the `configDict`.
                        else int(subprocess.Popen(['nproc','--all'],
                                                  stdout=subprocess.PIPE).stdout.read()))
 
-Note that we are taking the number of CPUs from the `configDict` via the `NUM_CPU`
+Note that we are taking the number of CPUs from the ``configDict`` via the `NUM_CPU`
 constant.
 
 1. Creating a project
@@ -61,8 +61,8 @@ pyworkflow.project.manager.Manager.createProject>`_ method
     project = manager.createProject(configDict[PROJECT_NAME],
                                     location=configDict[SCIPION_PROJECT]
 
-where `PROJECT_NAME` and `SCIPION_PROJECT` constants return the project name and
-the project path from the `configDict`, respectively.
+where ``PROJECT_NAME`` and ``SCIPION_PROJECT`` constants return the project name and
+the project path from the ``configDict``, respectively.
 
 
 2. Including protocols
@@ -193,10 +193,10 @@ where `protMotionCor <https://github.com/scipion-em/scipion-em-motioncorr/blob/
 d9397a6dd5c9493a67b08d08f8c2af1e8f580c61/motioncorr/protocols/
 protocol_motioncorr.py#L50-L55>`_ is initialized in the first line whereas the
 `doApplyDoseFilter <https://github.com/scipion-em/scipion-em-motioncorr/blob/d9397a6dd5c9493a67b08d08f8c2af1e8f580c61/
-motioncorr/protocols/protocol_motioncorr.py#L167-L171>`_ is set to `True` if
+motioncorr/protocols/protocol_motioncorr.py#L167-L171>`_ is set to ``True`` if
 the *dose per frame* introduced by the user in `the wizard in previous steps
 <acquisition-simulation#wizard-for-user-parameters>`_ is bigger than 0 or
-to `False`, instead.
+to ``False``, instead.
 
 Until here, we only have set `Scalar <https://scipion-em.github.io/docs/api/
 pyworkflow.object.html#pyworkflow.object.Scalar>`_ objects or `Built-in Python
@@ -229,8 +229,8 @@ pyworkflow.object.Pointer.setExtended>`_ method. For instance,
     protMotionCor.inputMovies.set(protImport)
     protMotionCor.inputMovies.setExtended('ouputMovies')
 
-where the whole `protImport` protocol is attached to the
-`protMotionCor.inputMovies` in the first line and the `outputMovies` is set as
+where the whole ``protImport`` protocol is attached to the
+``protMotionCor.inputMovies`` in the first line and the ``outputMovies`` is set as
 an extension for this parameter, indicating that it will be gotten in the
 running time.
 
@@ -242,8 +242,8 @@ assignation is possible as long as the object is ready
 
     protMotionCor.inputMovies.set(protImport.outputMovies)
 
-Notice that to use this, `protImport` must have an attribute
-called `outputMovies` if not, this line will break.
+Notice that to use this, ``protImport`` must have an attribute
+called ``outputMovies`` if not, this line will break.
 
 In this case, a waiting function to ensure that the `protImport.outputMovies`
 is ready to be used becomes crucial. For instance
