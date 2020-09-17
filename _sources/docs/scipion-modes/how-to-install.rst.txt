@@ -200,7 +200,7 @@ Please, check :ref:`Scipion's configuration page <scipion-configuration>` for mo
 Linking existing software
 -------------------------
 If you have an existing installation you want Scipion to use instead of the one that scipion installs.
-Please, check :ref:`<Linking existing software <linking-existing-software>` for more details.
+Please, check :ref:`Linking existing software <linking-existing-software>` for more details.
 
 Test the installation and learn how to use Scipion
 --------------------------------------------------

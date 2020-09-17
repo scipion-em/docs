@@ -69,7 +69,7 @@ For example, below is an excerpt of
 Notice that in the excerpt above, ``CCP4_HOME``, ``CHIMERA_HOME`` and ``CISTEM_HOME``
 are set to a certain path, determining a certain version. On the other hand, the
 variables that are not defined here will remain by default and a plugin update will
-eventually update them. Check also :ref:`<how to link existing software <linking-existing-software>`.
+eventually update them. Check also :ref:`how to link existing software <linking-existing-software>`.
 
 Run
 
