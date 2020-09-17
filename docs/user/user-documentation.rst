@@ -170,11 +170,6 @@ FAQ
 ---------
 :ref:`FAQ <faq>`: Frequently Asked Questions
 
-
-Troubleshooting
----------------
-:ref:`Troubleshooting <troubleshooting>`
-
 Relion in Scipion
 -----------------------
 `Relion in Scipion <relion-in-scipion>`__: Check how to use Relion inside Scipion.
