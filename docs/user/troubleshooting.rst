@@ -97,7 +97,7 @@ Xmipp bundle is placed at ``<SCIPION_HOME>/xmipp-bundle`` (devel mode), see the
 `Xmipp structure guide <https://github.com/I2PC/xmipp/wiki/Xmipp-structure>`_ for more information regarding Xmipp.
 
 You can manually set some variables in the ``<SCIPION_HOME>/xmipp-bundle/xmipp.conf``. However, Scipion
-will automatically override this config file when recompiling Xmipp. To prevent this, ``export XMIPP_NOCONFIG=True``\`\`[a-zA-Z0-9 ]*\`\` or
+will automatically override this config file when recompiling Xmipp. To prevent this, ``export XMIPP_NOCONFIG=True`` or
 include ``XMIPP_NOCONFIG=True`` in the ``<SCIPION_HOME>/config/scipion.conf`` prior to trigger a new compilation.
 
 To retry the Xmipp compilation during the Scipion's installation, run

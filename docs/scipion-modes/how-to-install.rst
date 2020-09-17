@@ -55,7 +55,7 @@ Conda (optional, recommended if you are not admin)
 Although conda is not a requirement, it provides most of the dependencies Scipion and Xmipp
 needs and can be installed without being admin/root.
 
-`Miniconda<https://docs.conda.io/en/latest/miniconda.html#linux-installers>`_ would be enough.
+`Miniconda <https://docs.conda.io/en/latest/miniconda.html#linux-installers>`_ would be enough.
 
 Scipion installation
 ====================
