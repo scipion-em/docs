@@ -168,7 +168,7 @@ masks, either interactively or through protocols.
 
 FAQ
 ---------
-:ref:`FAQ <faq>`: Frequently Asked Questions
+`FAQ <faq>`__: Frequently Asked Questions
 
 Relion in Scipion
 -----------------------
