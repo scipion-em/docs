@@ -66,7 +66,7 @@ properly the fonts in your system and you will end up with a font we didn't inte
 workable. Don't worry there is a `fix for this bellow <install-from-sources#fixing-fonts-in-a-conda-installation>`_.
 
 If you have problems during the Scipion's installation, please, check our
-`Troubleshooting <https://scipion-em.github.io/docs/docs/user/troubleshooting.html>`__ page.
+:ref:`Troubleshooting <troubleshooting>` page.
 
 To install Scipion in development mode, just add the ``-dev`` flag in the last command of each recipe below
 (git is needed in the development mode).
