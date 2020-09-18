@@ -124,7 +124,7 @@ CentOS with virtualenv
 
 Launching scipion3
 ------------------
-Installation should have created a launching file at <SCIPION_HOME>/scipion3.
+Installation should have created a launching file at ``<SCIPION_HOME>/scipion3``.
 For convenience, create an **alias** in the ``.bashrc`` file located
 in ``/home/<user>/.bashrc`` that allows you to launch Scipion from any
 location on your computer.
