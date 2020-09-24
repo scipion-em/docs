@@ -2,14 +2,16 @@
    :width: 250
    :alt: scipion logo
 
-.. _acquisition-simulation:
+.. _acquisition-simulation-scipion2:
 
-=======================
-Tutorial for Facilities
-=======================
+=============================
+API scripting demo (Scipion2)
+=============================
 
 This tutorial try to put into practice the previous facilities sections
 by means of a demo which simulates a whole cryo-EM acquisition session.
+
+This tutorial is intended to be follow using Scipion2
 
 The demo is made of the following 5 logical steps:
 
