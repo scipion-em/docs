@@ -38,8 +38,8 @@ later on.
 
    docs/facilities/facilities
    docs/facilities/facilities-workflows
-   docs/facilities/acquisition-simulation
-   docs/facilities/customize-report.rst
+   docs/facilities/facilities-tutorial
+   docs/facilities/customize-report
 
 .. _dev-docs:
 

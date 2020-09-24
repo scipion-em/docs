@@ -4,9 +4,9 @@
 
 .. _facilities:
 
-====================
-Streaming Processing
-====================
+=====================
+On-the-fly processing
+=====================
 
 For facilities
 ---------------
@@ -89,6 +89,6 @@ you can see a Grafana based report.
 (Unfortunately, at present, Grafana server can only be accessed from within our local area network).
 Learn `how to customize the reports <customize-report>`_ according to your facilities' needs.
 
-Finally, this `tutorial focused on streaming processing <acquisition-simulation>`_
+Finally, this :ref:`tutorial focused on streaming processing <facilities-tutorial>`
 simulates a cryo-EM acquisition in order to sum up all the available facilities
 tools.

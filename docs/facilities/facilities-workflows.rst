@@ -58,9 +58,10 @@ employed for most users (or a few of different workflows).
 For this reason, Scipion is able to automatically launch whole workflows by
 means of (at least) 3 ways:
 
-* Launching `static templates <facilities-workflows#static-templates>`_.
-* Launching `dynamic templates <facilities-workflows#creating-custom-dynamic-templates>`_.
-* Launching `Python scripts using the Scipion's API <facilities-workflows#using-scipion-s-api>`_.
+* Launching `static templates <#static-templates>`_.
+* Launching `dynamic templates <#creating-custom-dynamic-templates>`_.
+* Launching `dynamic templates from command line <#launching-dynamic-templates-from-command-line>`_.
+* Launching `Python scripts using the Scipion's API <#using-scipion-s-api>`_.
 
 
 Static templates
@@ -219,6 +220,7 @@ Then, to add a dynamic field, you only have to substitute the value
 where *label* will be the name for the filed in the wizard form, *defaultValue* will
 be the default value inserted in that field and *typeValue* is a number which force
 the type of the value:
+
 * 0 for *strings*
 * 1 for *booleans*
 * 2 for *paths*
@@ -227,7 +229,7 @@ the type of the value:
 
 Scipion 3 incorporates a new feature in order to be able to launch dynamic
 templates with a single command line using the optional fourth field (*cmdId*).
-See the `next section below <#Launching-dynamic-templates-from-command-line>`_.
+See the `next section below <#launching-dynamic-templates-from-command-line>`_.
 
 In the figure above, there are three examples: the *filesPath*, *dosePerFrame*
 and *gainFile* fields (follow the arrows to see their behavior).
@@ -277,7 +279,8 @@ opens a menu to choose the dynamic template to launch
 Launching dynamic templates from command line
 =============================================
 
-The optional forth field in the dynamic templates (**cmdId** in the example above)
+The optional forth field in the dynamic templates
+(**cmdId** in the `example above <#creating-custom-dynamic-templates>`_)
 is an identifier to assign a given value during
 a launch through the command line.
 
