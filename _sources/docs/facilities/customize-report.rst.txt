@@ -5,9 +5,9 @@
 
 .. _customize-html-report:
 
-=====================================
-How to Customize the Activity Reports
-=====================================
+===============
+Summary Reports
+===============
 
 .. :contents:: Table of Contents
 

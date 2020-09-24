@@ -26,35 +26,35 @@ but now all the protocols will wait for new data to process.
 The two main parameters associated to the streaming mode are:
 
 * **Timeout**: The time to wait, after not receiving new images, to close the acquisition.
-* **File timeout**: Scipion is checking if a new file is growing up. If it do not change after this time, Scipion will consider that it is ready to be imported.
+* **File timeout**: Scipion is checking if a new file is growing up.
+  If it do not change after this time, Scipion will consider it is ready to be imported.
 
 Usually the general *timeout* is a huge value (43,200 seconds = 12 hours) in
 order to prevent ending the acquisition in an eventual acquisition issue at the microscope side.
-Therefore, EM operator has this time to solve the issue.
+In other words, this is the time you have to resume the acquisition after and eventual pause.
 
 When we know that the acquisition is finished, we can manually stop the online
-processing by selecting the *Import Movies > right-click > STOP STREAMING*.
-Then, all protocols will be finishing as soon as all the last data is being
-processed.
+processing, by selecting the *Import Movies > right-click > STOP STREAMING*.
+Then, all protocols will be finishing, as soon as all the last data is processed.
 
-As any Scipion project, the directory placed at
+As any Scipion project, the directory is placed at
 
 .. code-block:: bash
 
     $SCIPION_USER_DATA/projects/myAcquisitionProject
 
-(where ``$SCIPION_USER_DATA` usually is `~/ScipionUserData` and
-``myAcquisitionProject`` is the project name to export) is a self contained
-project directory and, then, it can be exported to any other computer
-in order to continue with an user-assisted and more in-deep processing
-by just coping this directory to the `$SCIPION_USER_DATA/projects` on the
-other computer. Take into account that this directory usually doesn't contain
-the initial movies to save disk space (this behavior can be modified in the
+(where ``$SCIPION_USER_DATA`` usually is ``~/ScipionUserData`` and
+``myAcquisitionProject`` is the project name) and it is a self contained
+project-directory. Thus, one can export/import a project started in
+the facility computer in his/her own computer, just by coping the project-directory
+to his/her own ``$SCIPION_USER_DATA/projects``.
+Take into account that this directory usually does **NOT contain
+the raw movies** to save disk space (this behavior can be modified in the
 *Import Movies* protocol).
 
 The procedure of creating manual workflows by adding every protocol to use it
-might be tedious for a facility, where the same workflow will be usually
-employed for most users (or a small number of different workflows).
+(described above) might be tedious for a facility, where the same workflow will be usually
+employed for most users (or a few of different workflows).
 For this reason, Scipion is able to automatically launch whole workflows by
 means of (at least) 3 ways:
 
@@ -69,7 +69,7 @@ Static templates
 You can design a workflow by using Scipion GUI as usual. Adding an import,
 attaching some processing protocols, including the summary monitor...
 When you are happy with your workflow, you can export it by selecting all
-protocols that you want to export (*ctrl+click* to select more than one)
+protocols you want to export (*ctrl+click* to select more than one)
 and, then, click the *Export* button at top.
 You can save it as a template (a *JSON* file) at any directory on your system.
 
@@ -85,12 +85,12 @@ The workflows are classified in different categories, such as **Data Collection*
 workflow, you can see a preview of that workflow. Use the *mouse-wheel* to zoom
 in/out, *click and drag* in an empty zone to move and click on a box/protocol
 to inspect the internal parameters. You can download a certain workflow to any
-directory on you system. In addition, anyone can upload workflows (without any
-log up) by selecting all the protocols in your Scipion's project
+directory on you system. In addition, anybody can upload workflows (without any
+log up) by selecting all the protocols in the Scipion's project
 and by clicking *Export & Upload*.
 
-In order to launch any template (downloaded or made by yourself), open Scipion
-and create an empty project. Then, you can import the workflow with *Project >
+In order to launch any template (as described above: downloaded or made by yourself),
+open Scipion and create an empty project. Then, you can import the workflow with *Project >
 Import Workflow* at the menu bar on top and browsing to where the template is
 stored/downloaded (Scipion's templates are *JSON* files).
 As the template is opened, the workflow is loaded to the project as *saved*
@@ -108,13 +108,14 @@ Alternatively, a *JSON* template can be launched from the command line as follow
 
 .. code-block:: bash
 
-    scipion python pyworkflow/project/scripts/create.py name="myAcquisition" workflow="path/to/your/workflow.json"
-    scipion python pyworkflow/project/scripts/schedule.py myAcquisition
-    scipion project myAcquisition
+    scipion3 python -m pyworkflow.project.scripts.create name="myAcquisition" workflow="path/to/your/workflow.json"
+    scipion3 python -m pyworkflow.project.scripts.schedule myAcquisition
+    scipion3 project myAcquisition
 
 where the first command creates the project named *myAcquisition*
-from the `workflow.json` file (in this case), the second starts the processing
-and the third opens the Scipion GUI to see the project.
+from the ``workflow.json`` file (in this case), the second starts
+the processing of the project named *myAcquisition*
+and the third opens the Scipion GUI to see the project named *myAcquisition*.
 
 
 Dynamic templates
@@ -131,7 +132,9 @@ To see a demo of this you just have to run
 
 .. code-block:: bash
 
-    scipion demo
+    scipion3 template
+
+(``scipon3 demo`` makes exactly the same than the command above)
 
 This will pop up a small wizard like the one below
 
@@ -188,14 +191,15 @@ are composed by a list of all the protocols in the workflow.
 In the figure below, we have highlight with a blue box
 the *Import movies* protocol part,
 where it has listed inside all the internal parameters/fields for
-the *Import movies*, such as the label, the files path, the voltage,
-the sampling rate... (underlined in yellow)
+the *Import movies*, such as its label, the files path where to
+find the movies, the microscope's spherical aberration, the
+dose per frame applied... (underlined in yellow)
 
 In a common *JSON* file, all fields are made of key-value pairs where *key*
 (what is before ':') is always a *string* and the *value* (what is after ':')
 can be a *string* ("something coated"), a *number*, a
 *boolean* (true or false), a *list*, a *dictionary*, a *null*...
-(`more info <https://www.json.org>`_).
+(`read more info aboud JSON files <https://www.json.org>`_).
 
 .. figure:: /docs/images/custom-scipion-demo.png
    :align: center
@@ -210,12 +214,20 @@ Then, to add a dynamic field, you only have to substitute the value
 
 ::
 
-    "~label|defaultValue|typeValue~"
+    "~label|defaultValue|typeValue|cmdId~"
 
-where *label* will be the name for the filed in the form, *defaultValue* will
-be the default value inserted in that field and *typeValue* is a number fixing
-the type of the value (0 for *strings*, 1 for *booleans*, 2 for *paths*,
-3 for *integers*, and 4 for *floats*).
+where *label* will be the name for the filed in the wizard form, *defaultValue* will
+be the default value inserted in that field and *typeValue* is a number which force
+the type of the value:
+* 0 for *strings*
+* 1 for *booleans*
+* 2 for *paths*
+* 3 for *integers*
+* 4 for *floats*.
+
+Scipion 3 incorporates a new feature in order to be able to launch dynamic
+templates with a single command line using the optional fourth field (*cmdId*).
+See the `next section below <#Launching-dynamic-templates-from-command-line>`_.
 
 In the figure above, there are three examples: the *filesPath*, *dosePerFrame*
 and *gainFile* fields (follow the arrows to see their behavior).
@@ -229,23 +241,31 @@ then Scipion will check if this path exists before starting to process.
 using a gain image if not needed). Finally, the 4 (*float* type) set to the
 *dosePerFrame* allows to introduce non integer values.
 
-When you are happy with the modified *JSON* file, you must save it to
+When you are happy with the modified *JSON* file, you can save it wherever you
+consider and, then you can launch it with
 
 .. code-block:: bash
 
-    $SCIPION_HOME/pyworkflow/templates
+    scipion3 tamplate /path/to/myTemplate.json.template
 
-where *$SCIPION_HOME* is where you have installed Scipion. The extension of this
-file must be **.json.template**. You can make as dynamic templates as you want
-by storing them in the mentioned directory with certain different file name
+However, if dynamic templates are saved in
+
+.. code-block:: bash
+
+    $SCIPION_HOME/config/myTemplate.json.template
+
+(where ``$SCIPION_HOME`` is where you have installed Scipion), Scipion will
+automatically discover them. The extension of this files have to be
+**.json.template**. You can make as dynamic templates as you want
+by storing them in the mentioned directory with certain different file name,
 as long as they finishes with **.json.template**.
 
 When more than one dynamic template are found in the
-*$SCIPION_HOME/pyworkflow/templates* directory, then the command
+``$SCIPION_HOME/config`` directory, then the command
 
 .. code-block:: bash
 
-    scipion demo
+    scipion template
 
 opens a menu to choose the dynamic template to launch
 
@@ -254,17 +274,38 @@ opens a menu to choose the dynamic template to launch
    :width: 400
    :alt: multiple choice scipion demo
 
+Launching dynamic templates from command line
+=============================================
+
+The optional forth field in the dynamic templates (**cmdId** in the example above)
+is an identifier to assign a given value during
+a launch through the command line.
+
+For instance, the following command
+
+::
+
+    scipion3 template /path/to/myTemplate.json sa=2 ac=0.1 dose=1.2
+
+will load the ``/path/to/myTemplate.json`` by parsing the
+*spherical aberration* (sa), the *amplitude contrast* (ac) and
+the *dose per frame* (dose) according to the passed values.
+
+If all dynamic parameters in the dynamic template are parsed,
+then the workflow is automatically triggered. Instead, if some
+parameters remains unset, a wizard similar to that described
+in the previous section asking for them is launched.
 
 Using Scipion's API
 -------------------
 
 A Scipion's project can be created, designed (adding protocols) and launched by
-a Python script using the `Scipion's API <https://scipion-em.github.io/docs/api/pyworkflow.html>`_.
+a Python script using the :ref:`Scipion's API <Scipion-API>`.
 
 We have a repository destined to share Scipion's scripts potentially useful in
 `EM-facilities <https://github.com/I2PC/em-facilities>`_.
-Specially, we have an example of `creating a Scipion project using the API <https://github.com/I2PC/em-facilities/blob/master/usingAPI_demo/acquisition_workflow.py>`_.
-See the `acquisition simulation <acquisition-simulation>`_ section to learn how
+Specially, we have an example of `creating a Scipion2 project using the API <https://github.com/I2PC/em-facilities/blob/master/usingAPI_demo/acquisition_workflow.py>`_.
+See the `acquisition simulation (for Scipion2) <acquisition-simulation-scipion2>`_ section to learn how
 to use this script.
 
 Go to `API workflows <facilities-API-demo>`_ to see in detail how to make

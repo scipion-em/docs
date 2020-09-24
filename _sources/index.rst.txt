@@ -39,6 +39,7 @@ later on.
    docs/facilities/facilities
    docs/facilities/facilities-workflows
    docs/facilities/acquisition-simulation
+   docs/facilities/customize-report.rst
 
 .. _dev-docs:
 

@@ -4,12 +4,29 @@
 
 .. _facilities-tutorial:
 
-==================================
-Tutorial
-==================================
+===================
+Facilities Tutorial
+===================
 
-Aim
-====
+
+(*TODO: Put here a tutorial for launching the
+``scipion3 template $EMFACILITIES_HOME/template/to_2Dclassification_DoseWeithed.json.template [parameters]``*)
+
+
+
+
+
+
+
+
+
+
+
+
+
+Making a custom protocol
+------------------------
+
 We aim to introduce a few concepts that we think will give any IT/developer a good set of resources to adapt Scipion to you facility setup. Scipion scope is confined to Image processing but in a facilities context, there are other actors in place that Scipion might need to adapt or even communicate. For that, we need to launch Scipion at some point in the facility pipeline or customize part of its outputs, or even send/grab information from a LIMS/ERP system that handles visits/sessions or sample information. We will go through 3 main concepts and learn how to create new element into Scipion:
 
 * Developing a Protocol
