@@ -32,7 +32,8 @@ Scipion is able to process data in streaming, i.e, at the same time movies
 on-the-fly or on-line processing. This allows to overlap computing time with the
 acquisition. This is interesting for two main reasons:
 (i) to save processing time and provide users with more than movies and
-(ii) to monitor the acquisition in order to be able to take decisions in very early stages.
+(ii) to monitor the acquisition in order to be able to take decisions in very
+early stages.
 This idea is implemented in different labs mainly by using
 custom-made scripts, but also it can be implemented using templates in a very
 easy way. The advantage of Scipion solution is that you have
@@ -52,8 +53,9 @@ tools and protocols for facilities in the `D. Maluenda et.al. 'Flexible
 workflows for on-the-fly electron microscopy single particle image processing
 using Scipion' Acta Cryst. (2019). D75, 882-894 <https://doi.org/10.1107/S2059798319011860>`_ paper.
 
-On top of that, we have paid special attention to the data flow management including
-the `Trigger data <https://github.com/I2PC/scipion-em-xmipp/blob/648ebe3a4f8dc2f3022332c080fb3d300d273bd7/
+On top of that, we have paid special attention to data flow management and
+acquisition monitoring, for that Scipion includes
+a `Trigger data <https://github.com/I2PC/scipion-em-xmipp/blob/648ebe3a4f8dc2f3022332c080fb3d300d273bd7/
 xmipp3/protocols/protocol_trigger_data.py#L41-L53>`_ protocol, the `Movie max shift
 <https://github.com/I2PC/scipion-em-xmipp/blob/648ebe3a4f8dc2f3022332c080fb3d300d273bd7/
 xmipp3/protocols/protocol_movie_max_shift.py#L43-L53>`_ protocol, the

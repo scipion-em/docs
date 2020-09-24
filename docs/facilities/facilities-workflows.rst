@@ -10,12 +10,12 @@ Streaming workflows
 
 Scipion can launch streaming workflows in several ways. The most basic one is
 achieved creating an empty project to start a new workflow with an *Import Movies*
-protocol pointing to the microscope’s deposition directory. Since we want to process
-the movies that are currently located at that directory but, also, those movies
-that are continuously arriving, we must activate the streaming mode in the streaming tab as
-shown in the figure below. Afterwards, the rest of the protocols can be
-added to the workflow in the same way that in the non streaming workflows
-(from the protocols tree at left of finding them with *ctrl+F*),
+protocol pointing to the microscope’s deposition directory. Since we want to
+process the movies that are currently located at that directory but, also, those
+movies that are continuously arriving, we must activate the streaming mode in
+the streaming tab as shown in the figure below. Afterwards, the rest of the
+protocols can be added to the workflow in the same way that in the non streaming
+workflows (from the protocols tree at left of finding them with *ctrl+F*),
 but now all the protocols will wait for new data to process.
 
 .. figure:: /docs/images/streaming-tab.png
@@ -30,8 +30,10 @@ The two main parameters associated to the streaming mode are:
   If it do not change after this time, Scipion will consider it is ready to be imported.
 
 Usually the general *timeout* is a huge value (43,200 seconds = 12 hours) in
-order to prevent ending the acquisition in an eventual acquisition issue at the microscope side.
-In other words, this is the time you have to resume the acquisition after and eventual pause.
+order to prevent ending the acquisition in an eventual acquisition issue at the
+microscope side.
+In other words, this is the time you have to resume the acquisition after and
+eventual pause.
 
 When we know that the acquisition is finished, we can manually stop the online
 processing, by selecting the *Import Movies > right-click > STOP STREAMING*.
@@ -46,15 +48,15 @@ As any Scipion project, the directory is placed at
 (where ``$SCIPION_USER_DATA`` usually is ``~/ScipionUserData`` and
 ``myAcquisitionProject`` is the project name) and it is a self contained
 project-directory. Thus, one can export/import a project started in
-the facility computer in his/her own computer, just by coping the project-directory
-to his/her own ``$SCIPION_USER_DATA/projects``.
+the facility computer in his/her own computer, just by coping the
+project-directory to his/her own ``$SCIPION_USER_DATA/projects``.
 Take into account that this directory usually does **NOT contain
 the raw movies** to save disk space (this behavior can be modified in the
 *Import Movies* protocol).
 
 The procedure of creating manual workflows by adding every protocol to use it
-(described above) might be tedious for a facility, where the same workflow will be usually
-employed for most users (or a few of different workflows).
+(described above) might be tedious for a facility, where the same workflow will
+be usually employed for most users (or a few of different workflows).
 For this reason, Scipion is able to automatically launch whole workflows by
 means of (at least) 3 ways:
 
@@ -91,17 +93,18 @@ log up) by selecting all the protocols in the Scipion's project
 and by clicking *Export & Upload*.
 
 In order to launch any template (as described above: downloaded or made by yourself),
-open Scipion and create an empty project. Then, you can import the workflow with *Project >
-Import Workflow* at the menu bar on top and browsing to where the template is
-stored/downloaded (Scipion's templates are *JSON* files).
+open Scipion and create an empty project. Then, you can import the workflow with
+*Project > Import Workflow* at the menu bar on top and browsing to where the
+template is stored/downloaded (Scipion's templates are *JSON* files).
 As the template is opened, the workflow is loaded to the project as *saved*
 protocols. At this point, you can check/modify any parameter of a certain
 protocol by opening the protocol form by *right-click > Edit* or *double-click*.
-When you are happy with all the parameters, store the protocol by clicking **Save**
-(do **not** click Execute/Schedule). When you are happy with all protocols,
-select the *Import* protocol, *right-click > Restart workflow*.
-Then, the *Import* should start to import data and the rest of the protocols should
-change to the *Schedule* mode. A scheduled protocol is waiting for ready
+When you are happy with all the parameters, store the protocol by clicking
+**Save** (do **not** click Execute/Schedule).
+When you are happy with all protocols, select the *Import* protocol,
+*right-click > Restart workflow*.
+Then, the *Import* should start to import data and the rest of the protocols
+should change to the *Schedule* mode. A scheduled protocol is waiting for ready
 inputs, i.e. when all inputs become ready for it, that protocol should
 automatically start to process the incoming data changing to the *Running* mode.
 
@@ -122,8 +125,9 @@ and the third opens the Scipion GUI to see the project named *myAcquisition*.
 Dynamic templates
 -----------------
 
-Usually, we always must set the same parameters that are specific for each acquisition,
-such as deposition path, gain image path, dose per frame, particle size...
+Usually, we always must set the same parameters that are specific for each
+acquisition, such as deposition path, gain image path, dose per frame, particle
+size...
 Then, in order to avoid manually editing this parameters by opening every protocol
 in which belongs (using the procedure explained for the static templates in the
 previous section), Scipion has a mode to open modified templates in such a way
@@ -196,30 +200,36 @@ the *Import movies*, such as its label, the files path where to
 find the movies, the microscope's spherical aberration, the
 dose per frame applied... (underlined in yellow)
 
-In a common *JSON* file, all fields are made of key-value pairs where *key*
+In a common *JSON* file, all fields are made of *key:value* pairs where *key*
 (what is before ':') is always a *string* and the *value* (what is after ':')
-can be a *string* ("something coated"), a *number*, a
-*boolean* (true or false), a *list*, a *dictionary*, a *null*...
-(`read more info aboud JSON files <https://www.json.org>`_).
+can be a *string* ("something coated"), *number*,
+*boolean* (true or false), *list*, *dictionary*, *null*...
+(`read more info about JSON files <https://www.json.org>`_).
 
 .. figure:: /docs/images/custom-scipion-demo.png
    :align: center
    :width: 900
    :alt: custom scipion demo
 
-Additionally, we have created a easy syntax
-to add dynamic fields to that *JSON* file.
-Then, to add a dynamic field, you only have to substitute the value
-(what is after the ':') of a certain field for a string starting and ending by
-'~', and with three strings separated by '|', something like
+Notice that environ variables are allowed in any template parameter
+by means of the ``%(VAR)s`` casting.
+For instance, in the ``filesPath`` parameter,
+the ``%(HOME)s`` that will be replaced with the ``$HOME`` environ variable.
+
+Additionally, we have created an easy syntax to add dynamic fields to that
+*JSON* file, which will fed the wizard showed in the previous section.
+Then, to add a dynamic field, you only must replace the value
+(what is after the ':') of a certain parameter with a string starting and
+ending by '~', enclosing four fields separated by '|'.
+That's something like
 
 ::
 
-    "~label|defaultValue|typeValue|cmdId~"
+    anyField: "~label|defaultValue|typeValue|cmdId~"
 
-where *label* will be the name for the filed in the wizard form, *defaultValue* will
-be the default value inserted in that field and *typeValue* is a number which force
-the type of the value:
+where *label* is the field's name displayed in the wizard form,
+*defaultValue* is the default value inserted in that wizard field and
+*typeValue* is a number which forces the type of the final value according to
 
 * 0 for *strings*
 * 1 for *booleans*
@@ -227,20 +237,22 @@ the type of the value:
 * 3 for *integers*
 * 4 for *floats*.
 
-Scipion 3 incorporates a new feature in order to be able to launch dynamic
-templates with a single command line using the optional fourth field (*cmdId*).
+Moreover, Scipion 3 incorporates a new feature in order to be able
+to launch dynamic templates with a single command line
+using the optional fourth field (*cmdId*).
 See the `next section below <#launching-dynamic-templates-from-command-line>`_.
 
-In the figure above, there are three examples: the *filesPath*, *dosePerFrame*
-and *gainFile* fields (follow the arrows to see their behavior).
-In this case all three belongs to the same protocol.
+In the figure above, there are some examples such as *filesPath*,
+*spherical aberration*, *amplitude contrast*, *sampling rate*...
+(follow the arrows to see their behavior).
+In this case all them belongs to the same protocol.
 However there is no restriction in this way and, thus, you can add a dynamic
 field to any parameter to any protocol.
 
-Notice that the type for the *filesPath* field is set to 2, which means *path*,
-then Scipion will check if this path exists before starting to process.
-*gainFile* is set to 0 (*string*) to allow an empty value (to skip
-using a gain image if not needed). Finally, the 4 (*float* type) set to the
+Notice that the type for the *filesPath* field is set to 2 (meaning *path*),
+then Scipion will check if this path exists before starting to process. Instead,
+*gainFile* is set to 0 (*string*) to allow an empty value to skip
+using a gain image if not needed. Finally, the 4 (*float* type) set to the
 *dosePerFrame* allows to introduce non integer values.
 
 When you are happy with the modified *JSON* file, you can save it wherever you
@@ -248,13 +260,13 @@ consider and, then you can launch it with
 
 .. code-block:: bash
 
-    scipion3 tamplate /path/to/myTemplate.json.template
+    scipion3 tamplate /path/to/myDynamicTpl.json.template
 
-However, if dynamic templates are saved in
+However, if dynamic templates are saved in such a way like
 
 .. code-block:: bash
 
-    $SCIPION_HOME/config/myTemplate.json.template
+    $SCIPION_HOME/config/myDynamicTpl.json.template
 
 (where ``$SCIPION_HOME`` is where you have installed Scipion), Scipion will
 automatically discover them. The extension of this files have to be
@@ -263,13 +275,13 @@ by storing them in the mentioned directory with certain different file name,
 as long as they finishes with **.json.template**.
 
 When more than one dynamic template are found in the
-``$SCIPION_HOME/config`` directory, then the command
+``$SCIPION_HOME/config`` directory, the command
 
 .. code-block:: bash
 
     scipion template
 
-opens a menu to choose the dynamic template to launch
+opens an additional menu to choose the dynamic template to use.
 
 .. figure:: /docs/images/multiple-choice-scipion-demo.png
    :align: center
@@ -288,16 +300,16 @@ For instance, the following command
 
 ::
 
-    scipion3 template /path/to/myTemplate.json sa=2 ac=0.1 dose=1.2
+    scipion3 template /path/to/myDynamicTpl.json.template sa=2 ac=0.1 dose=1.2
 
-will load the ``/path/to/myTemplate.json`` by parsing the
+will load the ``/path/to/myDynamicTpl.json.template`` by parsing the
 *spherical aberration* (sa), the *amplitude contrast* (ac) and
 the *dose per frame* (dose) according to the passed values.
 
-If all dynamic parameters in the dynamic template are parsed,
+If all dynamic parameters are parsed in the command line,
 then the workflow is automatically triggered. Instead, if some
 parameters remains unset, a wizard similar to that described
-in the previous section asking for them is launched.
+in the previous section asks for them is launched.
 
 Using Scipion's API
 -------------------
