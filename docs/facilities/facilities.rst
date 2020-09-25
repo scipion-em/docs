@@ -11,7 +11,7 @@ On-the-fly processing
 For facilities
 ---------------
 Currently, scipion is being used every day in several facilities in Europe, US,
-Canada, Israel and Australia. If you are running a Cryo EM facility and want more
+Canada, Israel, Australia... If you are running a Cryo EM facility and want more
 info, please :ref:`contact us <contact-us>`. We will be happy to help you run
 Scipion there. Also, we have a `Slack <https://scipion.slack.com>`_ framework to
 maintain a direct communication channel.
@@ -75,8 +75,9 @@ providing more stability in streaming protocols keeping processing new data
 even if a certain bunch fails for some reason, etc.
 
 In addition, we have work more in the concept of consensus protocols, for
-merging and combining different approach (from different EM softwares) to do the
-same tasks, in order to get an improved result based on that different results.
+merging and combining different approaches (from different EM softwares)
+to do the same tasks, in order to get an improved result based on that
+different results.
 The consensus protocols family are for *CTF estimation*, *Picking*,
 *Initial Volume* and *3D classes*, so far.
 
@@ -85,9 +86,9 @@ that constantly check how the execution of other protocols is going on. We have
 developed several GUIs that are refreshed periodically and produce a graphical
 summary (e.g, CTF estimated values, system load, etc).
 Examples of monitors reports generated in *HTML* format can be seen at
-`http://scipion.cnb.csic.es/scipionbox/lastHTMLReport <http://scipion.cnb.csic.es/scipionbox/lastHTMLReport>`_
-while in URL `http://scipion.cnb.csic.es:3000/lastHTMLReport <http://scipion.cnb.csic.es:3000/lastHTMLReport>`_
-you can see a Grafana based report.
+`http://scipion.cnb.csic.es/scipionbox/lastHTMLReport <http://scipion.cnb.csic.es/scipionbox/lastHTMLReport>`_,
+while you can see a Grafana based report in the URL
+`http://scipion.cnb.csic.es:3000/lastHTMLReport <http://scipion.cnb.csic.es:3000/lastHTMLReport>`_.
 (Unfortunately, at present, Grafana server can only be accessed from within our local area network).
 Learn `how to customize the reports <customize-report>`_ according to your facilities' needs.
 
