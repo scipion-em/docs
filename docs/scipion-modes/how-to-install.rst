@@ -112,10 +112,11 @@ CentOS with conda
 CentOS with virtualenv
 ----------------------
 
+CentOS 7
+........
+
 ::
 
-CentOS 7
-========
     sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
     sudo yum install dnf
     sudo dnf -y install libaec-devel
@@ -125,7 +126,10 @@ CentOS 7
     python3 -m scipioninstaller /path/where/you/want/scipion -venv -j 4
 
 CentOS 8
-========
+........
+
+::
+
     sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
     sudo yum install dnf
     sudo dnf -y --enablerepo=PowerTools install libaec-devel
