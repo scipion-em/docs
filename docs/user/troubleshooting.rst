@@ -136,9 +136,30 @@ The reason is:
     This ends up making it impossible to predict what configuration is on your system, to allow us to make a precompiled bundle for you.
 
 Nevertheless, we have experimented a noticeable improvement in the stability in compilation time
-for the different Linux distributions (and its most recent versions) during the beta-test period.
+for the different Linux distributions (and its most recent versions) during the beta-testing period.
 However, if you are in some troubles, please, don't hesitate to :ref:`contact us <contact-us>`.
 
+Cannot compile with Java
+========================
+
+::
+
+    Checking Java configuration...
+    /usr/lib/jvm/java-11-openjdk-amd64/bin/javac Xmipp.java
+    /bin/sh: 1: /usr/lib/jvm/java-11-openjdk-amd64/bin/javac: not found
+    Check the JAVAC
+    Cannot compile with Java
+
+Java compiler is missing. Needs to install the jdk-devel version.
+In ubuntu would be like: 
+
+::
+
+    sudo apt-get install openjdk-11-jdk
+
+or activate a jdk with javac using alternatives.  
+
+If this is not the case, and you have <SCIPION_HOME>/config/scipion.conf (optional), review the JAVA_XXX variables there. They might be pointing to a non existing JAVA home.
 
 
 Troubleshooting for previous Scipion's versions
