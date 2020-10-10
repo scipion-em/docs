@@ -211,6 +211,7 @@
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">timedelta</span><span class="p">,</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">sqlite3</span> <span class="k">import</span> <span class="n">OperationalError</span>
 
 <span class="kn">import</span> <span class="nn">pyworkflow</span> <span class="k">as</span> <span class="nn">pw</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
@@ -249,17 +250,26 @@
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;filesPattern&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">StringParam</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Pattern&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Pattern of the tilt series</span><span class="se">\n\n</span><span class="s2">&quot;</span>
-                           <span class="s2">&quot;The pattern can contain standard wildcards such as</span><span class="se">\n</span><span class="s2">&quot;</span>
-                           <span class="s2">&quot;*, ?, etc.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
-                           <span class="s2">&quot;It should also contains the following special tags:&quot;</span>
-                           <span class="s2">&quot;   </span><span class="si">{TS}</span><span class="s2">: tilt series identifier &quot;</span>
-                           <span class="s2">&quot;         (can be any UNIQUE part of the path).</span><span class="se">\n</span><span class="s2">&quot;</span>
-                           <span class="s2">&quot;   </span><span class="si">{TO}</span><span class="s2">: acq order&quot;</span>
-                           <span class="s2">&quot;         (an integer value, important for dose).</span><span class="se">\n</span><span class="s2">&quot;</span>
-                           <span class="s2">&quot;   </span><span class="si">{TA}</span><span class="s2">: tilt angle&quot;</span>
-                           <span class="s2">&quot;         (positive or negative float value).</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                           <span class="s2">&quot;The pattern can contain standard wildcards such as *, ?, etc.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                           <span class="s2">&quot;It should also contains the following special tags:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                           <span class="s2">&quot;   </span><span class="si">{TS}</span><span class="s2">: tilt series identifier, which can be any UNIQUE part of the path. This must be an &quot;</span>
+                           <span class="s2">&quot;alpha-numeric sequence (avoid symbols as -) that can not start with a number.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                           <span class="s2">&quot;   </span><span class="si">{TO}</span><span class="s2">: acquisition order, an integer value (important for dose).</span><span class="se">\n</span><span class="s2">&quot;</span>
+                           <span class="s2">&quot;   </span><span class="si">{TA}</span><span class="s2">: tilt angle, a positive or negative float value.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
                            <span class="s2">&quot;Examples:</span><span class="se">\n</span><span class="s2">&quot;</span>
-                           <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                           <span class="s2">&quot;To import a set of image stacks (tilt-series or tilt-series movies) as: </span><span class="se">\n</span><span class="s2">&quot;</span>
+                           <span class="s2">&quot;TiltSeries_a_001_0.0.mrc</span><span class="se">\n</span><span class="s2">&quot;</span>
+                           <span class="s2">&quot;TiltSeries_a_002_3.0.mrc</span><span class="se">\n</span><span class="s2">&quot;</span>
+                           <span class="s2">&quot;TiltSeries_a_003_-3.0.mrc</span><span class="se">\n</span><span class="s2">&quot;</span>
+                           <span class="s2">&quot;...</span><span class="se">\n</span><span class="s2">&quot;</span>
+                           <span class="s2">&quot;TiltSeries_b_001_0.0.mrc</span><span class="se">\n</span><span class="s2">&quot;</span>
+                           <span class="s2">&quot;TiltSeries_b_002_3.0.mrc</span><span class="se">\n</span><span class="s2">&quot;</span>
+                           <span class="s2">&quot;TiltSeries_b_003_-3.0.mrc</span><span class="se">\n</span><span class="s2">&quot;</span>
+                           <span class="s2">&quot;...</span><span class="se">\n</span><span class="s2">&quot;</span>
+                           <span class="s2">&quot;The pattern TiltSeries_</span><span class="si">{TS}</span><span class="s2">_</span><span class="si">{TO}</span><span class="s2">_</span><span class="si">{TA}</span><span class="s2">.mrc will identify:</span><span class="se">\n</span><span class="s2">&quot;</span>
+                           <span class="s2">&quot;</span><span class="si">{TS}</span><span class="s2"> as a, b, ...</span><span class="se">\n</span><span class="s2">&quot;</span>
+                           <span class="s2">&quot;</span><span class="si">{TO}</span><span class="s2"> as 001, 002, 003, ...</span><span class="se">\n</span><span class="s2">&quot;</span>
+                           <span class="s2">&quot;</span><span class="si">{TA}</span><span class="s2"> as 0.0, 3.0, -3.0, ...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineAngleParam</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;importAction&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span>
                       <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">IMPORT_LINK_REL</span><span class="p">,</span>
@@ -404,10 +414,14 @@
                 <span class="n">outputSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tsObj</span><span class="p">)</span>
                 <span class="c1"># Add tilt images to the tiltSeries</span>
                 <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">to</span><span class="p">,</span> <span class="n">ta</span> <span class="ow">in</span> <span class="n">tiltSeriesList</span><span class="p">:</span>
-                    <span class="n">tsObj</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tiClass</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">f</span><span class="p">,</span>
-                                         <span class="n">acquisitionOrder</span><span class="o">=</span><span class="n">to</span><span class="p">,</span>
-                                         <span class="n">tiltAngle</span><span class="o">=</span><span class="n">ta</span><span class="p">))</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">tsObj</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tiClass</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">f</span><span class="p">,</span>
+                                             <span class="n">acquisitionOrder</span><span class="o">=</span><span class="n">to</span><span class="p">,</span>
+                                             <span class="n">tiltAngle</span><span class="o">=</span><span class="n">ta</span><span class="p">))</span>
+                    <span class="k">except</span> <span class="n">OperationalError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
 
+                        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is an invalid for the </span><span class="si">{TS}</span><span class="s2"> field, it must be an alpha-numeric sequence &quot;</span>
+                                        <span class="s2">&quot;(avoid symbols as -) that can not start with a number.&quot;</span> <span class="o">%</span> <span class="n">ts</span><span class="p">)</span>
                 <span class="n">outputSet</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">tsObj</span><span class="p">)</span>  <span class="c1"># update items and size info</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_existingTs</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span>
                 <span class="n">someAdded</span> <span class="o">=</span> <span class="kc">True</span>
@@ -501,7 +515,8 @@
             <span class="k">return</span> <span class="n">p</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_regexPattern</span> <span class="o">=</span> <span class="n">_replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pattern</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;(.*)&#39;</span><span class="p">),</span>
-                                      <span class="s1">&#39;(?P&lt;TS&gt;.*)&#39;</span><span class="p">,</span> <span class="s1">&#39;(?P&lt;TO&gt;\d+)&#39;</span><span class="p">,</span>
+                                      <span class="s1">&#39;(?P&lt;TS&gt;.*)&#39;</span><span class="p">,</span>
+                                      <span class="s1">&#39;(?P&lt;TO&gt;\d+)&#39;</span><span class="p">,</span>
                                       <span class="s1">&#39;(?P&lt;TA&gt;[+-]?\d+(\.\d+)?)&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_regexPattern</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_globPattern</span> <span class="o">=</span> <span class="n">_replace</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pattern</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">)</span>
@@ -533,7 +548,7 @@
 <span class="sd">            let&#39;s add a prefix if it is not the case</span>
 <span class="sd">            &quot;&quot;&quot;</span>
             <span class="n">tsId</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;TS&#39;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="s1">&#39;TS_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">tsId</span> <span class="k">if</span> <span class="n">tsId</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">isdigit</span><span class="p">()</span> <span class="k">else</span> <span class="n">tsId</span>
+            <span class="k">return</span> <span class="n">tsId</span>
 
         <span class="k">def</span> <span class="nf">_addOne</span><span class="p">(</span><span class="n">fileList</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot; Add one file matching to the list. &quot;&quot;&quot;</span>
@@ -700,7 +715,7 @@
                             <span class="s1">&#39;It can be defined by range: Min, Max, Step &#39;</span>
                             <span class="s1">&#39;or from image header, or from complementary&#39;</span>
                             <span class="s1">&#39;mdoc or tlt files (should have the same filename &#39;</span>
-                            <span class="s1">&#39;plus the .mdoc or .tlt extension).&#39;</span><span class="p">)</span>
+                            <span class="s1">&#39;but with the .mdoc or .tlt extension).&#39;</span><span class="p">)</span>
 
         <span class="n">line</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="s1">&#39;Tilt angular range&#39;</span><span class="p">,</span>
                              <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;anglesFrom==0&#39;</span><span class="p">,</span>  <span class="c1"># ANGLES_FROM_RANGE</span>
