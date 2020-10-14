@@ -11,7 +11,7 @@ Writing Tests
 Writing tests for Scipion is much like writing tests for other python code. Tests
 need to be thorough, fast, isolated, consistently repeatable, and as simple as
 possible. We try to have tests both for normal behaviour and for error
-conditions. Tests live in the <module>/tests directory, where every file that
+conditions. Tests live in the `<module>/tests` directory, where every file that
 includes tests has a test_ prefix.
 
 When you are adding tests to an existing test file, it is also recommended that
@@ -23,9 +23,9 @@ BaseTest Class
 ---------------
 
 **BaseTest** is a class that inherits from the Python’s standard library called
-*unittest.TestCase* which contains tools for testing your code. Unit testing checks if all
-specific parts of your function’s behavior are correct, which will make
-integrating  them together with other parts much easier.
+*unittest.TestCase* which contains tools for testing your code. Unit testing
+checks if all specific parts of your function’s behavior are correct, which
+will make integrating  them together with other parts much easier.
 
 In order to write BaseTest tests, you must:
 
@@ -40,7 +40,7 @@ DataSets
 In order to create and run Scipion tests, we provide a set of DataSets that can be
 used for such purposes. They are hosted on the institution's servers and when
 invoked from Scipion, they are downloaded locally to be used by the tests. Each
-one is contained by volumes, set of particles, micrographs, movies, etc ...
+one is contained by volumes, stack of particles, micrographs, movies, etc ...
 
 The dataset list can be displayed with the following command:
 
@@ -62,10 +62,10 @@ The downloaded dataset folder is locate in:
 
 .. code-block:: bash
 
-    $ ~/<scipion_folder>/data/tests/<dataset_name>
+    $ ~/<scipion_folder>/data/tests/
 
 
-Another way to use the datasets that are provided by Scipion is to let the tests
+Another way to use the datasets that are provided by Scipion, is to let the tests
 themselves take responsibility for downloading them and then select the data
 that will be used by the test. In that sence, Scipion provide a class named
 **DataSet** which is responsible for download and handle the datasets. We will
@@ -82,8 +82,8 @@ Passing a test
 ------------------
 
 Here’s a typical scenario for writing tests. We'll use cryosparc 2D
-classification test as example which from a Set of Particles classifies them
-into a set of classes
+classification test as example which from a set of particles classifies them
+into a set of classes.
 
 First you need to create a test file. Then import the BaseTest and DataSet
 classes, define the testing class that inherits from BaseTest, and lastly, write a
@@ -140,7 +140,9 @@ instance (`newProtocol(ProtocolClass) method`) through the project and return a
 newly created protocol of the given class. After that, we will proceed to
 execute it and then we will check if the output has been correct.
 
-    newProtocol method accept *kwargs* that represent the protocol parameters.
+* **newProtocol**: method to create new protocols instances through the project
+and return a newly created protocol of the given class. This method accept
+*kwargs* that represent the protocol parameters.
 
 .. code-block:: python
 
