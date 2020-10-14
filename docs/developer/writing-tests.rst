@@ -29,8 +29,8 @@ will make integrating  them together with other parts much easier.
 
 In order to write BaseTest tests, you must:
 
-    - Write your tests as methods within classes
-    - Use a series of built-in assertion methods
+- Write your tests as methods within classes
+- Use a series of built-in assertion methods
 
 
 ---------
