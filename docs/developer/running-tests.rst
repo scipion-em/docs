@@ -53,9 +53,12 @@ Note that the class TestUtils derived from `unittest.TestCase`. if we use
         if __name__ == '__main__':
             unittest.main()
 
-The final block shows a simple way to run the tests. The unittest module can be
-used from the command line to run tests from modules, classes or even individual
-test methods:
+The final block shows a simple way to run the tests. This is a command line
+entry point. It means that if you execute the script alone by running python
+`test_utils.py` at the command line, it will call `unittest.main()`. This executes the
+test runner by discovering all classes or even individual test methods in this
+file. The `unittest` module can
+be used for such purposes:
 
 .. code-block:: bash
 
@@ -84,6 +87,8 @@ Scipion discovers all tests using the following command:
 
     ./scipion3 test
 
+This command creates a list with Scipion's own tests as well as the tests of
+the installed plugins.
 
 The other commands that can be used are shown below:
 
