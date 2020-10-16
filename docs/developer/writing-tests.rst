@@ -42,7 +42,7 @@ into a set of classes.
 
 First you need to create a test file. Then the BaseTest class from
 which our class will inherit will be imported. On the other hand, we will
-import the Dataset class which is in charge of handlind the `DataSets <dev-datasets>`_,
+import the Dataset class which is in charge of handling the `DataSets <datasets-dev>`_,
 and lastly, write a series of methods to test all the cases of your function’s
 behavior.
 
