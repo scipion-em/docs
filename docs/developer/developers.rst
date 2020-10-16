@@ -31,11 +31,11 @@ Scipion can be 'easily' extended by `Creating a Plugin <creating-a-plugin>`_ to
 do a specific task or to introduce a new software package:
 
 * `Creating a protocol <creating-a-protocol>`_
-*  Integrating parameter Wizards
-*  Developing output Viewers
+* `Integrating parameter Wizards <creating-a-wizard>`_
+* `Developing output Viewers <creating-a-viewer>`_
 * `Creating a monitor <creating-a-monitor>`_
 * `Customize the HTML report <customize-html-report>`_
-*  `Writing Tests <writing-tests>`_
+* `Writing Tests <writing-tests>`_
 
 
 Development Tools
