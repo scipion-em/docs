@@ -8,346 +8,152 @@
 Running Tests
 ==================
 
-From early stages in the development of Scipion, we have included a
-number of automatic tests. There is an automatic tool (buildbot) that
-executes periodically those tests and those executions can be
-examined in http://scipion-test.cnb.csic.es:9980/#/
-
-Some of these tests run very quick. Their main goal is to validate the
-behavior of some important classes and functions (in the spirit of unit
-tests).
-
-Other tests are more focused on the execution of protocols and complete
-workflows. They usually take more time to execute, and require some
-input data (which should be downloaded automatically on demand).
-
-In the following sections you will find a brief explanation about the
-more important tests, and their input data. All of them must be executed 
-from the command line using the specified commands.
-
-.. contents:: Table of Contents
+There are many test runners available for Python. The one built into the Python
+standard library is called `unittest`. The principles of unittest are easily
+portable to other frameworks. **BaseTest** is a Scipion class that inherits
+from that library which contains tools for testing our code and it is precisely
+the one used for such purposes.
 
 
-Small tests
-============
-
-Classes and functions
----------------------
-
-+-----------+-----------------------------------------------------+
-| Plugins   | Eman2 2.3                                           |
-+-----------+-----------------------------------------------------+
-|           | ``scipion test pyworkflow.tests.model.test_object`` |
-+-----------+-----------------------------------------------------+
-|  Command  | ``scipion test pyworkflow.tests.model.test_mappers``|
-+-----------+-----------------------------------------------------+
-|           | ``scipion test pyworkflow.tests.em.data.test_data`` |
-+-----------+-----------------------------------------------------+
-|           | ``scipion tests xmipp3.tests.test_convert_xmipp``   |
-+-----------+-----------------------------------------------------+
-
-Spider MDA Workflow
---------------------
-
-+-----------+-------------------------------------------------------+
-| Plugins   | Spider                                                |
-+-----------+-------------------------------------------------------+
-| Command   | ``scipion test spider.tests.test_workflow_spiderMDA`` |
-+-----------+-------------------------------------------------------+
-|  Input    | Fake dataset of Worm Hemogoblin with 76 images        |
-+-----------+-------------------------------------------------------+
-|  Time     | ~50 sec                                               |
-+-----------+-------------------------------------------------------+
-
-
-
-EMX import
------------
-
-+-----------+-------------------------------------------------------------+
-| Plugins   | emxlib                                                      |
-+-----------+-------------------------------------------------------------+
-| Command   | ``scipion test emxlib.tests.test_protocols_emx``            |
-+-----------+-------------------------------------------------------------+
-|  Input    | The different data sets used in http://i2pc.cnb.csic.es/emx |
-+-----------+-------------------------------------------------------------+
-|  Time     | ~10 sec                                                     |
-+-----------+-------------------------------------------------------------+
-
-
-CTF Discrepancy
------------------
-
-+-----------+----------------------------------------------------------------------------------+
-| Plugins   | Xmipp, grigoriefflab                                                             |
-+-----------+----------------------------------------------------------------------------------+
-| Command   | ``scipion test pyworkflow.tests.em.workflows.test_workflow_xmipp_ctf_consensus`` |
-+-----------+----------------------------------------------------------------------------------+
-|  Input    | CTF obtained from micrograph of PcV                                              |
-|           | (http://dx.doi.org/doi:10.1073/pnas.1404330111)                                  |
-+-----------+----------------------------------------------------------------------------------+
-|  Time     | ~10 sec                                                                          |
-+-----------+----------------------------------------------------------------------------------+
-
-
-Medium tests
-============
-
-Xmipp Workflow
----------------
-
-+-----------+--------------------------------------------------------------------------------------+
-| Plugins   | Xmipp                                                                                |
-+-----------+--------------------------------------------------------------------------------------+
-| Command   | ``scipion tests pyworkflow.tests.em.workflows.test_workflow_xmipp``                  |
-+-----------+--------------------------------------------------------------------------------------+
-|  Input    | Same data as in Xmipp Workflow. A refined volume generated with Frealign is obtained |
-+-----------+--------------------------------------------------------------------------------------+
-|  Time     | ~300 sec                                                                             |
-+-----------+--------------------------------------------------------------------------------------+
-|  CPU      | i7-2640M 2.8GHz, 8GB RAM                                                             |
-+-----------+--------------------------------------------------------------------------------------+
-
-
-
-
-Mixed Workflow 3D Reconstruction
---------------------------------
-+-----------+--------------------------------------------------------------------------------------+
-| Plugins   | Xmipp, EMAN                                                                          |
-+-----------+--------------------------------------------------------------------------------------+
-| Command   | ``scipion test pyworkflow.tests.em.workflows.test_workflow_mixed.TestMixedBPV``      |
-+-----------+--------------------------------------------------------------------------------------+
-|  Input    | Same data as in Xmipp Workflow. A refined volume generated with Frealign is obtained |
-+-----------+--------------------------------------------------------------------------------------+
-|  Time     | ~150 sec                                                                             |
-+-----------+--------------------------------------------------------------------------------------+
-|  CPU      | i7-2640M 2.8GHz, 8GB RAM                                                             |
-+-----------+--------------------------------------------------------------------------------------+
-
-Mixed Workflow Initial Volume
-------------------------------
-
-+-----------+--------------------------------------------------------------------------------------+
-| Plugins   | Xmipp, EMAN                                                                          |
-+-----------+--------------------------------------------------------------------------------------+
-| Command   | ``scipion test pyworkflow.tests.em.workflows.test_workflow_mixed.TestMixedBPV2``     |
-+-----------+--------------------------------------------------------------------------------------+
-|  Input    | Same data as in Xmipp Workflow. An initial volume generated with EMAN is obtained    |
-+-----------+--------------------------------------------------------------------------------------+
-|  Time     | ~200 sec                                                                             |
-+-----------+--------------------------------------------------------------------------------------+
-|  CPU      | i7-2640M 2.8GHz, 8GB RAM                                                             |
-+-----------+--------------------------------------------------------------------------------------+
-
-Large Tests
-===========
-
-[WARNING]
-The following tests must be run on computers with enough processing power.
-
-Mixed Workflow Relion 2D classification
--------------------------------------------
-
-+-----------+----------------------------------------------------------------------------------------------------+
-| Plugins   | Xmipp, CTFfind, EMAN, Relion                                                                       |
-+-----------+----------------------------------------------------------------------------------------------------+
-| Command   | ``scipion test pyworkflow.tests.em.workflows.test_workflow_mixed_large.TestMixedRelionTutorial``   |
-+-----------+----------------------------------------------------------------------------------------------------+
-|  Input    | Dataset with 20 micrographs of the Ribosome.                                                       |
-+-----------+----------------------------------------------------------------------------------------------------+
-|  Time     | ~3*h* sec                                                                                          |
-+-----------+----------------------------------------------------------------------------------------------------+
-|  CPU      | 16 CPUs. Xeon(R) E5540 2.53 GHz, 64 GB RAM                                                         |
-+-----------+----------------------------------------------------------------------------------------------------+
-
-
-Mixed Workflow Frealign 3D classification
---------------------------------------------
-
-+-----------+------------------------------------------------------------------------------------------------------+
-| Plugins   | Xmipp, CTFfind, EMAN, Frealign                                                                       |
-+-----------+------------------------------------------------------------------------------------------------------+
-| Command   | ``scipion test pyworkflow.tests.em.workflows.test_workflow_mixed_large.TestMixedFrealignClassify``   |
-+-----------+------------------------------------------------------------------------------------------------------+
-|  Input    | Same data as in **Mixed Workflow Relion 2D classification**.                                         |
-+-----------+------------------------------------------------------------------------------------------------------+
-|  Time     | ~30 min                                                                                              |
-+-----------+------------------------------------------------------------------------------------------------------+
-|  CPU      | 16 CPUs. Xeon(R) E5540 2.53 GHz, 64 GB RAM                                                           |
-+-----------+------------------------------------------------------------------------------------------------------+
-
-
-Random Conical Tilt reconstruction
-----------------------------------
-
-+-----------+-------------------------------------------------------------------------+
-| Plugins   | Xmipp                                                                   |
-+-----------+-------------------------------------------------------------------------+
-| Command   | ``scipion test pyworkflow.tests.em.workflows.test_workflow_xmipp_rct``  |
-+-----------+-------------------------------------------------------------------------+
-|  Input    |  Dataset with 6 pairs of untilted-tilted micrographs.                   |
-+-----------+-------------------------------------------------------------------------+
-|  Time     | ~15 min                                                                 |
-+-----------+-------------------------------------------------------------------------+
-|  CPU      | 4 CPUs. Intel(R) Core(TM) i7-2640M CPU @ 2.80GHz, 8 GB RAM              |
-+-----------+-------------------------------------------------------------------------+
-
-
-Procotol Tests
-===============
-
-Import different type of objects
----------------------------------
-
-+-----------------------+------------------------------------------------------------------------------------+
-| Plugins               | Scipion                                                                            |
-+-----------------------+------------------------------------------------------------------------------------+
-| Import micrographs    | ``scipion test pyworkflow.tests.em.protocols.test_protocols_import_micrographs``   |
-+-----------------------+------------------------------------------------------------------------------------+
-|  Import particles     |  ``scipion test pyworkflow.tests.em.protocols.test_protocols_import_particles``    |
-+-----------------------+------------------------------------------------------------------------------------+
-|  Import volumes       | ``scipion test pyworkflow.tests.em.protocols.test_protocols_import_volumes``       |
-+-----------------------+------------------------------------------------------------------------------------+
-|  Input                | From different datasets                                                            |
-+-----------------------+------------------------------------------------------------------------------------+
-|  Time                 | ~15 min                                                                            |
-+-----------------------+------------------------------------------------------------------------------------+
-|  CPU                  | i7-2640M 2.8GHz, 8GB RAM                                                           |
-+-----------------------+------------------------------------------------------------------------------------+
-
-
-Processing micrographs
------------------------
-
-+--------------------+----------------------------------------------------------------------------------------+
-| Plugins            | Xmipp                                                                                  |
-+--------------------+----------------------------------------------------------------------------------------+
-| preprocess         | ``scipion test xmipp3.tests.test_protocols_xmipp_mics.TestXmippPreprocessMicrographs`` |
-+--------------------+----------------------------------------------------------------------------------------+
-|  ctf estimation    |  ``scipion test xmipp3.tests.test_protocols_xmipp_mics.TestXmippCTFEstimation``        |
-+--------------------+----------------------------------------------------------------------------------------+
-|  Extract Particles | ``scipion test xmipp3.tests.test_protocols_xmipp_mics.TestXmippExtractParticles``      |
-+--------------------+----------------------------------------------------------------------------------------+
-|  Software          | Grigoriefflab                                                                          |
-+--------------------+----------------------------------------------------------------------------------------+
-|  ctf estimation    | ``scipion test grigoriefflab.tests.test_protocols_grigoriefflab.TestCtffind4``         |
-+--------------------+----------------------------------------------------------------------------------------+
-|  Input             | Dataset xmipp tutorial                                                                 |
-+--------------------+----------------------------------------------------------------------------------------+
-|  Time              |                                                                                        |
-+--------------------+----------------------------------------------------------------------------------------+
-|  CPU               | i7-2640M 2.8GHz, 8GB RAM                                                               |
-+--------------------+----------------------------------------------------------------------------------------+
-
-
-
-Preprocessing 2D
------------------
-
-+----------------------+----------------------------------------------------------------------------------+
-| Plugins              | Xmipp                                                                            |
-+----------------------+----------------------------------------------------------------------------------+
-|  Create Mask 2D      | ``scipion test xmipp3.tests.test_protocols_xmipp_2d.TestXmippCreateMask2D``      |
-+----------------------+----------------------------------------------------------------------------------+
-|  Apply Mask 2D       |  ``scipion test xmipp3.tests.test_protocols_xmipp_2d.TestXmippApplyMask2D``      |
-+----------------------+----------------------------------------------------------------------------------+
-|  Filter Particles    | ``scipion test xmipp3.tests.test_protocols_xmipp_2d.TestXmippFilterParticles``   |
-+----------------------+----------------------------------------------------------------------------------+
-|  Software            | Relion                                                                           |
-+----------------------+----------------------------------------------------------------------------------+
-| Preprocess Particles | ``scipion test relion.tests.test_protocols_relion.TestRelionPreprocess``         |
-+----------------------+----------------------------------------------------------------------------------+
-|  Input               | From different datasets                                                          |
-+----------------------+----------------------------------------------------------------------------------+
-|  Time                |  ~400 sec                                                                        |
-+----------------------+----------------------------------------------------------------------------------+
-|  CPU                 | i7-2640M 2.8GHz, 8GB RAM                                                         |
-+----------------------+----------------------------------------------------------------------------------+
-
-Particles alignment and classification
----------------------------------------
-
-+----------------------+----------------------------------------------------------------------------------+
-| Plugins              | Xmipp                                                                            |
-+----------------------+----------------------------------------------------------------------------------+
-|  ML2D                | ``scipion test xmipp3.tests.test_protocols_xmipp_2d.TestXmippML2D``              |
-+----------------------+----------------------------------------------------------------------------------+
-|  CL2D                |  ``scipion test xmipp3.tests.test_protocols_xmipp_2d.TestXmippCL2D``             |
-+----------------------+----------------------------------------------------------------------------------+
-|  CL2D Align          | ``scipion test xmipp3.tests.test_protocols_xmipp_2d.TestXmippProtCL2DAlign``     |
-+----------------------+----------------------------------------------------------------------------------+
-|  Apply Alignment     | ``scipion test xmipp3.tests.test_protocols_xmipp_2d.TestXmippApplyAlignment``    |
-+----------------------+----------------------------------------------------------------------------------+
-|  Rotational Spectra   | ``scipion test xmipp3.tests.test_protocols_xmipp_2d.TestXmippRotSpectra``       |
-+----------------------+----------------------------------------------------------------------------------+
-|  Kerdensom           | ``scipion test xmipp3.tests.test_protocols_xmipp_2d.TestXmippKerdensom``         |
-+----------------------+----------------------------------------------------------------------------------+
-|  Software            |  Relion                                                                          |
-+----------------------+----------------------------------------------------------------------------------+
-|  Classify 2D         | ``scipion test relion.tests.test_protocols_relion.TestRelionClassify2D``         |
-+----------------------+----------------------------------------------------------------------------------+
-|  Input               | Mda dataset                                                                      |
-+----------------------+----------------------------------------------------------------------------------+
-|  Time                | ``scipion test relion.tests.test_protocols_relion.TestRelionClassify2D``         |
-+----------------------+----------------------------------------------------------------------------------+
-|  CPU                 | i7-2640M 2.8GHz, 8GB RAM                                                         |
-+----------------------+----------------------------------------------------------------------------------+
-
-
-Preprocessing 3D
-------------------
-+----------------------+----------------------------------------------------------------------------------+
-| Software             | Xmipp                                                                            |
-+----------------------+----------------------------------------------------------------------------------+
-|  Create Mask 3D      | ``scipion test xmipp3.tests.test_protocols_xmipp_3d.TestXmippCreateMask3D``      |
-+----------------------+----------------------------------------------------------------------------------+
-|  Apply Mask 3D       | ``scipion test xmipp3.tests.test_protocols_xmipp_3d.TestXmippApplyMask3D``       |
-+----------------------+----------------------------------------------------------------------------------+
-|  Filter Volumes      | ``scipion test xmipp3.tests.test_protocols_xmipp_3d.TestXmippFilterVolumes``     |
-+----------------------+----------------------------------------------------------------------------------+
-| Preprocess Volumes   | ``scipion test xmipp3.tests.test_protocols_xmipp_3d.TestXmippPreprocessVolumes`` |
-+----------------------+----------------------------------------------------------------------------------+
-|  Input               | Same data as in Xmipp Workflow.                                                  |
-+----------------------+----------------------------------------------------------------------------------+
-|  Time                |  ~400 sec                                                                        |
-+----------------------+----------------------------------------------------------------------------------+
-|  CPU                 | i7-2640M 2.8GHz, 8GB RAM                                                         |
-+----------------------+----------------------------------------------------------------------------------+
-
-
-
-Initial volume
----------------
-+--------------------------+--------------------------------------------------------------------------------------------+
-| Test                     | *Significant*                                                                              |
-+--------------------------+--------------------------------------------------------------------------------------------+
-| Software                 | Xmipp                                                                                      |
-+--------------------------+--------------------------------------------------------------------------------------------+
-|  Reconstruct significant | ``scipion test pyworkflow.tests.em.workflows.test_workflow_initialvolume.TestSignificant`` |
-+--------------------------+--------------------------------------------------------------------------------------------+
-|  Input                   | Groel data                                                                                 |
-+--------------------------+--------------------------------------------------------------------------------------------+
-|  Time                    |  ~27 min                                                                                   |
-+--------------------------+--------------------------------------------------------------------------------------------+
-|  CPU                     | 4 CPUs on Asimov                                                                           |
-+--------------------------+--------------------------------------------------------------------------------------------+
-
-
-Classify 3D
+Basic example
 -------------
 
-+--------------------------+--------------------------------------------------------------------------+
-| Test                     | *Classify 3D*                                                            |
-+--------------------------+--------------------------------------------------------------------------+
-| Software                 | Relion                                                                   |
-+--------------------------+--------------------------------------------------------------------------+
-| Relion Classify 3D       | ``scipion test relion.tests.test_protocols_relion.TestRelionClassify3D`` |
-+--------------------------+--------------------------------------------------------------------------+
-|  Input                   | MDA data                                                                 |
-+--------------------------+--------------------------------------------------------------------------+
-|  Time                    | ~200 sec                                                                 |
-+--------------------------+--------------------------------------------------------------------------+
-|  CPU                     | i7-2640M 2.8GHz, 8GB RAM                                                 |
-+--------------------------+--------------------------------------------------------------------------+
+Here is a short script (`named test_utils.py`) to test a methods that calculate a
+new sampling rate of a set of particles that has been downsampled:
+
+.. code-block:: python
+
+        import unittest
+
+        class TestUtils(unittest.TestCase):
+
+            def testSamplingRateConvertion(self):
+
+                sr = calculateNewSamplingRate((2, 2, 2), 4, (4, 4, 4))
+                self.assertEqual(sr, 8, "Wrong sampling rate conversion 1")
+
+             def calculateNewSamplingRate(newDims, previousSR, previousDims):
+                   pX = previousDims[0]
+                   nX = newDims[0]
+                   return previousSR*pX/nX
+
+        if __name__ == '__main__':
+            unittest.main()
+
+Note that the class TestUtils derived from `unittest.TestCase`. if we use
+`BaseTest` class, the code will be this:
+
+.. code-block:: python
+
+        from pyworkflow.tests import BaseTest
+
+        class TestUtils(BaseTest):
+             ....................
+
+        if __name__ == '__main__':
+            unittest.main()
+
+The final block shows a simple way to run the tests. The unittest module can be
+used from the command line to run tests from modules, classes or even individual
+test methods:
+
+.. code-block:: bash
+
+        python -m unittest test_utils
+        python -m unittest test_utils.TestUtils
+        python -m unittest test_utils.TestUtils.testSamplingRateConvertion
+
+When run from the command line, the above script produces an output that looks
+like this:
+
+.. code-block:: bash
+
+        ...
+        ----------------------------------------------------------------------
+        Ran 1 tests in 0.000s
+
+        OK
+
+
+Running tests with Scipion
+--------------------------
+
+Scipion discovers all tests using the following command:
+
+::
+
+    ./scipion3 test
+
+
+The other commands that can be used are shown below:
+
+::
+
+    usage: ./scipion3 tests [-h] [--run | --show] [--pattern PATTERN]
+                            [--grep GREP [GREP ...]] [--skip SKIP [SKIP ...]]
+                            [--log [LOG]] [--mode {modules,classes,onlyclasses,all}]
+                            [TEST [TEST ...]]
+
+    Run or show the selected tests. Tests can be selected by giving the "case", or
+    by giving the paths and file pattern to use for searching them.
+
+    positional arguments:
+      TEST                  test case from string identifier (module, class or
+                            callable)
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      --run                 run the selected tests
+      --show                show available tests
+      --pattern PATTERN     pattern for the files that will be used in the tests
+      --grep GREP [GREP ...]
+                            only show/run tests containing the provided words
+      --skip SKIP [SKIP ...]
+                            skip tests that contains these words
+      --log [LOG]           Generate logs files with the output of each test.
+      --mode {modules,classes,onlyclasses,all}
+                            how much detail to give in show mode
+
+example:
+
+::
+
+    ./scipion3 test --grep cryosparc
+
+     scipion3 tests cryosparc2.tests.test_utils
+       scipion3 tests cryosparc2.tests.test_utils.TestUtils
+     scipion3 tests cryosparc2.tests.test_protocols_cryosparc2
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcSharppening
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcParticlesSubtract
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcNonUniformRefine3D
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcLocalRefine
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcLocalCtfRefinement
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcGlobalCtfRefinement
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcClassify2D
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparc3DRefinement
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparc3DInitialModel
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparc3DClassification
+
+This command shows all tests that matching with the pattern "cryosparc" with the
+following order: <module_name>.<tests_folder>.<test_file>.<test_class_derived_from_BaseTest>
+
+To execute an Scipion test just type:
+
+::
+
+    $ ./scipion3 tests cryosparc2.tests.test_utils.TestUtils
+
+and above script produces the following output:
+
+::
+
+        Running tests....
+        [ RUN   OK ] TestUtils.testSamplingRateConvertion (0.000 secs)
+
+        [==========] run 1 tests (0.000 secs)
+        [  PASSED  ] 1 tests
+
+
+and all the defined tests within the class TestUtils will be run automatically.
+
 

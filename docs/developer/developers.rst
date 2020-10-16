@@ -35,7 +35,9 @@ do a specific task or to introduce a new software package:
 * `Developing output Viewers <creating-a-viewer>`_
 * `Creating a monitor <creating-a-monitor>`_
 * `Customize the HTML report <customize-html-report>`_
-* `Writing Tests <writing-tests>`_
+*  `Writing tests <writing-tests>`_
+*  `Running tests <running-tests>`_
+*  `Buildbot <buildbot>`_
 
 
 Development Tools
