@@ -8,93 +8,97 @@
 Running Tests
 ==================
 
-There are many test runners available for Python. The one built into the Python
-standard library is called `unittest`. The principles of unittest are easily
-portable to other frameworks. **BaseTest** is a Scipion class that inherits
-from that library which contains tools for testing our code and it is precisely
-the one used for such purposes.
-
-
-Basic example
--------------
-
-Here is a short script (`named test_utils.py`) to test a methods that calculate a
-new sampling rate of a set of particles that has been downsampled:
-
-.. code-block:: python
-
-        import unittest
-
-        class TestUtils(unittest.TestCase):
-
-            def testSamplingRateConvertion(self):
-
-                sr = calculateNewSamplingRate((2, 2, 2), 4, (4, 4, 4))
-                self.assertEqual(sr, 8, "Wrong sampling rate conversion 1")
-
-             def calculateNewSamplingRate(newDims, previousSR, previousDims):
-                   pX = previousDims[0]
-                   nX = newDims[0]
-                   return previousSR*pX/nX
-
-        if __name__ == '__main__':
-            unittest.main()
-
-Note that the class TestUtils derived from `unittest.TestCase`. if we use
-`BaseTest` class, the code will be this:
-
-.. code-block:: python
-
-        from pyworkflow.tests import BaseTest
-
-        class TestUtils(BaseTest):
-             ....................
-
-        if __name__ == '__main__':
-            unittest.main()
-
-The final block shows a simple way to run the tests. This is a command line
-entry point. It means that if you execute the script alone by running python
-`test_utils.py` at the command line, it will call `unittest.main()`. This executes the
-test runner by discovering all classes or even individual test methods in this
-file. The `unittest` module can
-be used for such purposes:
-
-.. code-block:: bash
-
-        python -m unittest test_utils
-        python -m unittest test_utils.TestUtils
-        python -m unittest test_utils.TestUtils.testSamplingRateConvertion
-
-When run from the command line, the above script produces an output that looks
-like this:
-
-.. code-block:: bash
-
-        ...
-        ----------------------------------------------------------------------
-        Ran 1 tests in 0.000s
-
-        OK
-
-
-Running tests with Scipion
---------------------------
-
 Scipion discovers all tests using the following command:
 
 ::
 
-    ./scipion3 test
+    ./scipion3 tests
 
 This command creates a list with Scipion's own tests as well as the tests of
-the installed plugins.
+the installed plugins:
+
+::
+
+     ......
+        >>>> cistem
+     scipion3 tests cistem.tests.test_protocols_cistem_movies
+       scipion3 tests cistem.tests.test_protocols_cistem_movies.TestUnblur
+     scipion3 tests cistem.tests.test_protocols_cistem
+       scipion3 tests cistem.tests.test_protocols_cistem.TestRefine2D
+       scipion3 tests cistem.tests.test_protocols_cistem.TestFindParticles
+       scipion3 tests cistem.tests.test_protocols_cistem.TestCtffind4
+    >>>> relion
+     scipion3 tests relion.tests.test_workflow_relion3
+       scipion3 tests relion.tests.test_workflow_relion3.TestWorkflowRelion3Betagal
+     scipion3 tests relion.tests.test_protocols_relion3
+       scipion3 tests relion.tests.test_protocols_relion3.TestRelion31ImportParticles
+       scipion3 tests relion.tests.test_protocols_relion3.Relion3TestMultiBody
+       scipion3 tests relion.tests.test_protocols_relion3.Relion3TestMotioncor
+       scipion3 tests relion.tests.test_protocols_relion3.Relion3TestAssignOptics
+     .....
+
+This command shows all tests with the following order:
+`<module_name>.<tests_folder>.<test_file>.<test_class_derived_from_BaseTest>`
+
+To list the tests filtering by a pattern we can use the following command:
+
+::
+
+    ./scipion3 tests --grep <pattern>
+
+example:
+
+::
+
+    ./scipion3 test --grep cryosparc
+
+     scipion3 tests cryosparc2.tests.test_utils
+       scipion3 tests cryosparc2.tests.test_utils.TestUtils
+     scipion3 tests cryosparc2.tests.test_protocols_cryosparc2
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcSharppening
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcParticlesSubtract
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcNonUniformRefine3D
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcLocalRefine
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcLocalCtfRefinement
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcGlobalCtfRefinement
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcClassify2D
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparc3DRefinement
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparc3DInitialModel
+       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparc3DClassification
+
+
+To execute an Scipion test just type:
+
+::
+
+    $ ./scipion3 tests <test>
+
+`test` case from string identifier (module, class or callable)
+
+for example:
+
+::
+    ./scipion3 tests cryosparc2.tests.test_utils
+    ./scipion3 tests cryosparc2.tests.test_utils.TestUtils
+    ./scipion3 tests cryosparc2.test.test_utils.TestUtils.testSamplingRateConvertion
+
+
+the last script produces the following output:
+
+::
+
+        Running tests....
+        [ RUN   OK ] TestUtils.testSamplingRateConvertion (0.000 secs)
+
+        [==========] run 1 tests (0.000 secs)
+        [  PASSED  ] 1 tests
+
 
 The other commands that can be used are shown below:
 
 ::
 
-    usage: ./scipion3 tests [-h] [--run | --show] [--pattern PATTERN]
+    usage: ./scipion3 test [-h] [--run | --show] [--pattern PATTERN]
                             [--grep GREP [GREP ...]] [--skip SKIP [SKIP ...]]
                             [--log [LOG]] [--mode {modules,classes,onlyclasses,all}]
                             [TEST [TEST ...]]
@@ -119,46 +123,13 @@ The other commands that can be used are shown below:
       --mode {modules,classes,onlyclasses,all}
                             how much detail to give in show mode
 
-example:
+
+We can also combine the parameters of this command to run more
+than one test, for example:
 
 ::
 
-    ./scipion3 test --grep cryosparc
+   ./scipion3 test --grep cryosparc --run
 
-     scipion3 tests cryosparc2.tests.test_utils
-       scipion3 tests cryosparc2.tests.test_utils.TestUtils
-     scipion3 tests cryosparc2.tests.test_protocols_cryosparc2
-       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcSharppening
-       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcParticlesSubtract
-       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcNonUniformRefine3D
-       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcLocalRefine
-       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcLocalCtfRefinement
-       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcGlobalCtfRefinement
-       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparcClassify2D
-       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparc3DRefinement
-       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparc3DInitialModel
-       scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparc3DClassification
-
-This command shows all tests that matching with the pattern "cryosparc" with the
-following order: <module_name>.<tests_folder>.<test_file>.<test_class_derived_from_BaseTest>
-
-To execute an Scipion test just type:
-
-::
-
-    $ ./scipion3 tests cryosparc2.tests.test_utils.TestUtils
-
-and above script produces the following output:
-
-::
-
-        Running tests....
-        [ RUN   OK ] TestUtils.testSamplingRateConvertion (0.000 secs)
-
-        [==========] run 1 tests (0.000 secs)
-        [  PASSED  ] 1 tests
-
-
-and all the defined tests within the class TestUtils will be run automatically.
-
-
+and all the tests that match the pattern "cryosparc" will be
+executed automatically.
