@@ -2,7 +2,7 @@
    :width: 250
    :alt: scipion logo
 
-.. _customize-html-report:
+.. _customize-grafana:
 
 ========================================
 Grafana, InfluxDB report customization
