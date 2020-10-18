@@ -38,7 +38,6 @@ later on.
 
    docs/facilities/facilities
    docs/facilities/facilities-workflows
-   docs/facilities/facilities-tutorial
    docs/facilities/customize-report
 
 .. _dev-docs:

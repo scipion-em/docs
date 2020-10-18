@@ -3,7 +3,7 @@
    :width: 250
    :alt: scipion logo
 
-.. _customize-html-report:
+.. _summary-reports:
 
 ===============
 Summary Reports
