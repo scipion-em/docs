@@ -40,8 +40,8 @@ Here’s a typical scenario for writing tests. We'll use cryosparc 2D
 classification test as example which from a set of particles classifies them
 into a set of classes.
 
-First you need to create a test file. Then the BaseTest class from
-which our class will inherit will be imported. On the other hand, we will
+First you need to create a test file (we'll call our example test_protocols_cryosparc2.py).
+Then the BaseTest class from which our class will inherit will be imported. On the other hand, we will
 import the Dataset class which is in charge of handling the `DataSets <datasets-dev>`_,
 and lastly, write a series of methods to test all the cases of your function’s
 behavior.
@@ -113,8 +113,8 @@ execute it and then we will check if the output has been correct.
         # Lunching the import particle protocol
         cls.launchProtocol(protImportPart)
         # Check that input images have been imported
-        self.assertIsNotNone(protImportPart.outputParticles,
-                             'Import of images: %s, failed. outputParticles is
+        self.assertSetSize(protImportPart.outputParticles,
+                            msg='Import of images: %s, failed. outputParticles is
                              'None.' % self.partPattern)
 
 
@@ -138,8 +138,8 @@ the particles imported by the ProtImportParticles protocol.
         self.launchProtocol(prot2D)
 
         # Check if 2D Classification protocol finish successfully
-        self.assertIsNotNone(cryosparcProt.outputClasses,
-                             "There was a problem with Cryosparc 2D classify")
+        self.assertSetSize(cryosparcProt.outputClasses,
+                           msg="There was a problem with Cryosparc 2D classify")
 
         # Check if the classes has 2D alignment
         for class2D in cryosparcProt.outputClasses:
@@ -178,9 +178,9 @@ The following code shows the complete implementation of the test:
                 # Lunching the import particle protocol
                 cls.launchProtocol(protImportPart)
                 # Check that input images have been imported
-                if protImportPart.outputParticles is None:
-                    raise Exception('Import of images: %s, failed. '
-                                    'outputParticles is None.' % self.partPattern)
+                self.assertSetSize(protImportPart.outputParticles,
+                                   msg='Import of images: %s, failed. outputParticles is
+                                   'None.' % self.partPattern)
 
                 # Define cryosparc 2D classification protocol
                 prot2D = self.newProtocol(ProtCryo2D,
@@ -195,8 +195,8 @@ The following code shows the complete implementation of the test:
                 return prot2D
 
             def _checkAsserts(cryosparcProt):
-                self.assertIsNotNone(cryosparcProt.outputClasses,
-                                     "There was a problem with Cryosparc 2D classify")
+                self.assertSetSize(cryosparcProt.outputClasses,
+                                   msg="There was a problem with Cryosparc 2D classify")
 
                 for class2D in cryosparcProt.outputClasses:
                     self.assertTrue(class2D.hasAlignment2D())
@@ -206,15 +206,18 @@ The following code shows the complete implementation of the test:
 
 
 How to Write Assertions
+-----------------------
+
 The last step of writing a test is to validate the output against a known
 response. This is known as an assertion. There are some general best practices
 around how to write assertions:
 
-* Make sure tests are repeatable and run your test multiple times to make sure it gives the same result every time
-* Try and assert results that relate to your input data, such as checking that the result is the actual sum of values in the sum() example
+* Make sure tests are repeatable and run your test multiple times to make sure it gives the same result every time.
+* Try and assert results that relate to your input data, such as verifying that a set of particles has been imported correctly or that they have been classified into a set of classes.
 
-`unittest` comes with lots of methods to assert on the values, types, and
-existence of variables. Here are some of the most commonly used methods:
+**BaseTest** by inheriting from de `unittest`, comes with lots of methods to
+assert on the values, types, and existence of variables. Here are some of the
+most commonly used methods:
 
 
 +--------------------+-----------------+
@@ -232,6 +235,10 @@ existence of variables. Here are some of the most commonly used methods:
 +--------------------+-----------------+
 | .assertIn(a, b)    | a == b          |
 +--------------------+-----------------+
+
+
+Running our tests
+-----------------
 
 Once the test is created, we would only have to run it.
 `[clic here] <running-tests>`_
