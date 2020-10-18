@@ -78,6 +78,7 @@ To execute an Scipion test just type:
 for example:
 
 ::
+
     ./scipion3 tests cryosparc2.tests.test_utils
     ./scipion3 tests cryosparc2.tests.test_utils.TestUtils
     ./scipion3 tests cryosparc2.test.test_utils.TestUtils.testSamplingRateConvertion

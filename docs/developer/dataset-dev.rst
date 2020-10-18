@@ -51,9 +51,9 @@ themselves take responsibility for downloading them and then select the data
 that will be used by the test. In that sence, Scipion provide a class named
 **DataSet** which is responsible for download and handle the datasets.
 
------------------------------------
-Add your own DataSet (if necessary)
------------------------------------
+---------------------
+Add your own DataSet
+---------------------
 
 If you need an additional dataset you can do this and host it where ever you want/can.
 Let's assume you need a new dataset...
