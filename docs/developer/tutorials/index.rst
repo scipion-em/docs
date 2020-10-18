@@ -7,6 +7,6 @@
 ===========================
 Tutorials for developers
 ===========================
-
+* `Understanding the plugin class <understanding-plugin-class>`_
 * `Creating a monitor <creating-a-monitor>`_
 * `Customize the HTML report <customize-html-report>`_
