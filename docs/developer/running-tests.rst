@@ -67,7 +67,8 @@ example:
        scipion3 tests cryosparc2.tests.test_protocols_cryosparc2.TestCryosparc3DClassification
 
 
-To execute an Scipion test just type:
+The shortest, simplest way of running the test suite is the following command
+from the Scipion directory:
 
 ::
 

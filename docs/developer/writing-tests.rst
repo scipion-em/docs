@@ -209,13 +209,17 @@ How to Write Assertions
 -----------------------
 
 The last step of writing a test is to validate the output against a known
-response. This is known as an assertion. There are some general best practices
-around how to write assertions:
+response. We use one of the `assert*()` methods provided by the `BaseTest`
+class. If the test fails, an exception will be raised with an explanatory
+message, and `BaseTest` will identify the test case as a failure. Any other
+exceptions will be treated as errors.
+
+There are some general best practices around how to write assertions:
 
 * Make sure tests are repeatable and run your test multiple times to make sure it gives the same result every time.
 * Try and assert results that relate to your input data, such as verifying that a set of particles has been imported correctly or that they have been classified into a set of classes.
 
-**BaseTest** by inheriting from de `unittest`, comes with lots of methods to
+Note that **BaseTest** by inheriting from de `unittest`, comes with lots of methods to
 assert on the values, types, and existence of variables. Here are some of the
 most commonly used methods:
 
