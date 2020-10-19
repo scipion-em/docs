@@ -14,10 +14,7 @@ Here you can find resources associated with this content, like videos or present
 
 `Course presentation <https://docs.google.com/presentation/d/1coUcXLkDZrNAWtRbcDO-JsPCxsOSrHh8gjMngoLK7WE/edit?usp=sharing>`_
 
-Some theory
-===========
-
-TODO: explain the main ideas to understand the PLugin class before the practice...
+Link to theory page
 
 
 Hands on
