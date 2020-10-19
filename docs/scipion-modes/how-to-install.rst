@@ -222,7 +222,7 @@ Please, check :ref:`Linking existing software <linking-existing-software>` for m
 Test the installation and learn how to use Scipion
 --------------------------------------------------
 -  Test your installation by running at least the *Small* and *Medium*
-   tests mentioned in :ref:`running tests page <Running-Tests>`.
+   tests mentioned in :ref:`verify installation page <Verify-Installation>`.
 -  Complete some of the :ref:`Scipion Tutorials <User-Documentation>`.
 
 Cleaning up
