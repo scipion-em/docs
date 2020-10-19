@@ -45,11 +45,11 @@ The buildmaster constist of several pieces:
    :name: Build Master
 
 All of our repositories are on GIT. These repositories are constantly being
-modified. All `Changes` are fed to the `Schedulers` which decide when builds
-should be performed. They collect `Changes` into `BuildRequests`, which are
-then queued for delivery to `Builders` until a worker is available. The
-`Builders` control exactly how each build is performed (with a series of
-BuildSteps, configured in a BuildFactory). Each Build is run on a single
+modified. All **Changes** are fed to the **Schedulers** which decide when builds
+should be performed. They collect Changes into **BuildRequests**, which are
+then queued for delivery to **Builders** until a worker is available. The
+Builders control exactly how each build is performed (with a series of
+**BuildSteps**, configured in a **BuildFactory**). Each Build is run on a single
 worker.
 
 Currently, our code is divided into three main branches which are tested by
