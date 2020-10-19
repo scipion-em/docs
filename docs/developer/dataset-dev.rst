@@ -45,11 +45,49 @@ The rest of the options, we can be displayed using the `-h` parameter.
 
     ./scipion3 testdata -h
 
+    usage: pw_sync_data.py [-h] [--download | --upload | --list | --format]
+                       [--delete] [-u URL] [--check-all] [-l LOGIN]
+                       [-rf REMOTEFOLDER] [-v]
+                       [DATASET [DATASET ...]]
+
+    Scipion data synchronization. Get(put) tests data, from(to) the server
+    to(from) the $SCIPION_TESTS folder.
+
+    positional arguments:
+      DATASET               Name of a dataset.
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      --download            Download dataset.
+      --upload              Upload local dataset to the server. The dataset name
+                            must be the name of its folder relative to the
+                            $SCIPION_TESTS folder.
+      --list                List local datasets (from $SCIPION_TESTS) and remote
+                            ones (remote url can be specified with --url).
+      --format              Create a MANIFEST file with checksums in the datasets
+                            folders.
+      --delete              When uploading, delete any remote files in the dataset
+                            not present in local. It leaves the remote scipion
+                            data directory as it is in the local one. Dangerous,
+                            use with caution.
+      -u URL, --url URL     URL where remote datasets will be looked for.
+      --check-all           See if there is any remote dataset not in sync with
+                            locals.
+      -l LOGIN, --login LOGIN
+                            ssh login string. For upload
+      -rf REMOTEFOLDER, --remotefolder REMOTEFOLDER
+                            remote folder to put the dataset there. For upload.
+      -v, --verbose         Print more details.
 
 Another way to use the datasets that are provided by Scipion, is to let the tests
 themselves take responsibility for downloading them and then select the data
 that will be used by the test. In that sence, Scipion provide a class named
 **DataSet** which is responsible for download and handle the datasets.
+
+
+
+
+
 
 ---------------------
 Add your own DataSet
