@@ -82,7 +82,7 @@ following steps must be followed:
 
 1. Make sure the plugin is on one Version Control System like GIT (to test in devel mode).
 2. Make sure the plugin is on Pypi (to test in production mode).
-3. :ref:`Contact white Scipion Team <contact-us>`_ in order to include it into Buildbot.
+3. :ref:`Contact white Scipion Team <contact-us>` in order to include it into Buildbot.
 
 
 
