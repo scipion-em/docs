@@ -56,7 +56,15 @@ There’s a line by line explanation below the following code:
 
     from pyworkflow.tests import BaseTest, DataSet, setupTestProject
 
-- **setupTestProject**: Method to create and setup a Project for a give Test class
+- **setupTestProject**: Method to create and setup a Project for a give Test class.
+
+    **Info**
+
+    If this method is invoked, the project will be created at the path
+    assigned to the SCIPION_USER_DATA variable in the Scipion configuration file.
+    Otherwise, the project will be created in the path assigned to the
+    SCIPION_TESTS_OUTPUT variable.
+
 
 Then we’ll create a class, for example TestCryosparcClassify2D, with a method
 `setUpClass` which hook for setting up class fixture before running tests in
