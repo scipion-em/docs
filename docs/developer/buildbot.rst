@@ -73,6 +73,17 @@ automatically executing the code of the aforementioned branches:
    :name: Complete Build Master
 
 
+Adding your plugin in Buildbot
+------------------------------
+
+In order to include a Scipion plugin within buildbot and have it tested, the
+following steps must be followed:
+
+
+1. Make sure the plugin is on one Version Control System like GIT (to test in devel mode).
+2. Make sure the plugin is on Pypi (to test in production mode).
+3. :ref:`Contact white Scipion Team <contact-us>`_ in order to include it into Buildbot.
+
 
 
 
