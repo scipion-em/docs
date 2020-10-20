@@ -49,8 +49,7 @@ modified. All **Changes** are fed to the **Schedulers** which decide when builds
 should be performed. They collect Changes into **BuildRequests**, which are
 then queued for delivery to **Builders** until a worker is available. The
 Builders control exactly how each build is performed (with a series of
-**BuildSteps**, configured in a **BuildFactory**). Each Build is run on a single
-worker.
+**BuildSteps**, configured in a **BuildFactory**).
 
 Currently, our code is divided into three main branches which are tested by
 buildbot:
@@ -72,6 +71,12 @@ automatically executing the code of the aforementioned branches:
    :alt: Complete Build Master
    :name: Complete Build Master
 
+If a **Notifier** status target is active, the completion of a build will cause
+a notification to be sent to any developers or the Scipion team whose
+Changes were incorporated into this Build. The Notifier can be configured to
+only send a notification or mail upon failing builds, or for builds which have
+just transitioned from passing to failing. Other status targets can provide
+similar real-time notification via different communication channels, like Slack.
 
 Adding your plugin in Buildbot
 ------------------------------
@@ -79,10 +84,11 @@ Adding your plugin in Buildbot
 In order to include a Scipion plugin within buildbot and have it tested, the
 following steps must be followed:
 
-
 1. Make sure the plugin is on one Version Control System like GIT (to test in devel mode).
 2. Make sure the plugin is on Pypi (to test in production mode).
 3. :ref:`Contact white Scipion Team <contact-us>` in order to include it into Buildbot.
+   For that steps, send us an email with the link to repository.
+
 
 
 
