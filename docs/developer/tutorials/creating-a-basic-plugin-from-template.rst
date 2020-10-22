@@ -74,10 +74,10 @@ Protocol results and any other relevant information can be displayed on the proj
 **_summary** and **_methods**. The following two figures show how the corresponding code is represented on the project
 GUI.
 
-.. figure:: /docs/images/dev/template_practice/practice1_intro_frontend_gui_code_II.png
+.. figure:: /docs/images/dev/template_practice/practice1_intro_frontend_gui_code_III.png
    :alt: intro project gui vs code - summary
 
-.. figure:: /docs/images/dev/template_practice/practice1_intro_frontend_gui_code_II.png
+.. figure:: /docs/images/dev/template_practice/practice1_intro_frontend_gui_code_IV.png
    :alt: intro project gui vs code - methods
 
 Backend
