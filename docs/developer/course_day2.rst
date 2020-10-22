@@ -2,7 +2,7 @@
    :width: 250
    :alt: scipion logo
 
-.. _Developers' course Day 2 (Protocols and Viewers):
+.. _developers_day2:
 
 .. contents:: Table of Contents
 
@@ -23,19 +23,15 @@ In this practice we will see how to create a protocol that performs some useful 
 * How to read images and volumes in Python in order to perform calculations inside the Python routines
 * How to construct support functions that help to prevent errors and document the calculations
 
-As preparation for this day, you may watch this video (https://www.youtube.com/watch?v=y9AMLywnBMw). 
-
-The source code for the explanatory part of the class is at https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2
-
-You can find the slides of the theoretical explanation at https://drive.google.com/drive/folders/1mHIVVE6Gt_AALD_wb_rbfuqjAgIbXv4q
+As preparation for this day, you may watch `Video protocol <https://www.youtube.com/watch?v=y9AMLywnBMw>`_, `source code protocol <https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2>`_, `slides protocol <https://drive.google.com/drive/folders/1mHIVVE6Gt_AALD_wb_rbfuqjAgIbXv4q>`_
 
 Writing a viewer
 ================
 
 By default, the viewer of a protocol is made of the default viewers for each one of its outputs. However, you may want to construct specific viewers for your protocol. In Scipion there are two kinds of viewers: with and without forms. You may learn how to do this viewers at:
 
-* Without form: https://www.youtube.com/watch?v=_sxA0O4_rpg. Its source code is at: https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2. You can find the slides at https://drive.google.com/drive/folders/1mHIVVE6Gt_AALD_wb_rbfuqjAgIbXv4q
-* With form: https://www.youtube.com/watch?v=eHQrsodO6xQ. Its source code is at https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2b. You can find the slides at https://drive.google.com/drive/folders/1mHIVVE6Gt_AALD_wb_rbfuqjAgIbXv4q
+* Without form: `Video without form <https://www.youtube.com/watch?v=_sxA0O4_rpg>`_, `source code without form <https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2>`_, `slides without form <https://drive.google.com/drive/folders/1mHIVVE6Gt_AALD_wb_rbfuqjAgIbXv4q>`_.
+* With form: `Video with form <https://www.youtube.com/watch?v=eHQrsodO6xQ>`_, `source code with form <https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2b>`_, `slides with form <https://drive.google.com/drive/folders/1mHIVVE6Gt_AALD_wb_rbfuqjAgIbXv4q>`_
 
 In this practice, you will learn how to:
 
@@ -47,9 +43,7 @@ In this practice, you will learn how to:
 Practice
 ========
 
-You may try to construct a protocol by yourself. The suggestion is to construct a protocol that subtracts two volumes. You may find a possible solution at 
-
-https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2b
+You may try to construct a protocol by yourself. The suggestion is to construct a protocol that subtracts two volumes. You may find a `possible solution here <https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2b>`_.
 
 
 .. |cite-icon| image:: /docs/images/guis/cite_icon.png
