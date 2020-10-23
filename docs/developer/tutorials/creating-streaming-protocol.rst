@@ -5,7 +5,7 @@
 .. _creating-streaming-protocol:
 
 =============================
-Creating a streaming Protocol
+Creating a Streaming Protocol
 =============================
 
 We define a ``Streaming Protocol``  as a processing task that involves the
@@ -79,7 +79,7 @@ into the protocol GUI.
                       help='Time that the protocol will be running expressed in seconds')
         form.addParallelSection(threads=2, mpi=1) # Parallel section defining the number of threads and mpi to use
 
-
+The GUI would be as the following figure shows:
 
 .. figure:: /docs/images/general/streaming_protocol.png
    :width: 250
@@ -90,7 +90,7 @@ into the protocol GUI.
 Create the steps to download and register the movie set
 --------------------------------------------------------
 
-Firs, we implement the ``___insertAllSteps`` method to define the diferente steps.
+First, we implement the ``_insertAllSteps`` method to define the diferente steps.
 
 .. code-block:: python
 
@@ -177,12 +177,13 @@ After thats, we'll implement and explain each of steps line by line.
             self._store()
 
 
-
-Now, we must register each movies that has been downloaded. In this sense, for
+Now, we must register each movies that has been downloaded. In that sense, for
 each movie that is downloaded, a new step will be created and it will be
-launched in parallel with the previous step, which is the one that is
-downloading them.
+launched in parallel.
 
+In order for these processes to be launched in parallel, the ``prerequisites``
+parameter of each of them must be specified (it must be empty or with IDs of
+previous steps on which they depend). In this case
 
 
 .. code-block:: python
@@ -200,7 +201,8 @@ downloading them.
                     if file not in self.registerFiles:
                         self.registerFiles.append(file)
                         lastSteps = self._insertFunctionStep('registerImageStep',
-                                                             file, prerequisites=[self.readXmlFile])
+                                                             file,
+                                                             prerequisites=[self.readXmlFile])
                         depStepsList.append(lastSteps)
 
                     if len(self.registerFiles) >= self.amountOfImages.get():
