@@ -10,12 +10,15 @@ Creating a Streaming Protocol
 
 We define a ``Streaming Protocol``  as a processing task that involves the
 execution of several steps like any other `Scipion protocol <creating-a-protocol>`_,
-but, some execution steps work in parallel. You can read more about defining steps to be executed
-in parallel in `Parallelization <parallelization>`_.
+but, the inputs might appear during the protocol execution. Is impossible to
+plan all the steps(difference between streaming and non streaming protocols).
+The list of steps in a streaming protocol is dynamic, that is, they are added
+as the inputs arrive. These steps can even be parallelized. You can read more
+about defining steps to be executed in parallel in `Parallelization <parallelization>`_.
 
-We will create a simple protocol that connects to
+We will create a simple streaming protocol that connects to
 `EMPIAR <https://www.ebi.ac.uk/pdbe/emdb/empiar/>`__ (Electron Microscopy
-Public Image Archive) and downloads a set of Movies and in parallel it will
+Public Image Archive), downloads a set of Movies and in parallel it will
 register them in Scipion.
 
 The general idea of this protocol is as follow:
@@ -29,7 +32,7 @@ In that sence, we will implement the following steps:
 1. Create a protocol GUI that admits as a parameter the ID of the EMPIAR dataset
    as well as a stopping criterion (in our case the number of movies to download).
 
-   1.1. Specify that the protocol contain steps in parallel.
+   1.1. Create a protocol specifying that contain steps in parallel.
 
    1.2. Define the parallel section.
 
@@ -40,11 +43,17 @@ In that sence, we will implement the following steps:
 
    2.2. Download one by one movies until a stop criteria is met (amount of download movies).
 
-   2.3. Register the downloaded movies. This step is in streaming. constantly check if new movies have been downloaded
+   2.3. Register the downloaded movies. This step is in streaming. Constantly check if new movies have been downloaded
 
 
 Defining the protocol class and the GUI
 ---------------------------------------
+
+The GUI would be as the following figure shows:
+
+.. figure:: /docs/images/general/streaming_protocol.png
+   :width: 250
+   :alt: Streaming Protocol
 
 The following code contain the class definition and the protocol GUI implementation.
 Note that into the ``__init__`` method, the parameter to especify that the protocol
@@ -53,37 +62,45 @@ into the protocol GUI.
 
 .. code-block:: python
 
+    import json
+    import requests
+    import ftplib
+    import os
+    import shutil
+
+    from pwem.objects import Movie, SetOfMovies, Float
+    from pwem.protocols import EMProtocol
+    from pyworkflow.protocol import (params, Positive, String, STATUS_NEW,
+                                     STEPS_PARALLEL)
+    import pyworkflow.utils as pwutils
+
     class EmpiarDownloader(EMProtocol):
-    """
-    Download movies sets from EMPIAR
-    """
-    _label = 'empiar downloader'
-    _outputClassName = 'SetOfMovies' # Defining the output class
-    registerFiles = []               # saves the name of the movies that have been downloaded
+        """
+        Download movies sets from EMPIAR
+        """
+        _label = 'empiar downloader'
+        _outputClassName = 'SetOfMovies' # Defining the output class
+        registerFiles = []               # saves the name of the movies that have been downloaded
+        _stepsCheckSecs = 3              # time in seconds to check the steps
 
-    def __init__(self, **args):
-        EMProtocol.__init__(self, **args)
-        self.stepsExecutionMode = STEPS_PARALLEL # Defining that the protocol contain parallel steps
 
-    def _defineParams(self, form):
-        form.addSection(label='Entry')
-        form.addParam('entryID', params.StringParam, default='10200', # EMPIAR dataset ID
-                      label='EMPIAR ID',
-                      important=True,
-                      allowsNull=False,
-                      help='EMPIAR entry ID')
-        form.addParam('amountOfImages', params.IntParam, # Stop criteria
-                      default=5,
-                      label='Amount of Images',
-                      validators=[Positive],
-                      help='Time that the protocol will be running expressed in seconds')
-        form.addParallelSection(threads=2, mpi=1) # Parallel section defining the number of threads and mpi to use
+        def __init__(self, **args):
+            EMProtocol.__init__(self, **args)
+            self.stepsExecutionMode = STEPS_PARALLEL # Defining that the protocol contain parallel steps
 
-The GUI would be as the following figure shows:
-
-.. figure:: /docs/images/general/streaming_protocol.png
-   :width: 250
-   :alt: Streaming Protocol
+        def _defineParams(self, form):
+            form.addSection(label='Entry')
+            form.addParam('entryID', params.StringParam, default='10200', # EMPIAR dataset ID
+                          label='EMPIAR ID',
+                          important=True,
+                          allowsNull=False,
+                          help='EMPIAR entry ID')
+            form.addParam('amountOfImages', params.IntParam, # Stop criteria
+                          default=5,
+                          label='Amount of Images',
+                          validators=[Positive],
+                          help='Time that the protocol will be running expressed in seconds')
+            form.addParallelSection(threads=3, mpi=1) # Parallel section defining the number of threads and mpi to use
 
 
 
@@ -91,20 +108,19 @@ Create the steps to download and register the movie set
 --------------------------------------------------------
 
 First, we implement the ``_insertAllSteps`` method to define the diferente steps.
+The first step read the dataset xml file from EMPIAR.
 
 .. code-block:: python
 
         def _insertAllSteps(self):
             self.readXmlFile = self._insertFunctionStep('readXmlFileStep')        # read the dataset xml file from EMPIAR
-            self.downloadImages = self._insertFunctionStep('downloadImagesStep')  # download the movies and register them in pararell
-            self.closeSet = self._insertFunctionStep('closeSetStep', wait=True)   # close the registered dataset set
 
 
-After thats, we'll implement and explain each of steps line by line.
+the code of that method is as follow:
 
 .. code-block:: python
 
-        def readXmlFileStep(self):
+    def readXmlFileStep(self):
             """
             Read the xml file of a specific dataset from EMPIAR repository
             """
@@ -130,6 +146,37 @@ After thats, we'll implement and explain each of steps line by line.
                 self.setFailed(msg="There was an error downloading the EMPIAR raw "
                                    "images: %s!!!" %ex)
 
+    def _summary(self):
+        summary = []
+        if hasattr(self, 'empiarName'):
+            summary.append('Name: ' + str(self.empiarName))
+            summary.append('Author: ' + str(self.organization))
+            summary.append('Deposition Date: ' + str(self.depositionDate))
+            summary.append('Title: ' + str(self.title))
+            summary.append('Release Date: ' + str(self.releaseDate))
+            summary.append('Dataset Size: ' + str(self.datasetSize))
+        return summary
+
+After the steps execution, the Summary panel shows the following information:
+
+
+.. figure:: /docs/images/general/summary.png
+   :width: 250
+   :alt: Summary
+
+
+After thats, we'll add into ``_insertAllSteps`` method the second step. This step
+will download a set of movies.
+
+.. code-block:: python
+
+        def _insertAllSteps(self):
+            self.readXmlFile = self._insertFunctionStep('readXmlFileStep')        # read the dataset xml file from EMPIAR
+            self.downloadImages = self._insertFunctionStep('downloadImagesStep')  # download the movies and register them in pararell
+
+the implementatio of this method is as follow:
+
+.. code-block:: python
 
         def downloadImagesStep(self):
             """
@@ -168,6 +215,14 @@ After thats, we'll implement and explain each of steps line by line.
             ftp.close()
 
 
+While the stopping criterion is not met, it will be downloaded to the
+specified directory one by one of the movies in the dataset.
+
+The third step consists of closing the movie set that has been registered in
+Scipion. The implementation of this step is as follow:
+
+.. code-block:: python
+
         def closeSetStep(self):
             """
             Close the registered set
@@ -176,39 +231,65 @@ After thats, we'll implement and explain each of steps line by line.
             self.outputMovies.write()
             self._store()
 
+Remember add into ``_insertAllSteps`` method this step:
 
-Now, we must register each movies that has been downloaded. In that sense, for
-each movie that is downloaded, a new step will be created and it will be
-launched in parallel.
+.. code-block:: python
+
+        def _insertAllSteps(self):
+            self.readXmlFile = self._insertFunctionStep('readXmlFileStep')        # read the dataset xml file from EMPIAR
+            self.downloadImages = self._insertFunctionStep('downloadImagesStep')  # download the movies and register them in pararell
+            self.closeSet = self._insertFunctionStep('closeSetStep', wait=True)   # close the registered dataset set
+
+**Important**
+
+    We need to set the ``wait`` parameter to ``True`` in order to
+    wait until all movies have been registered.
+
+Up to this point, we have only defined the steps of the protocol, but we have
+not yet been registering each of the downloaded movies. This process should be
+checking given a reasonable time if there are new movies in the download
+directory. In that sense, for each movie that is downloaded, a new step will be
+created and it will be launched in parallel. At the same time the number of
+steps of the protocol will be updated.
 
 In order for these processes to be launched in parallel, the ``prerequisites``
-parameter of each of them must be specified (it must be empty or with IDs of
-previous steps on which they depend). In this case
+parameter of each of them must be specified (it must be empty. In the case that
+we specify IDs as prerequisites, the step will not be executed until the steps
+that respond to the IDs have finished).
 
+When a protocol is launched, a check can be made of each of its steps. The
+method that is in charge of doing this operation is the ``_stepsCheck`` method,
+which when the protocol does not work in streaming it is not necessary to
+define it because the input is static. In the case of streaming protocols, an
+implementation can be done. In our case we will use this method to check if
+there are new movies. If so, then we generate a new step to register it.
 
 .. code-block:: python
 
         def _stepsCheck(self):
             """ Input movie set can be loaded or None when checked for new inputs
                 If None, we load it.
-                To allow streaming register a movies we need to detect a new
-                movie ready to register into the extra path folder
-                Add as prerequisites(registerImageStep) to the last step(closeSetStep)
+                To allow streaming register a movies, we need to detect a new
+                movie ready to register into the extra path folder.
+                prerequisites parameter is empty
             """
             depStepsList = []
             if len(self.registerFiles) < self.amountOfImages.get():
                 for file in os.listdir(self._getExtraPath()):
                     if file not in self.registerFiles:
                         self.registerFiles.append(file)
+                        # Creating a new step to register the new movie
                         lastSteps = self._insertFunctionStep('registerImageStep',
                                                              file,
-                                                             prerequisites=[self.readXmlFile])
+                                                             prerequisites=[])
                         depStepsList.append(lastSteps)
+                        # adding as prerequisites the new step to closeSetStep
+                        self._steps[self.closeSet-1].addPrerequisites(*depStepsList)
 
-                    if len(self.registerFiles) >= self.amountOfImages.get():
+                    if len(self.registerFiles) >= self.amountOfImages.get(): # The closeSetStep is ready to launch
                         self._steps[self.closeSet].setStatus(STATUS_NEW)
-                        self._steps[self.closeSet].addPrerequisites(*depStepsList)
 
+                # Updating the protocol steps
                 self.updateSteps()
 
         def registerImageStep(self, file):
@@ -235,9 +316,9 @@ previous steps on which they depend). In this case
             outputSet.write()
             self._store()
 
+The dependencie steps graph is as follow:
 
-
-
-
-
+.. figure:: /docs/images/general/graph_steps.png
+   :width: 250
+   :alt: Graph Steps
 
