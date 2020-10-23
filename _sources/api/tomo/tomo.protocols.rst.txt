@@ -14,6 +14,8 @@ Submodules
    tomo.protocols.protocol_import_coordinates
    tomo.protocols.protocol_import_subtomograms
    tomo.protocols.protocol_import_tomograms
+   tomo.protocols.protocol_particle_pick_consensus
+   tomo.protocols.protocol_particle_pick_remove_duplicates
    tomo.protocols.protocol_ts_base
    tomo.protocols.protocol_ts_correct_motion
    tomo.protocols.protocol_ts_estimate_ctf

@@ -91,7 +91,3 @@ while you can see a Grafana based report in the URL
 `http://scipion.cnb.csic.es:3000/lastHTMLReport <http://scipion.cnb.csic.es:3000/lastHTMLReport>`_.
 (Unfortunately, at present, Grafana server can only be accessed from within our local area network).
 Learn `how to customize the reports <customize-report>`_ according to your facilities' needs.
-
-Finally, this :ref:`tutorial focused on streaming processing <facilities-tutorial>`
-simulates a cryo-EM acquisition in order to sum up all the available facilities
-tools.
