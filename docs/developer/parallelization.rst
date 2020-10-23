@@ -10,41 +10,69 @@ Parallelization
 
 By default, each function step is executed just after the previous one
 is fully completed. If you would like to execute any steps on parallel
-you have to add an extra parameter called prerequisites. This parameters
+you have to add an extra parameter called ``prerequisites``. This parameters
 will identify the dependent id, i.e. the id of the previous step which
 has to be completed before executing this step.
 
 Here you can see an example which tries to illustrate how to create a
 parallel step:
 
-.. code-block::python
+.. code-block:: python
 
-  bestVolumesStepId = self._insertFunctionStep("getBestVolumes")
+         ....
 
-  deps = [] # Store all steps ids, final step createOutput depends on all of them
+         def _insertAllSteps(self):
+            ....
+            self._insertFunctionStep('downloadMoviesStep')
+            self._insertFunctionStep('closeSetStep', wait=True)
 
-  # Refine the best volumes
-  for n in range(self.numVolumes.get()):
-      fnBase = 'proposedVolume%05d' % n
-      fnRoot = self._getPath(fnBase)
+        def downloadMoviesStep(self):
+            """
+            Download a set of movies located an a specific path
+            """
+            path = '/home/user/images/'
+            readXmlFileStep = self._insertFunctionStep("readXmlFileStep")
+            depStepsList = [] # Store all steps ids, final step closeSetStep depends on all of them
+            # Move for a directory finding files to add
+            for file in os.listdir(path):
+                if file not in self.registerFiles:
+                    self.registerFiles.append(file)
+                    # Make estimation steps independent
+                    newStep = self._insertFunctionStep('registerImageStep',
+                                                         file, prerequisites=[readXmlFileStep])
+                    depStepsList.append(newStep)
+                # Updating the total of protocol steps
+                self.updateSteps()
 
-      # Simulated annealing
-      self._insertFunctionStep('reconstruct', fnRoot, prerequisites=[bestVolumesStepId])
-      # Make estimation steps independent
+        ....
 
-
-``getBestVolumes`` is executed just after the previous step is completed.
-On the other hand, ``reconstruct`` is executed _numVolumes_ times. All
-these executions are performed on parallel because they only depend on
-``bestVolumesStepId`` (id of the ``getBestVolumes`` function). If we do not
-provide the ``prerequisites`` parameter, each ``reconstruct`` execution
-would depend on the previous ``reconstruct`` execution and therefore they
+``readXmlFileStep`` is executed just after the previous step is completed.
+On the other hand, ``registerImageStep`` is executed  _number_of_files_ times.
+All these executions are performed on parallel because they only depend on
+``readXmlFileStep`` (id of the ``readXmlFileStep`` function). If we do not
+provide the ``prerequisites`` parameter, each ``registerImageStep`` execution
+would depend on the previous ``registerImageStep`` execution and therefore they
 would not be executed in parallel.
 
-**TO DO**: mention how to use something like this is in
-**`_defineParams`**:
+Two details to take into account when creating a protocol where some of its
+steps are in parallel, are the following:
 
-..code:: python
+* In the protocol ``__init__`` definition add the following instruction:
 
-    form.addParallelSection(threads=0, mpi=4)
+.. code-block:: python
+
+    def __init__(self, **args):
+        ....
+        self.stepsExecutionMode = STEPS_PARALLEL
+        ....
+
+* In the protocol ``_defineParams`` method  add the parallelization section defining
+  the number of threads and mpi to use.
+
+.. code:: python
+
+    def _defineParams(self, form):
+        ....
+        form.addParallelSection(threads=2, mpi=1)
+        ...
 
