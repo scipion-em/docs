@@ -68,4 +68,4 @@ Internal development tools and hints
 Tutorials
 ==========
 
-* Tutorials `<dev-tutorials>`_
+* `Tutorials <dev-tutorials>`_
