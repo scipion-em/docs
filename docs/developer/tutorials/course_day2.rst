@@ -23,15 +23,15 @@ In this practice we will see how to create a protocol that performs some useful 
 * How to read images and volumes in Python in order to perform calculations inside the Python routines
 * How to construct support functions that help to prevent errors and document the calculations
 
-As preparation for this day, you may watch `Video protocol <https://www.youtube.com/watch?v=y9AMLywnBMw>`_, `source code protocol <https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2>`_, `slides protocol <https://drive.google.com/drive/folders/1mHIVVE6Gt_AALD_wb_rbfuqjAgIbXv4q>`_
+As preparation for this day, you may watch `Video protocol <https://www.youtube.com/watch?v=y9AMLywnBMw>`_, `source code protocol <https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2>`_, `slides protocol <https://drive.google.com/file/d/1VRO1tdVJsF23av8uGBsJZIA_vazeUEk1/view?usp=sharing>`_
 
 Writing a viewer
 ================
 
 By default, the viewer of a protocol is made of the default viewers for each one of its outputs. However, you may want to construct specific viewers for your protocol. In Scipion there are two kinds of viewers: with and without forms. You may learn how to do this viewers at:
 
-* Without form: `Video without form <https://www.youtube.com/watch?v=_sxA0O4_rpg>`_, `source code without form <https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2>`_, `slides without form <https://drive.google.com/drive/folders/1mHIVVE6Gt_AALD_wb_rbfuqjAgIbXv4q>`_.
-* With form: `Video with form <https://www.youtube.com/watch?v=eHQrsodO6xQ>`_, `source code with form <https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2b>`_, `slides with form <https://drive.google.com/drive/folders/1mHIVVE6Gt_AALD_wb_rbfuqjAgIbXv4q>`_
+* Without form: `Video without form <https://www.youtube.com/watch?v=_sxA0O4_rpg>`_, `source code without form <https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2>`_, `slides without form <https://drive.google.com/file/d/1-O1dT-aOtKwhaKBsQuCQSQrmhuuW_PuO/view?usp=sharing>`_.
+* With form: `Video with form <https://www.youtube.com/watch?v=eHQrsodO6xQ>`_, `source code with form <https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2b>`_, `slides with form <https://drive.google.com/file/d/1DxH6-Aks-Ix2dOk0pzZn_cD7se8shR6O/view?usp=sharing>`_
 
 In this practice, you will learn how to:
 
