@@ -262,7 +262,9 @@ method that is in charge of doing this operation is the ``_stepsCheck`` method,
 which when the protocol does not work in streaming it is not necessary to
 define it because the input is static. In the case of streaming protocols, an
 implementation can be done. In our case we will use this method to check if
-there are new movies. If so, then we generate a new step to register it.
+there are new movies. If so, then we generate a new step to register it and at
+the same time, this new step is added as a dependency (``prerequisites``
+parameter) to ``closeSetStep`` step.
 
 .. code-block:: python
 
