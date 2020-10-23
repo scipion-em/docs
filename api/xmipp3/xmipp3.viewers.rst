@@ -39,8 +39,10 @@ Submodules
    xmipp3.viewers.viewer_validate_fscq
    xmipp3.viewers.viewer_validate_nontilt
    xmipp3.viewers.viewer_validate_overfitting
+   xmipp3.viewers.viewer_volume_consensus
    xmipp3.viewers.viewer_volume_deform_sph
    xmipp3.viewers.viewer_volume_strain
+   xmipp3.viewers.viewer_volume_subtraction
 
 Module contents
 ---------------
