@@ -24,7 +24,7 @@ register them in Scipion.
 The general idea of this protocol is as follow:
 
 .. figure:: /docs/images/general/streaming_idea.png
-   :width: 250
+   :width: 550
    :alt: Streaming Idea
 
 In that sence, we will implement the following steps:
@@ -52,7 +52,7 @@ Defining the protocol class and the GUI
 The GUI would be as the following figure shows:
 
 .. figure:: /docs/images/general/streaming_protocol.png
-   :width: 250
+   :width: 550
    :alt: Streaming Protocol
 
 The following code contain the class definition and the protocol GUI implementation.
@@ -161,7 +161,7 @@ After the steps execution, the Summary panel shows the following information:
 
 
 .. figure:: /docs/images/general/summary.png
-   :width: 250
+   :width: 650
    :alt: Summary
 
 
@@ -321,6 +321,6 @@ parameter) to ``closeSetStep`` step.
 The dependencie steps graph is as follow:
 
 .. figure:: /docs/images/general/graph_steps.png
-   :width: 250
+   :width: 650
    :alt: Graph Steps
 
