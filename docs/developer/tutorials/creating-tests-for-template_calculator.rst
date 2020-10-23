@@ -15,9 +15,9 @@ Associated resources
 ====================
 Here you can find resources associated with this content:
 
-LINK A LA PRÁCTICA
+:doc: `Creating a basic plugin from scipion-em-template <create-a-basic-plugin-from-template>`.
 
-:doc: `writing-tests <writing-tests>`.
+:doc: `Writing tests in Scipion3 <writing-tests>`.
 
 Tutorial Data
 =============
