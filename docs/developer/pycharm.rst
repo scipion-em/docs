@@ -96,12 +96,12 @@ It is assumed that Scipion3 has been previously installed.
    .. figure:: /docs/images/dev-tools/pycharm_create_configuration.png
       :alt: pycharm create configuration
 
-    As an example, the image below shows a pycharm configuration to launch Scipion3:
+   As an example, the image below shows a pycharm configuration to launch Scipion3:
 
    .. figure:: /docs/images/dev-tools/pycharm_scipion_config.png
       :alt: pycharm launch Scipion3 configuration example
 
-    It can be observed that very complex executions can be easily carried out with multiple options such as environment variables.
+   It can be observed that very complex executions can be easily carried out with multiple options such as environment variables.
 
 Debugging Scipion3 in Pycharm
 -----------------------------
