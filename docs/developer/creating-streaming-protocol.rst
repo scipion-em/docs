@@ -18,7 +18,7 @@ We will create a simple protocol that connects to
 Public Image Archive) and downloads a set of Movies and in parallel it will
 register them in Scipion.
 
-The general idea of this protocol like this:
+The general idea of this protocol is as follow:
 
 .. figure:: /docs/images/general/streaming_idea.png
    :width: 250
@@ -30,6 +30,9 @@ In this sence, we will implement the following steps:
    vital information about this movies dataset (sampling rate, dimension, ...).
 2. Download one by one movies until a stop criteria is met (amount of download movies).
 3. Register the downloaded movies. This step is in parallel with steps 2.
+
+
+
 
 
 
