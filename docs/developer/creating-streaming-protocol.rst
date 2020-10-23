@@ -14,5 +14,25 @@ but, some execution steps work in parallel. You can read more about defining ste
 in parallel in `Parallelization <parallelization>`_.
 
 We will create a simple protocol that connects to
-`EMPIAR <https://www.ebi.ac.uk/pdbe/emdb/empiar/>`_ (Electron Microscopy
-Public Image Archive) and downloads  a set of Movies
+`EMPIAR <https://www.ebi.ac.uk/pdbe/emdb/empiar/>`__ (Electron Microscopy
+Public Image Archive) and downloads a set of Movies and in parallel it will
+register them in Scipion.
+
+The general idea of this protocol like this:
+
+.. figure:: /docs/images/general/streaming_idea.gif
+   :width: 250
+   :alt: Streaming Idea
+
+In this sence, we will implement the following steps:
+
+1. Read the xml file corresponding to a specific EMPIAR dataset which contains
+   vital information about this movies dataset (sampling rate, dimension, ...).
+2. Download one by one movies until a stop criteria is met (amount of download movies).
+3. Register the downloaded movies. This step is in parallel with steps 2.
+
+
+
+
+
+
