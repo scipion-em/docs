@@ -20,7 +20,7 @@ register them in Scipion.
 
 The general idea of this protocol like this:
 
-.. figure:: /docs/images/general/streaming_idea.gif
+.. figure:: /docs/images/general/streaming_idea.png
    :width: 250
    :alt: Streaming Idea
 
