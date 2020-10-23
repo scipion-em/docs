@@ -26,7 +26,7 @@ back and forth would be inappropriate, but in general the buildmaster is
 responsible for everything).
 
 .. figure:: /docs/images/buildbot/buildbot_architecture.png
-   :width: 250
+   :width: 750
    :alt: System Architecture
    :name: System Architecture
 
@@ -40,7 +40,7 @@ The buildmaster constist of several pieces:
 
 
 .. figure:: /docs/images/buildbot/build_master01.png
-   :width: 250
+   :width: 750
    :alt: Build Master
    :name: Build Master
 
@@ -67,7 +67,7 @@ automatically executing the code of the aforementioned branches:
 
 
 .. figure:: /docs/images/buildbot/build_master02.png
-   :width: 250
+   :width: 750
    :alt: Complete Build Master
    :name: Complete Build Master
 
