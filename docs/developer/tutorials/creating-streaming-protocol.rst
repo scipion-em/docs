@@ -40,7 +40,8 @@ In that sence, we will implement the following steps:
 
    2.2. Download one by one movies until a stop criteria is met (amount of download movies).
 
-   2.3. Register the downloaded movies. This step is in parallel with steps 2.
+   2.3. Register the downloaded movies. This step is in streaming. constantly
+        check if new movies have been downloaded
 
 
 Defining the protocol class and the GUI
