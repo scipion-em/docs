@@ -40,7 +40,7 @@ The buildmaster constist of several pieces:
 
 
 .. figure:: /docs/images/buildbot/build_master01.png
-   :width: 750
+   :width: 550
    :alt: Build Master
    :name: Build Master
 
@@ -67,7 +67,7 @@ automatically executing the code of the aforementioned branches:
 
 
 .. figure:: /docs/images/buildbot/build_master02.png
-   :width: 750
+   :width: 850
    :alt: Complete Build Master
    :name: Complete Build Master
 
