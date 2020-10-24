@@ -24,7 +24,7 @@ register them in Scipion.
 The general idea of this protocol is as follow:
 
 .. figure:: /docs/images/general/streaming_idea.png
-   :width: 550
+   :width: 750
    :alt: Streaming Idea
 
 In that sence, we will implement the following steps:
@@ -161,7 +161,7 @@ After the steps execution, the Summary panel shows the following information:
 
 
 .. figure:: /docs/images/general/summary.png
-   :width: 650
+   :width: 450
    :alt: Summary
 
 

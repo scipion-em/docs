@@ -68,4 +68,4 @@ Internal development tools and hints
 Tutorials
 ==========
 
-* :ref:`Tutorials <dev-tutorials>`_
+* :ref:`Tutorials <dev-tutorials>`
