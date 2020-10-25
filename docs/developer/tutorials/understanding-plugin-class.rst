@@ -19,7 +19,6 @@ Here you can find resources associated with this content, like videos or present
 
 `Detailed documentation <https://scipion-em.github.io/docs/docs/developer/creating-a-plugin#creating-init-py>`_
 
-
 Starting with scipion-em-template
 =================================
 
@@ -27,7 +26,7 @@ Let's go to our template plugin folder and setup everything ready for the practi
 
 .. code-block::
 
-   cd scipion-em-template/location
+   cd scipion-em-template
    git checkout course5_exBase
 
 You might notice a new file `protocol_run_myprogram.py`. Have a look inside.
@@ -75,6 +74,7 @@ We still need to define plugin binaries (and actually create them), so:
 
     cd scipion3/software/em
     mkdir myprogram-1.0
+    cd myprogram-1.0
     touch example_script.sh
     chmod a+x example_script.sh
 
@@ -105,7 +105,7 @@ Now let's test the plugin binaries.
 
 .. code-block::
 
-    cd scipion3/dir/
+    cd scipion3
     ./scipion3 installb -h
 
 If you see something like
@@ -135,7 +135,7 @@ Reopen the project (run `scipion last`) and try to restart the finished protocol
 .. figure:: /docs/images/dev/template_practice/practice5_ex3_missing_var.png
    :alt: Installation validation has failed
 
-This means that user have to redefine **MYPROGRAM_HOME** to point to version 1.1.
+This means that the user have to redefine **MYPROGRAM_HOME** to point to version 1.1.
 So, redefine it in your **scipion3/config/scipion.conf** file (if you do not have it, execute `./scipion3 config` first to generate the file) and then re-run the protocol:
 
 .. code-block::
@@ -160,7 +160,7 @@ If you have given up, checkout the resulting code in the following branch (exerc
 
 .. code-block::
 
-    cd scipion-em-template/location
+    cd scipion-em-template
     git checkout course5_ex1-4
 
 Once the PATH contains the path to our myprogram-1.1, we don't need anymore to define the full path in the **getProgram** function.
@@ -169,6 +169,13 @@ This was a very simple case, but in principle **getEnviron** function can be use
 
 .. figure:: /docs/images/dev/template_practice/practice5_ex4_using_env.png
    :alt: The binary is now in the PATH
+
+The **getEnviron** function gets automatically recognised by *pyworklow/protocol.py* when executing the plugin protocols,
+however you can also explicitly define the environment inside **runJob** function:
+
+.. code-block::
+
+    self.runJob(program, params, env=Plugin.getEnviron())
 
 Exercise 5 (hard)
 -----------------
@@ -232,12 +239,12 @@ Here we did not install any packages inside the new conda env since our simple s
 
 Last, let's modify **getEnviron** function and remove **PYTHONPATH** key from Environ dict - this is required for the virtual environment to work properly within Scipion.
 
-Now we are ready to install myprogram-1.0 with conda environment (remember, we have renamed to myprogram-1.1, so now our binaries are missing if you run `scipion installb -h`)
+Now we are ready to install myprogram-1.0 with conda environment (remember, we have renamed to myprogram-1.1, so now our binaries are missing if you run `./scipion3 installb -h`)
 Execute the following:
 
 .. code-block::
 
-    scipion installb myprogram
+    ./scipion3 installb myprogram
 
 Here we did not provide the version, so the version with **default=True** flag is installed.
 If the installation have completed successfully, you are in luck!
@@ -246,7 +253,7 @@ Remove MYPROGRAM_HOME from the **scipion.conf** file and move our little script 
 
 .. code-block::
 
-    cd software/em
+    cd scipion3/software/em
     mv myprogram-1.1/example_script.sh myprogram-1.0/
 
 We are finally ready to run our protocol. If everything went well, you should see something like this:
@@ -258,7 +265,7 @@ Results for this exercise can be found in the following git branch:
 
 .. code-block::
 
-    cd scipion-em-template/location
+    cd scipion-em-template
     git checkout course5_ex5
 
 Summary
