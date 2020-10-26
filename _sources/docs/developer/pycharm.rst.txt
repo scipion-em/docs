@@ -11,25 +11,15 @@ PyCharm IDE
 Getting started
 ---------------
 
-* Download PyCharm's community version depending on your Linux distribution:
-    * `Ubuntu <https://snapcraft.io/install/pycharm-community/ubuntu>`_
-    * `CentOS <https://snapcraft.io/install/pycharm-community/centos>`_
-    * `OpenSuse <https://snapcraft.io/install/pycharm-community/opensuse>`_
-    * `Fedora <https://snapcraft.io/install/pycharm-community/fedora>`_
-* Install it following the instructions for your platform.
+`Download and install PyCharm <https://www.jetbrains.com/es-es/pycharm/download/#section=linux>`_
 
-Setting Up Pycharm
+Setting Up PyCharm
 ------------------
 It is assumed that Scipion3 has been previously installed.
 
-1. To open PyCharm, execute, on a terminal:
-
-.. code-block::
-
-    /snap/bin/pycharm-community
-
-2. Open projects scipion-app, scipion-em and scipion-pyworkflow (use attach to project option).
-3. Configure project interpreter, which will be the Python of your Scipion3 environment. Go to:
+1. Open PyCharm and create a project
+2. Open projects scipion-app, scipion-em and scipion-pyworkflow (use "Attach to project" option).
+3. Configure project interpreter, which will be the python of your Scipion3 environment. Go to:
 
    .. pull-quote::
 
@@ -103,38 +93,18 @@ It is assumed that Scipion3 has been previously installed.
 
    It can be observed that very complex executions can be easily carried out with multiple options such as environment variables.
 
-Debugging Scipion3 in Pycharm
------------------------------
-
-To be able to debug Scipion3 in PyCharm IDE, it must be allowed to attach to other processes. This
-can be done temporally or permanently, as explained `here <https://www.jetbrains.com/help/clion/attaching-to-local-process.html>`_
-
-* To disable this restriction temporarily, enter the command:
-
-    .. code-block::
-
-       echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
-
-* To disable this restriction permanently, open the /etc/sysctl.d/10-ptrace.conf file for editing and change the line.
-
-    .. code-block::
-
-      kernel.yama.ptrace_scope = 1
-
-  to
-
-    .. code-block::
-
-       kernel.yama.ptrace_scope = 0
-
-  To apply the changes immediately, enter the above command
+Attaching to Scipion3 processes in PyCharm
+------------------------------------------
+Scipion launcher is a small python script that will launch a new process at the end. So, the code that you
+may want to debug falls probably in the second process (if you are interested on the GUI processes or tests) or even
+further in the "third" if you are interested in the protocol steps execution.
+To be able to debug reach those processes in PyCharm IDE, you must allow this in your system and then use Pycharm's "Attach to process..." menu. This
+can be done temporally, in UBUNTU, typing:
 
     .. code-block::
 
        echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
 
-  Alternatively, run
+For a permanent modification go `here <https://www.jetbrains.com/help/clion/attaching-to-local-process.html>`_.
 
-    .. code-block::
-
-       sudo service procps restart or restart your system.
+See `Debugging Scipion with PyCharm <debugging-scipion>`_ tutorial about debugging Scipion3 processes.
