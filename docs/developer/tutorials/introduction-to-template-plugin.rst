@@ -12,9 +12,9 @@ Associated resources
 ====================
 Here you can find resources associated with this content, like videos or presentations used in courses:
 
-`Course presentation <https://docs.google.com/presentation/d/1sACaNZFgH0qWeXE6BLUWEDW3cjYTS4kbojrKvvRp78s/edit?usp=sharing>`_
+* `Course presentation <https://docs.google.com/presentation/d/1sACaNZFgH0qWeXE6BLUWEDW3cjYTS4kbojrKvvRp78s/edit?usp=sharing>`_
 
-:ref: `Creating a basic plugin from scipion-em-template <create-a-basic-plugin-from-template>`.
+* `Creating a basic plugin from scipion-em-template <create-a-basic-plugin-from-template>`.
 
 Introduction to template plugin
 ===============================
