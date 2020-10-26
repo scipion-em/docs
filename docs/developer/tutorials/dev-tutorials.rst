@@ -2,7 +2,7 @@
    :width: 250
    :alt: scipion logo
 
-.. _dev_tutorials_index:
+.. _dev_tutorials:
 
 ===========================
 Tutorials for developers
