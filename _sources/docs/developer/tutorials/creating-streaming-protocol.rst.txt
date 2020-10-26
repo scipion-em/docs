@@ -8,18 +8,26 @@
 Creating a Streaming Protocol
 =============================
 
+Associated resources
+====================
+Here you can find resources associated with this content, like videos or presentations used in courses:
+
+`Course presentation <https://docs.google.com/presentation/d/1S7o-9dq6BjGUN7K_w5GjsOO0W5vmCV-q2U2xgDRBiAM/edit?usp=sharing>`_
+
+Practice
+========
 We define a ``Streaming Protocol``  as a processing task that involves the
 execution of several steps like any other `Scipion protocol <creating-a-protocol>`_,
 but, the inputs might appear during the protocol execution. Is impossible to
-plan all the steps(difference between streaming and non streaming protocols).
+plan all the steps (difference between streaming and non streaming protocols).
 The list of steps in a streaming protocol is dynamic, that is, they are added
-as the inputs arrive. These steps can even be parallelized. You can read more
+as the input grows. These steps can even be parallelized. You can read more
 about defining steps to be executed in parallel in `Parallelization <parallelization>`_.
 
 We will create a simple streaming protocol that connects to
 `EMPIAR <https://www.ebi.ac.uk/pdbe/emdb/empiar/>`__ (Electron Microscopy
-Public Image Archive), downloads a set of Movies and in parallel it will
-register them in Scipion.
+Public Image Archive), downloads a set of movies and in parallel it will
+register them as outputs.
 
 The general idea of this protocol is as follow:
 
@@ -27,7 +35,7 @@ The general idea of this protocol is as follow:
    :width: 750
    :alt: Streaming Idea
 
-In that sence, we will implement the following steps:
+In that sense, we will implement the following steps:
 
 1. Create a protocol GUI that admits as a parameter the ID of the EMPIAR dataset
    as well as a stopping criterion (in our case the number of movies to download).
@@ -157,7 +165,9 @@ the code of that method is as follow:
             summary.append('Dataset Size: ' + str(self.datasetSize))
         return summary
 
-After the steps execution, the Summary panel shows the following information:
+Now your protocol should be able to run, try it now, and get some information from the empiar entry xml.
+
+After the execution, the Summary panel should show the following information:
 
 
 .. figure:: /docs/images/general/summary.png
@@ -165,8 +175,11 @@ After the steps execution, the Summary panel shows the following information:
    :alt: Summary
 
 
-After thats, we'll add into ``_insertAllSteps`` method the second step. This step
-will download a set of movies.
+Note that all the values that we want to have in the summary (empiarName, organization, ...)
+are those from Scipion (String, Integer, ...) that automatically get persisted.
+
+After that, we'll add into ``_insertAllSteps`` method the second step. This step
+will download the movies from the entry (self.entryId) ftp until the amount specified (self.amountOfImages) is reached.
 
 .. code-block:: python
 
@@ -174,7 +187,7 @@ will download a set of movies.
             self.readXmlFile = self._insertFunctionStep('readXmlFileStep')        # read the dataset xml file from EMPIAR
             self.downloadImages = self._insertFunctionStep('downloadImagesStep')  # download the movies and register them in pararell
 
-the implementatio of this method is as follow:
+the implementation of this method is as follow:
 
 .. code-block:: python
 
@@ -214,9 +227,14 @@ the implementatio of this method is as follow:
                         break
             ftp.close()
 
+NOTE: We are aware that the code above will work only with entries having the file under a "data/Movies" folder.
+This works for at least 10200 entry and a smarter ftp navigation is needed to work with all EMPIAR entries.
 
-While the stopping criterion is not met, it will be downloaded to the
-specified directory one by one of the movies in the dataset.
+While the stopping criteria is not met, it will be downloading files to the
+protocol's temporary folder. Once the download of file is finished it is moved to the extra folder.
+
+Try to run it now and check that the files are being downloaded and end up in the extra folder. Check as well that the limit is taken into account.
+There isn0t any code registering the movies in Scipion
 
 The third step consists of closing the movie set that has been registered in
 Scipion. The implementation of this step is as follow:
