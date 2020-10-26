@@ -187,7 +187,7 @@ Then, Click on File > Open and select your plugin. Follow these steps:
 4. Now, update **Times** parameter to **Operand 1**, with a default value of **1**, parameter name to **operand1** and
    its help to **‘First operand considered in the selected operation.’**.
 
-   *Hint*: because result of division operation may be decimal, data type must be casted to **params.FloatParam**.
+   *Hint*: because result of division operation may be decimal, data type must be **objects.Float**.
 
    Again, result should look like:
 
