@@ -21,10 +21,10 @@ Cloning and installing scipion-em-template
 
 .. code-block::
 
-   cd desired/location
-   git clone -b course1_exBase https://github.com/scipion-em/scipion-em-template.git
-   cd scipion3/location
-   ./scipion3 installp -p scipion-em-template/location --devel
+    cd desired/location
+    git clone -b course1_exBase https://github.com/scipion-em/scipion-em-template.git
+    cd scipion3/location
+    ./scipion3 installp -p scipion-em-template/location --devel
 
 Check if the plugin works correctly
 ===================================
@@ -34,13 +34,13 @@ Follow these steps:
 
 .. code-block::
 
-   cd scipion3/dir/
+    cd scipion3/dir/
 
 2. Execute Scipion3:
 
 .. code-block::
 
-   ./scipion3
+    ./scipion3
 
 3. Click on Create Project, type a name for it and then click on Create.
 
@@ -130,8 +130,8 @@ Then, Click on File > Open and select your plugin. Follow these steps:
 
 .. code-block::
 
-   cd scipion-em-template/location
-   git checkout -b course1_ex1
+    cd scipion-em-template/location
+    git checkout -b course1_ex1
 
 2. Edit the wizard (file wizards.py) to change the greetings into operations: **Sum, Substract, Multiply, Divide**.
 
@@ -156,8 +156,8 @@ Then, Click on File > Open and select your plugin. Follow these steps:
 
 .. code-block::
 
-   cd scipion-em-template/location
-   git checkout -b course1_ex2
+    cd scipion-em-template/location
+    git checkout -b course1_ex2
 
 3. In protocols.py, update field Message to **Operation**, and its default value to **Sum**. Update also the parameter
    name to **operation** and the help to **‘Operation which will be applied.’**.
@@ -181,8 +181,8 @@ Then, Click on File > Open and select your plugin. Follow these steps:
 
 .. code-block::
 
-   cd scipion-em-template/location
-   git checkout -b course1_ex3
+    cd scipion-em-template/location
+    git checkout -b course1_ex3
 
 4. Now, update **Times** parameter to **Operand 1**, with a default value of **1**, parameter name to **operand1** and
    its help to **‘First operand considered in the selected operation.’**.
@@ -198,8 +198,8 @@ Then, Click on File > Open and select your plugin. Follow these steps:
 
 .. code-block::
 
-   cd scipion-em-template/location
-   git checkout -b course1_ex4
+    cd scipion-em-template/location
+    git checkout -b course1_ex4
 
 5. Do the same with parameter **Previous count**: its new label will be **Operand 2**, with a default value of **1**,
    parameter name **operand2** and its help **‘Second operand considered in the selected operation.’**.
@@ -222,8 +222,8 @@ Then, Click on File > Open and select your plugin. Follow these steps:
 
 .. code-block::
 
-   cd scipion-em-template/location
-   git checkout -b course1_ex5
+    cd scipion-em-template/location
+    git checkout -b course1_ex5
 
 6. In protocols.py, type the operating method and customize the info functions.
 
@@ -260,5 +260,5 @@ Then, Click on File > Open and select your plugin. Follow these steps:
 
 .. code-block::
 
-   cd scipion-em-template/location
-   git checkout -b course1_ex6
+    cd scipion-em-template/location
+    git checkout -b course1_ex6
