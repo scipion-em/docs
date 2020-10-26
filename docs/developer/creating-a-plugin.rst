@@ -722,7 +722,7 @@ Add SCIPION_PLUGIN_JSON variable
 
 In the ``VARIABLES`` section of your ``~/.config/scipion/scipion.conf``, add variable ``SCIPION_PLUGIN_JSON``. If
 you don't add this variable, Scipion will read the json from http://scipion.i2pc.es/getplugins instead of reading
-your local json copy. If you use pycharm to run Scipion, you can also add it as environment variable in your run
+your local json copy. If you use PyCharm to run Scipion, you can also add it as environment variable in your run
 configuration. Remember to replace the example provided with the right path:
 
 .. code-block:: ini

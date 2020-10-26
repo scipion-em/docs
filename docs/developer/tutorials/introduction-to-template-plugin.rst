@@ -26,7 +26,7 @@ Scipion Framework.
 
 Which protocols does scipion-em-template contain?
 -------------------------------------------------
-To check this, open, in Pycharm, file protocols.py and press ctrl + O (Eclipse keymap) to quickly check its contents.
+To check this, open, in PyCharm, file protocols.py and press ctrl + O (Eclipse keymap) to quickly check its contents.
 The result of this action should be:
 
 .. figure:: /docs/images/dev/template_practice/practice1_intro_protocol_list.png
