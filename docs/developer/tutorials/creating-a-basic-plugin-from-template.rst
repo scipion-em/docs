@@ -115,11 +115,7 @@ exercises are consecutive, so you can move to the branch needed and continue. Fo
 3 and want to continue, simply move to the branch which contains the solution of exercise 2 to get a check point from
 where continue.
 
-To begin the practise, launch PyCharm on a new terminal:
-
-.. code-block::
-
-   /snap/bin/pycharm-community
+To begin the practice, launch PyCharm
 
 Then, Click on File > Open and select your plugin. Follow these steps:
 
