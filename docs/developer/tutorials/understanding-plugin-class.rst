@@ -242,7 +242,7 @@ Last, let's modify **getEnviron** function and remove **PYTHONPATH** key from En
 Now we are ready to install myprogram-1.0 with conda environment (remember, we have renamed to myprogram-1.1, so now our binaries are missing if you run `./scipion3 installb -h`)
 Execute the following:
 
-.. code-block::
+.. code-block:: bash
 
     ./scipion3 installb myprogram
 
@@ -251,7 +251,7 @@ If the installation have completed successfully, you are in luck!
 Look into **software/em/myprogram-1.0**, you should see IS_INSTALLED empty file.
 Remove MYPROGRAM_HOME from the **scipion.conf** file and move our little script back:
 
-.. code-block::
+.. code-block:: bash
 
     cd scipion3/software/em
     mv myprogram-1.1/example_script.sh myprogram-1.0/
@@ -263,7 +263,7 @@ We are finally ready to run our protocol. If everything went well, you should se
 
 Results for this exercise can be found in the following git branch:
 
-.. code-block::
+.. code-block:: bash
 
     cd scipion-em-template
     git checkout course5_ex5
