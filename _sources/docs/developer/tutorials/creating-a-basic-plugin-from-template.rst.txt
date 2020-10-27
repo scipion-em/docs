@@ -2,7 +2,7 @@
    :width: 250
    :alt: scipion logo
 
-.. _create-a-basic-plugin-from-template:
+.. _creating-a-basic-plugin-from-template:
 
 ================================================
 Creating a basic plugin from scipion-em-template

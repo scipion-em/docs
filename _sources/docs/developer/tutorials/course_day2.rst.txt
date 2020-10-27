@@ -2,7 +2,7 @@
    :width: 250
    :alt: scipion logo
 
-.. _developers_day2:
+.. _course_day2:
 
 .. contents:: Table of Contents
 

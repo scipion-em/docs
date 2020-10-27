@@ -10,9 +10,9 @@ Tutorials for developers
 
 * `Debugging Scipion with PyCharm <debugging-scipion>`_
 * `Creating a basic calculator plugin from scipion-em-template <create-a-basic-plugin-from-template>`_
-* `Creating tests for the calculator plugin <create-tests-for-template-calculator>`_
-* `Protocols and Viewers <developers_day2>`_
+* `Creating tests for the calculator plugin <creating-tests-for-template-calculator>`_
+* `Protocols and Viewers <course_day2>`_
 * `Understanding the plugin class <understanding-plugin-class>`_
 * `Creating a streaming protocol <creating-streaming-protocol>`_
 * `Creating a monitor <creating-a-monitor>`_
-* `Customize the HTML report <customize-html-report>`_
+* `Customize the HTML report <../../facilities/customize-html-report>`_
