@@ -67,6 +67,16 @@ which there are two text files:
 
 They will be read and parsed in the tests to generate the required operands.
 
+Where are datasets located?
+===========================
+
+All the datasets are stored in directory **[SCIPION_HOME]/data/tests**. Existing datasets will be downloaded there.
+
+Create a dataset
+================
+
+To begin the practice, the dataset described above must be created in the expected location.
+
 Associate datasets to plugin tests
 ==================================
 
