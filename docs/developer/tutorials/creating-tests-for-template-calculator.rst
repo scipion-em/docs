@@ -125,10 +125,10 @@ Writing the tests
     **BaseTest**. The validation has to check if the result obtained is different to the result of the operation
     specified by the test in a quantity lower or equal than a tolerance of 1e-6.
 
-*Note 1*: do not hesitate to write as many auxiliary methods for code centralization.
+.. note:: do not hesitate to write as many auxiliary methods for code centralization.
 
-*Note 2*: it is recommended to create a file constants.py inside the plugin and declare there the operation names for
-the calculator.
+.. note:: it is recommended to create a file constants.py inside the plugin and declare there the operation names for
+          the calculator.
 
 Executing the tests
 ===================
