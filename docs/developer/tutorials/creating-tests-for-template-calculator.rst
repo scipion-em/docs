@@ -2,7 +2,7 @@
    :width: 250
    :alt: scipion logo
 
-.. _create-tests-for-template-calculator:
+.. _creating-tests-for-template-calculator:
 
 ========================================
 Creating tests for the calculator plugin
@@ -15,9 +15,9 @@ Associated resources
 ====================
 Here you can find resources associated with this content:
 
-* `Creating a basic plugin from scipion-em-template <create-a-basic-plugin-from-template>`.
+* `Creating a basic plugin from scipion-em-template <create-a-basic-plugin-from-template>`_.
 
-* `Writing tests in Scipion3 <writing-tests>`.
+* `Writing tests in Scipion3 <writing-tests>`_.
 
 Tutorial Data
 =============
@@ -28,17 +28,17 @@ option, these are commands which has to be executed:
 
 .. code-block::
 
-   cd scipion-em-template/location
-   git checkout -b course1_ex6
+    cd scipion-em-template/location
+    git checkout -b course1_ex6
 
 * Else:
 
 .. code-block::
 
-   cd desired/location
-   git clone -b course1_ex6 https://github.com/scipion-em/scipion-em-template.git
-   cd scipion3/location
-   ./scipion3 installp -p scipion-em-template/location --devel
+    cd desired/location
+    git clone -b course1_ex6 https://github.com/scipion-em/scipion-em-template.git
+    cd scipion3/location
+    ./scipion3 installp -p scipion-em-template/location --devel
 
 Test Dataset
 ============
@@ -77,42 +77,43 @@ shows how must it be done.
 .. figure:: /docs/images/dev/template_test_practice/template_test_init_dataset.png
    :alt: Test dataset in test init
 
-Observe that the **name** and **folder** attributes have the same value. THis is because in this case the dataset and
-the main folder have the same name. On the other hand, attribute **files** is used to has direct access to specific
-files inside the dataset via DataSet object method **getFile**. It can be also used to list in detail the contents of
-the dataset.
+Observe that the **name** and **folder** attributes have the same value. This is because in this case the dataset and
+the main folder have the same name. On the other hand, attribute **files** is used to have direct access to specific
+files inside the dataset via DataSet method **getFile**.
 
 Writing the tests
 =================
 
-1. In the test folder, create a file named **test_protocol_myCalculator.py**, and open it.
+1. In the tests folder, create a file named **test_protocol_myCalculator.py**, and open it.
 
-2. Create a test class named **TestProtocolMyCalculator**, which inherits from **BaseTest**, in **pyworkflow.tests**.
+2. Create a test class named **TestProtocolMyCalculator** inheriting from **BaseTest**, in **pyworkflow.tests**.
 
 3. Inside that class, create the set up class method, used to prepare the test execution environment. It has to be
    named **setUpClass**, and has to:
 
-    3.1  Set up for test project (*Hint*: method **setupTestProject** in  **pyworkflow.tests**).
+    3.1 Set up for test project (*Hint*: method **setupTestProject** in  **pyworkflow.tests** ).
 
-    3.2  Get, from dataset **devCourse**, files **operand1** and **operand2** and parse them to get the values from
-         them. They must be two float, one per file (12 and 3.14159265359, respectively).
+    3.2 Get, from dataset **devCourse**, files **operand1** and **operand2** and parse them to get the values from
+    them. They must be two float, one per file (12 and 3.14159265359, respectively).
 
-    3.3  Store operand1 value in a class attribute named **cls.op1** and do the same for operand2 in **cls.op2**.
+    3.3 Store operand1 value in a class attribute named **cls.op1** and do the same for operand2 in **cls.op2**.
 
 4. Write four tests, one for each operation offered by the calculator protocol (Sum, Substract, Multiply and Divide).
    Each test must:
 
     4.1  Create a calculator protocol object with the attributes operation, operand1 and operand2.
+
          *Hint*: To do that, check **BaseTest** method **newProtocol**.
 
     4.2  Execute the protocol created.
+
          *Hint*: use method **launchProtocol** from **BaseTest**.
 
     4.3  Get protocol output. It is stored in a protocol attribute named **result**.
 
     4.4  Validate the value obtained. To do that, create an assertion, e. g. **assertTrue**, contained, again in
-         **BaseTest**. The validation has to check if the result obtained is different to the result of the operation
-         specified by the test in a quantity lower or equal than a tolerance of 1e-6.
+    **BaseTest**. The validation has to check if the result obtained is different to the result of the operation
+    specified by the test in a quantity lower or equal than a tolerance of 1e-6.
 
 *Note 1*: do not hesitate to write as many auxiliary methods for code centralization.
 
@@ -126,22 +127,22 @@ To run the tests, execute, in a terminal from the Scipion3 folder:
 
 *  If you want to execute all the tests contained in your python file:
 
-.. code-block::
+    .. code-block::
 
-    ./scipion3 tests myplugin.tests
+        ./scipion3 tests myplugin.tests
 
 *  If you want to execute a group of tests contained in that python file, and inside it, contained in a specific test
    class (there can be more than one), in this case, test_protocol_myCalculator:
 
-.. code-block::
+    .. code-block::
 
-    ./scipion3 tests myplugin.tests.test_protocol_myCalculator
+        ./scipion3 tests myplugin.tests.test_protocol_myCalculator
 
 *  If you want to execute only one test from a file and a determined test class inside that file, e.g, testMultiply:
 
-.. code-block::
+    .. code-block::
 
-    ./scipion3 tests myplugin.tests.test_protocol_myCalculator.testMultiply
+        ./scipion3 tests myplugin.tests.test_protocol_myCalculator.testMultiply
 
 Using the first option, result obtained should look like this.
 
@@ -153,12 +154,13 @@ Observe that it looks for the specified dataset. If it isn't locally present, it
 Show the test project
 =====================
 
-Each test execution generates a project in Scipion3 for each test class. In our case, it will be named
-**TestProtocolMyCalculator**. To check that, execute, in a terminal from Scipion3 directory:
+Each test class generates a project in Scipion3 with it's same name. In our case, it will be named
+**TestProtocolMyCalculator**. All protocols created within the same class share the same project.
+To check that, execute, in a terminal from Scipion3 directory:
 
-.. code-block::
+    .. code-block::
 
-    ./scipion3 last
+        ./scipion3 last
 
 Which will automatically open last project executed. It should look like this:
 
@@ -173,7 +175,7 @@ Solutions
 
 To get the solutions, simply move to the branch specified below:
 
-.. code-block::
+    .. code-block::
 
-    cd scipion-em-template/location
-    git checkout -b course1_test
+        cd scipion-em-template/location
+        git checkout -b course1_test
