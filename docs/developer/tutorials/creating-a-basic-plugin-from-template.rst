@@ -169,7 +169,7 @@ Then, Click on File > Open and select your plugin. Follow these steps:
 
    *Important*: the wizard’s target was the old field name must be updated to the new one. To do that, in file
    wizards.py, update line **_targets = [(MyPluginPrefixHelloWorld, ['message'])]** to **_targets =
-   [(MyPluginPrefixHelloWorld, [operation])]**. Also, the wizard output must point to the new parameter, so update line
+   [(MyPluginPrefixHelloWorld, ['operation'])]**. Also, the wizard output must point to the new parameter, so update line
    **form.setVar('message', dlg.values[0].get())** to **form.setVar(‘operation’, dlg.values[0].get())**.
 
    Result should look like:
