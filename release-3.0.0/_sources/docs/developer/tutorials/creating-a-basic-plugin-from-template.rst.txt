@@ -19,7 +19,7 @@ Here you can find resources associated with this content, like videos or present
 Cloning and installing scipion-em-template
 ==========================================
 
-.. code-block::
+.. code-block:: bash
 
     cd desired/location
     git clone -b course1_exBase https://github.com/scipion-em/scipion-em-template.git
@@ -32,13 +32,13 @@ Follow these steps:
 
 1. Open a new terminal and move to Scipion3’s directory:
 
-.. code-block::
+.. code-block:: bash
 
     cd scipion3/dir/
 
 2. Execute Scipion3:
 
-.. code-block::
+.. code-block:: bash
 
     ./scipion3
 
@@ -128,7 +128,7 @@ Then, Click on File > Open and select your plugin. Follow these steps:
 
    Solution:
 
-.. code-block::
+.. code-block:: bash
 
     cd scipion-em-template/location
     git checkout -b course1_ex1
@@ -154,7 +154,7 @@ Then, Click on File > Open and select your plugin. Follow these steps:
 
    Solution:
 
-.. code-block::
+.. code-block:: bash
 
     cd scipion-em-template/location
     git checkout -b course1_ex2
@@ -179,7 +179,7 @@ Then, Click on File > Open and select your plugin. Follow these steps:
 
    Solution:
 
-.. code-block::
+.. code-block:: bash
 
     cd scipion-em-template/location
     git checkout -b course1_ex3
@@ -196,7 +196,7 @@ Then, Click on File > Open and select your plugin. Follow these steps:
 
    Solution:
 
-.. code-block::
+.. code-block:: bash
 
     cd scipion-em-template/location
     git checkout -b course1_ex4
@@ -220,7 +220,7 @@ Then, Click on File > Open and select your plugin. Follow these steps:
 
    Solution:
 
-.. code-block::
+.. code-block:: bash
 
     cd scipion-em-template/location
     git checkout -b course1_ex5
@@ -258,7 +258,7 @@ Then, Click on File > Open and select your plugin. Follow these steps:
 
    Solution:
 
-.. code-block::
+.. code-block:: bash
 
     cd scipion-em-template/location
     git checkout -b course1_ex6

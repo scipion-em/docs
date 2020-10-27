@@ -607,7 +607,8 @@ CHANGES.txt (optional)
 ~~~~~~~~~~~~~~~~~~~~~~
 
 This file records a short description of the modifications made with each release of the pip package.
-.. code-block::
+
+.. code-block:: bash
 
     v1.0.0, 23/04/2018 -- First commit
 

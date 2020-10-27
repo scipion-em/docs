@@ -24,7 +24,7 @@ Starting with scipion-em-template
 
 Let's go to our template plugin folder and setup everything ready for the practice session:
 
-.. code-block::
+.. code-block:: bash
 
    cd scipion-em-template
    git checkout course5_exBase
@@ -49,7 +49,7 @@ Exercise 1 (easy)
 
 First, create **myplugin/constants.py** file and define the following constants:
 
-.. code-block::
+.. code-block:: bash
 
     MYPROGRAM_HOME = 'MYPROGRAM_HOME'
     MYPROGRAM = 'MYPROGRAM'
@@ -70,7 +70,7 @@ Exercise 2 (easy)
 
 We still need to define plugin binaries (and actually create them), so:
 
-.. code-block::
+.. code-block:: bash
 
     cd scipion3/software/em
     mkdir myprogram-1.0
@@ -82,7 +82,7 @@ We still need to define plugin binaries (and actually create them), so:
 
 Open **example_script.sh** in any editor and paste the following code:
 
-.. code-block::
+.. code-block:: bash
 
     #!/bin/bash
     echo "Starting myprogram..."
@@ -103,14 +103,14 @@ Exercise 3 (easy)
 
 Now let's test the plugin binaries.
 
-.. code-block::
+.. code-block:: bash
 
     cd scipion3
     ./scipion3 installb -h
 
 If you see something like
 
-.. code-block::
+.. code-block:: bash
 
     myprogram                1.0     [X]
 
@@ -125,7 +125,7 @@ Now, imagine a user who wants to use a different binary version.
 At the moment we have the default version defined in **_defineVariables** as **1.0**.
 For simplicity, let's close the Scipion project and rename our package folder:
 
-.. code-block::
+.. code-block:: bash
 
     cd scipion3/software/em
     mv myprogram-1.0 myprogram-1.1
@@ -138,7 +138,7 @@ Reopen the project (run `scipion last`) and try to restart the finished protocol
 This means that the user have to redefine **MYPROGRAM_HOME** to point to version 1.1.
 So, redefine it in your **scipion3/config/scipion.conf** file (if you do not have it, execute `./scipion3 config` first to generate the file) and then re-run the protocol:
 
-.. code-block::
+.. code-block:: bash
 
     MYPROGRAM_HOME = software/em/myprogram-1.1
 
@@ -158,7 +158,7 @@ Can you now define **getEnviron** function inside the Plugin class so that the m
 
 If you have given up, checkout the resulting code in the following branch (exercises 1-4 completed):
 
-.. code-block::
+.. code-block:: bash
 
     cd scipion-em-template
     git checkout course5_ex1-4
@@ -173,7 +173,7 @@ This was a very simple case, but in principle **getEnviron** function can be use
 The **getEnviron** function gets automatically recognised by *pyworklow/protocol.py* when executing the plugin protocols,
 however you can also explicitly define the environment inside **runJob** function:
 
-.. code-block::
+.. code-block:: bash
 
     self.runJob(program, params, env=Plugin.getEnviron())
 
@@ -185,20 +185,20 @@ Let's explore conda-based installation. A lot of new cryo-em software comes with
 First, you need to make sure that you have conda installed (we recommend *miniconda3*). If you have used conda for Scipion installation then there should be no problem.
 You also need to know how to activate it, this depends on the system and the SHELL you are using. Below is an example for bash:
 
-.. code-block::
+.. code-block:: bash
 
     . /path/to/miniconda3/etc/profile.d/conda.sh
 
 We need to define the following constants in your **scipion3/config/scipion.conf** file:
 
-.. code-block::
+.. code-block:: bash
 
     CONDA_ACTIVATION_CMD = . /path/to/miniconda3/etc/profile.d/conda.sh
     MYPROG_ENV_ACTIVATION = conda activate myprogenv-1.0
 
 Add the following functions to the Plugin class:
 
-.. code-block::
+.. code-block:: bash
 
     @classmethod
     def getDependencies(cls):
@@ -229,7 +229,7 @@ cls.getCondaActivationCmd(), cls.getMyProgEnvActivation() and the program variab
 Now change **addPackage** function inside **defineBinaries**: you need to set **tar=void.tgz** add **commands** argument that will
 create and activate a new conda environment. e.g:
 
-.. code-block::
+.. code-block:: bash
 
     conda create -y -n myprogenv-1.0 python=3;
     conda activate myprogenv-1.0;
