@@ -140,9 +140,9 @@ Then, Click on File > Open and select your plugin. Follow these steps:
    **‘Select one of the greetings’** to **‘Select one of the operations’**. This must be done in the dialog definition
    (line **dlg = dialog.ListDialog(form.root, "Greetings from the world", provider,  "Select one of the operations"**).
 
-   *Important*: if variable name greetings is renamed, use the same name as the input in the provider definition,
-   e. g., if greetings variable is renamed to myoperations (line **operations = [String(' …)**, then line **provider =
-   ListTreeProviderString(greetings)** must be updated to **provider = ListTreeProviderString(myoperations)**.
+   .. Important:: if variable name greetings is renamed, use the same name as the input in the provider definition,
+                  e. g., if greetings variable is renamed to myoperations (line **operations = [String(' …)**, then line **provider =
+                  ListTreeProviderString(greetings)** must be updated to **provider = ListTreeProviderString(myoperations)**.
 
    Result should look like this:
 
@@ -167,10 +167,10 @@ Then, Click on File > Open and select your plugin. Follow these steps:
         *  Data type.
         *  Attributes whit syntax attributeName=attributeValue, e. g. label=’Message’.
 
-   *Important*: the wizard’s target was the old field name must be updated to the new one. To do that, in file
-   wizards.py, update line **_targets = [(MyPluginPrefixHelloWorld, ['message'])]** to **_targets =
-   [(MyPluginPrefixHelloWorld, ['operation'])]**. Also, the wizard output must point to the new parameter, so update line
-   **form.setVar('message', dlg.values[0].get())** to **form.setVar(‘operation’, dlg.values[0].get())**.
+   .. Important:: the wizard’s target was the old field name must be updated to the new one. To do that, in file
+                  wizards.py, update line **_targets = [(MyPluginPrefixHelloWorld, ['message'])]** to **_targets =
+                  [(MyPluginPrefixHelloWorld, ['operation'])]**. Also, the wizard output must point to the new parameter, so update line
+                  **form.setVar('message', dlg.values[0].get())** to **form.setVar(‘operation’, dlg.values[0].get())**.
 
    Result should look like:
 
@@ -244,8 +244,8 @@ Then, Click on File > Open and select your plugin. Follow these steps:
 
              *Hint*: use protocol inherited method **self._defineOutputs** to do that.
 
-             *Important*: to make a **variable value be registered, it must be casted to a Scipion data type**. In this
-             case, **self.result** should be casted to type **params.Float**.
+            .. Important:: to make a **variable value be registered, it must be casted to a Scipion data type**. In this
+                           case, **self.result** should be casted to type **params.Float**.
 
         6.4  Finally, in terms of customizing the info functions by adapting them to the new functionality, we’ll focus
              only in **_summary** method. Thus, you can comment or delete the method **_methods**. Then, update the
@@ -262,3 +262,5 @@ Then, Click on File > Open and select your plugin. Follow these steps:
 
     cd scipion-em-template/location
     git checkout -b course1_ex6
+
+
