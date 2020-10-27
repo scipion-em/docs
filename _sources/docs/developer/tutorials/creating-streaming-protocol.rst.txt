@@ -227,8 +227,8 @@ the implementation of this method is as follow:
                         break
             ftp.close()
 
-NOTE: We are aware that the code above will work only with entries having the file under a "data/Movies" folder.
-This works for at least 10200 entry and a smarter ftp navigation is needed to work with all EMPIAR entries.
+.. note:: We are aware that the code above will work only with entries having the file under a "data/Movies" folder.
+          This works for at least 10200 entry and a smarter ftp navigation is needed to work with all EMPIAR entries.
 
 While the stopping criteria is not met, it will be downloading files to the
 protocol's temporary folder. Once the download of file is finished it is moved to the extra folder.
@@ -258,10 +258,8 @@ Remember add into ``_insertAllSteps`` method this step:
             self.downloadImages = self._insertFunctionStep('downloadImagesStep')  # download the movies and register them in pararell
             self.closeSet = self._insertFunctionStep('closeSetStep', wait=True)   # close the registered dataset set
 
-**Important**
-
-    We need to set the ``wait`` parameter to ``True`` in order to
-    wait until all movies have been registered.
+.. important:: We need to set the ``wait`` parameter to ``True`` in order to
+               wait until all movies have been registered.
 
 Up to this point, we have only defined the steps of the protocol, but we have
 not yet been registering each of the downloaded movies. This process should be

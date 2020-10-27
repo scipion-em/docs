@@ -101,7 +101,7 @@ further in the "third" if you are interested in the protocol steps execution.
 To be able to debug reach those processes in PyCharm IDE, you must allow this in your system and then use Pycharm's "Attach to process..." menu. This
 can be done temporally, in UBUNTU, typing:
 
-    .. code-block::
+    .. code-block:: bash
 
        echo 0 | sudo tee /proc/sys/kernel/yama/ptrace_scope
 
