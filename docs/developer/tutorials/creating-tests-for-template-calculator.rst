@@ -24,14 +24,14 @@ Tutorial Data
 You can begin this tutorial using the result of the basic plugin creation tutorial or directly clone it. For the second
 option, these are commands which has to be executed:
 
-* If you currently have installed scipion-em-template in Scipion3:
+If you currently have installed scipion-em-template in Scipion3:
 
 .. code-block::
 
     cd scipion-em-template/location
     git checkout -b course1_ex6
 
-* Else:
+Else:
 
 .. code-block::
 
@@ -135,24 +135,24 @@ Executing the tests
 
 To run the tests, execute, in a terminal from the Scipion3 folder:
 
-*  If you want to execute all the tests contained in your python file:
+If you want to execute all the tests contained in your python file:
 
-    .. code-block::
+.. code-block::
 
-        ./scipion3 tests myplugin.tests
+    ./scipion3 tests myplugin.tests
 
-*  If you want to execute a group of tests contained in that python file, and inside it, contained in a specific test
+If you want to execute a group of tests contained in that python file, and inside it, contained in a specific test
    class (there can be more than one), in this case, test_protocol_myCalculator:
 
-    .. code-block::
+.. code-block::
 
-        ./scipion3 tests myplugin.tests.test_protocol_myCalculator
+    ./scipion3 tests myplugin.tests.test_protocol_myCalculator
 
-*  If you want to execute only one test from a file and a determined test class inside that file, e.g, testMultiply:
+If you want to execute only one test from a file and a determined test class inside that file, e.g, testMultiply:
 
-    .. code-block::
+.. code-block::
 
-        ./scipion3 tests myplugin.tests.test_protocol_myCalculator.testMultiply
+    ./scipion3 tests myplugin.tests.test_protocol_myCalculator.testMultiply
 
 Using the first option, result obtained should look like this.
 
@@ -168,9 +168,9 @@ Each test class generates a project in Scipion3 with it's same name. In our case
 **TestProtocolMyCalculator**. All protocols created within the same class share the same project.
 To check that, execute, in a terminal from Scipion3 directory:
 
-    .. code-block::
+.. code-block::
 
-        ./scipion3 last
+    ./scipion3 last
 
 Which will automatically open last project executed. It should look like this:
 
@@ -185,7 +185,7 @@ Solutions
 
 To get the solutions, simply move to the branch specified below:
 
-    .. code-block::
+.. code-block::
 
-        cd scipion-em-template/location
-        git checkout -b course1_test
+    cd scipion-em-template/location
+    git checkout -b course1_test
