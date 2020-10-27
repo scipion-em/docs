@@ -68,4 +68,4 @@ Internal development tools and hints
 Tutorials
 ==========
 
-* `Developers tutorials <dev-tutorials>`_
+* `Developers tutorials <https://scipion-em.github.io/docs/docs/developer/tutorials/dev-tutorials>`_
