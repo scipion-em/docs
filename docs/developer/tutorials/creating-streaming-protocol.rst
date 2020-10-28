@@ -252,7 +252,7 @@ Try to run it now and check that the files are being downloaded and end up in th
 There isn't any code registering the movies in Scipion
 
 The third step consists of closing the movie set that has been registered in
-Scipion. The implementation of this step is as follow:
+Scipion. The definition of this step is as follow:
 
 .. code-block:: python
 
