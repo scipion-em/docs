@@ -386,7 +386,7 @@ Following the three steps outlined within the following method, complete the cod
             # 2. Save the outputMovies using the write() method
             # 3. Save the protocol
 
-The dependencies steps graph is as follow:
+The dependencies steps graph should look like this:
 
 .. figure:: /docs/images/general/graph_steps.png
    :width: 650
