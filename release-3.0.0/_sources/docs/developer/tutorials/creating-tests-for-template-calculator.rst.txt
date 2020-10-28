@@ -143,7 +143,7 @@ If you want to execute all the tests contained in your python file:
         ./scipion3 tests myplugin.tests
 
 If you want to execute a group of tests contained in that python file, and inside it, contained in a specific test
-   class (there can be more than one), in this case, test_protocol_myCalculator:
+class (there can be more than one), in this case, test_protocol_myCalculator:
 
 .. code-block:: bash
 

@@ -121,9 +121,11 @@ server and ``-rf`` is the remote folder where to rsync your files.
                  ...},
           url='http://wwww.server.com/datasets')
 
-NOTE: url parameter should be a valid url where your dataset is being published.
-TIP: I haven't tried, but doing the upload yourself, to generate the MANIFEST and then adding your datasets + MANIFEST
-to github might also work if you later point to the gitraw url?? (disclaimer...has not been tested.)
+.. note::
+
+        url parameter should be a valid url where your dataset is being published.
+        TIP: I haven't tried, but doing the upload yourself, to generate the MANIFEST and then adding your datasets + MANIFEST
+        to github might also work if you later point to the gitraw url?? (disclaimer...has not been tested.)
 
 
 
