@@ -16,7 +16,7 @@ Here you can find resources associated with this content, like videos or present
 
 Practice
 ========
-We define a ``Streaming Protocol``  as a processing task that involves the
+We define a ``streaming protocol``  as a processing task that involves the
 execution of several steps like any other `Scipion protocol <creating-a-protocol>`_,
 but, the inputs might appear during the protocol execution. Is impossible to
 plan all the steps (difference between streaming and non streaming protocols).
@@ -64,9 +64,6 @@ The GUI would be as the following figure shows:
    :alt: Streaming Protocol
 
 The following code contain the class definition and the protocol GUI implementation.
-Note that into the ``__init__`` method, the parameter to especify that the protocol
-contain steps in parallel is defined. On the other hand, the parallel section is inserted
-into the protocol GUI.
 
 .. code-block:: python
 
@@ -100,7 +97,7 @@ into the protocol GUI.
             # add a section
 
             # add a parameter to capture the EMPIAR entry ID:
-            # name --> entryID, String param, default value 10200, you choose the label
+            # name --> entryId, String param, default value 10200, you choose the label
             # Ideally we want it in bold is "important", it should not be empty, and fill the help.
 
             # add another parameter to set a limit of downloaded files:
@@ -112,6 +109,11 @@ into the protocol GUI.
             form.addParallelSection(threads=3, mpi=1)
 
 
+.. note::
+
+        Note that in the ``__init__`` method, we are specifying
+        stepsExecutionMode parameter, and in the _defineParams we are invoking
+        addParallelSection method.
 
 Create the steps to download and register the movie set
 --------------------------------------------------------
@@ -143,7 +145,7 @@ The first step read the dataset xml file from EMPIAR.
 
             return summary
 
-we provide you the code of that reads EMPIAR's xmls:
+we provide you the code that reads EMPIAR's xmls:
 
 .. code-block:: python
 
@@ -188,8 +190,8 @@ After the execution, the Summary panel could show the following information if y
     have to be those from Scipion (String, Integer, ...) that automatically get persisted.
 
 After that, we'll add into ``_insertAllSteps`` method the second step. This step
-will download the movies from the entry (self.entryId) ftp until the amount
-specified (self.amountOfImages) is reached.
+will download the movies from the entry (``entryId``) ftp until the amount
+specified (``amountOfImages``) is reached.
 
 .. code-block:: python
 
@@ -242,16 +244,17 @@ The code bellow should download files from empiar:
                         break
             ftp.close()
 
-.. note:: We are aware that the code above will work only with entries having the file under a "data/Movies" folder.
+.. note:: We are aware that the code above will only work with entries having the files under a "data/Movies" folder.
           This works for at least 10200 entry and a smarter ftp navigation is needed to work with all EMPIAR entries.
 
 While the stopping criteria is not met, it will be downloading files to the
-``downloadFolder`` folder. Once the download of file is finished it is moved to the ``finalFolder`` folder.
+``downloadFolder`` folder. Once the download is finished it is moved to the ``finalFolder`` folder.
 
 Try to run it now and check that the files are being downloaded and end up in the extra folder. Check as well that the limit is taken into account.
-There isn't any code registering the movies in Scipion
 
-The third step consists of closing the movie set that has been registered in
+.. note:: At this point, there isn't any code registering the movies in Scipion.
+
+Let's at third step consists of closing the movie set that has been registered in
 Scipion. The definition of this step is as follow:
 
 .. code-block:: python
