@@ -97,77 +97,84 @@ into the protocol GUI.
             self.stepsExecutionMode = STEPS_PARALLEL # Defining that the protocol contain parallel steps
 
         def _defineParams(self, form):
-            form.addSection(label='Entry')
-            form.addParam('entryID', params.StringParam, default='10200', # EMPIAR dataset ID
-                          label='EMPIAR ID',
-                          important=True,
-                          allowsNull=False,
-                          help='EMPIAR entry ID')
-            form.addParam('amountOfImages', params.IntParam, # Stop criteria
-                          default=5,
-                          label='Amount of Images',
-                          validators=[Positive],
-                          help='Time that the protocol will be running expressed in seconds')
-            form.addParallelSection(threads=3, mpi=1) # Parallel section defining the number of threads and mpi to use
+            # add a section
+
+            # add a parameter to capture the EMPIAR entry ID:
+            # name --> entryID, String param, default value 10200, you choose the label
+            # Ideally we want it in bold is "important", it should not be empty, and fill the help.
+
+            # add another parameter to set a limit of downloaded files:
+            # name-->amountOfImages, Integer param , default to 5, choose the label and the help
+            # it has to be positive (use "validators" argument, it expects a list of
+            # pyworkflow.protocol.params.Validator, look for teh Positive Validator)
+
+            # Parallel section defining the number of threads and mpi to use
+            form.addParallelSection(threads=3, mpi=1)
 
 
 
 Create the steps to download and register the movie set
 --------------------------------------------------------
 
-First, we implement the ``_insertAllSteps`` method to define the diferente steps.
+First, we implement the ``_insertAllSteps`` method to define the different steps.
 The first step read the dataset xml file from EMPIAR.
 
 .. code-block:: python
 
         def _insertAllSteps(self):
-            self.readXmlFile = self._insertFunctionStep('readXmlFileStep')        # read the dataset xml file from EMPIAR
+            # insert a functionStep (readXmlFileStep) to read the xml file from EMPIAR entry
 
+        def readXmlFileStep():
 
-the code of that method is as follow:
+            # Call the method provided bellow to get some data from the empiar xml
+
+            # Store returned values as "persistent" attributes: String, Integer, Float
+            # Use _store method to write them
+
+        def _summary(self):
+            summary = []
+
+            # Check we have the attributes (readXmlStep has happened) (HINT: hasattr will do)
+
+                # Add items to the summary list like:
+                # "Title: %s" % ??
+                # "Sampling rate: %s" % ??
+                # How would you have more values in the summary? (HINT: return more values in readXmlFromEmpiar)
+
+            return summary
+
+we provide you the code of that reads EMPIAR's xmls:
 
 .. code-block:: python
 
-    def readXmlFileStep(self):
+    def readXmlFromEmpiar(entryId):
             """
             Read the xml file of a specific dataset from EMPIAR repository
             """
-            xmlFileName = self.entryID.get()                                                  # dataset ID
-            empiarXmlUrl = 'https://www.ebi.ac.uk/pdbe/emdb/empiar/api/entry/' + xmlFileName  # URL of EMPIAR API
-            try:
-                xmlFile = requests.get(empiarXmlUrl, allow_redirects=True)                    # getting the xml file
-                content = (json.loads(xmlFile.content.decode('utf-8')))                       # extract the xml content
-                empiarName = 'EMPIAR-' + xmlFileName                                          # dataset name
-                self.corresponingAuthor = content[empiarName]['corresponding_author']         # dataset authors
-                self.organization = String(self.corresponingAuthor['author']['organization']) # authors organization
-                self.depositionDate = String(content[empiarName]['deposition_date'])          # dataset deposition date
-                self.title = String(content[empiarName]['title'])                             # dataset title
-                self.imageSets = content[empiarName]['imagesets']                             # dataset images information
-                self.releaseDate = String(content[empiarName]['release_date'])                # dataset release date
-                self.datasetSize = String(content[empiarName]['dataset_size'])                # dataset size
-                self.empiarName = String(empiarName)
-                self.samplingRate = Float(self.imageSets[0]['pixel_width'])                   # images sampling rate
-                self.dataFormat = String(self.imageSets[0]['data_format'])                    # images format
+            empiarXmlUrl = 'https://www.ebi.ac.uk/pdbe/emdb/empiar/api/entry/' + entryId  # URL of EMPIAR API
 
-                self._store(self)
-            except Exception as ex:
-                self.setFailed(msg="There was an error downloading the EMPIAR raw "
-                                   "images: %s!!!" %ex)
+            xmlFile = requests.get(empiarXmlUrl, allow_redirects=True)                    # getting the xml file
+            content = (json.loads(xmlFile.content.decode('utf-8')))                       # extract the xml content
+            empiarName = 'EMPIAR-' + xmlFileName                                          # dataset name
 
-    def _summary(self):
-        summary = []
-        if hasattr(self, 'empiarName'):
-            summary.append('Name: ' + str(self.empiarName))
-            summary.append('Author: ' + str(self.organization))
-            summary.append('Deposition Date: ' + str(self.depositionDate))
-            summary.append('Title: ' + str(self.title))
-            summary.append('Release Date: ' + str(self.releaseDate))
-            summary.append('Dataset Size: ' + str(self.datasetSize))
-        return summary
+            corresponingAuthor = content[empiarName]['corresponding_author']         # dataset authors
+            organization = String(self.corresponingAuthor['author']['organization']) # authors organization
+            depositionDate = String(content[empiarName]['deposition_date'])          # dataset deposition date
+            title = String(content[empiarName]['title'])                             # dataset title
+            imageSets = content[empiarName]['imagesets']                             # dataset images information
+            releaseDate = String(content[empiarName]['release_date'])                # dataset release date
+            datasetSize = String(content[empiarName]['dataset_size'])                # dataset size
+            empiarName = String(empiarName)
+            samplingRate = Float(self.imageSets[0]['pixel_width'])                   # images sampling rate
+            dataFormat = String(self.imageSets[0]['data_format'])                    # images format
 
-Now your protocol should be able to run, try it now, and get some information from the empiar entry xml.
+            # You may want to return more elements
+            return title, samplingRate
 
-After the execution, the Summary panel should show the following information:
+
+Now your protocol should be able to run, try it now, and get some information from the empiar entry xml. Check the summary looks good.
+
+After the execution, the Summary panel could show the following information if you manage to store all values:
 
 
 .. figure:: /docs/images/general/summary.png
@@ -175,8 +182,10 @@ After the execution, the Summary panel should show the following information:
    :alt: Summary
 
 
-Note that all the values that we want to have in the summary (empiarName, organization, ...)
-are those from Scipion (String, Integer, ...) that automatically get persisted.
+.. tip::
+
+    All the values that we want to have in the summary (title, samplingrate, ...)
+    have to be those from Scipion (String, Integer, ...) that automatically get persisted.
 
 After that, we'll add into ``_insertAllSteps`` method the second step. This step
 will download the movies from the entry (self.entryId) ftp until the amount specified (self.amountOfImages) is reached.
@@ -184,17 +193,22 @@ will download the movies from the entry (self.entryId) ftp until the amount spec
 .. code-block:: python
 
         def _insertAllSteps(self):
-            self.readXmlFile = self._insertFunctionStep('readXmlFileStep')        # read the dataset xml file from EMPIAR
-            self.downloadImages = self._insertFunctionStep('downloadImagesStep')  # download the movies and register them in pararell
+            self._insertFunctionStep('readXmlFileStep')        # read the dataset xml file from EMPIAR
 
-the implementation of this method is as follow:
+            self._insertFunctionStep('downloadImagesStep')  # download the movies and register them in pararell
+
+        def downloadImagesStep():
+            # Call the method provided bellow.
+            # Make the download happen on the tmp folder of the protocol and the final folder to be the extra folder
+
+The code bellow should download files from empiar:
 
 .. code-block:: python
 
-        def downloadImagesStep(self):
+        def downloadImagesFromEmpiar(entryId, downloadFolder, finalFolder, limit=5):
             """
             This method connect to EMPIAR repository and download a set of images
-            into a specific directory
+            into a specific directory, once image is downloaded is moved to the final folder
             """
             # Connection information
             server = 'ftp.ebi.ac.uk'
@@ -202,7 +216,7 @@ the implementation of this method is as follow:
             password = ''
 
             # Directory information
-            directory = '/empiar/world_availability/' + self.entryID.get() + '/data/Movies'
+            directory = '/empiar/world_availability/' + entryId + '/data/Movies'
 
             # Establish the connection
             ftp = ftplib.FTP(server)
@@ -215,15 +229,15 @@ the implementation of this method is as follow:
             # directory until the stop criteria met
             imagesCount = 1
             for filename in ftp.nlst():
-                fileAbsPath = os.path.join(self._getTmpPath(), filename)
+                fileAbsPath = os.path.join(downloadFolder, filename)
                 if not os.path.exists(fileAbsPath):
                     fhandle = open(fileAbsPath, 'wb')
                     print(pwutils.yellowStr('Getting: ' + filename), flush=True)
                     ftp.retrbinary('RETR ' + filename, fhandle.write)
                     fhandle.close()
-                    shutil.move(fileAbsPath, self._getExtraPath(filename))
+                    shutil.move(fileAbsPath, os.path.join(finalFolder,filename))
                     imagesCount += 1
-                    if imagesCount > self.amountOfImages.get():
+                    if imagesCount > limit:
                         break
             ftp.close()
 
@@ -234,7 +248,7 @@ While the stopping criteria is not met, it will be downloading files to the
 protocol's temporary folder. Once the download of file is finished it is moved to the extra folder.
 
 Try to run it now and check that the files are being downloaded and end up in the extra folder. Check as well that the limit is taken into account.
-There isn0t any code registering the movies in Scipion
+There isn't any code registering the movies in Scipion
 
 The third step consists of closing the movie set that has been registered in
 Scipion. The implementation of this step is as follow:
@@ -245,9 +259,7 @@ Scipion. The implementation of this step is as follow:
             """
             Close the registered set
             """
-            self.outputMovies.setStreamState(SetOfMovies.STREAM_CLOSED)
-            self.outputMovies.write()
-            self._store()
+            pass
 
 Remember add into ``_insertAllSteps`` method this step:
 
@@ -284,6 +296,35 @@ parameter) to ``closeSetStep`` step.
 
 .. code-block:: python
 
+        def registerImageStep(self, file):
+            """
+            Register an image taking into account a file path
+            """
+            newImage = Movie(location=self._getExtraPath(file))
+            newImage.setSamplingRate(self.samplingRate.get())
+            self._addMovieToOutput(newImage)
+
+        def _addMovieToOutput(self, movie):
+            """
+            Returns the output set if not available create an empty one
+            """
+            if hasattr(self, 'outputMovies'): # the output is defined
+                outputSet = self.outputMovies
+                outputSet.append(movie)
+            else:
+                outputSet = SetOfMovies.create(self._getPath())
+                outputSet.setSamplingRate(self.samplingRate.get())
+                outputSet.setStreamState(outputSet.STREAM_OPEN)
+                outputSet.append(movie)
+                self._defineOutputs(outputMovies=outputSet)
+            outputSet.write()
+            self._store()
+
+
+Explain above code
+
+.. code-block:: python
+
         def _stepsCheck(self):
             """ Input movie set can be loaded or None when checked for new inputs
                 If None, we load it.
@@ -310,31 +351,21 @@ parameter) to ``closeSetStep`` step.
                 # Updating the protocol steps
                 self.updateSteps()
 
-        def registerImageStep(self, file):
-            """
-            Register an image taking into account a file path
-            """
-            newImage = Movie(location=self._getExtraPath(file))
-            newImage.setSamplingRate(self.samplingRate.get())
-            self._addMovieToOutput(newImage)
 
-        def _addMovieToOutput(self, movie):
-            """
-            Returns the output set if not available create an empty one
-            """
-            if hasattr(self, 'outputMovies'): # the output is defined
-                outputSet = self.outputMovies
-                outputSet.append(movie)
-            else:
-                outputSet = SetOfMovies.create(self._getPath())
-                outputSet.setSamplingRate(self.samplingRate.get())
-                outputSet.setStreamState(outputSet.STREAM_OPEN)
-                outputSet.append(movie)
-                self._defineOutputs(outputMovies=outputSet)
-            outputSet.write()
-            self._store()
 
-The dependencie steps graph is as follow:
+Explain code above
+
+.. code-block:: python
+
+        def closeSetStep(self):
+            """
+            Close the registered set
+            """
+            # self.outputMovies.setStreamState(SetOfMovies.STREAM_CLOSED)
+            # self.outputMovies.write()
+            # self._store()
+
+The dependencies steps graph is as follow:
 
 .. figure:: /docs/images/general/graph_steps.png
    :width: 650
