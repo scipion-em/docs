@@ -382,7 +382,7 @@ Following the three steps outlined within the following method, complete the cod
             """
             Close the registered set
             """
-            # 1. Set the outputMovies streamState using setStreamState method with the value STREAM_CLOSED
+            # 1. Set the outputMovies streamState using setStreamState method with the value SetOfMovies.STREAM_CLOSED
             # 2. Save the outputMovies using the write() method
             # 3. Save the protocol
 
