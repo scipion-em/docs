@@ -188,7 +188,8 @@ After the execution, the Summary panel could show the following information if y
     have to be those from Scipion (String, Integer, ...) that automatically get persisted.
 
 After that, we'll add into ``_insertAllSteps`` method the second step. This step
-will download the movies from the entry (self.entryId) ftp until the amount specified (self.amountOfImages) is reached.
+will download the movies from the entry (self.entryId) ftp until the amount
+specified (self.amountOfImages) is reached.
 
 .. code-block:: python
 
@@ -245,7 +246,7 @@ The code bellow should download files from empiar:
           This works for at least 10200 entry and a smarter ftp navigation is needed to work with all EMPIAR entries.
 
 While the stopping criteria is not met, it will be downloading files to the
-protocol's temporary folder. Once the download of file is finished it is moved to the extra folder.
+``downloadFolder`` folder. Once the download of file is finished it is moved to the ``finalFolder`` folder.
 
 Try to run it now and check that the files are being downloaded and end up in the extra folder. Check as well that the limit is taken into account.
 There isn't any code registering the movies in Scipion
@@ -261,7 +262,10 @@ Scipion. The implementation of this step is as follow:
             """
             pass
 
-Remember add into ``_insertAllSteps`` method this step:
+Note that at this moment, ``closeSetStep`` has not implementation. The reason is that we hasn't created
+the set of movies yet.
+
+However, we will add it into ``_insertAllSteps`` method:
 
 .. code-block:: python
 
@@ -273,26 +277,10 @@ Remember add into ``_insertAllSteps`` method this step:
 .. important:: We need to set the ``wait`` parameter to ``True`` in order to
                wait until all movies have been registered.
 
-Up to this point, we have only defined the steps of the protocol, but we have
-not yet been registering each of the downloaded movies. This process should be
-checking given a reasonable time if there are new movies in the download
-directory. In that sense, for each movie that is downloaded, a new step will be
-created and it will be launched in parallel. At the same time the number of
-steps of the protocol will be updated.
-
-In order for these processes to be launched in parallel, the ``prerequisites``
-parameter of each of them must be specified (it must be empty. In the case that
-we specify IDs as prerequisites, the step will not be executed until the steps
-that respond to the IDs have finished).
-
-When a protocol is launched, a check can be made of each of its steps. The
-method that is in charge of doing this operation is the ``_stepsCheck`` method,
-which when the protocol does not work in streaming it is not necessary to
-define it because the input is static. In the case of streaming protocols, an
-implementation can be done. In our case we will use this method to check if
-there are new movies. If so, then we generate a new step to register it and at
-the same time, this new step is added as a dependency (``prerequisites``
-parameter) to ``closeSetStep`` step.
+Up to this point, we have only defined the "statics" steps of the protocol, but
+we have not yet been registering each of the downloaded movies. For that, we
+must create a new step that guarantees the registration of all movies. Next we
+define the method where we will have to carry out the steps that are commented.
 
 .. code-block:: python
 
@@ -300,8 +288,8 @@ parameter) to ``closeSetStep`` step.
             """
             Register an image taking into account a file path
             """
-            newImage = Movie(location=self._getExtraPath(file))
-            newImage.setSamplingRate(self.samplingRate.get())
+            # Create a Movie into the protocol extra folder
+            # Set the movie sampling rate with the sampling rate obtained in the readXmlFromEmpiar step
             self._addMovieToOutput(newImage)
 
         def _addMovieToOutput(self, movie):
@@ -321,7 +309,33 @@ parameter) to ``closeSetStep`` step.
             self._store()
 
 
-Explain above code
+Now, this process should be checking given a reasonable time if there are new
+movies in the download directory. In that sense, for each movie that is downloaded,
+a new step will be created and it will be launched in parallel. At the same time
+the number of steps of the protocol will be updated.
+
+How do we make this happen?
+
+When a protocol is launched, a check can be made of each of its steps. The
+method that is in charge of doing this operation is the ``_stepsCheck`` method,
+which when the protocol does not work in streaming it is not necessary to
+define it because the input is static. In the case of streaming protocols, an
+implementation can be done. In our case we will use this method to check if
+there are new movies. If so, then we generate a new step to register it and at
+the same time, this new step is added as a dependency (``prerequisites``
+parameter) to ``closeSetStep`` step.
+
+.. note::
+
+        The ``prerequisites`` parameter specifies a list of steps that it needs to
+        wait for in order to be launched.
+
+.. important::
+
+        In order for these processes to be launched in parallel, the ``prerequisites``
+        parameter of each of them must be specified (it must be empty. In the case that
+        we specify IDs as prerequisites, the step will not be executed until the steps
+        that respond to the IDs have finished).
 
 .. code-block:: python
 
@@ -351,9 +365,16 @@ Explain above code
                 # Updating the protocol steps
                 self.updateSteps()
 
+As we could see in the previous code, we check if there are new files in the
+download directory and for each one of them we create a new step. At the same
+time we are adding it as a prerequisite to the ``closeSetStep`` step.
 
 
-Explain code above
+Finally, we can do an implementation of ``closeSetStep``, which would wait for all the
+movies to be registered to launch. Here the only thing we will do is close the
+set of the movies and save the protocol changes.
+
+Following the three steps outlined within the following method, complete the code:
 
 .. code-block:: python
 
@@ -361,9 +382,9 @@ Explain code above
             """
             Close the registered set
             """
-            # self.outputMovies.setStreamState(SetOfMovies.STREAM_CLOSED)
-            # self.outputMovies.write()
-            # self._store()
+            # 1. Set the outputMovies streamState using setStreamState method with the value STREAM_CLOSED
+            # 2. Save the outputMovies using the write() method
+            # 3. Save the protocol
 
 The dependencies steps graph is as follow:
 
