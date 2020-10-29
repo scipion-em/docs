@@ -30,9 +30,9 @@ Public Image Archive), downloads a set of movies and in parallel it will
 register them as outputs.
 
 .. warning::
-    This protocol is artificially streamified and will have problems with of concurrency
+    This protocol is artificially streamified and will have problems with concurrency
     or in case of resuming it after a failure. But for the shake of simplicity, we are
-    we are ignoring this "secondary" problems.
+    ignoring this problems.
 
 The general idea of this protocol is as follow:
 
@@ -105,10 +105,12 @@ The following code contain the class definition and the protocol GUI implementat
             # name --> entryId, String param, default value 10200, you choose the label
             # Ideally we want it in bold is "important", and fill the help.
 
+
             # add another parameter to set a limit of downloaded files:
             # name-->amountOfImages, Integer param , default to 1, choose the label and the help
             # it has to be positive (use "validators" argument, it expects a list of
             # pyworkflow.protocol.params.Validator, look for the Positive Validator)
+
 
             # Parallel section defining the number of threads and mpi to use
             form.addParallelSection(threads=3, mpi=1)
@@ -187,7 +189,7 @@ we provide you the code that reads EMPIAR's xmls:
 
 Now your protocol should be able to run, try it now, and get some information from the empiar entry xml. Check the summary looks good.
 
-After the execution, the Summary panel could show the following information if you manage to store all values:
+After the execution, the Summary panel could show the following information if you managed to store all values:
 
 
 .. figure:: /docs/images/general/summary.png
@@ -311,7 +313,7 @@ Let's add a new step method to register a single movie file in scipion.
 
     def _addMovieToOutput(self, movie):
         """
-        Returns the output set if not available create an empty one
+        Creates the output set if it does not exists. Adds a movie to the set
         """
 
         # Do we have the attribute "outputMovies"?
@@ -419,7 +421,7 @@ parameter) of ``closeSetStep`` step.
 .. note::
 
         The ``prerequisites`` parameter specifies a list of step identifiers (integers) that
-        a step needs to wait for before it is launched:
+        a step needs to wait for before it is launched
 
 .. important::
 
