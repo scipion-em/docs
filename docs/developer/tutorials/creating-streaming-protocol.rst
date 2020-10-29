@@ -17,12 +17,12 @@ Here you can find resources associated with this content, like videos or present
 Practice
 ========
 We define a ``streaming protocol``  as a processing task that involves the
-execution of several steps like any other `Scipion protocol <creating-a-protocol>`_,
+execution of several steps like any other `Scipion protocol <../creating-a-protocol>`_,
 but, the inputs might appear during the protocol execution. Is impossible to
 plan all the steps (difference between streaming and non streaming protocols).
 The list of steps in a streaming protocol is dynamic, that is, they are added
 as the input grows. These steps can even be parallelized. You can read more
-about defining steps to be executed in parallel in `Parallelization <parallelization>`_.
+about defining steps to be executed in parallel in `Parallelization <../parallelization>`_.
 
 We will create a simple streaming protocol that connects to
 `EMPIAR <https://www.ebi.ac.uk/pdbe/emdb/empiar/>`__ (Electron Microscopy
@@ -45,16 +45,16 @@ In that sense, we will implement the following steps:
 1. Create a protocol GUI that admits as a parameter the ID of the EMPIAR dataset
    as well as a stopping criterion (in our case the number of movies to download).
 
-   1.1. Create a protocol specifying that contain steps in parallel.
+   1.1. Create a protocol specifying that contains steps in parallel.
 
    1.2. Define the parallel section.
 
 
 2. Create the steps to download and register the movie set.
 
-   2.1. Read the xml file corresponding to a specific EMPIAR dataset which contains vital information about this movies dataset (sampling rate, dimension, ...).
+   2.1. Read the xml file corresponding to a specific EMPIAR dataset which contains vital information about this movies dataset (sampling rate, dimensions, ...).
 
-   2.2. Download one by one movies until a stop criteria is met (amount of download movies).
+   2.2. Download movies until a stop criteria is met (amount of download movies).
 
    2.3. Register the downloaded movies. This step is in streaming. Constantly check if new movies have been downloaded
 
