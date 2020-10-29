@@ -280,7 +280,7 @@ However, we will add it into ``_insertAllSteps`` method:
 .. important:: We need to set the ``wait`` parameter to ``True`` in order to
                wait until all movies have been registered.
 
-Up to this point, we have only defined the "statics" steps of the protocol, but
+Up to this point, we have only defined the “static” steps of the protocol, but
 we have not yet been registering each of the downloaded movies. For that, we
 must create a new step that guarantees the registration of all movies. Next we
 define the method where we will have to carry out the steps that are commented.
