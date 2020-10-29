@@ -199,6 +199,12 @@ about defining steps to be executed in parallel in <a class="reference external"
 <a class="reference external" href="https://www.ebi.ac.uk/pdbe/emdb/empiar/">EMPIAR</a> (Electron Microscopy
 Public Image Archive), downloads a set of movies and in parallel it will
 register them as outputs.</p>
+<div class="admonition warning">
+<p class="first admonition-title">Warning</p>
+<p class="last">This protocol is artificially streamified and will have problems with of concurrency
+or in case of resuming it after a failure. But for the shake of simplicity, we are
+we are ignoring this “secondary” problems.</p>
+</div>
 <p>The general idea of this protocol is as follow:</p>
 <div class="figure">
 <a class="reference internal image-reference" href="../../../_images/streaming_idea.png"><img alt="Streaming Idea" src="../../../_images/streaming_idea.png" style="width: 750px;" /></a>
@@ -241,7 +247,7 @@ as well as a stopping criterion (in our case the number of movies to download).<
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;empiar downloader&#39;</span>
     <span class="n">_outputClassName</span> <span class="o">=</span> <span class="s1">&#39;SetOfMovies&#39;</span> <span class="c1"># Defining the output class</span>
-    <span class="n">registerFiles</span> <span class="o">=</span> <span class="p">[]</span>               <span class="c1"># saves the name of the movies that have been downloaded</span>
+    <span class="n">registeredFiles</span> <span class="o">=</span> <span class="p">[]</span>               <span class="c1"># saves the name of the movies that have been already registered</span>
     <span class="n">_stepsCheckSecs</span> <span class="o">=</span> <span class="mi">3</span>              <span class="c1"># time in seconds to check the steps</span>
 
 
@@ -254,12 +260,12 @@ as well as a stopping criterion (in our case the number of movies to download).<
 
         <span class="c1"># add a parameter to capture the EMPIAR entry ID:</span>
         <span class="c1"># name --&gt; entryId, String param, default value 10200, you choose the label</span>
-        <span class="c1"># Ideally we want it in bold is &quot;important&quot;, it should not be empty, and fill the help.</span>
+        <span class="c1"># Ideally we want it in bold is &quot;important&quot;, and fill the help.</span>
 
         <span class="c1"># add another parameter to set a limit of downloaded files:</span>
-        <span class="c1"># name--&gt;amountOfImages, Integer param , default to 5, choose the label and the help</span>
+        <span class="c1"># name--&gt;amountOfImages, Integer param , default to 1, choose the label and the help</span>
         <span class="c1"># it has to be positive (use &quot;validators&quot; argument, it expects a list of</span>
-        <span class="c1"># pyworkflow.protocol.params.Validator, look for teh Positive Validator)</span>
+        <span class="c1"># pyworkflow.protocol.params.Validator, look for the Positive Validator)</span>
 
         <span class="c1"># Parallel section defining the number of threads and mpi to use</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -269,8 +275,10 @@ as well as a stopping criterion (in our case the number of movies to download).<
 <p class="first admonition-title">Note</p>
 <p class="last">Note that in the <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method, we are specifying
 stepsExecutionMode parameter, and in the _defineParams we are invoking
-addParallelSection method.</p>
+addParallelSection method. This is telling scipion that the steps can be
+run in parallel (threads or mpi)</p>
 </div>
+<p>At this point you should be able to find the protocol using Ctrl+F and open it and see the unused parameters.</p>
 </div>
 <div class="section" id="create-the-steps-to-download-and-register-the-movie-set">
 <h3>Create the steps to download and register the movie set<a class="headerlink" href="#create-the-steps-to-download-and-register-the-movie-set" title="Permalink to this headline">¶</a></h3>
@@ -279,17 +287,20 @@ The first step read the dataset xml file from EMPIAR.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="c1"># insert a functionStep (readXmlFileStep) to read the xml file from EMPIAR entry</span>
 
-<span class="k">def</span> <span class="nf">readXmlFileStep</span><span class="p">():</span>
+<span class="k">def</span> <span class="nf">readXmlFileStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
     <span class="c1"># Call the method provided bellow to get some data from the empiar xml</span>
 
+
     <span class="c1"># Store returned values as &quot;persistent&quot; attributes: String, Integer, Float</span>
+
+
     <span class="c1"># Use _store method to write them</span>
 
 <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="n">summary</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="c1"># Check we have the attributes (readXmlStep has happened) (HINT: hasattr will do)</span>
+    <span class="c1"># Check we have the any summary attribute (readXmlStep has happened) (HINT: hasattr will do)</span>
 
         <span class="c1"># Add items to the summary list like:</span>
         <span class="c1"># &quot;Title: %s&quot; % ??</span>
@@ -306,20 +317,20 @@ The first step read the dataset xml file from EMPIAR.</p>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">empiarXmlUrl</span> <span class="o">=</span> <span class="s1">&#39;https://www.ebi.ac.uk/pdbe/emdb/empiar/api/entry/&#39;</span> <span class="o">+</span> <span class="n">entryId</span>  <span class="c1"># URL of EMPIAR API</span>
 
-        <span class="n">xmlFile</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">empiarXmlUrl</span><span class="p">,</span> <span class="n">allow_redirects</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>                    <span class="c1"># getting the xml file</span>
-        <span class="n">content</span> <span class="o">=</span> <span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">xmlFile</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)))</span>                       <span class="c1"># extract the xml content</span>
-        <span class="n">empiarName</span> <span class="o">=</span> <span class="s1">&#39;EMPIAR-&#39;</span> <span class="o">+</span> <span class="n">xmlFileName</span>                                          <span class="c1"># dataset name</span>
+        <span class="n">xmlFile</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">empiarXmlUrl</span><span class="p">,</span> <span class="n">allow_redirects</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>               <span class="c1"># getting the xml file</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">xmlFile</span><span class="o">.</span><span class="n">content</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)))</span>                  <span class="c1"># extract the xml content</span>
+        <span class="n">empiarName</span> <span class="o">=</span> <span class="s1">&#39;EMPIAR-&#39;</span> <span class="o">+</span> <span class="n">entryId</span>                                         <span class="c1"># dataset name</span>
 
-        <span class="n">corresponingAuthor</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="n">empiarName</span><span class="p">][</span><span class="s1">&#39;corresponding_author&#39;</span><span class="p">]</span>         <span class="c1"># dataset authors</span>
-        <span class="n">organization</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">corresponingAuthor</span><span class="p">[</span><span class="s1">&#39;author&#39;</span><span class="p">][</span><span class="s1">&#39;organization&#39;</span><span class="p">])</span> <span class="c1"># authors organization</span>
+        <span class="n">correspondingAuthor</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="n">empiarName</span><span class="p">][</span><span class="s1">&#39;corresponding_author&#39;</span><span class="p">]</span>         <span class="c1"># dataset authors</span>
+        <span class="n">organization</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="n">correspondingAuthor</span><span class="p">[</span><span class="s1">&#39;author&#39;</span><span class="p">][</span><span class="s1">&#39;organization&#39;</span><span class="p">])</span> <span class="c1"># authors organization</span>
         <span class="n">depositionDate</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="n">content</span><span class="p">[</span><span class="n">empiarName</span><span class="p">][</span><span class="s1">&#39;deposition_date&#39;</span><span class="p">])</span>          <span class="c1"># dataset deposition date</span>
         <span class="n">title</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="n">content</span><span class="p">[</span><span class="n">empiarName</span><span class="p">][</span><span class="s1">&#39;title&#39;</span><span class="p">])</span>                             <span class="c1"># dataset title</span>
         <span class="n">imageSets</span> <span class="o">=</span> <span class="n">content</span><span class="p">[</span><span class="n">empiarName</span><span class="p">][</span><span class="s1">&#39;imagesets&#39;</span><span class="p">]</span>                             <span class="c1"># dataset images information</span>
         <span class="n">releaseDate</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="n">content</span><span class="p">[</span><span class="n">empiarName</span><span class="p">][</span><span class="s1">&#39;release_date&#39;</span><span class="p">])</span>                <span class="c1"># dataset release date</span>
         <span class="n">datasetSize</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="n">content</span><span class="p">[</span><span class="n">empiarName</span><span class="p">][</span><span class="s1">&#39;dataset_size&#39;</span><span class="p">])</span>                <span class="c1"># dataset size</span>
         <span class="n">empiarName</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="n">empiarName</span><span class="p">)</span>
-        <span class="n">samplingRate</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imageSets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;pixel_width&#39;</span><span class="p">])</span>                   <span class="c1"># images sampling rate</span>
-        <span class="n">dataFormat</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imageSets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;data_format&#39;</span><span class="p">])</span>                    <span class="c1"># images format</span>
+        <span class="n">samplingRate</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">imageSets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;pixel_width&#39;</span><span class="p">])</span>                   <span class="c1"># images sampling rate</span>
+        <span class="n">dataFormat</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="n">imageSets</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;data_format&#39;</span><span class="p">])</span>                    <span class="c1"># images format</span>
 
         <span class="c1"># You may want to return more elements</span>
         <span class="k">return</span> <span class="n">title</span><span class="p">,</span> <span class="n">samplingRate</span>
@@ -332,18 +343,18 @@ The first step read the dataset xml file from EMPIAR.</p>
 </div>
 <div class="admonition tip">
 <p class="first admonition-title">Tip</p>
-<p class="last">All the values that we want to have in the summary (title, samplingrate, …)
+<p class="last">All the values that we want to have in the summary (title, samplingRate, …)
 have to be those from Scipion (String, Integer, …) that automatically get persisted.</p>
 </div>
 <p>After that, we’ll add into <code class="docutils literal notranslate"><span class="pre">_insertAllSteps</span></code> method the second step. This step
 will download the movies from the entry (<code class="docutils literal notranslate"><span class="pre">entryId</span></code>) ftp until the amount
 specified (<code class="docutils literal notranslate"><span class="pre">amountOfImages</span></code>) is reached.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
     <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;readXmlFileStep&#39;</span><span class="p">)</span>        <span class="c1"># read the dataset xml file from EMPIAR</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;downloadImagesStep&#39;</span><span class="p">)</span>  <span class="c1"># download the movies and register them in paralell</span>
 
-    <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;downloadImagesStep&#39;</span><span class="p">)</span>  <span class="c1"># download the movies and register them in pararell</span>
-
-<span class="k">def</span> <span class="nf">downloadImagesStep</span><span class="p">():</span>
+<span class="k">def</span> <span class="nf">downloadImagesStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="c1"># Call the method provided bellow.</span>
     <span class="c1"># Make the download happen on the tmp folder of the protocol and the final folder to be the extra folder</span>
 </pre></div>
@@ -398,8 +409,7 @@ This works for at least 10200 entry and a smarter ftp navigation is needed to wo
 <p class="first admonition-title">Note</p>
 <p class="last">At this point, there isn’t any code registering the movies in Scipion.</p>
 </div>
-<p>Let’s at third step consists of closing the movie set that has been registered in
-Scipion. The definition of this step is as follow:</p>
+<p>Let’s add a third step that will be used later to close the set, but for now we will leave it empty.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">closeSetStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Close the registered set</span>
@@ -407,9 +417,7 @@ Scipion. The definition of this step is as follow:</p>
     <span class="k">pass</span>
 </pre></div>
 </div>
-<p>Note that at this moment, <code class="docutils literal notranslate"><span class="pre">closeSetStep</span></code> has not implementation. The reason is that we hasn’t created
-the set of movies yet.</p>
-<p>However, we will add it into <code class="docutils literal notranslate"><span class="pre">_insertAllSteps</span></code> method:</p>
+<p>and add it into <code class="docutils literal notranslate"><span class="pre">_insertAllSteps</span></code> method:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">readXmlFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;readXmlFileStep&#39;</span><span class="p">)</span>        <span class="c1"># read the dataset xml file from EMPIAR</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">downloadImages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;downloadImagesStep&#39;</span><span class="p">)</span>  <span class="c1"># download the movies and register them in pararell</span>
@@ -419,108 +427,157 @@ the set of movies yet.</p>
 <div class="admonition important">
 <p class="first admonition-title">Important</p>
 <p class="last">We need to set the <code class="docutils literal notranslate"><span class="pre">wait</span></code> parameter to <code class="docutils literal notranslate"><span class="pre">True</span></code> in order to
-wait until all movies have been registered.</p>
+wait until the protocol decides when all work is done.</p>
 </div>
 <p>Up to this point, we have only defined the “static” steps of the protocol, but
-we have not yet been registering each of the downloaded movies. For that, we
-must create a new step that guarantees the registration of all movies. Next we
-define the method where we will have to carry out the steps that are commented.</p>
+we have not yet been registering each of the downloaded movies and introduced this
+<code class="docutils literal notranslate"><span class="pre">wait=True</span></code> for the <code class="docutils literal notranslate"><span class="pre">closeSetStep</span></code>. Now it comes the “dynamic part”.</p>
+<p>Let’s add a new step method to register a single movie file in scipion.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">registerImageStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">file</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Register an image taking into account a file path</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># Create a Movie into the protocol extra folder</span>
+    <span class="c1"># Create a Movie object having file as the location: see pwem.objects.data.Movie()</span>
+
+
     <span class="c1"># Set the movie sampling rate with the sampling rate obtained in the readXmlFromEmpiar step</span>
+
+
+    <span class="c1"># Pass the movie to _addMovieToOutput</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_addMovieToOutput</span><span class="p">(</span><span class="n">newImage</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">_addMovieToOutput</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns the output set if not available create an empty one</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Do we have the attribute &quot;outputMovies&quot;?</span>
     <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;outputMovies&#39;</span><span class="p">):</span> <span class="c1"># the output is defined</span>
-        <span class="n">outputSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputMovies</span>
-        <span class="n">outputSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
+
+        <span class="c1"># Append the &quot;movie&quot; passed to the already existing output</span>
+
+
+    <span class="c1"># ... we do not have output yet. Probably first movie reported</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">outputSet</span> <span class="o">=</span> <span class="n">SetOfMovies</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPath</span><span class="p">())</span>
-        <span class="n">outputSet</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
-        <span class="n">outputSet</span><span class="o">.</span><span class="n">setStreamState</span><span class="p">(</span><span class="n">outputSet</span><span class="o">.</span><span class="n">STREAM_OPEN</span><span class="p">)</span>
-        <span class="n">outputSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputMovies</span><span class="o">=</span><span class="n">outputSet</span><span class="p">)</span>
-    <span class="n">outputSet</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">()</span>
+
+        <span class="c1"># Create the SetOfMovies using its create(path) method: pass the path of the protocol (hint: self._getPath())</span>
+
+
+        <span class="c1"># set the sampling rate: set.setSamplingRate() passing the stored sampling rate from the readXmlFromEmpiarStep</span>
+        <span class="c1"># NOTE: Scipion objects are wrappers to actual python types. To get the python value use .get() method</span>
+
+
+        <span class="c1"># set the set .streamState to open (set.setStreamState). Constant for the state is at Set.STREAM_OPEN.</span>
+
+
+        <span class="c1"># append the movie to the new set just created</span>
+
+
+        <span class="c1"># define the output in the protocol (_defineOutputs). Be sure you use outputMovies as the name of the output</span>
+
+
+    <span class="c1"># In both cases, write the set to the disk. set.write() --&gt; set.sqlite</span>
+
+
+    <span class="c1"># Save the protocol with the new  status: protocol._store() --&gt; run.db</span>
 </pre></div>
 </div>
-<p>Now, this process should be checking given a reasonable time if there are new
-movies in the download directory. In that sense, for each movie that is downloaded,
-a new step will be created and it will be launched in parallel. At the same time
-the number of steps of the protocol will be updated.</p>
-<p>How do we make this happen?</p>
-<p>When a protocol is launched, a check can be made of each of its steps. The
-method that is in charge of doing this operation is the <code class="docutils literal notranslate"><span class="pre">_stepsCheck</span></code> method,
-which when the protocol does not work in streaming it is not necessary to
-define it because the input is static. In the case of streaming protocols, an
-implementation can be done. In our case we will use this method to check if
-there are new movies. If so, then we generate a new step to register it and at
-the same time, this new step is added as a dependency (<code class="docutils literal notranslate"><span class="pre">prerequisites</span></code>
-parameter) to <code class="docutils literal notranslate"><span class="pre">closeSetStep</span></code> step.</p>
+<p>So far we have added 2 new methods: one to add a movie object to a set (creating the set if it is missing) and
+another , the <code class="docutils literal notranslate"><span class="pre">registerImageStep</span></code> that is creating a specific Movie object from a file and calling the first one.
+But the <code class="docutils literal notranslate"><span class="pre">registerImageStep</span></code> is not being invoked. Furthermore, somewhere, the missing code, should be generating
+one step per downloaded file.</p>
+<div class="section" id="the-stepcheck-method">
+<h4>The <code class="docutils literal notranslate"><span class="pre">_stepCheck</span></code> method<a class="headerlink" href="#the-stepcheck-method" title="Permalink to this headline">¶</a></h4>
+<p>All protocols have a method called <code class="docutils literal notranslate"><span class="pre">_stepCheck</span></code>. The default implementation doesn’t do anything.
+Scipion executes the steps in a loop until all the steps are completed. During the execution of the steps,
+every 3 seconds (default value for <code class="docutils literal notranslate"><span class="pre">Protocol._stepsCheckSecs</span></code>) <code class="docutils literal notranslate"><span class="pre">_stepCheck</span></code> is invoked and therefore
+has the chance to do some checks and see if more steps are needed.</p>
+<p>In our case, we have to overwrite the empty <code class="docutils literal notranslate"><span class="pre">_stepCheck</span></code> method, and insert as
+many <code class="docutils literal notranslate"><span class="pre">registerImageStep</span></code> as new files appears in extra folder.</p>
+<p>Let’s get our hands dirty</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_stepsCheck</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Adds as many registerImageStep as new files appears in the extra folder</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Declare a list to keep all new steps added this call (newSteps)</span>
+
+
+    <span class="c1"># If the size of registeredFiles (object level attribute) is &lt; amountOfImages (parameter)</span>
+
+
+        <span class="c1"># loop through the files in the extra path</span>
+
+
+            <span class="c1"># if the file is not annotated our registeredFiles list</span>
+
+
+                <span class="c1"># Append it to registeredFiles list</span>
+
+
+                <span class="c1"># Create a new step to register the new file (item of this loop)</span>
+                <span class="c1"># use _insertFunctionStep with registerImageStep, file, and</span>
+                <span class="c1"># self.readXmlFile as a prerequisite</span>
+                <span class="c1"># and store the returned value in a variable (newStep)</span>
+
+
+                <span class="c1"># append the newStep to the newSteps list declared at the beginning</span>
+
+
+        <span class="c1"># Let&#39;s update the closeSetStep</span>
+        <span class="c1"># Get the closeSetStep store it in closeSetStep</span>
+        <span class="c1"># Hint: the list of steps are accessible with self._steps[stepId-1] --&gt; what we stored in insertAllSteps</span>
+
+
+        <span class="c1"># Add the new steps as prerequisites for the closeSetStep (to keep a coherent Step tree)</span>
+        <span class="c1"># Use the addPrerequisites method of the closeSetStep.</span>
+        <span class="c1"># Be sure you pass the list as parameters *newSteps</span>
+
+
+        <span class="c1"># If we have reached the limit of files (amountOfImages) compared with registeredFiles</span>
+
+
+            <span class="c1"># Free up the waiting closeSet step by setting the Step.setStatus(STATUS_NEW)</span>
+            <span class="c1"># Not waiting anymore</span>
+
+
+        <span class="c1"># Update the protocol steps using updateSteps()</span>
+</pre></div>
+</div>
+<p>Note that when the new generated steps have to be added as a dependency (<code class="docutils literal notranslate"><span class="pre">prerequisites</span></code>
+parameter) of <code class="docutils literal notranslate"><span class="pre">closeSetStep</span></code> step.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">The <code class="docutils literal notranslate"><span class="pre">prerequisites</span></code> parameter specifies a list of steps that it needs to
-wait for in order to be launched.</p>
+<p class="last">The <code class="docutils literal notranslate"><span class="pre">prerequisites</span></code> parameter specifies a list of step identifiers (integers) that
+a step needs to wait for before it is launched:</p>
 </div>
 <div class="admonition important">
 <p class="first admonition-title">Important</p>
 <p class="last">In order for these processes to be launched in parallel, the <code class="docutils literal notranslate"><span class="pre">prerequisites</span></code>
-parameter of each of them must be specified (it must be empty. In the case that
-we specify IDs as prerequisites, the step will not be executed until the steps
-that respond to the IDs have finished).</p>
+parameter of each of them must be specified. Not passing the parameter
+will default to be dependent of the previous step, closeSetStep that is waiting!.</p>
 </div>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">_stepsCheck</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Input movie set can be loaded or None when checked for new inputs</span>
-<span class="sd">        If None, we load it.</span>
-<span class="sd">        To allow streaming register a movies, we need to detect a new</span>
-<span class="sd">        movie ready to register into the extra path folder.</span>
-<span class="sd">        prerequisites parameter is empty</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">depStepsList</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">registerFiles</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">amountOfImages</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-        <span class="k">for</span> <span class="nb">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()):</span>
-            <span class="k">if</span> <span class="nb">file</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">registerFiles</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">registerFiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">file</span><span class="p">)</span>
-                <span class="c1"># Creating a new step to register the new movie</span>
-                <span class="n">lastSteps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;registerImageStep&#39;</span><span class="p">,</span>
-                                                     <span class="nb">file</span><span class="p">,</span>
-                                                     <span class="n">prerequisites</span><span class="o">=</span><span class="p">[])</span>
-                <span class="n">depStepsList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lastSteps</span><span class="p">)</span>
-                <span class="c1"># adding as prerequisites the new step to closeSetStep</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_steps</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">closeSet</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">addPrerequisites</span><span class="p">(</span><span class="o">*</span><span class="n">depStepsList</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">registerFiles</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">amountOfImages</span><span class="o">.</span><span class="n">get</span><span class="p">():</span> <span class="c1"># The closeSetStep is ready to launch</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_steps</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">closeSet</span><span class="p">]</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="n">STATUS_NEW</span><span class="p">)</span>
-
-        <span class="c1"># Updating the protocol steps</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">updateSteps</span><span class="p">()</span>
-</pre></div>
-</div>
-<p>As we could see in the previous code, we check if there are new files in the
-download directory and for each one of them we create a new step. At the same
-time we are adding it as a prerequisite to the <code class="docutils literal notranslate"><span class="pre">closeSetStep</span></code> step.</p>
-<p>Finally, we can do an implementation of <code class="docutils literal notranslate"><span class="pre">closeSetStep</span></code>, which would wait for all the
-movies to be registered to launch. Here the only thing we will do is close the
+<p>At this point all is in place and output should be created. Run the protocol and verify all is fine.</p>
+<p>Finally, we can implement <code class="docutils literal notranslate"><span class="pre">closeSetStep</span></code>, which should wait for all the
+movies to be registered before it is executed. Here the only thing we will do is close the
 set of the movies and save the protocol changes.</p>
 <p>Following the three steps outlined within the following method, complete the code:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">closeSetStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Close the registered set</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="c1"># 1. Set the outputMovies streamState using setStreamState method with the value SetOfMovies.STREAM_CLOSED</span>
-    <span class="c1"># 2. Save the outputMovies using the write() method</span>
-    <span class="c1"># 3. Save the protocol</span>
+    <span class="c1"># Set the outputMovies streamState using setStreamState method with the value SetOfMovies.STREAM_CLOSED</span>
+
+
+    <span class="c1"># Save the outputMovies using the write() method</span>
+
+
+    <span class="c1"># Save the protocol: Hint: _store()</span>
 </pre></div>
 </div>
 <p>The dependencies steps graph should look like this:</p>
 <div class="figure">
 <a class="reference internal image-reference" href="../../../_images/graph_steps.png"><img alt="Graph Steps" src="../../../_images/graph_steps.png" style="width: 650px;" /></a>
+</div>
 </div>
 </div>
 </div>
