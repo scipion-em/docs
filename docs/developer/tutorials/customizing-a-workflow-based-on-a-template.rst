@@ -147,7 +147,7 @@ displayed fields untouched. As you click on the ``Start`` button,
 Scipion should appear with the new project.
 
 For this Scipion mode to appear, templates must be customized.
-This link explains in detail `how to customize a template <https://scipion-em.github.io/docs/docs/facilities/facilities-workflows.html#creating-custom-dynamic-templates>`_.
+This link explains in detail `how to customize and launch a dynamic template <https://scipion-em.github.io/docs/docs/facilities/facilities-workflows.html#creating-custom-dynamic-templates>`_.
 
 
 
