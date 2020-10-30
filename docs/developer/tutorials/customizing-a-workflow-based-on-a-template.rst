@@ -8,6 +8,13 @@
 Customizing a workflow based on a template
 ==========================================
 
+Associated resources
+====================
+Here you can find resources associated with this content, like videos or presentations used in courses:
+
+`Course presentation <https://docs.google.com/presentation/d/1KGz6_A2YLtjIBoiLKqhHTBUr2HYhqvAz91WiWWSXNQY/edit?usp=sharing>`_
+
+
 Scipion creates a template from a workflow or a series of protocols.
 A ``Scipion template`` is nothing more than a file that contains all the attributes,
 as well as the values assigned to each of these for each protocol chosen in a
