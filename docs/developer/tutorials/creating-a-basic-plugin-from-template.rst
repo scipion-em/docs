@@ -4,9 +4,9 @@
 
 .. _creating-a-basic-plugin-from-template:
 
-================================================
-Creating a basic plugin from scipion-em-template
-================================================
+===========================================================
+Creating a basic calculator plugin from scipion-em-template
+===========================================================
 
 Associated resources
 ====================
@@ -28,13 +28,13 @@ Check if the plugin works correctly
 ===================================
 Follow these steps:
 
-1. Open a new terminal and move to Scipion3's directory:
+1. Open a new terminal and move to Scipion's directory:
 
 .. code-block:: bash
 
     cd scipion3/dir/
 
-2. Execute Scipion3:
+2. Start Scipion:
 
 .. code-block:: bash
 

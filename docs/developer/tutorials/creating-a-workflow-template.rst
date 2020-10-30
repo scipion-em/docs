@@ -4,9 +4,9 @@
 
 .. _creating-a-workflow-template:
 
-==========================================
+============================
 Creating a workflow template
-==========================================
+============================
 
 Associated resources
 ====================
@@ -16,18 +16,19 @@ Here you can find resources associated with this content, like videos or present
 
 `Facilities workflows <https://scipion-em.github.io/docs/docs/facilities/facilities-workflows.html>`_
 
-Scipion can export a workflow or a series of protocols to a file.
+Scipion can export a workflow or a series of protocols into a file.
 A ``Scipion workflow file`` contains all the attributes for each protocol
 selected in the project window. This file can then be used to create a new
 project.
 
-This workflow file can be customized to ask for some values before creating the
+This workflow file can be customized to ask user for some values before creating the
 project.
 
 
 Cloning and installing scipion-em-template
 ==========================================
-If you are following a course you might already have done this. This practice starts form the master branch.
+
+If you are following a course you might already have done this. This practice starts from the master branch.
 
 .. code-block:: bash
 
@@ -40,7 +41,7 @@ If you are following a course you might already have done this. This practice st
 Exporting a workflow
 ---------------------
 
-When you have a workflow, its protocols can be selected by ctrl-click on
+When you have a workflow, its protocols can be selected by **Ctrl-click** on
 each one. When you have more than one protocol selected, in the Scipion options
 bar, ``Export`` option will appear as shown in the following figure:
 
@@ -51,18 +52,15 @@ bar, ``Export`` option will appear as shown in the following figure:
 
 .. important::
 
-        For the ``Export`` option to appear, more than one protocol must
-        be selected.
+        For the ``Export`` option to appear, more than one protocol box must be selected.
 
-After that, you will be able to choose the path where you can
-store the file, as well as be able to change its name.
+After that you will be able to choose the path where you can store the file, as well its name.
 
 .. important::
 
-          The file extension must be ``json.template`` and must be stored at
-          ``myplugin/templates``.
+          The file extension must be ``json.template`` and it must be stored in **myplugin/templates**.
 
-Scipion’s templates are ``JSON files`` (`read more info about JSON files <https://www.json.org>`_).
+Scipion's templates are **JSON files** (`read more about JSON files here <https://www.json.org>`_).
 
 .. code-block:: json
 
@@ -115,15 +113,14 @@ Scipion’s templates are ``JSON files`` (`read more info about JSON files <http
 Launching the template
 ----------------------
 
-Scipion uses a command to discover the templates which it searches in its
-folders as well as those of the plugins and displays a list of them. The
-command is as follows:
+Scipion uses a specific command to discover the templates. It searches for files in both
+*[SCIPION_HOME]/config** folder as well as **plugin/templates** and displays a list of found templates.
 
 .. code-block:: bash
 
         ./scipion3 template
 
-The following window is loaded once the previous command is executed.
+The following window appears once the command above is executed.
 
 .. figure:: /docs/images/general/template_list.png
    :width: 750
@@ -134,15 +131,14 @@ The following window is loaded once the previous command is executed.
           have any description. Later we will explain how to add it.
 
 
-After selecting the template, a window will appear allowing you to execute
-it.
+After selecting the template, a window will appear allowing you to execute it.
 
 .. figure:: /docs/images/general/loading_template.png
    :width: 450
    :alt: Loading template
 
-After clicking the ``Start`` button, a project will be generated with the
-protocols inside the template and all of them will be schedule as shown in the
+After clicking the ``Start`` button a project will be generated with the
+protocols inside the template and all of them will be scheduled as shown in the
 figure below:
 
 .. figure:: /docs/images/general/running_template.png
@@ -153,9 +149,7 @@ figure below:
 Adding a description
 --------------------
 
-In order for a description to appear for the template that we have created, it
-would only be necessary to write in the header of the template the
-description.
+In order to add a template description, add it to the top of the template file.
 
 .. code-block:: json
 
@@ -178,22 +172,22 @@ description.
 
 
 Adding dynamic fields
-----------------------
+---------------------
 
-In some cases, you may need to ask the user for certain values before creating
-and launching the project such as movie's path, sampling rate, dose,... In our
-example we want to ask for the ``Message`` and the ``Time`` parameters.
-
+In some cases you may need to ask the user for certain values before creating
+and launching the project such as movie's path, sampling rate, dose etc.
+In our example we want to ask for the ``Message`` and the ``Time`` parameters.
 
 .. figure:: /docs/images/general/customized_template.png
    :width: 750
    :alt: Customized template
 
-See how the ``dynamic fields`` syntax `works <https://scipion-em.github.io/docs/docs/facilities/facilities-workflows.html#creating-custom-dynamic-templates>`_.
+You can find more details about how the ``dynamic fields`` syntax works `here <https://scipion-em.github.io/docs/docs/facilities/facilities-workflows.html#creating-custom-dynamic-templates>`_.
 
-Once you think you have it, run it and check Scipion asks for the right values and the
-project created works and has the expected parameters.
+Now you can provide the values for these dynamic parameters directly from the command line, e.g. below Message and Time dynamic parameters were defined as arguments:
 
+.. code-block:: bash
 
+    ./scipion3 template "myplugin-templatename" msg="TEST" time=10
 
-
+Once you are done, run it and check if Scipion asks for the right values, the project created works and has the expected parameters.
