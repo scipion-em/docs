@@ -152,6 +152,7 @@ figure below:
 
 Adding a description
 --------------------
+
 In order for a description to appear for the template that we have created, it
 would only be necessary to write in the header of the template the
 description.
