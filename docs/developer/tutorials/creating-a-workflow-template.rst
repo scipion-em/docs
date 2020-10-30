@@ -2,17 +2,17 @@
    :width: 250
    :alt: scipion logo
 
-.. _customizing-a-workflow-based-on-a-template:
+.. _creating-a-workflow-template:
 
 ==========================================
-Customizing a workflow based on a template
+Creating a workflow template
 ==========================================
 
 Associated resources
 ====================
 Here you can find resources associated with this content, like videos or presentations used in courses:
 
-`Course presentation <https://docs.google.com/presentation/d/1KGz6_A2YLtjIBoiLKqhHTBUr2HYhqvAz91WiWWSXNQY/edit?usp=sharing>`_
+`Course presentation <https://docs.google.com/presentation/d/1KGz6_A2YLtjIBoiLKqhHTBUr2HYhqvAz91WiWWSXNQY/present?usp=sharing>`_
 
 
 Scipion creates a template from a workflow or a series of protocols.
