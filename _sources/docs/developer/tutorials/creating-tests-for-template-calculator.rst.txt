@@ -16,8 +16,8 @@ Associated resources
 Here you can find resources associated with this content:
 
 * `Creating a basic plugin from scipion-em-template <creating-a-basic-plugin-from-template>`_.
-* `Datasets presentation <https://docs.google.com/presentation/d/15Lni4PqI4L_podo_EO8Zq_XldPTjcGjaUp48JUok6xQ/edit?usp=sharing>`_
-* `Writing and running tests presentation <https://docs.google.com/presentation/d/1jDoFa_78mtF1pT_SPe1sTjHKp3KUKzTmLoWG7_341nA/edit?usp=sharing>`_
+* `Datasets presentation <https://docs.google.com/presentation/d/15Lni4PqI4L_podo_EO8Zq_XldPTjcGjaUp48JUok6xQ/present?usp=sharing>`_
+* `Writing and running tests presentation <https://docs.google.com/presentation/d/1jDoFa_78mtF1pT_SPe1sTjHKp3KUKzTmLoWG7_341nA/present?usp=sharing>`_
 * `Writing tests in Scipion3 <../writing-tests>`_.
 
 Tutorial Data

@@ -12,7 +12,7 @@ Associated resources
 ====================
 Here you can find resources associated with this content, like videos or presentations used in courses:
 
-`Course presentation <https://docs.google.com/presentation/d/1gUhKki2Oz-isd6-ZtrjMmA1rk21EoWMGaK-7gWVNvAY/edit?usp=sharing>`_
+`Course presentation <https://docs.google.com/presentation/d/1gUhKki2Oz-isd6-ZtrjMmA1rk21EoWMGaK-7gWVNvAY/present?usp=sharing>`_
 
 `Configuring PyCharm <../pycharm>`_
 

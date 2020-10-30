@@ -15,6 +15,6 @@ Tutorials for developers
 * `Creating a streaming protocol <creating-streaming-protocol>`_
 * `Understanding the plugin class <understanding-plugin-class>`_
 * `Creating a monitor <creating-a-monitor>`_
-* `Customizing a workflow based on a template <customizing-a-workflow-based-on-a-template>`_
+* `Creating a workflow template <creating-a-workflow-template>`_
 * `Customize the HTML report <../../facilities/customize-html-report>`_
 * `Debugging Scipion with PyCharm <debugging-scipion>`_
