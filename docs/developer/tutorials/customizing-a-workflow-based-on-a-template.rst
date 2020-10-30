@@ -129,8 +129,30 @@ that were selected will be scheduled and executed as shown in the figure below:
 
 Customizing a template
 ----------------------
+In order for a description to appear for the template that we have created, it
+would only be necessary to write in the header of the template the
+description.
 
-Usually, we always must set the same parameters that are specific for each
+.. code-block:: json
+
+        This is an example of a template description
+        [
+        {
+            "object.className": "MyPluginPrefixHelloWorld",
+            "object.id": "2",
+            "object.label": "myplugin - Hello world",
+            "object.comment": "",
+            "_useQueue": false,
+            "_prerequisites": "",
+            "_queueParams": null,
+            "runName": null,
+
+
+.. figure:: /docs/images/general/description_template.png
+   :width: 750
+   :alt: Description template
+
+On the other hand, usually, we always must set the same parameters that are specific for each
 protocols, such as movies path, sampling rate, ... In our example it could be
 the Message or the Times parameters. Then, in order to avoid manually editing
 this parameters by opening every protocol in the workflow, Scipion has a mode
