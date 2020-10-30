@@ -24,6 +24,18 @@ This workflow file can be customized to ask for some values before creating the
 project.
 
 
+Cloning and installing scipion-em-template
+==========================================
+If you are following a course you might already have done this. This practice starts form the master branch.
+
+.. code-block:: bash
+
+    cd desired/location
+    git clone https://github.com/scipion-em/scipion-em-template.git
+    cd scipion3/location
+    ./scipion3 installp -p scipion-em-template/location --devel
+
+
 Exporting a workflow
 ---------------------
 
@@ -175,12 +187,10 @@ example we want to ask for the ``Message`` and the ``Time`` parameters.
    :width: 750
    :alt: Customized template
 
-You can fill the form according to your data or just leave all the
-displayed fields untouched. As you click on the ``Start`` button,
-Scipion should appear with the new project.
+See how the ``dynamic fields`` syntax `works <../../facilities/facilities-workflows#creating-custom-dynamic-templates>`_.
 
-For this Scipion mode to appear, templates must be customized.
-This link explains in detail `how to customize and launch a dynamic template <../../facilities/facilities-workflows#creating-custom-dynamic-templates>`_.
+Once you think you have it, run it and check Scipion asks for the right values and the
+project created works and has the expected parameters.
 
 
 
