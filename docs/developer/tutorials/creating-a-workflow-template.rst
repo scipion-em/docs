@@ -13,6 +13,7 @@ Associated resources
 Here you can find resources associated with this content, like videos or presentations used in courses:
 
 `Course presentation <https://docs.google.com/presentation/d/1KGz6_A2YLtjIBoiLKqhHTBUr2HYhqvAz91WiWWSXNQY/present?usp=sharing>`_
+
 `Facilities workflows <../../facilities/facilities-workflows>`_.
 
 Scipion can export a workflow or a series of protocols to a file.
