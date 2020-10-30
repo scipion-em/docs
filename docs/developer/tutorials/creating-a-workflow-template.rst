@@ -13,16 +13,19 @@ Associated resources
 Here you can find resources associated with this content, like videos or presentations used in courses:
 
 `Course presentation <https://docs.google.com/presentation/d/1KGz6_A2YLtjIBoiLKqhHTBUr2HYhqvAz91WiWWSXNQY/present?usp=sharing>`_
+`Facilities workflows <../../facilities/facilities-workflows>`_.
+
+Scipion can export a workflow or a series of protocols to a file.
+A ``Scipion workflow file`` contains all the attributes for each protocol
+selected in the project window. This file can then be used to create a new
+project.
+
+This workflow file can be customized to ask for some values before creating the
+project.
 
 
-Scipion creates a template from a workflow or a series of protocols.
-A ``Scipion template`` is nothing more than a file that contains all the attributes,
-as well as the values assigned to each of these for each protocol chosen in a
-workflow. This file can then be running as a new project.
-
-
-Creating a Scipion template
-----------------------------
+Exporting a workflow
+---------------------
 
 When you have a workflow, its protocols can be selected by ctrl-click on
 each one. When you have more than one protocol selected, in the Scipion options
@@ -38,16 +41,15 @@ bar, ``Export`` option will appear as shown in the following figure:
         For the ``Export`` option to appear, more than one protocol must
         be selected.
 
-After that, you will be able to choose the address where you can
+After that, you will be able to choose the path where you can
 store the file, as well as be able to change its name.
 
 .. important::
 
-        The file extension must be ``json.template`` and must be stored in a
-        folder named ``templates`` within the plugins.
+          The file extension must be ``json.template`` and must be stored at
+          ``myplugin/templates``.
 
-Scipion’s templates are JSON files, which are composed by a
-list of all the selected protocols in the workflow (`read more info about JSON files <https://www.json.org>`_).
+Scipion’s templates are ``JSON files`` (`read more info about JSON files <https://www.json.org>`_).
 
 .. code-block:: json
 
@@ -97,8 +99,8 @@ list of all the selected protocols in the workflow (`read more info about JSON f
     ]
 
 
-Launching a template
---------------------
+Launching the template
+----------------------
 
 Scipion uses a command to discover the templates which it searches in its
 folders as well as those of the plugins and displays a list of them. The
@@ -106,7 +108,7 @@ command is as follows:
 
 .. code-block:: bash
 
-        ./scipion template
+        ./scipion3 template
 
 The following window is loaded once the previous command is executed.
 
@@ -116,7 +118,7 @@ The following window is loaded once the previous command is executed.
 
 .. note:: Here you can select a template which will appear as follows:
           ``plugin name - template name``. Also note that the template does not
-          have any descriptions. Later we will explain how to add it.
+          have any description. Later we will explain how to add it.
 
 
 After selecting the template, a window will appear allowing you to execute
@@ -126,16 +128,17 @@ it.
    :width: 450
    :alt: Loading template
 
-After clicking the ``Start`` button, a project will be generated where the protocols
-that were selected will be scheduled and executed as shown in the figure below:
+After clicking the ``Start`` button, a project will be generated with the
+protocols inside the template and all of them will be schedule as shown in the
+figure below:
 
 .. figure:: /docs/images/general/running_template.png
    :width: 750
    :alt: Running a template
 
 
-Customizing a template
-----------------------
+Adding a description
+--------------------
 In order for a description to appear for the template that we have created, it
 would only be necessary to write in the header of the template the
 description.
@@ -159,12 +162,13 @@ description.
    :width: 750
    :alt: Description template
 
-On the other hand, usually, we always must set the same parameters that are specific for each
-protocols, such as movies path, sampling rate, ... In our example it could be
-the Message or the Times parameters. Then, in order to avoid manually editing
-this parameters by opening every protocol in the workflow, Scipion has a mode
-to open modified templates in such a way that a wizard is launched
-asking for all that specific parameters, at once.
+
+Adding dynamic fields
+----------------------
+
+In some cases, you may need to ask the user for certain values before creating
+and launching the project such as movie's path, sampling rate, dose,... In our
+example we want to ask for the ``Message`` and the ``Time`` parameters.
 
 
 .. figure:: /docs/images/general/customized_template.png
