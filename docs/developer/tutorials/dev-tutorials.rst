@@ -18,4 +18,4 @@ Tutorials for developers
 * `Creating a workflow template <creating-a-workflow-template>`_
 * `Customize the HTML report <../../facilities/customize-html-report>`_
 * `Debugging Scipion with PyCharm <debugging-scipion>`_
-* `Working with sets of Projections and Images" </docs/pdfs/Oct_2020_Course_day3.pdf> 
+* `Working with sets of Projections and Images </docs/pdfs/Oct_2020_Course_day3.pdf>`_ 
