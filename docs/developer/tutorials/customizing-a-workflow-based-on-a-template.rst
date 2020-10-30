@@ -39,57 +39,55 @@ store the file, as well as be able to change its name.
         The file extension must be ``json.template`` and must be stored in a
         folder named ``templates`` within the plugins.
 
+Scipion’s templates are JSON files, which are composed by a
+list of all the selected protocols in the workflow (`read more info about JSON files <https://www.json.org>`_).
 
 .. code-block:: json
 
-        # Here you can write a description of the workflow
         [
         {
-            "object.className": "ProtImportParticles",
+            "object.className": "MyPluginPrefixHelloWorld",
             "object.id": "2",
-            "object.label": "from scipion (particles)",
+            "object.label": "myplugin - Hello world",
             "object.comment": "",
             "_useQueue": false,
             "_prerequisites": "",
             "_queueParams": null,
             "runName": null,
             "runMode": 0,
-            "importFrom": 4,
-            "filesPath": "/home/yunior/Yunior/Projects/Scipion/Descentralization/data/tests/xmipp_tutorial/particles/BPV_particles_aligned.sqlite",
-            "filesPattern": null,
-            "copyFiles": false,
-            "emxFile": null,
-            "alignType": 0,
-            "mdFile": null,
-            "starFile": null,
-            "ignoreIdColumn": false,
-            "sqliteFile": "/home/yunior/Yunior/Projects/Scipion/Descentralization/data/tests/xmipp_tutorial/particles/BPV_particles_aligned.sqlite",
-            "frealignLabel": null,
-            "stackFile": null,
-            "parFile": null,
-            "lstFile": null,
-            "haveDataBeenPhaseFlipped": false,
-            "acquisitionWizard": null,
-            "voltage": 300.0,
-            "sphericalAberration": 2.7,
-            "amplitudeContrast": 0.1,
-            "magnification": 50000,
-            "samplingRate": 4.0,
-            "dataStreaming": false,
-            "timeout": 43200,
-            "fileTimeout": 30
+            "message": "Hello world!",
+            "times": 10,
+            "previousCount": 0
         },
         {
-            "object.className": "ProtCryoSparcNonUniformRefine3D",
-            "object.id": "126",
-            "object.label": "Cryosparc Non-Uniform 3D refinement",
+            "object.className": "MyPluginPrefixHelloWorld",
+            "object.id": "84",
+            "object.label": "myplugin - Hello world (2)",
             "object.comment": "",
             "_useQueue": false,
             "_prerequisites": "",
             "_queueParams": null,
             "runName": null,
-
-            ....
+            "runMode": 0,
+            "message": "Hello world!",
+            "times": 10,
+            "previousCount": 0
+        },
+        {
+            "object.className": "MyPluginPrefixHelloWorld",
+            "object.id": "118",
+            "object.label": "myplugin - Hello world (3)",
+            "object.comment": "",
+            "_useQueue": false,
+            "_prerequisites": "",
+            "_queueParams": null,
+            "runName": null,
+            "runMode": 0,
+            "message": "Hello world!",
+            "times": 10,
+            "previousCount": 0
+        }
+    ]
 
 
 Launching a template
@@ -109,7 +107,9 @@ The following window is loaded once the previous command is executed.
    :width: 750
    :alt: Template List
 
-.. note:: Here you can select a template which will appear as follows: ``plugin name - template name``
+.. note:: Here you can select a template which will appear as follows:
+          ``plugin name - template name``. Also note that the template does not
+          have any descriptions. Later we will explain how to add it.
 
 
 After selecting the template, a window will appear allowing you to execute
@@ -129,4 +129,26 @@ that were selected will be scheduled and executed as shown in the figure below:
 
 Customizing a template
 ----------------------
+
+Usually, we always must set the same parameters that are specific for each
+protocols, such as movies path, sampling rate, ... In our example it could be
+the Message or the Times parameters. Then, in order to avoid manually editing
+this parameters by opening every protocol in the workflow, Scipion has a mode
+to open modified templates in such a way that a wizard is launched
+asking for all that specific parameters, at once.
+
+
+.. figure:: /docs/images/general/customized_template.png
+   :width: 750
+   :alt: Customized template
+
+You can fill the form according to your data or just leave all the
+displayed fields untouched. As you click on the ``Start`` button,
+Scipion should appear with the new project.
+
+For this Scipion mode to appear, templates must be customized.
+This link explains in detail `how to customize a template <https://scipion-em.github.io/docs/docs/facilities/facilities-workflows.html#creating-custom-dynamic-templates>`_.
+
+
+
 
