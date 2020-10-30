@@ -23,7 +23,7 @@ bar, ``Export`` option will appear as shown in the following figure:
 
 
 .. figure:: /docs/images/general/export_workflow.png
-   :width: 450
+   :width: 750
    :alt: Export workflow
 
 .. important::
@@ -106,7 +106,7 @@ command is as follows:
 The following window is loaded once the previous command is executed.
 
 .. figure:: /docs/images/general/template_list.png
-   :width: 450
+   :width: 750
    :alt: Template List
 
 .. note:: Here you can select a template which will appear as follows: ``plugin name - template name``
@@ -123,7 +123,7 @@ After clicking the ``Start`` button, a project will be generated where the proto
 that were selected will be scheduled and executed as shown in the figure below:
 
 .. figure:: /docs/images/general/running_template.png
-   :width: 450
+   :width: 750
    :alt: Running a template
 
 
