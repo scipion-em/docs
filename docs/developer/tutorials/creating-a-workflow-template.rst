@@ -114,7 +114,7 @@ Launching the template
 ----------------------
 
 Scipion uses a specific command to discover the templates. It searches for files in both
-*[SCIPION_HOME]/config** folder as well as **plugin/templates** and displays a list of found templates.
+**[SCIPION_HOME]/config** folder as well as **plugin/templates** and displays a list of found templates.
 
 .. code-block:: bash
 

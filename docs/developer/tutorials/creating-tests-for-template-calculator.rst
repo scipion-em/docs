@@ -100,7 +100,7 @@ Writing the tests
 3. Inside that class, create a method to prepare the test execution environment. It has to be
    named **setUpClass** and it has to:
 
-    3.1 Set up the test project (*Hint*: method **setupTestProject** in  **pyworkflow.tests** ).
+    3.1 Set up the test project (*Hint*: method **setupTestProject** in  **pyworkflow.tests**).
 
     3.2 Get from dataset **devCourse** files **operand1** and **operand2** and parse them to get the actual values.
         They must be two floats, one per file (12 and 3.14159265359, respectively).

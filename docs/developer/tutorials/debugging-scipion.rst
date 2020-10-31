@@ -84,7 +84,7 @@ Set the values according to the image below
 
 "Apply" and you'll have now a "direct" run/debug PyCharm configuration.
 
-..tip::
+.. tip::
 
     Duplicating this configuration  and changing the "Parameters" field and "Name" will provide you more direct run
     configurations for other scipion modes like "tests", "config", ... Type `scipion3 help` to discover them.
@@ -116,7 +116,7 @@ Try to understand:
 
 1. How the protocol validation happens?
 
-..tip::
+.. tip::
 
     If you find hard to reach the *protocol._validate* method from the *execute*,
     set a breakpoint in the **myplugin/protocols/protocol_empiar_download** at ``EmpiarDownloader._validate``
