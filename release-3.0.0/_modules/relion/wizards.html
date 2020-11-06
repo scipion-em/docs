@@ -206,13 +206,11 @@
 <span class="c1"># **************************************************************************</span>
 
 <span class="kn">from</span> <span class="nn">pwem</span> <span class="k">import</span> <span class="o">*</span>
-<span class="kn">from</span> <span class="nn">pwem.viewers</span> <span class="k">import</span> <span class="n">CoordinatesObjectView</span><span class="p">,</span> <span class="n">EmPlotter</span>
+<span class="kn">from</span> <span class="nn">pwem.viewers</span> <span class="k">import</span> <span class="n">EmPlotter</span>
 <span class="kn">from</span> <span class="nn">pwem.wizards.wizard</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.gui.browser</span> <span class="k">import</span> <span class="n">FileBrowserWindow</span>
 
-<span class="kn">from</span> <span class="nn">.constants</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">import</span> <span class="nn">relion.convert</span> <span class="k">as</span> <span class="nn">convert</span>
-<span class="kn">from</span> <span class="nn">relion</span> <span class="k">import</span> <span class="n">Plugin</span>
 <span class="kn">from</span> <span class="nn">.protocols</span> <span class="k">import</span> <span class="o">*</span>
 
 
@@ -338,119 +336,6 @@
             <span class="n">dialog</span><span class="o">.</span><span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;Input volumes&quot;</span><span class="p">,</span> <span class="s2">&quot;Select volumes first&quot;</span><span class="p">,</span> <span class="n">form</span><span class="o">.</span><span class="n">root</span><span class="p">)</span></div></div>
             
 
-<span class="c1"># =============================================================================</span>
-<span class="c1"># PICKING</span>
-<span class="c1"># =============================================================================</span>
-
-<div class="viewcode-block" id="Relion2AutopickParams"><a class="viewcode-back" href="../../api/relion/relion.wizards.html#relion.wizards.Relion2AutopickParams">[docs]</a><span class="k">class</span> <span class="nc">Relion2AutopickParams</span><span class="p">(</span><span class="n">EmWizard</span><span class="p">):</span>
-    <span class="n">_targets</span> <span class="o">=</span> <span class="p">[(</span><span class="n">ProtRelion2Autopick</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;runType&#39;</span><span class="p">,</span>
-                                       <span class="s1">&#39;pickingThreshold&#39;</span><span class="p">,</span>
-                                       <span class="s1">&#39;interParticleDistance&#39;</span><span class="p">])]</span>
-
-<div class="viewcode-block" id="Relion2AutopickParams.show"><a class="viewcode-back" href="../../api/relion/relion.wizards.html#relion.wizards.Relion2AutopickParams.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
-        <span class="n">autopickProt</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">protocol</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">autopickProt</span><span class="o">.</span><span class="n">hasAttribute</span><span class="p">(</span><span class="s1">&#39;outputCoordinatesSubset&#39;</span><span class="p">):</span>
-            <span class="n">form</span><span class="o">.</span><span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;You should run the procotol in &#39;Optimize&#39; mode &quot;</span>
-                             <span class="s2">&quot;at least once before opening the wizard.&quot;</span><span class="p">)</span>
-            <span class="k">return</span>
-
-        <span class="n">project</span> <span class="o">=</span> <span class="n">autopickProt</span><span class="o">.</span><span class="n">getProject</span><span class="p">()</span>
-        <span class="n">micSet</span> <span class="o">=</span> <span class="n">autopickProt</span><span class="o">.</span><span class="n">outputMicrographsSubset</span>
-        <span class="n">coordsDir</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">getTmpPath</span><span class="p">(</span><span class="n">micSet</span><span class="o">.</span><span class="n">getName</span><span class="p">())</span>
-        <span class="n">pwutils</span><span class="o">.</span><span class="n">cleanPath</span><span class="p">(</span><span class="n">coordsDir</span><span class="p">)</span>
-        <span class="n">pwutils</span><span class="o">.</span><span class="n">makePath</span><span class="p">(</span><span class="n">coordsDir</span><span class="p">)</span>
-
-        <span class="n">micStarFn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">coordsDir</span><span class="p">,</span> <span class="s1">&#39;micrographs.xmd&#39;</span><span class="p">)</span>
-
-        <span class="c1"># Set CTF information to the micrographs to be displayed in the</span>
-        <span class="c1"># picking list</span>
-        <span class="n">autopickProt</span><span class="o">.</span><span class="n">micDict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
-        <span class="n">micDict</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">autopickProt</span><span class="o">.</span><span class="n">_loadInputList</span><span class="p">()</span>
-
-        <span class="k">def</span> <span class="nf">_preprocessMic</span><span class="p">(</span><span class="n">mic</span><span class="p">,</span> <span class="n">micRow</span><span class="p">):</span>
-            <span class="n">mic</span><span class="o">.</span><span class="n">setCTF</span><span class="p">(</span><span class="n">micDict</span><span class="p">[</span><span class="n">mic</span><span class="o">.</span><span class="n">getMicName</span><span class="p">()]</span><span class="o">.</span><span class="n">getCTF</span><span class="p">())</span>
-
-        <span class="n">writer</span> <span class="o">=</span> <span class="n">convert</span><span class="o">.</span><span class="n">createWriter</span><span class="p">()</span>
-        <span class="n">writer</span><span class="o">.</span><span class="n">writeSetOfMicrographs</span><span class="p">(</span><span class="n">micSet</span><span class="p">,</span> <span class="n">micStarFn</span><span class="p">,</span>
-                                     <span class="n">preprocessImageRow</span><span class="o">=</span><span class="n">_preprocessMic</span><span class="p">)</span>
-
-        <span class="c1"># Create a folder in extra to backup the original autopick star files</span>
-        <span class="n">backupDir</span> <span class="o">=</span> <span class="n">autopickProt</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;wizard-backup&#39;</span><span class="p">)</span>
-        <span class="n">pwutils</span><span class="o">.</span><span class="n">cleanPath</span><span class="p">(</span><span class="n">backupDir</span><span class="p">)</span>
-        <span class="n">pwutils</span><span class="o">.</span><span class="n">makePath</span><span class="p">(</span><span class="n">backupDir</span><span class="p">)</span>
-        <span class="n">pwutils</span><span class="o">.</span><span class="n">copyPattern</span><span class="p">(</span><span class="n">autopickProt</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;*autopick.star&quot;</span><span class="p">),</span>
-                            <span class="n">backupDir</span><span class="p">)</span>
-
-        <span class="n">cmd</span> <span class="o">=</span> <span class="s1">&#39;emprogram relion_autopick &#39;</span>
-        <span class="n">cmd</span> <span class="o">+=</span> <span class="s1">&#39;--i input_micrographs.star &#39;</span>
-        <span class="n">cmd</span> <span class="o">+=</span> <span class="s1">&#39;--threshold %(threshold) --min_distance %(ipd) &#39;</span>
-        <span class="n">cmd</span> <span class="o">+=</span> <span class="s1">&#39; --max_stddev_noise %(maxStddevNoise) &#39;</span>
-        <span class="n">cmd</span> <span class="o">+=</span> <span class="s1">&#39; --read_fom_maps&#39;</span>
-        <span class="n">cmd</span> <span class="o">+=</span> <span class="n">autopickProt</span><span class="o">.</span><span class="n">getAutopickParams</span><span class="p">()</span>
-
-        <span class="n">convertCmd</span> <span class="o">=</span> <span class="s1">&#39;emconvert&#39;</span>
-        <span class="n">convertCmd</span> <span class="o">+=</span> <span class="s1">&#39; --coordinates --from relion --to xmipp &#39;</span>
-        <span class="n">convertCmd</span> <span class="o">+=</span> <span class="s1">&#39; --input </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">micSet</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
-        <span class="n">convertCmd</span> <span class="o">+=</span> <span class="s1">&#39; --output </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">coordsDir</span>
-        <span class="n">convertCmd</span> <span class="o">+=</span> <span class="s1">&#39; --extra </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">autopickProt</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span>
-
-        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;threshold&quot;</span><span class="p">:</span> <span class="n">autopickProt</span><span class="o">.</span><span class="n">pickingThreshold</span><span class="p">,</span>
-            <span class="s1">&#39;min_distance&#39;</span><span class="p">:</span> <span class="n">autopickProt</span><span class="o">.</span><span class="n">interParticleDistance</span><span class="p">,</span>
-            <span class="s1">&#39;autopickCommand&#39;</span><span class="p">:</span> <span class="n">cmd</span><span class="p">,</span>
-            <span class="s1">&#39;preprocessCommand&#39;</span><span class="p">:</span> <span class="s1">&#39;rm -rf </span><span class="si">%s</span><span class="s1">/*.pos&#39;</span> <span class="o">%</span> <span class="n">coordsDir</span><span class="p">,</span>
-            <span class="s1">&#39;convertCmd&#39;</span><span class="p">:</span> <span class="n">convertCmd</span><span class="p">,</span>
-            <span class="s1">&#39;protDir&#39;</span><span class="p">:</span> <span class="n">autopickProt</span><span class="o">.</span><span class="n">getWorkingDir</span><span class="p">(),</span>
-            <span class="s1">&#39;maxStddevNoise&#39;</span><span class="p">:</span> <span class="n">autopickProt</span><span class="o">.</span><span class="n">maxStddevNoise</span>
-        <span class="p">}</span>
-
-        <span class="n">pickerProps</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">coordsDir</span><span class="p">,</span> <span class="s1">&#39;picker.conf&#39;</span><span class="p">)</span>
-
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pickerProps</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">            parameters = ipd,threshold,maxStddevNoise</span>
-<span class="s2">            ipd.value = </span><span class="si">%(min_distance)s</span><span class="s2"></span>
-<span class="s2">            ipd.label = Inter-particles distance (A)</span>
-<span class="s2">            ipd.help = Particles closer together than this distance will be consider to be a single cluster. From each cluster, only one particle will be picked.</span>
-<span class="s2">            threshold.value =  </span><span class="si">%(threshold)s</span><span class="s2"></span>
-<span class="s2">            threshold.label = Threshold</span>
-<span class="s2">            threshold.help = Use lower thresholds to pick more particles (and more junk probably).</span>
-<span class="s2">            maxStddevNoise.value = </span><span class="si">%(maxStddevNoise)s</span><span class="s2"></span>
-<span class="s2">            maxStddevNoise.label = Max. stddev noise</span>
-<span class="s2">            maxStddevNoise.help = Prevent picking in carbon areas, useful values probably between 1.0 and 1.2, use -1 to switch it off</span>
-<span class="s2">            runDir = </span><span class="si">%(protDir)s</span><span class="s2"></span>
-<span class="s2">            preprocessCommand = </span><span class="si">%(preprocessCommand)s</span><span class="s2"></span>
-<span class="s2">            autopickCommand = </span><span class="si">%(autopickCommand)s</span><span class="s2"></span>
-<span class="s2">            convertCommand = </span><span class="si">%(convertCmd)s</span><span class="s2"></span>
-<span class="s2">            hasInitialCoordinates = true</span>
-<span class="s2">            doPickAll = true</span>
-<span class="s2">            &quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;XMIPP_EXTRA_ALIASES&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;micrograph=rlnMicrographName&#39;</span>
-        <span class="n">process</span> <span class="o">=</span> <span class="n">CoordinatesObjectView</span><span class="p">(</span><span class="n">autopickProt</span><span class="o">.</span><span class="n">getProject</span><span class="p">(),</span> <span class="n">micStarFn</span><span class="p">,</span>
-                                        <span class="n">coordsDir</span><span class="p">,</span> <span class="n">autopickProt</span><span class="p">,</span>
-                                        <span class="n">mode</span><span class="o">=</span><span class="n">CoordinatesObjectView</span><span class="o">.</span><span class="n">MODE_AUTOMATIC</span><span class="p">,</span>
-                                        <span class="n">pickerProps</span><span class="o">=</span><span class="n">pickerProps</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-        <span class="n">process</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
-        <span class="n">myprops</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">readProperties</span><span class="p">(</span><span class="n">pickerProps</span><span class="p">)</span>
-
-        <span class="c1"># Check if the wizard changes were accepted or just canceled</span>
-        <span class="k">if</span> <span class="n">myprops</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;applyChanges&#39;</span><span class="p">,</span> <span class="s1">&#39;false&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span><span class="p">:</span>
-            <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="s1">&#39;pickingThreshold&#39;</span><span class="p">,</span> <span class="n">myprops</span><span class="p">[</span><span class="s1">&#39;threshold.value&#39;</span><span class="p">])</span>
-            <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="s1">&#39;interParticleDistance&#39;</span><span class="p">,</span> <span class="n">myprops</span><span class="p">[</span><span class="s1">&#39;ipd.value&#39;</span><span class="p">])</span>
-            <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="s1">&#39;maxStddevNoise&#39;</span><span class="p">,</span> <span class="n">myprops</span><span class="p">[</span><span class="s1">&#39;maxStddevNoise.value&#39;</span><span class="p">])</span>
-            <span class="c1"># Change the run type now to &#39;Compute&#39; after using the wizard</span>
-            <span class="c1"># and (supposedly) optimized parameters</span>
-            <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="s1">&#39;runType&#39;</span><span class="p">,</span> <span class="n">RUN_COMPUTE</span><span class="p">)</span>
-            <span class="c1"># Mark the wizard was used</span>
-            <span class="nb">setattr</span><span class="p">(</span><span class="n">autopickProt</span><span class="p">,</span> <span class="s1">&#39;wizardExecuted&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># If the wizard was not execute, we should restore the original</span>
-            <span class="c1"># autopick star files in case their were modified by the wizard</span>
-            <span class="n">pwutils</span><span class="o">.</span><span class="n">copyPattern</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">backupDir</span><span class="p">,</span> <span class="s2">&quot;*autopick.star&quot;</span><span class="p">),</span>
-                                <span class="n">autopickProt</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">())</span></div></div>
-
-
 <div class="viewcode-block" id="Relion2PartDiameter"><a class="viewcode-back" href="../../api/relion/relion.wizards.html#relion.wizards.Relion2PartDiameter">[docs]</a><span class="k">class</span> <span class="nc">Relion2PartDiameter</span><span class="p">(</span><span class="n">RelionPartMaskDiameterWizard</span><span class="p">):</span>
     <span class="n">_targets</span> <span class="o">=</span> <span class="p">[(</span><span class="n">ProtRelion2Autopick</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;particleDiameter&#39;</span><span class="p">])]</span>
 
@@ -466,91 +351,6 @@
             <span class="n">form</span><span class="o">.</span><span class="n">showWarning</span><span class="p">(</span><span class="s2">&quot;Please select the input references first. &quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">RelionPartMaskDiameterWizard</span><span class="o">.</span><span class="n">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">)</span></div></div>
-        <span class="c1"># else:  # Gaussian blobs</span>
-        <span class="c1">#     form.showWarning(&quot;This wizard only works when using input &quot;</span>
-        <span class="c1">#                      &quot;references, not Gaussian blobs. &quot;)</span>
-
-
-<div class="viewcode-block" id="RelionWizLogPickParams"><a class="viewcode-back" href="../../api/relion/relion.wizards.html#relion.wizards.RelionWizLogPickParams">[docs]</a><span class="k">class</span> <span class="nc">RelionWizLogPickParams</span><span class="p">(</span><span class="n">EmWizard</span><span class="p">):</span>
-    <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;minDiameter&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;maxDiameter&#39;</span><span class="p">,</span>
-              <span class="s1">&#39;threshold&#39;</span><span class="p">]</span>
-
-    <span class="k">if</span> <span class="n">Plugin</span><span class="o">.</span><span class="n">IS_GT30</span><span class="p">():</span>
-        <span class="n">params</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;threshold2&#39;</span><span class="p">)</span>
-
-    <span class="n">_targets</span> <span class="o">=</span> <span class="p">[(</span><span class="n">ProtRelionAutopickLoG</span><span class="p">,</span> <span class="n">params</span><span class="p">)]</span>
-
-<div class="viewcode-block" id="RelionWizLogPickParams.show"><a class="viewcode-back" href="../../api/relion/relion.wizards.html#relion.wizards.RelionWizLogPickParams.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
-        <span class="n">autopickProt</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">protocol</span>
-        <span class="n">project</span> <span class="o">=</span> <span class="n">autopickProt</span><span class="o">.</span><span class="n">getProject</span><span class="p">()</span>
-        <span class="n">micSet</span> <span class="o">=</span> <span class="n">autopickProt</span><span class="o">.</span><span class="n">getInputMicrographs</span><span class="p">()</span>
-        <span class="n">micfn</span> <span class="o">=</span> <span class="n">micSet</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
-        <span class="n">coordsDir</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">getTmpPath</span><span class="p">(</span><span class="n">micSet</span><span class="o">.</span><span class="n">getName</span><span class="p">())</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;coordsDir: &quot;</span><span class="p">,</span> <span class="n">coordsDir</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">Plugin</span><span class="o">.</span><span class="n">IS_GT30</span><span class="p">():</span>
-            <span class="n">params</span><span class="p">,</span> <span class="n">minDiameter</span><span class="p">,</span> <span class="n">maxDiameter</span><span class="p">,</span> <span class="n">threshold</span><span class="p">,</span> <span class="n">threshold2</span> <span class="o">=</span> <span class="n">autopickProt</span><span class="o">.</span><span class="n">_getPickArgs</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">params</span><span class="p">,</span> <span class="n">minDiameter</span><span class="p">,</span> <span class="n">maxDiameter</span><span class="p">,</span> <span class="n">threshold</span> <span class="o">=</span> <span class="n">autopickProt</span><span class="o">.</span><span class="n">_getPickArgs</span><span class="p">()</span>
-
-        <span class="n">pwutils</span><span class="o">.</span><span class="n">cleanPath</span><span class="p">(</span><span class="n">coordsDir</span><span class="p">)</span>
-        <span class="n">pwutils</span><span class="o">.</span><span class="n">makePath</span><span class="p">(</span><span class="n">coordsDir</span><span class="p">)</span>
-        <span class="n">pickerProps</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">coordsDir</span><span class="p">,</span> <span class="s1">&#39;picker.conf&#39;</span><span class="p">)</span>
-        <span class="n">micStarFn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">coordsDir</span><span class="p">,</span> <span class="s1">&#39;input_micrographs.star&#39;</span><span class="p">)</span>
-
-        <span class="n">writer</span> <span class="o">=</span> <span class="n">convert</span><span class="o">.</span><span class="n">createWriter</span><span class="p">(</span><span class="n">rootDir</span><span class="o">=</span><span class="n">coordsDir</span><span class="p">,</span>
-                                <span class="n">outputDir</span><span class="o">=</span><span class="n">coordsDir</span><span class="p">)</span>
-        <span class="n">writer</span><span class="o">.</span><span class="n">writeSetOfMicrographs</span><span class="p">(</span><span class="n">micSet</span><span class="p">,</span> <span class="n">micStarFn</span><span class="p">)</span>
-
-        <span class="c1"># params = params.replace(&#39;--odir &quot;&quot;&#39;, &#39;--odir extra&#39;)</span>
-        <span class="n">autopickCmd</span> <span class="o">=</span> <span class="s2">&quot;emprogram relion_autopick &quot;</span>
-        <span class="n">autopickCmd</span> <span class="o">+=</span> <span class="s1">&#39; --i input_micrographs.star &#39;</span>
-        <span class="n">autopickCmd</span> <span class="o">+=</span> <span class="n">params</span>
-        <span class="n">autopickCmd</span> <span class="o">+=</span> <span class="s1">&#39; --LoG_diam_min %(mind) &#39;</span>
-        <span class="n">autopickCmd</span> <span class="o">+=</span> <span class="s1">&#39; --LoG_diam_max %(maxd) &#39;</span>
-        <span class="n">autopickCmd</span> <span class="o">+=</span> <span class="s1">&#39; --LoG_adjust_threshold %(threshold) &#39;</span>
-
-        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s2">&quot;convert&quot;</span><span class="p">:</span> <span class="s1">&#39;emconvert&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;coordsDir&#39;</span><span class="p">:</span> <span class="n">coordsDir</span><span class="p">,</span>
-            <span class="s1">&#39;micsSqlite&#39;</span><span class="p">:</span> <span class="n">micSet</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span>
-            <span class="s2">&quot;minDiameter&quot;</span><span class="p">:</span> <span class="n">minDiameter</span><span class="p">,</span>
-            <span class="s2">&quot;maxDiameter&quot;</span><span class="p">:</span> <span class="n">maxDiameter</span><span class="p">,</span>
-            <span class="s2">&quot;threshold&quot;</span><span class="p">:</span> <span class="n">threshold</span><span class="p">,</span>
-            <span class="s1">&#39;projDir&#39;</span><span class="p">:</span> <span class="n">project</span><span class="o">.</span><span class="n">getPath</span><span class="p">(),</span>
-            <span class="s2">&quot;autopickCmd&quot;</span><span class="p">:</span> <span class="n">autopickCmd</span>
-        <span class="p">}</span>
-
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pickerProps</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">            parameters = mind,maxd,threshold</span>
-<span class="s2">            mind.value = </span><span class="si">%(minDiameter)s</span><span class="s2"></span>
-<span class="s2">            mind.label = Min diam.(A)</span>
-<span class="s2">            mind.help = The smallest allowed diameter for the blob-detection algorithm. This should correspond to the smallest size of your particles in Angstroms.</span>
-<span class="s2">            maxd.value = </span><span class="si">%(maxDiameter)s</span><span class="s2"></span>
-<span class="s2">            maxd.label = Max diam.(A)</span>
-<span class="s2">            maxd.help = The largest allowed diameter for the blob-detection algorithm. This should correspond to the largest size of your particles in Angstroms.</span>
-<span class="s2">            threshold.value =  </span><span class="si">%(threshold)s</span><span class="s2"></span>
-<span class="s2">            threshold.label = Threshold</span>
-<span class="s2">            threshold.help = Lower threshold -&gt; more particles</span>
-<span class="s2">            runDir = </span><span class="si">%(coordsDir)s</span><span class="s2"></span>
-<span class="s2">            autopickCommand = </span><span class="si">%(autopickCmd)s</span><span class="s2"></span>
-<span class="s2">            convertCommand = </span><span class="si">%(convert)s</span><span class="s2"> --coordinates --from relion --to xmipp --input </span><span class="si">%(micsSqlite)s</span><span class="s2"> --output </span><span class="si">%(coordsDir)s</span><span class="s2"> --extra </span><span class="si">%(coordsDir)s</span><span class="s2">/</span>
-<span class="s2">            hasInitialCoordinates = false</span>
-<span class="s2">            doPickAll = true</span>
-<span class="s2">            &quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
-        <span class="n">process</span> <span class="o">=</span> <span class="n">CoordinatesObjectView</span><span class="p">(</span><span class="n">autopickProt</span><span class="o">.</span><span class="n">getProject</span><span class="p">(),</span> <span class="n">micfn</span><span class="p">,</span>
-                                        <span class="n">coordsDir</span><span class="p">,</span> <span class="n">autopickProt</span><span class="p">,</span>
-                                        <span class="n">mode</span><span class="o">=</span><span class="n">CoordinatesObjectView</span><span class="o">.</span><span class="n">MODE_AUTOMATIC</span><span class="p">,</span>
-                                        <span class="n">pickerProps</span><span class="o">=</span><span class="n">pickerProps</span><span class="p">)</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-        <span class="n">process</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
-        <span class="n">myprops</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">readProperties</span><span class="p">(</span><span class="n">pickerProps</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">myprops</span><span class="p">[</span><span class="s1">&#39;applyChanges&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;true&#39;</span><span class="p">:</span>
-            <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="s1">&#39;minDiameter&#39;</span><span class="p">,</span> <span class="n">myprops</span><span class="p">[</span><span class="s1">&#39;mind.value&#39;</span><span class="p">])</span>
-            <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="s1">&#39;maxDiameter&#39;</span><span class="p">,</span> <span class="n">myprops</span><span class="p">[</span><span class="s1">&#39;maxd.value&#39;</span><span class="p">])</span>
-            <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="s1">&#39;threshold&#39;</span><span class="p">,</span> <span class="n">myprops</span><span class="p">[</span><span class="s1">&#39;threshold.value&#39;</span><span class="p">])</span></div></div>
 
 
 <div class="viewcode-block" id="RelionWizMtfSelector"><a class="viewcode-back" href="../../api/relion/relion.wizards.html#relion.wizards.RelionWizMtfSelector">[docs]</a><span class="k">class</span> <span class="nc">RelionWizMtfSelector</span><span class="p">(</span><span class="n">EmWizard</span><span class="p">):</span>

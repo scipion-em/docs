@@ -30,7 +30,7 @@ Let's go to our template plugin folder and setup everything ready for the practi
    git checkout course5_exBase
 
 You might notice a new file `protocol_run_myprogram.py`. Have a look inside.
-You will see that this simple protocol only has one step function **runStep** that executes a program via **runJob**.
+You will see that this simple protocol only has one step function ``runStep`` that executes a program via ``runJob``.
 If you are using PyCharm you will see that **Plugin.getProgram()** function is undefined.
 
 .. figure:: /docs/images/dev/template_practice/practice5_undefined_func.png
@@ -90,10 +90,10 @@ Open **example_script.sh** in any editor and paste the following code:
     echo "This script has finished running!"
 
 Save the script. As you can see it will simply print some text after waiting for 5 seconds.
-Add **defineBinaries** class method to the Plugin class.
+Add ``defineBinaries`` class method to the Plugin class.
 You can provide any value for tar argument (e.g. **tar='myprogram_v1.0.tgz'**) as we have already "installed" the binaries.
 
-Now, remember that we are still missing **getProgram** function for our protocol?
+Now, remember that we are still missing ``getProgram`` function for our protocol?
 Create it inside the Plugin class and make it return the full path to **MYPROGRAM** (*Hint: you will need to use cls.getHome()*)
 
 ----
@@ -122,7 +122,7 @@ Once it is finished, check the output log. You should see something similar to:
    :alt: Run finished
 
 Now, imagine a user who wants to use a different binary version.
-At the moment we have the default version defined in **_defineVariables** as **1.0**.
+At the moment we have the default version defined in ``_defineVariables`` as **1.0**.
 For simplicity, let's close the Scipion project and rename our package folder:
 
 .. code-block:: bash
@@ -149,12 +149,12 @@ So, redefine it in your **scipion3/config/scipion.conf** file (if you do not hav
 Exercise 4 (intermediate)
 -------------------------
 
-You might have noticed that right now we are using the full path to the binary (**example_script.sh**) in **getProgram** function.
-Another possibility would be to use **getEnviron** function to add the package folder to the *PATH*.
+You might have noticed that right now we are using the full path to the binary (**example_script.sh**) in ``getProgram`` function.
+Another possibility would be to use ``getEnviron`` function to add the package folder to the *PATH*.
 Have a look at the presentation slides and find an example of this function. You can also look at the **Environ** class inside *pyworkflow/utils.py*.
-Can you now define **getEnviron** function inside the Plugin class so that the myprogram-1.1 path is added to the beginning of the PATH var?
+Can you now define ``getEnviron`` function inside the Plugin class so that the myprogram-1.1 path is added to the beginning of the PATH var?
 
-.. tip:: You would need to use **update** function of the **Environ** class and **position=BEGIN**.
+.. tip:: You would need to use ``update`` function of the **Environ** class and **position=BEGIN**.
 
 If you have given up, checkout the resulting code in the following branch (exercises 1-4 completed):
 
@@ -163,15 +163,15 @@ If you have given up, checkout the resulting code in the following branch (exerc
     cd scipion-em-template
     git checkout course5_ex1-4
 
-Once the PATH contains the path to our myprogram-1.1, we don't need anymore to define the full path in the **getProgram** function.
+Once the PATH contains the path to our myprogram-1.1, we don't need anymore to define the full path in the ``getProgram`` function.
 Change the function and re-run the protocol. In the output log you should see now only the binary name instead of the full path to the executable.
-This was a very simple case, but in principle **getEnviron** function can be used to modify things like *LD_LIBRARY_PATH* or define specific CUDA libraries / MPI versions etc.
+This was a very simple case, but in principle ``getEnviron`` function can be used to modify things like *LD_LIBRARY_PATH* or define specific CUDA libraries / MPI versions etc.
 
 .. figure:: /docs/images/dev/template_practice/practice5_ex4_using_env.png
    :alt: The binary is now in the PATH
 
-The **getEnviron** function gets automatically recognised by *pyworklow/protocol.py* when executing the plugin protocols,
-however you can also explicitly define the environment inside **runJob** function:
+The ``getEnviron`` function gets automatically recognised by *pyworklow/protocol.py* when executing the plugin protocols,
+however you can also explicitly define the environment inside ``runJob`` function:
 
 .. code-block:: bash
 
@@ -223,10 +223,10 @@ while the second one is required to activate the specific conda environment.
 
 You also need to import **Config** from *pyworkflow.utils* at the top of the file and define **MYPROG_ENV_ACTIVATION** both in **defineVariables** and also the **constants.py** file.
 
-Modify the **getProgram** function so that it concatenates 3 commands:
+Modify the ``getProgram`` function so that it concatenates 3 commands:
 cls.getCondaActivationCmd(), cls.getMyProgEnvActivation() and the program variable (**example_script.py**).
 
-Now change **addPackage** function inside **defineBinaries**: you need to set **tar=void.tgz** add **commands** argument that will
+Now change ``addPackage`` function inside ``defineBinaries``: you need to set **tar=void.tgz** add **commands** argument that will
 create and activate a new conda environment. e.g:
 
 .. code-block:: bash
@@ -237,7 +237,7 @@ create and activate a new conda environment. e.g:
 
 Here we did not install any packages inside the new conda env since our simple script is not a python package.
 
-Last, let's modify **getEnviron** function and remove **PYTHONPATH** key from Environ dict - this is required for the virtual environment to work properly within Scipion.
+Last, let's modify ``getEnviron`` function and remove **PYTHONPATH** key from Environ dict - this is required for the virtual environment to work properly within Scipion.
 
 Now we are ready to install myprogram-1.0 with conda environment (remember, we have renamed to myprogram-1.1, so now our binaries are missing if you run `./scipion3 installb -h`)
 Execute the following:
