@@ -44,7 +44,13 @@ Scipion
    * scipion.conf, hosts.conf, protocols.conf are now optional
    * restart/continue workflow improved
    * reset part of a workflow removing results
-* All plugins and the core are migrated to python3
+* All plugins and the core are migrated to Python3
+* Improved plugin structure for developers
+* Improved installation:
+   * use system libraries if possible
+   * can use Python virtual environments
+   * can use Conda environments
+   * plugins and core are installed as standard Python modules
 * Queue params are editable in the form before execution
 * "Wait for" is now exported to/imported from json
 
@@ -62,9 +68,10 @@ SPA
 * Local resolution viewers offer control of the scale.
 * Sphire (Cryolo & JANNI) updated
 
-Modelling
-~~~~~~~~~
+Atomic model building and refinement
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+* new tutorial (see docs)
 * Chimera:Updated to chimerax-1.1. Chimera viewers have been updated.
 * Phenix: 1.18 version
 * new protocol EMValidation
