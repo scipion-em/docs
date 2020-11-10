@@ -18,20 +18,18 @@ Release Notes
 -------------
 
 We are pleased to announce the new major version release of Scipion:  3.0.
-There is no need to make any manual download anymore, it's available form your
-terminal. Please follow _`installation instructions <../scipion-modes/how-to-install>`_
+There is no need to make any manual download anymore, it's available from your
+terminal. Please follow `installation instructions <../scipion-modes/how-to-install>`_
 
-100% of Scipion is updatable! The core is updatable just by typing ``scipion3 update`` 
+100% of Scipion is updatable! The core is updatable just by typing ``scipion3 update`` while
 the rest, as with previous versions, through the plugin manager or command line.
 
 There is a set of plugins for tomography that are available but, IMPORTANT, this is still in beta and
-therefore not stable yet. Wait for the announcement!.
+therefore not stable yet. Wait for the announcement!
 
 We added several new features, made improvements and fixed bugs.
 
-We are also very happy to see Scipion developers growing as well as the number of plugins.
-Remember, the main developers team is in Madrid, but now core developers are also in
-Stockholm and Cambridge. 
+We are also very happy to see Scipion developers community growing as well as the number of plugins increased.
 
 Key changes for version 3.0 are:
 --------------------------------
@@ -39,17 +37,17 @@ Key changes for version 3.0 are:
 Scipion
 ~~~~~~~
 
-* Workflow templates: Plugins can define their own workflow templates and scipion will detect them and offer them in the workflow template manager through ``scipion3 template``
+* Workflow templates: Plugins can define their own templates and Scipion will detect them and offer them in the workflow template manager through ``scipion3 template``. You can also pass protocols options as command-line arguments!
 * Several GUI improvements:
    * Wizards usability revisited
-   * Search boxes added in some dialogs (project window) and search itself improved in logs panel
-   * scipion.conf, hosts.conf, protocols.conf are optional
+   * Search boxes added in some dialogs (project window) and search itself improved in the logs panel
+   * scipion.conf, hosts.conf, protocols.conf are now optional
    * restart/continue workflow improved
    * reset part of a workflow removing results
-* Migrated to python3
-* Queue params are editable in the form before execution.
-* "Wait for" exported to/imported from json
-* Protocol form glitch fixed
+* All plugins and the core are migrated to python3
+* Queue params are editable in the form before execution
+* "Wait for" is now exported to/imported from json
+
 
 SPA
 ~~~
@@ -78,9 +76,9 @@ Tomography (BETA-unstable)
 * scipion-em-tomo: core plugin for tomography, providing the model, generic import protocols and some utilities as extract from subtomograms, assign alignments and relate tomograms with set of subtomograms
 * imod: cross-correlation tilt-series pre alignment, fiducial tilt-series alignment, tilt-series normalization, tomogram reconstruction, tomogram normalization, etomo interactive, CTF estimation, CTF correction 
 * novactf: 3D CTF corrected tomogram reconstruction
-* relion contains: 3dctf, tomo reconstruction, classify, refine.
+* reliontomo contains: 3dctf, tomo reconstruction, classify, refine.
 * eman contains: tomogram reconstruction, manual picking, template matching, subtomogram extraction, initial model, refinement
-plugin for Jose Jesus Fernandez Scripts: tomogram denoising, tilt series alignment and reconstruction
+* plugin for Jose Jesus Fernandez Scripts: tomogram denoising, tilt series alignment and reconstruction
 * gctf ctf estimation
 * cistem ctf estimation
 * pyseg (import starfile only so far)
