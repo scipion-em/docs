@@ -11,6 +11,102 @@ Release-notes
 .. contents:: Table of Contents
 
 
+v3.0 (2020-11-10) Eugenius
+==========================
+
+Release Notes
+-------------
+
+We are pleased to announce the new major version release of Scipion:  3.0.
+There is no need to make any manual download anymore, it's available form your
+terminal. Please follow _`installation instructions <../scipion-modes/how-to-install>`_
+
+100% of Scipion is updatable! The core is updatable just by typing ``scipion3 update`` 
+the rest, as with previous versions, through the plugin manager or command line.
+
+There is a set of plugins for tomography that are available but, IMPORTANT, this is still in beta and
+therefore not stable yet. Wait for the announcement!.
+
+We added several new features, made improvements and fixed bugs.
+
+We are also very happy to see Scipion developers growing as well as the number of plugins.
+Remember, the main developers team is in Madrid, but now core developers are also in
+Stockholm and Cambridge. 
+
+Key changes for version 3.0 are:
+--------------------------------
+
+Scipion
+~~~~~~~
+
+* Workflow templates: Plugins can define their own workflow templates and scipion will detect them and offer them in the workflow template manager through ``scipion3 template``
+* Several GUI improvements:
+   * Wizards usability revisited
+   * Search boxes added in some dialogs (project window) and search itself improved in logs panel
+   * scipion.conf, hosts.conf, protocols.conf are optional
+   * restart/continue workflow improved
+   * reset part of a workflow removing results
+* Migrated to python3
+* Queue params are editable in the form before execution.
+* "Wait for" exported to/imported from json
+* Protocol form glitch fixed
+
+SPA
+~~~
+
+* Relion: Integrates relion3.1 methods
+* Eman: uses 2.31
+* Facilities plugin: new plugin with facilities monitors and all streaming tools and reporting to grafana as an option
+* Grigoriefflab is deprecated and replaced by cistem plugin
+* Gctf-1.18 and Gautomatch-0.56 have new binaries for CUDA 10.1
+* Cryosparc updated to use latest versions and more protocols
+* New plugins for SPA: cryodrgn, sidesplitter, cryoassess
+* Local resolution viewers offer control of the scale.
+* Sphire (Cryolo & JANNI) updated
+
+Modelling
+~~~~~~~~~
+
+* Chimera:Updated to chimerax-1.1. Chimera viewers have been updated.
+* Phenix: 1.18 version
+* new protocol EMValidation
+* protocol to invert hand
+
+Tomography (BETA-unstable)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* scipion-em-tomo: core plugin for tomography, providing the model, generic import protocols and some utilities as extract from subtomograms, assign alignments and relate tomograms with set of subtomograms
+* imod: cross-correlation tilt-series pre alignment, fiducial tilt-series alignment, tilt-series normalization, tomogram reconstruction, tomogram normalization, etomo interactive, CTF estimation, CTF correction 
+* novactf: 3D CTF corrected tomogram reconstruction
+* relion contains: 3dctf, tomo reconstruction, classify, refine.
+* eman contains: tomogram reconstruction, manual picking, template matching, subtomogram extraction, initial model, refinement
+plugin for Jose Jesus Fernandez Scripts: tomogram denoising, tilt series alignment and reconstruction
+* gctf ctf estimation
+* cistem ctf estimation
+* pyseg (import starfile only so far)
+* dynamo: subtomogram averaging (PCA and MRA), model manager, vectorial picking and extraction, import subtomograms from Dynamo (with table and catalogue)
+* xmipp: mapback, apply 3D alignment, connected components, subtomogram projection, subtomogram phantom creation, definition of ROIs in imageJ
+* xmipp2: plugin for xmipp version 2.4 to run MLtomo (subtomogram classification and alignment)
+* deepfinder: deepfinder workflow implemented in scipion.
+* cryoCARE: tomogram CARE denoiser
+
+Xmipp
+~~~~~
+
+* FlexAlign - a new program for movie alignment (GPU accelerated) 
+* Align Significant - a new (GPU accelerated) program replacing reconstruct_significant, which is used in e.g. Highres protocol
+* Faster PSD computation
+* GPU accelerated Halves restoration
+* Micrograph Cleaner - Deep learning for micrograph carbon, ice, contaminants… removal.
+* Deep consensus - Deep learning for particle picking consensus
+* MPI version of nma_alignment
+* Multiple bug fixes
+* Multiple performance optimizations
+* Directory layout changed, installation refactored
+* DeepRes - Local resolution
+* FSC-Q -  Map-to-model Analysis
+
+
 v2.0 (2019-05-16) Diocletian
 ============================
 
