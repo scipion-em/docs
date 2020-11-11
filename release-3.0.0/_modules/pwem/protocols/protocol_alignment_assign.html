@@ -227,10 +227,6 @@
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputAlignment&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;SetOfParticles&#39;</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Input alignments&quot;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select the particles with alignment to be apply to the other particles.&#39;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;shiftsAppliedBefore&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Were particle shifts applied?&#39;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Activate this option only if the advanced option &quot;Apply particle shifts&quot; was set to Yes &#39;</span>
-                           <span class="s1">&#39;at the extract coordinates protocol.&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;assignRandomSubsets&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                       <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Assign random subsets?&quot;</span><span class="p">,</span>
@@ -261,8 +257,21 @@
         <span class="c1"># on the output particle, if not do not write that item</span>
         <span class="k">if</span> <span class="n">alignedParticle</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">alignment</span> <span class="o">=</span> <span class="n">alignedParticle</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span>
-            <span class="n">alignment</span><span class="o">.</span><span class="n">scaleShifts</span><span class="p">(</span>
-                <span class="n">scale</span><span class="p">,</span> <span class="n">shiftsAppliedBefore</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">shiftsAppliedBefore</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+
+            <span class="c1"># If shifts Applied before at extraction coordinate time</span>
+            <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">hasCoordinate</span><span class="p">()</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">getCoordinate</span><span class="p">(),</span> <span class="s2">&quot;xFrac&quot;</span><span class="p">):</span>
+                <span class="n">coord</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">getCoordinate</span><span class="p">()</span>
+
+                <span class="n">alignedParticle</span> <span class="o">=</span> <span class="n">inputAlignment</span><span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()]</span>
+
+                <span class="n">alignment</span><span class="o">.</span><span class="n">invert</span><span class="p">()</span>
+                <span class="n">alignment</span><span class="o">.</span><span class="n">setShifts</span><span class="p">(</span><span class="o">-</span><span class="n">coord</span><span class="o">.</span><span class="n">xFrac</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
+                                <span class="o">-</span><span class="n">coord</span><span class="o">.</span><span class="n">yFrac</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
+                                <span class="mi">0</span><span class="p">)</span>
+                <span class="n">alignment</span><span class="o">.</span><span class="n">invert</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">alignment</span><span class="o">.</span><span class="n">scaleShifts</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span>
+
             <span class="n">item</span><span class="o">.</span><span class="n">setTransform</span><span class="p">(</span><span class="n">alignment</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">assignRandomSubsets</span><span class="p">:</span>
@@ -332,16 +341,7 @@
                               <span class="n">inputAlignmentSet</span><span class="o">.</span><span class="n">getAlignment</span><span class="p">())</span>
             
         <span class="c1"># Add some errors if input is not valid</span>
-        <span class="k">return</span> <span class="n">errors</span>
-
-    <span class="k">def</span> <span class="nf">_warnings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">validateMsgs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shiftsAppliedBefore</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-            <span class="n">validateMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;This option should be set to Yes only if the particle shifts have been applied &quot;</span>
-                                <span class="s2">&quot;before.</span><span class="se">\n</span><span class="s2">If selected, only the remaining decimal part of the shifts will be applied &quot;</span> <span class="o">+</span>
-                                <span class="s2">&quot; for &#39;x&#39; and &#39;y&#39;  in the translation component of the transformation matrix. This &quot;</span> <span class="o">+</span>
-                                <span class="s2">&quot;will carry longer execution times. Please read the help for further information.&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">validateMsgs</span></div>
+        <span class="k">return</span> <span class="n">errors</span></div>
 </pre></div>
 
            </div>
@@ -381,6 +381,7 @@
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="protocol_alignment_assign.html">release-3.0.0</a></dd>
+            <dd><a href="../../../../rsanchezgarc-patch-1/index.html">rsanchezgarc-patch-1</a></dd>
         </dl>
     </div>
 </div>

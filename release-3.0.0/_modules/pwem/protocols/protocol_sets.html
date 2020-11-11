@@ -217,6 +217,8 @@
 
 <span class="kn">import</span> <span class="nn">pwem.objects</span> <span class="k">as</span> <span class="nn">emobj</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="k">import</span> <span class="n">EMProtocol</span>
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">Volume</span>
+
 
 
 <div class="viewcode-block" id="ProtSets"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_sets.html#pwem.protocols.protocol_sets.ProtSets">[docs]</a><span class="k">class</span> <span class="nc">ProtSets</span><span class="p">(</span><span class="n">EMProtocol</span><span class="p">):</span>
@@ -232,10 +234,14 @@
 <span class="sd">    same type of elements (Micrographs, Particles or Volumes) </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;join sets&#39;</span>
+    <span class="n">TYPE_CTF</span> <span class="o">=</span> <span class="s1">&#39;CTFs&#39;</span>
+    <span class="n">TYPE_VOLUME</span><span class="o">=</span><span class="s1">&#39;Volumes&#39;</span>
+    <span class="n">TYPE_VOLUME_INDEX</span> <span class="o">=</span> <span class="mi">3</span>
+
     <span class="n">_unionTypes</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Particles&#39;</span><span class="p">,</span>
                    <span class="s1">&#39;Micrographs&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;CTFs&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;Volumes&#39;</span><span class="p">,</span>
+                   <span class="n">TYPE_CTF</span><span class="p">,</span>
+                   <span class="n">TYPE_VOLUME</span><span class="p">,</span>
                    <span class="s1">&#39;Averages&#39;</span><span class="p">,</span>
                    <span class="s1">&#39;All&#39;</span><span class="p">]</span>
 
@@ -257,9 +263,9 @@
             <span class="c1"># For relatively small set we usually want to include</span>
             <span class="c1"># the single element type, this will allow, for example</span>
             <span class="c1"># to union SetOfVolumes and Volumes in the final set</span>
-            <span class="k">if</span> <span class="n">inputText</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;Volumes&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">inputText</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">TYPE_VOLUME</span><span class="p">]:</span>
                 <span class="n">pointerClass</span> <span class="o">+=</span> <span class="s1">&#39;,</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">inputText</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># remove last &#39;s&#39;</span>
-            <span class="k">elif</span> <span class="n">inputText</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;CTFs&#39;</span><span class="p">]:</span>
+            <span class="k">elif</span> <span class="n">inputText</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">TYPE_CTF</span><span class="p">]:</span>
                 <span class="c1"># remove last &#39;s&#39;</span>
                 <span class="n">pointerClass</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">,CTFModel&#39;</span> <span class="o">%</span> <span class="n">pointerClass</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
@@ -318,13 +324,19 @@
 
         <span class="c1"># Read ClassName and create the corresponding EMSet (SetOfParticles...)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">outputSetFunction</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_create</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">set1</span><span class="o">.</span><span class="n">getClassName</span><span class="p">())</span>
+            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">set1</span><span class="o">.</span><span class="n">getClassName</span><span class="p">())</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Volume</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span>
+                <span class="n">outputSetFunction</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;_create</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">set1</span><span class="o">.</span><span class="n">getClassName</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">outputSetFunction</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfVolumes</span>
             <span class="n">outputSet</span> <span class="o">=</span> <span class="n">outputSetFunction</span><span class="p">()</span>
         <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
             <span class="n">outputSet</span> <span class="o">=</span> <span class="n">set1</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPath</span><span class="p">())</span>
 
         <span class="c1"># Copy info from input sets (sampling rate, etc).</span>
-        <span class="n">outputSet</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="n">set1</span><span class="p">)</span>  <span class="c1"># all sets must have the same info as set1!</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">set1</span><span class="o">.</span><span class="n">getClassName</span><span class="p">())</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Volume</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span>
+            <span class="n">outputSet</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="n">set1</span><span class="p">)</span>  <span class="c1"># all sets must have the same info as set1!</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outputSet</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">set1</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
 
         <span class="c1"># Renumber from the beginning if either the renumber option is selected</span>
         <span class="c1"># or we find duplicated ids in the sets</span>
@@ -346,26 +358,39 @@
         <span class="n">setNum</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">itemSet</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSets</span><span class="p">:</span>
             <span class="n">setNum</span> <span class="o">+=</span> <span class="mi">1</span>
-            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">itemSet</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">itemSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getClassName</span><span class="p">())</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Volume</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">itemSet</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+                    <span class="n">objId</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignoreDuplicates</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+                        <span class="k">if</span> <span class="n">objId</span> <span class="ow">in</span> <span class="n">idsList</span><span class="p">:</span>
+                            <span class="k">continue</span>
+                        <span class="n">idsList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">objId</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignoreExtraAttributes</span><span class="p">:</span>
+                        <span class="n">newObj</span> <span class="o">=</span> <span class="n">itemSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">ITEM_TYPE</span><span class="p">()</span>
+                        <span class="n">newObj</span><span class="o">.</span><span class="n">copyAttributes</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="o">*</span><span class="n">copyAttrs</span><span class="p">)</span>
+
+                        <span class="bp">self</span><span class="o">.</span><span class="n">cleanExtraAttributes</span><span class="p">(</span><span class="n">newObj</span><span class="p">,</span> <span class="n">commonAttrs</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">cleanIds</span> <span class="ow">or</span> <span class="n">setNum</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                            <span class="n">newObj</span><span class="o">.</span><span class="n">setObjId</span><span class="p">(</span><span class="n">objId</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">newObj</span> <span class="o">=</span> <span class="n">obj</span>
+
+                    <span class="k">if</span> <span class="p">(</span><span class="n">cleanIds</span> <span class="ow">and</span> <span class="n">setNum</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">renumber</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+                        <span class="n">newObj</span><span class="o">.</span><span class="n">cleanObjId</span><span class="p">()</span>
+
+                    <span class="n">outputSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newObj</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">obj</span> <span class="o">=</span> <span class="n">itemSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
                 <span class="n">objId</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignoreDuplicates</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
                     <span class="k">if</span> <span class="n">objId</span> <span class="ow">in</span> <span class="n">idsList</span><span class="p">:</span>
                         <span class="k">continue</span>
                     <span class="n">idsList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">objId</span><span class="p">)</span>
-
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ignoreExtraAttributes</span><span class="p">:</span>
-                    <span class="n">newObj</span> <span class="o">=</span> <span class="n">itemSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">ITEM_TYPE</span><span class="p">()</span>
-                    <span class="n">newObj</span><span class="o">.</span><span class="n">copyAttributes</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="o">*</span><span class="n">copyAttrs</span><span class="p">)</span>
-
-                    <span class="bp">self</span><span class="o">.</span><span class="n">cleanExtraAttributes</span><span class="p">(</span><span class="n">newObj</span><span class="p">,</span> <span class="n">commonAttrs</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">cleanIds</span> <span class="ow">or</span> <span class="n">setNum</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                        <span class="n">newObj</span><span class="o">.</span><span class="n">setObjId</span><span class="p">(</span><span class="n">objId</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">newObj</span> <span class="o">=</span> <span class="n">obj</span>
-
+                <span class="n">newObj</span> <span class="o">=</span> <span class="n">obj</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">cleanIds</span> <span class="ow">and</span> <span class="n">setNum</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">renumber</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
                     <span class="n">newObj</span><span class="o">.</span><span class="n">cleanObjId</span><span class="p">()</span>
-
                 <span class="n">outputSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newObj</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputSet</span><span class="o">=</span><span class="n">outputSet</span><span class="p">)</span>
@@ -401,8 +426,14 @@
         <span class="n">usedIds</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># to keep track of the object ids we have already seen</span>
 
         <span class="k">for</span> <span class="n">itemSet</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSets</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">itemSet</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-                <span class="n">objId</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">itemSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getClassName</span><span class="p">())</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Volume</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">itemSet</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+                    <span class="n">objId</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">objId</span> <span class="ow">in</span> <span class="n">usedIds</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="kc">True</span>
+                    <span class="n">usedIds</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">objId</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">objId</span> <span class="o">=</span> <span class="n">itemSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
                 <span class="k">if</span> <span class="n">objId</span> <span class="ow">in</span> <span class="n">usedIds</span><span class="p">:</span>
                     <span class="k">return</span> <span class="kc">True</span>
                 <span class="n">usedIds</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">objId</span><span class="p">)</span>
@@ -410,9 +441,11 @@
 
 <div class="viewcode-block" id="ProtUnionSet.getAllSetsAttributes"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_sets.html#pwem.protocols.protocol_sets.ProtUnionSet.getAllSetsAttributes">[docs]</a>    <span class="k">def</span> <span class="nf">getAllSetsAttributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">allSetsAttributes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
-
         <span class="k">for</span> <span class="n">itemSet</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSets</span><span class="p">:</span>
-            <span class="n">item</span> <span class="o">=</span> <span class="n">itemSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">itemSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getClassName</span><span class="p">())</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">Volume</span><span class="o">.</span><span class="vm">__name__</span><span class="p">:</span>
+                <span class="n">item</span> <span class="o">=</span> <span class="n">itemSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">item</span> <span class="o">=</span> <span class="n">itemSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
             <span class="n">attrs</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">getObjDict</span><span class="p">()</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
             <span class="n">allSetsAttributes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attrs</span><span class="p">)</span>
 
@@ -988,6 +1021,7 @@
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="protocol_sets.html">release-3.0.0</a></dd>
+            <dd><a href="../../../../rsanchezgarc-patch-1/index.html">rsanchezgarc-patch-1</a></dd>
         </dl>
     </div>
 </div>

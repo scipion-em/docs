@@ -213,6 +213,7 @@
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="k">import</span> <span class="n">STATUS_NEW</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="k">import</span> <span class="n">Float</span>
 
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="k">import</span> <span class="n">ProtParticlePickingAuto</span>
 <span class="kn">import</span> <span class="nn">pwem.constants</span> <span class="k">as</span> <span class="nn">emcts</span>
@@ -365,12 +366,28 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">newCoord</span><span class="o">.</span><span class="n">copyObjId</span><span class="p">(</span><span class="n">part</span><span class="p">)</span>
                 <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">coord</span><span class="o">.</span><span class="n">getPosition</span><span class="p">()</span>
+
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">applyShifts</span><span class="p">:</span>
+                    <span class="c1"># Get the shifts, they are returned with the sign reverted</span>
                     <span class="n">shifts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getShifts</span><span class="p">(</span><span class="n">part</span><span class="o">.</span><span class="n">getTransform</span><span class="p">(),</span> <span class="n">alignType</span><span class="p">)</span>
-                    <span class="n">xCoor</span><span class="p">,</span> <span class="n">yCoor</span> <span class="o">=</span> <span class="n">x</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">shifts</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">y</span> <span class="o">-</span> <span class="nb">int</span><span class="p">(</span><span class="n">shifts</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-                    <span class="n">newCoord</span><span class="o">.</span><span class="n">setPosition</span><span class="p">(</span><span class="n">xCoor</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="n">yCoor</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">newCoord</span><span class="o">.</span><span class="n">setPosition</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span>
+
+                    <span class="c1"># Add the shifts (values are inverted so subtract)</span>
+                    <span class="n">x</span> <span class="o">-=</span> <span class="n">shifts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">y</span> <span class="o">-=</span> <span class="n">shifts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+                <span class="c1"># Apply the scale</span>
+                <span class="n">x</span> <span class="o">*=</span> <span class="n">scale</span>
+                <span class="n">y</span> <span class="o">*=</span> <span class="n">scale</span>
+
+                <span class="c1"># Round coordinates to closer integer 39.9 --&gt; 40 and not 39</span>
+                <span class="n">finalX</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                <span class="n">finalY</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+                <span class="c1"># Annotate fractions if shifts applied</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">applyShifts</span><span class="p">:</span>
+                    <span class="n">newCoord</span><span class="o">.</span><span class="n">xFrac</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">finalX</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span>
+                    <span class="n">newCoord</span><span class="o">.</span><span class="n">yFrac</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">finalY</span><span class="o">-</span><span class="n">y</span><span class="p">)</span>
+                <span class="n">newCoord</span><span class="o">.</span><span class="n">setPosition</span><span class="p">(</span><span class="n">finalX</span><span class="p">,</span> <span class="n">finalY</span><span class="p">)</span>
 
                 <span class="n">newCoord</span><span class="o">.</span><span class="n">setMicrograph</span><span class="p">(</span><span class="n">mic</span><span class="p">)</span>
                 <span class="n">outputCoords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newCoord</span><span class="p">)</span>
@@ -621,6 +638,7 @@
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="protocol_extract_coordinates.html">release-3.0.0</a></dd>
+            <dd><a href="../../../../rsanchezgarc-patch-1/index.html">rsanchezgarc-patch-1</a></dd>
         </dl>
     </div>
 </div>

@@ -206,6 +206,8 @@
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">pwem</span> <span class="k">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">pwem.viewers.viewer_chimera</span> <span class="k">import</span> <span class="n">chimeraScriptFileName</span><span class="p">,</span> <span class="n">Chimera</span><span class="p">,</span> <span class="n">chimeraPdbTemplateFileName</span><span class="p">,</span> \
+    <span class="n">chimeraMapTemplateFileName</span><span class="p">,</span> <span class="n">sessionFile</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="k">import</span> <span class="n">VERSION_1_2</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="k">import</span> <span class="n">copyFile</span>
 
@@ -218,19 +220,24 @@
                                         <span class="n">MultiPointerParam</span><span class="p">,</span>
                                         <span class="n">BooleanParam</span><span class="p">,</span>
                                         <span class="n">EnumParam</span><span class="p">,</span>
-                                        <span class="n">PathParam</span><span class="p">)</span>
+                                        <span class="n">PathParam</span><span class="p">,</span>
+                                        <span class="n">FloatParam</span><span class="p">,</span>
+                                        <span class="n">IntParam</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pwem.convert.sequence</span> <span class="k">import</span> <span class="p">(</span><span class="n">SequenceHandler</span><span class="p">,</span>
                                    <span class="n">saveFileSequencesToAlign</span><span class="p">,</span>
                                    <span class="n">alignClustalSequences</span><span class="p">,</span>
                                    <span class="n">alignBioPairwise2Sequences</span><span class="p">,</span>
                                    <span class="n">alignMuscleSequences</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">..constants</span> <span class="k">import</span> <span class="n">CLUSTALO</span><span class="p">,</span> <span class="n">MUSCLE</span>
+<span class="kn">from</span> <span class="nn">..constants</span> <span class="k">import</span> <span class="n">CLUSTALO</span><span class="p">,</span> <span class="n">MUSCLE</span><span class="p">,</span> <span class="n">CHIMERA_CONFIG_FILE</span>
+<span class="kn">import</span> <span class="nn">configparser</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">from</span> <span class="nn">..</span> <span class="k">import</span> <span class="n">Plugin</span>
 
 
 <div class="viewcode-block" id="ChimeraModelFromTemplate"><a class="viewcode-back" href="../../../api/chimera/chimera.protocols.protocol_modeller_search.html#chimera.protocols.protocol_modeller_search.ChimeraModelFromTemplate">[docs]</a><span class="k">class</span> <span class="nc">ChimeraModelFromTemplate</span><span class="p">(</span><span class="n">ChimeraProtBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Protocol to model three-dimensional structures of proteins using Modeller.</span>
-<span class="sd">        Execute command *scipionwrite [model #n]* from command line in order</span>
+<span class="sd">        Execute command *scipionwrite #n [prefix stringAddedToFilename] from command line in order</span>
 <span class="sd">        to transfer the selected</span>
 <span class="sd">        pdb to scipion. Default value is model=#0,</span>
 <span class="sd">        model refers to the pdb file.&quot;&quot;&quot;</span>
@@ -248,26 +255,33 @@
     <span class="n">ProgramToAlign2</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Clustal Omega&#39;</span><span class="p">,</span> <span class="s1">&#39;MUSCLE&#39;</span><span class="p">]</span>
     <span class="n">OptionForAligning</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;None&#39;</span><span class="p">,</span> <span class="s1">&#39;Additional sequences to align&#39;</span><span class="p">,</span>
                           <span class="s1">&#39;Provide your own sequence alignment&#39;</span><span class="p">]</span>
+    <span class="n">OptionForDataBase</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;PDB&#39;</span><span class="p">,</span> <span class="s1">&#39;NR&#39;</span><span class="p">]</span>
+    <span class="n">OptionForMatrix</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;BLOSUM45&#39;</span><span class="p">,</span> <span class="s1">&#39;BLOSUM50&#39;</span><span class="p">,</span> <span class="s1">&#39;BLOSUM62&#39;</span><span class="p">,</span> <span class="s1">&#39;BLOSUM80&#39;</span><span class="p">,</span> <span class="s1">&#39;BLOSUM90&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;PAM30&#39;</span><span class="p">,</span> <span class="s1">&#39;PAM70&#39;</span><span class="p">,</span> <span class="s1">&#39;PAM250&#39;</span><span class="p">,</span> <span class="s1">&#39;IDENTITY&#39;</span><span class="p">]</span>
 
     <span class="c1"># --------------------------- DEFINE param functions --------------------</span>
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="n">doHelp</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="n">formBase</span> <span class="o">=</span> <span class="nb">super</span><span class="p">(</span><span class="n">ChimeraModelFromTemplate</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_defineParams</span><span class="p">(</span><span class="n">form</span><span class="p">,</span>
-                                                                       <span class="n">doHelp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">param</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">getParam</span><span class="p">(</span><span class="s1">&#39;pdbFileToBeRefined&#39;</span><span class="p">)</span>
-        <span class="n">param</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;Atomic structure used as template&#39;</span><span class="p">)</span>
-        <span class="n">param</span><span class="o">.</span><span class="n">help</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;PDBx/mmCIF file template used as basic atomic &quot;</span>
-                       <span class="s2">&quot;structure to model your specific sequence.&quot;</span><span class="p">)</span>
-        <span class="n">param</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">getParam</span><span class="p">(</span><span class="s1">&#39;inputVolume&#39;</span><span class="p">)</span>
-        <span class="n">param</span><span class="o">.</span><span class="n">condition</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;False&#39;</span><span class="p">)</span>
-        <span class="n">param</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">getParam</span><span class="p">(</span><span class="s1">&#39;inputVolumes&#39;</span><span class="p">)</span>
-        <span class="n">param</span><span class="o">.</span><span class="n">condition</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;False&#39;</span><span class="p">)</span>
-        <span class="c1"># hide inputPdbFiles</span>
-        <span class="n">param</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">getParam</span><span class="p">(</span><span class="s1">&#39;inputPdbFiles&#39;</span><span class="p">)</span>
-        <span class="n">param</span><span class="o">.</span><span class="n">condition</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;False&#39;</span><span class="p">)</span>
-        <span class="n">param</span><span class="o">.</span><span class="n">allowsNull</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s1">&#39;True&#39;</span><span class="p">)</span>
-        <span class="n">section</span> <span class="o">=</span> <span class="n">formBase</span><span class="o">.</span><span class="n">getSection</span><span class="p">(</span><span class="s1">&#39;Input&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Input&#39;</span><span class="p">)</span>
+        <span class="n">section</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">getSection</span><span class="p">(</span><span class="s1">&#39;Input&#39;</span><span class="p">)</span>
+
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;addTemplate&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Do you already have a template?&#39;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;&quot;Yes&quot;: Option by default. Select this option in case &#39;</span>
+                              <span class="s1">&#39;you already have a template to model your target &#39;</span>
+                              <span class="s1">&#39;sequence.</span><span class="se">\n</span><span class="s1">&quot;No&quot;: Select this option if you want to &#39;</span>
+                              <span class="s1">&#39;search for a template with which model your target &#39;</span>
+                              <span class="s1">&#39;sequence. Generation of multimeric models is not &#39;</span>
+                              <span class="s1">&#39;allowed selecting this option.</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;pdbFileToBeRefined&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span>
+                         <span class="n">pointerClass</span><span class="o">=</span><span class="s2">&quot;AtomStruct&quot;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                         <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == True&#39;</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Atomic structure used as template&#39;</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;PDBx/mmCIF file template used as basic atomic &quot;</span>
+                              <span class="s2">&quot;structure to model your specific sequence.&quot;</span><span class="p">)</span>
         <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputStructureChain&#39;</span><span class="p">,</span> <span class="n">StringParam</span><span class="p">,</span>
                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Chain &quot;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == True&#39;</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Select a particular chain of the atomic &quot;</span>
                               <span class="s2">&quot;structure.&quot;</span><span class="p">)</span>
         <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputSequence1&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s2">&quot;Sequence&quot;</span><span class="p">,</span>
@@ -275,8 +289,36 @@
                          <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Input the aminoacid sequence to align with the &quot;</span>
                               <span class="s2">&quot;structure template sequence.&quot;</span><span class="p">)</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;dataBase&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
+                         <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">OptionForDataBase</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == False&#39;</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Protein sequence database:&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Select a protein sequence database to search &quot;</span>
+                              <span class="s2">&quot;for templates:</span><span class="se">\n</span><span class="s2">PDB: Experimentally determined structures &quot;</span>
+                              <span class="s2">&quot;in the &quot;</span>
+                              <span class="s2">&quot;Protein Data Bank.</span><span class="se">\n</span><span class="s2">NR: NCBI &#39;non-redundant&#39;database. &quot;</span>
+                              <span class="s2">&quot;It contains GenBank translation proteins, PDB sequences, &quot;</span>
+                              <span class="s2">&quot;SwissProt proteins + PIR + PRF. Since NR is much larger &quot;</span>
+                              <span class="s2">&quot;than PDB, it takes longer to search.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;similarityMatrix&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
+                         <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">OptionForMatrix</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == False&#39;</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Similarity matrix:&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Select a similarity matrix to use for alignment &quot;</span>
+                              <span class="s2">&quot;scoring.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;cutoffValue&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == False&#39;</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="s2">&quot;cutoff evalue:&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Least significant expectation value needed to &quot;</span>
+                              <span class="s2">&quot;qualify the retrieved element as a hit.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;maxSeqs&#39;</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == False&#39;</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Maximum number of sequences:&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+                         <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Maximum number of sequences to retrieve &quot;</span>
+                              <span class="s2">&quot;from the database.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;optionForAligning1&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
                          <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">OptionForAligning</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == True&#39;</span><span class="p">,</span>
                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Options to improve the alignment:&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;None: Option by default. Only the template and the &quot;</span>
                               <span class="s2">&quot;target sequences will be included in the alignment. &quot;</span>
@@ -291,21 +333,21 @@
                               <span class="s2">&quot;sequences.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputYourOwnSequenceAlignment1&#39;</span><span class="p">,</span> <span class="n">PathParam</span><span class="p">,</span>
                          <span class="n">pointerClass</span><span class="o">=</span><span class="s2">&quot;File&quot;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;optionForAligning1 == 2&#39;</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == True and optionForAligning1 == 2&#39;</span><span class="p">,</span>
                          <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Sequence alignment input&#39;</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Input your own sequence alignment.</span><span class="se">\n</span><span class="s2">&quot;</span>
                               <span class="s2">&quot;ChimeraX allowed formats accessible here: &quot;</span>
                               <span class="s2">&quot;https://www.cgl.ucsf.edu/chimerax/docs/user/commands/open.html#sequence &quot;</span><span class="p">)</span>
         <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputSequencesToAlign1&#39;</span><span class="p">,</span> <span class="n">MultiPointerParam</span><span class="p">,</span>
                          <span class="n">pointerClass</span><span class="o">=</span><span class="s2">&quot;Sequence&quot;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;optionForAligning1 == 1&#39;</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == True and optionForAligning1 == 1&#39;</span><span class="p">,</span>
                          <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Other sequences to align&#39;</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;In case you need to load more sequences to &quot;</span>
                               <span class="s2">&quot;align, you can load them here.&quot;</span><span class="p">)</span>
         <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputProgramToAlign1_1&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
                          <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ProgramToAlign1</span><span class="p">,</span>
                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Alignment tool for two sequences:&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;optionForAligning1 == 0&#39;</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == True and optionForAligning1 == 0&#39;</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Select a program to accomplish the sequence&quot;</span>
                               <span class="s2">&quot;alignment:</span><span class="se">\n\n</span><span class="s2">Biophyton module &quot;</span>
                               <span class="s2">&quot;Bio.pairwise2 (&quot;</span>
@@ -334,7 +376,7 @@
         <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputProgramToAlign2_1&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
                          <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ProgramToAlign2</span><span class="p">,</span>
                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Multiple alignment tool:&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;optionForAligning1 == 1&#39;</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == True and optionForAligning1 == 1&#39;</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Select a program to accomplish the sequence&quot;</span>
                               <span class="s2">&quot;alignment:</span><span class="se">\n\n</span><span class="s2">Clustal Omega &quot;</span>
                               <span class="s2">&quot;program (http://www.clustal.org/omega/, &quot;</span>
@@ -351,7 +393,9 @@
                               <span class="s2">&quot;for the first time by &#39;sudo apt install &quot;</span>
                               <span class="s2">&quot;muscle&#39;.&quot;</span><span class="p">)</span>
         <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;additionalTargetSequence&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span>
-                         <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Additional target sequence to include?&#39;</span><span class="p">,</span>
+                         <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == True&#39;</span><span class="p">,</span>
+                         <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Additional target sequence to include?&#39;</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select YES if you want to add an additional &#39;</span>
                               <span class="s1">&#39;target sequence to model according a different &#39;</span>
                               <span class="s1">&#39;chain of the structure template. This &#39;</span>
@@ -359,19 +403,22 @@
                               <span class="s1">&#39;the two interacting elements of a particular complex&#39;</span>
                               <span class="s1">&#39; at the same time.&#39;</span><span class="p">)</span>
         <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;selectStructureChain&#39;</span><span class="p">,</span> <span class="n">StringParam</span><span class="p">,</span>
-                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;additionalTargetSequence == True&#39;</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == True and &#39;</span>
+                                   <span class="s1">&#39;additionalTargetSequence == True&#39;</span><span class="p">,</span>
                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Chain &quot;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Select a particular chain of the atomic &quot;</span>
                               <span class="s2">&quot;structure.&quot;</span><span class="p">)</span>
         <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputSequence2&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s2">&quot;Sequence&quot;</span><span class="p">,</span>
-                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;additionalTargetSequence == True&#39;</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == True and &#39;</span>
+                                   <span class="s1">&#39;additionalTargetSequence == True&#39;</span><span class="p">,</span>
                          <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Target sequence&#39;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                          <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Input the aminoacid sequence to align with the &quot;</span>
                               <span class="s2">&quot;structure template sequence.&quot;</span><span class="p">)</span>
         <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;optionForAligning2&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
                          <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">OptionForAligning</span><span class="p">,</span>
-                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;additionalTargetSequence == True&#39;</span><span class="p">,</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == True and &#39;</span>
+                                   <span class="s1">&#39;additionalTargetSequence == True&#39;</span><span class="p">,</span>
                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Options to improve the alignment:&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;None: Option by default. Only the template and the &quot;</span>
                               <span class="s2">&quot;target sequences will be included in the alignment. &quot;</span>
@@ -386,7 +433,8 @@
                               <span class="s2">&quot;sequences.</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputYourOwnSequenceAlignment2&#39;</span><span class="p">,</span> <span class="n">PathParam</span><span class="p">,</span>
                          <span class="n">pointerClass</span><span class="o">=</span><span class="s2">&quot;File&quot;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;optionForAligning2 == 2 and &#39;</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == True and &#39;</span>
+                                   <span class="s1">&#39;optionForAligning2 == 2 and &#39;</span>
                                    <span class="s1">&#39;additionalTargetSequence == True&#39;</span><span class="p">,</span>
                          <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Sequence alignment input&#39;</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Input your own sequence alignment.</span><span class="se">\n</span><span class="s2">&quot;</span>
@@ -394,7 +442,8 @@
                               <span class="s2">&quot;https://www.cgl.ucsf.edu/chimerax/docs/user/commands/open.html#sequence &quot;</span><span class="p">)</span>
         <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputSequencesToAlign2&#39;</span><span class="p">,</span> <span class="n">MultiPointerParam</span><span class="p">,</span>
                          <span class="n">pointerClass</span><span class="o">=</span><span class="s2">&quot;Sequence&quot;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;optionForAligning2 == 1 and &#39;</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == True and &#39;</span>
+                                   <span class="s1">&#39;optionForAligning2 == 1 and &#39;</span>
                                    <span class="s1">&#39;additionalTargetSequence == True&#39;</span><span class="p">,</span>
                          <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Other sequences to align&#39;</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;In case you need to load more sequences to &quot;</span>
@@ -402,7 +451,8 @@
         <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputProgramToAlign1_2&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
                          <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ProgramToAlign1</span><span class="p">,</span>
                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Alignment tool for two sequences:&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;optionForAligning2 == 0 and &#39;</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == True and &#39;</span>
+                                   <span class="s1">&#39;optionForAligning2 == 0 and &#39;</span>
                                    <span class="s1">&#39;additionalTargetSequence == True&#39;</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Select a program to accomplish the sequence&quot;</span>
                               <span class="s2">&quot;alignment:</span><span class="se">\n\n</span><span class="s2">Biophyton module &quot;</span>
@@ -432,7 +482,8 @@
         <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputProgramToAlign2_2&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
                          <span class="n">choices</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">ProgramToAlign2</span><span class="p">,</span>
                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Multiple alignment tool:&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;optionForAligning2 == 1 and &#39;</span>
+                         <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;addTemplate == True and &#39;</span>
+                                   <span class="s1">&#39;optionForAligning2 == 1 and &#39;</span>
                                    <span class="s1">&#39;additionalTargetSequence == True&#39;</span><span class="p">,</span>
                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Select a program to accomplish the sequence&quot;</span>
                               <span class="s2">&quot;alignment:</span><span class="se">\n\n</span><span class="s2">Clustal Omega &quot;</span>
@@ -449,31 +500,39 @@
                               <span class="s2">&quot;Install muscle if you choose this option &quot;</span>
                               <span class="s2">&quot;for the first time by &#39;sudo apt install &quot;</span>
                               <span class="s2">&quot;muscle&#39;.&quot;</span><span class="p">)</span>
-        <span class="n">formBase</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="s2">&quot;Step 1:</span><span class="se">\n</span><span class="s2">In the sequence window your target &quot;</span>
+        <span class="n">section</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;extraCommands&#39;</span><span class="p">,</span> <span class="n">StringParam</span><span class="p">,</span>
+                          <span class="n">default</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span>
+                          <span class="n">condition</span> <span class="o">=</span> <span class="s1">&#39;False&#39;</span><span class="p">,</span>
+                          <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;Extra commands for chimera viewer&#39;</span><span class="p">,</span>
+                          <span class="n">help</span> <span class="o">=</span> <span class="s2">&quot;Add extra commands in cmd file. Use for testing&quot;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Help&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="s2">&quot;Step 1:</span><span class="se">\n</span><span class="s2">In the sequence window your target &quot;</span>
                          <span class="s2">&quot;sequence (and other additional sequences that you &quot;</span>
                          <span class="s2">&quot;want to use in  the alignment) will appear aligned to &quot;</span>
                          <span class="s2">&quot;the template&#39;s sequence. Select in the sequence window &quot;</span>
-                         <span class="s2">&quot;menu:</span><span class="se">\n</span><span class="s2">Structure -&gt; Modeller (homology)...;</span><span class="se">\n</span><span class="s2">A new  &quot;</span>
+                         <span class="s2">&quot;menu:</span><span class="se">\n</span><span class="s2">Tools -&gt; Sequence -&gt; Modeller Comparative;</span><span class="se">\n</span><span class="s2">A new  &quot;</span>
                          <span class="s2">&quot;window for Comparative Modeling with Modeller will &quot;</span>
-                         <span class="s2">&quot;appear. Select your specific sequence as the sequence &quot;</span>
-                         <span class="s2">&quot;to be modeled (target), and the input atomic structure&quot;</span>
+                         <span class="s2">&quot;appear. Select your specific template(s) as the Sequence &quot;</span>
+                         <span class="s2">&quot;alignments and the target(s)sequence as the sequence &quot;</span>
+                         <span class="s2">&quot;to be modeled&quot;</span>
                          <span class="o">+</span> <span class="s1">&#39;&#39;&#39;</span>
-<span class="s1">        used as template for modeling. Select Run Modeller via web service </span>
-<span class="s1">        and write the Modeller license key supplied (Academic user can </span>
+<span class="s1">        . To run Modeller via web service </span>
+<span class="s1">        write the Modeller license key supplied (Academic user can </span>
 <span class="s1">        register free of charge to receive a license key). Finally, press OK.</span>
 <span class="s1">        </span><span class="se">\n</span><span class="s1">WAITING TIME: (you may see the status of your job in chimera main </span>
 <span class="s1">        window, lower left corner.)</span><span class="se">\n\n</span><span class="s1">Step 2:</span><span class="se">\n</span><span class="s1">When the process finished, </span>
 <span class="s1">        5 models will </span>
 <span class="s1">        be automatically superimposed onto the template and model scores</span>
-<span class="s1">        will appear in Modeller Results window. In Chimera main menu -&gt; </span>
-<span class="s1">        Favorites -&gt; Model panel will show you: #0 (coordinate axes); #1 (</span>
-<span class="s1">        template); #2.1 to 2.5 (models).Choose the one you like the best, </span>
-<span class="s1">        for example model #2.1. To save it in Scipion, we need to change the </span>
+<span class="s1">        will appear in Modeller Results window. In Chimera Model panel </span>
+<span class="s1">        you will have: #1 (coordinate axes); #2 (</span>
+<span class="s1">        template); #3.1 to 3.5 (models).Choose the one you like the best, </span>
+<span class="s1">        for example model #3.1. To save it in Scipion, we need to change the </span>
 <span class="s1">        model ID. In Chimera main menu: Favorites -&gt; Command Line, write </span>
-<span class="s1">        *combine #2.1 model #3 close t*. Then, you will see in Model panel </span>
-<span class="s1">        that selected model #2.1 renamed to combination with ID #3. Save it </span>
+<span class="s1">        *rename #3.1 id #4*. Then, you will see in Model panel </span>
+<span class="s1">        that selected model #3.1 renamed to #3. Save it </span>
 <span class="s1">        as first guess in Scipion by executing the Chimera command </span>
-<span class="s1">        *scipionwrite [model #n]*. In our example *scipionwrite model #3*.</span><span class="se">\n</span><span class="s1"> </span>
+<span class="s1">        *scipionwrite [model] #n [prefix XX]*. In our example </span>
+<span class="s1">        *scipionwrite #4 pefix model_3_1_*.</span><span class="se">\n</span><span class="s1"> </span>
 <span class="s1">        When you use the command line scipionwrite, the Chimera session will </span>
 <span class="s1">        be saved by default. Additionally, you can save the Chimera session </span>
 <span class="s1">        whenever you want by executing the command *scipionss*. You will be </span>
@@ -485,60 +544,69 @@
     <span class="c1"># --------------------------- INSERT steps functions --------------------</span>
 
 <div class="viewcode-block" id="ChimeraModelFromTemplate.prerequisitesStep"><a class="viewcode-back" href="../../../api/chimera/chimera.protocols.protocol_modeller_search.html#chimera.protocols.protocol_modeller_search.ChimeraModelFromTemplate.prerequisitesStep">[docs]</a>    <span class="k">def</span> <span class="nf">prerequisitesStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">addTemplate</span><span class="p">:</span>
 
-        <span class="c1"># read PDB</span>
-        <span class="n">fileName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_readPDB</span><span class="p">()</span>
+            <span class="c1"># read PDB</span>
+            <span class="n">fileName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_readPDB</span><span class="p">()</span>
 
-        <span class="c1"># get pdb sequence</span>
-        <span class="kn">import</span> <span class="nn">json</span>
-        <span class="n">chainIdDict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputStructureChain</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+            <span class="c1"># get pdb sequence</span>
+            <span class="kn">import</span> <span class="nn">json</span>
+            <span class="n">chainIdDict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputStructureChain</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
-        <span class="n">userSeq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSequence1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>  <span class="c1"># SEQ object from Scipion</span>
+            <span class="n">userSeq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSequence1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>  <span class="c1"># SEQ object from Scipion</span>
 
-        <span class="n">inFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">INFILE1</span>
-        <span class="n">outFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">OUTFILE1</span>
+            <span class="n">inFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">INFILE1</span>
+            <span class="n">outFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">OUTFILE1</span>
 
-        <span class="n">addSeq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optionForAligning1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="n">addSeq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optionForAligning1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 
-        <span class="n">yourAlignment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputYourOwnSequenceAlignment1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="n">yourAlignment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputYourOwnSequenceAlignment1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 
-        <span class="n">inputSeqAlign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSequencesToAlign1</span>
+            <span class="n">inputSeqAlign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSequencesToAlign1</span>
 
-        <span class="n">programToAlign1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputProgramToAlign1_1</span>
+            <span class="n">programToAlign1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputProgramToAlign1_1</span>
 
-        <span class="n">programToAlign2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputProgramToAlign2_1</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">prePreRequisites</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="n">chainIdDict</span><span class="p">,</span> <span class="n">userSeq</span><span class="p">,</span>
-                              <span class="n">inFile</span><span class="p">,</span> <span class="n">outFile</span><span class="p">,</span> <span class="n">addSeq</span><span class="p">,</span> <span class="n">yourAlignment</span><span class="p">,</span>
-                              <span class="n">inputSeqAlign</span><span class="p">,</span> <span class="n">programToAlign1</span><span class="p">,</span>
-                              <span class="n">programToAlign2</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">selectedChain1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selectedChain</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">additionalTargetSequence</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
-            <span class="n">chainIdDict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectStructureChain</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
-
-            <span class="n">userSeq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSequence2</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>  <span class="c1"># SEQ object from Scipion</span>
-
-            <span class="n">inFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">INFILE2</span>
-            <span class="n">outFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">OUTFILE2</span>
-
-            <span class="n">addSeq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optionForAligning2</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-
-            <span class="n">yourAlignment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputYourOwnSequenceAlignment2</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-
-            <span class="n">inputSeqAlign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSequencesToAlign2</span>
-
-            <span class="n">programToAlign1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputProgramToAlign1_2</span>
-
-            <span class="n">programToAlign2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputProgramToAlign2_2</span>
+            <span class="n">programToAlign2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputProgramToAlign2_1</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">prePreRequisites</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="n">chainIdDict</span><span class="p">,</span> <span class="n">userSeq</span><span class="p">,</span>
                                   <span class="n">inFile</span><span class="p">,</span> <span class="n">outFile</span><span class="p">,</span> <span class="n">addSeq</span><span class="p">,</span> <span class="n">yourAlignment</span><span class="p">,</span>
                                   <span class="n">inputSeqAlign</span><span class="p">,</span> <span class="n">programToAlign1</span><span class="p">,</span>
                                   <span class="n">programToAlign2</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">selectedChain2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selectedChain</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">selectedChain1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selectedChain</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">additionalTargetSequence</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">chainIdDict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectStructureChain</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+
+                <span class="n">userSeq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSequence2</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>  <span class="c1"># SEQ object from Scipion</span>
+
+                <span class="n">inFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">INFILE2</span>
+                <span class="n">outFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">OUTFILE2</span>
+
+                <span class="n">addSeq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">optionForAligning2</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+                <span class="n">yourAlignment</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputYourOwnSequenceAlignment2</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+                <span class="n">inputSeqAlign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSequencesToAlign2</span>
+
+                <span class="n">programToAlign1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputProgramToAlign1_2</span>
+
+                <span class="n">programToAlign2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputProgramToAlign2_2</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">prePreRequisites</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="n">chainIdDict</span><span class="p">,</span> <span class="n">userSeq</span><span class="p">,</span>
+                                      <span class="n">inFile</span><span class="p">,</span> <span class="n">outFile</span><span class="p">,</span> <span class="n">addSeq</span><span class="p">,</span> <span class="n">yourAlignment</span><span class="p">,</span>
+                                      <span class="n">inputSeqAlign</span><span class="p">,</span> <span class="n">programToAlign1</span><span class="p">,</span>
+                                      <span class="n">programToAlign2</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">selectedChain2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selectedChain</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">userSeq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSequence1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>  <span class="c1"># SEQ object from Scipion</span>
+            <span class="c1"># get target sequence imported by the user</span>
+
+            <span class="n">outFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">OUTFILE1</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;self.preTemplate(userSeq, outFile): &quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">preTemplate</span><span class="p">(</span><span class="n">userSeq</span><span class="p">,</span> <span class="n">outFile</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">targetSeqID1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">preTemplate</span><span class="p">(</span><span class="n">userSeq</span><span class="p">,</span> <span class="n">outFile</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ChimeraModelFromTemplate.prePreRequisites"><a class="viewcode-back" href="../../../api/chimera/chimera.protocols.protocol_modeller_search.html#chimera.protocols.protocol_modeller_search.ChimeraModelFromTemplate.prePreRequisites">[docs]</a>    <span class="k">def</span> <span class="nf">prePreRequisites</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileName</span><span class="p">,</span> <span class="n">chainIdDict</span><span class="p">,</span> <span class="n">userSeq</span><span class="p">,</span> <span class="n">inFile</span><span class="p">,</span> \
                          <span class="n">outFile</span><span class="p">,</span> <span class="n">addSeq</span><span class="p">,</span> <span class="n">yourAlignment</span><span class="p">,</span> <span class="n">inputSeqAlign</span><span class="p">,</span> \
@@ -634,6 +702,21 @@
             <span class="n">outFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">aligmentFile</span><span class="p">)</span>
             <span class="n">copyFile</span><span class="p">(</span><span class="n">yourAlignment</span><span class="p">,</span> <span class="n">outFile</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="ChimeraModelFromTemplate.preTemplate"><a class="viewcode-back" href="../../../api/chimera/chimera.protocols.protocol_modeller_search.html#chimera.protocols.protocol_modeller_search.ChimeraModelFromTemplate.preTemplate">[docs]</a>    <span class="k">def</span> <span class="nf">preTemplate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">userSeq</span><span class="p">,</span> <span class="n">outFile</span><span class="p">):</span>
+        <span class="n">userSequence</span> <span class="o">=</span> <span class="n">userSeq</span><span class="o">.</span><span class="n">getSequence</span><span class="p">()</span>  <span class="c1"># sequence associated to</span>
+        <span class="c1"># that SEQ object (str)</span>
+        <span class="n">targetSeqID</span> <span class="o">=</span> <span class="n">userSeq</span><span class="o">.</span><span class="n">getId</span><span class="p">()</span>  <span class="c1"># ID associated to SEQ object (str)</span>
+        <span class="c1"># transformation of this sequence (str) in a Bio.Seq.Seq object:</span>
+        <span class="n">seqHandler</span> <span class="o">=</span> <span class="n">SequenceHandler</span><span class="p">(</span><span class="n">userSequence</span><span class="p">,</span>
+                                     <span class="n">isAminoacid</span><span class="o">=</span><span class="n">userSeq</span><span class="o">.</span><span class="n">getIsAminoacids</span><span class="p">())</span>
+        <span class="n">targetSeq</span> <span class="o">=</span> <span class="n">seqHandler</span><span class="o">.</span><span class="n">_sequence</span>  <span class="c1"># Bio.Seq.Seq object</span>
+        <span class="c1"># creation of Dic of IDs and sequences</span>
+        <span class="n">SeqDic</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="n">SeqDic</span><span class="p">[</span><span class="n">targetSeqID</span><span class="p">]</span> <span class="o">=</span> <span class="n">targetSeq</span>
+        <span class="n">outFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getOutFastaSequencesFile</span><span class="p">(</span><span class="n">outFile</span><span class="p">)</span>
+        <span class="n">saveFileSequencesToAlign</span><span class="p">(</span><span class="n">SeqDic</span><span class="p">,</span> <span class="n">outFile</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">targetSeqID</span></div>
+
     <span class="k">def</span> <span class="nf">_readPDB</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">structureHandler</span> <span class="o">=</span> <span class="n">AtomicStructHandler</span><span class="p">()</span>
         <span class="n">fileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdbFileToBeRefined</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
@@ -649,10 +732,152 @@
         <span class="n">OUTFILENAME</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">outFile</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">OUTFILENAME</span><span class="p">)</span>
 
-    <span class="c1"># def validate(self):</span>
-    <span class="c1">#    super(ChimeraModelFromTemplate, self).validate()</span>
-    <span class="c1">#    # TODO check if clustal/muscle exists</span>
-    <span class="c1">#    #TODO; change help ro installation pages instead of apt-get</span>
+<div class="viewcode-block" id="ChimeraModelFromTemplate.runChimeraStep"><a class="viewcode-back" href="../../../api/chimera/chimera.protocols.protocol_modeller_search.html#chimera.protocols.protocol_modeller_search.ChimeraModelFromTemplate.runChimeraStep">[docs]</a>    <span class="k">def</span> <span class="nf">runChimeraStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># building script file including the coordinate axes and the input</span>
+        <span class="c1"># volume with samplingRate and Origin information</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="n">chimeraScriptFileName</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="c1"># building coordinate axes</span>
+
+        <span class="n">dim</span> <span class="o">=</span> <span class="mi">150</span>  <span class="c1"># eventually we will create a PDB library that</span>
+        <span class="c1"># computes PDB dim</span>
+        <span class="n">sampling</span> <span class="o">=</span> <span class="mf">1.</span>
+
+        <span class="n">tmpFileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s2">&quot;axis_input.bild&quot;</span><span class="p">))</span>
+        <span class="n">Chimera</span><span class="o">.</span><span class="n">createCoordinateAxisFile</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span>
+                                         <span class="n">bildFileName</span><span class="o">=</span><span class="n">tmpFileName</span><span class="p">,</span>
+                                         <span class="n">sampling</span><span class="o">=</span><span class="n">sampling</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;open </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tmpFileName</span><span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;cofr 0,0,0</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># set center of coordinates</span>
+
+        <span class="c1"># input vol with its origin coordinates</span>
+        <span class="n">pdbModelCounter</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;addTemplate&#39;</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;inputSequence1&#39;</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_getOutFastaSequencesFile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">alignmentFile1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getOutFastaSequencesFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTFILE1</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;alignmentFile1: &quot;</span><span class="p">,</span> <span class="n">alignmentFile1</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;open </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">alignmentFile1</span><span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;blastprotein </span><span class="si">%s</span><span class="s2">:</span><span class="si">%s</span><span class="s2"> database </span><span class="si">%s</span><span class="s2"> matrix </span><span class="si">%s</span><span class="s2"> &quot;</span>
+                    <span class="s2">&quot;cutoff </span><span class="si">%.3f</span><span class="s2"> maxSeqs </span><span class="si">%d</span><span class="s2"> log true</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span>
+                    <span class="p">(</span><span class="n">alignmentFile1</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">targetSeqID1</span><span class="p">,</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">OptionForDataBase</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataBase</span><span class="p">)],</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">OptionForMatrix</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">similarityMatrix</span><span class="p">)],</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">cutoffValue</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxSeqs</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;pdbFileToBeRefined&#39;</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pdbFileToBeRefined</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="n">pdbModelCounter</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">pdbFileToBeRefined</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdbFileToBeRefined</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;open </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span>
+                <span class="n">pdbFileToBeRefined</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()))</span>
+            <span class="k">if</span> <span class="n">pdbFileToBeRefined</span><span class="o">.</span><span class="n">hasOrigin</span><span class="p">():</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="p">(</span><span class="n">pdbFileToBeRefined</span><span class="o">.</span><span class="n">getOrigin</span><span class="p">()</span><span class="o">.</span><span class="n">getShifts</span><span class="p">())</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;move </span><span class="si">%0.2f</span><span class="s2">,</span><span class="si">%0.2f</span><span class="s2">,</span><span class="si">%0.2f</span><span class="s2"> model #</span><span class="si">%d</span><span class="s2"> &quot;</span>
+                        <span class="s2">&quot;coord #0</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">pdbModelCounter</span><span class="p">))</span>
+
+        <span class="c1"># Alignment of sequence and structure</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;inputSequence1&#39;</span><span class="p">)</span> <span class="ow">and</span>
+                <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;inputStructureChain&#39;</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputSequence1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inputStructureChain</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">pdbModelCounter</span> <span class="o">=</span> <span class="mi">2</span>
+                <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedModel</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;0&#39;</span><span class="p">:</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;select #</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span>
+                            <span class="o">%</span> <span class="p">(</span><span class="n">pdbModelCounter</span><span class="p">,</span>
+                               <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedModel</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+                               <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedChain1</span><span class="p">)))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;select #</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span>
+                            <span class="o">%</span> <span class="p">(</span><span class="n">pdbModelCounter</span><span class="p">,</span>
+                               <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedChain1</span><span class="p">)))</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getOutFastaSequencesFile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">alignmentFile1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getOutFastaSequencesFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTFILE1</span><span class="p">)</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;open </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">alignmentFile1</span><span class="p">)</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;sequence disassociate #</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span>
+                            <span class="p">(</span><span class="n">pdbModelCounter</span><span class="p">,</span>
+                            <span class="n">alignmentFile1</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                    <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedModel</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;0&#39;</span><span class="p">:</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;sequence associate #</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">:1</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span>
+                                <span class="p">(</span><span class="n">pdbModelCounter</span><span class="p">,</span>
+                                 <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedModel</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+                                 <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedChain1</span><span class="p">),</span>
+                                 <span class="n">alignmentFile1</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;sequence associate #</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">:1</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span>
+                                <span class="p">(</span><span class="n">pdbModelCounter</span><span class="p">,</span>
+                                 <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedChain1</span><span class="p">),</span>
+                                 <span class="n">alignmentFile1</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">additionalTargetSequence</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">True</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inputSequence2</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inputStructureChain</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;select clear</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;select #</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">,</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span>
+                        <span class="o">%</span> <span class="p">(</span><span class="n">pdbModelCounter</span><span class="p">,</span>
+                           <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedChain1</span><span class="p">),</span>
+                           <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedChain2</span><span class="p">)))</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getOutFastaSequencesFile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">alignmentFile2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getOutFastaSequencesFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTFILE2</span><span class="p">)</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;open </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">alignmentFile2</span><span class="p">)</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;sequence disassociate #</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span>
+                            <span class="p">(</span><span class="n">pdbModelCounter</span><span class="p">,</span>
+                            <span class="n">alignmentFile2</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                    <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedModel</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;0&#39;</span><span class="p">:</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;sequence associate #</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">:1</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span>
+                                <span class="p">(</span><span class="n">pdbModelCounter</span><span class="p">,</span>
+                                 <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedModel</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+                                 <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedChain2</span><span class="p">),</span>
+                                 <span class="n">alignmentFile2</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;sequence associate #</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">:1</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span>
+                                <span class="p">(</span><span class="n">pdbModelCounter</span><span class="p">,</span>
+                                 <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">selectedChain2</span><span class="p">),</span>
+                                 <span class="n">alignmentFile2</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+
+        <span class="n">config</span> <span class="o">=</span> <span class="n">configparser</span><span class="o">.</span><span class="n">ConfigParser</span><span class="p">()</span>
+        <span class="n">_chimeraPdbTemplateFileName</span> <span class="o">=</span> \
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span>
+                <span class="n">chimeraPdbTemplateFileName</span><span class="p">))</span>
+        <span class="n">_chimeraMapTemplateFileName</span> <span class="o">=</span> \
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span>
+                <span class="n">chimeraMapTemplateFileName</span><span class="p">))</span>
+        <span class="n">_sessionFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">sessionFile</span><span class="p">))</span>
+        <span class="n">protId</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
+        <span class="n">config</span><span class="p">[</span><span class="s1">&#39;chimerax&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;chimerapdbtemplatefilename&#39;</span><span class="p">:</span>
+                                  <span class="n">_chimeraPdbTemplateFileName</span> <span class="o">%</span> <span class="n">protId</span><span class="p">,</span>
+                              <span class="s1">&#39;chimeramaptemplatefilename&#39;</span><span class="p">:</span>
+                                  <span class="n">_chimeraMapTemplateFileName</span> <span class="o">%</span> <span class="n">protId</span><span class="p">,</span>
+                              <span class="s1">&#39;sessionfile&#39;</span><span class="p">:</span> <span class="n">_sessionFile</span><span class="p">,</span>
+                              <span class="s1">&#39;enablebundle&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+                              <span class="s1">&#39;protid&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getObjId</span><span class="p">(),</span>
+                              <span class="s1">&#39;scipionpython&#39;</span><span class="p">:</span> <span class="n">shutil</span><span class="o">.</span><span class="n">which</span><span class="p">(</span><span class="s1">&#39;python&#39;</span><span class="p">)}</span>
+                              <span class="c1"># set enablebundle to True when</span>
+                              <span class="c1"># protocol finished</span>
+                              <span class="c1"># viewers will check this configuration file</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">CHIMERA_CONFIG_FILE</span><span class="p">),</span>
+                  <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">configfile</span><span class="p">:</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">configfile</span><span class="p">)</span>
+
+        <span class="c1"># run the text:</span>
+        <span class="n">_chimeraScriptFileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="n">chimeraScriptFileName</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extraCommands</span><span class="o">.</span><span class="n">get</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">extraCommands</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot; --nogui &quot;</span> <span class="o">+</span> <span class="n">_chimeraScriptFileName</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">_chimeraScriptFileName</span>
+
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Launching: &#39;</span> <span class="o">+</span> <span class="n">Plugin</span><span class="o">.</span><span class="n">getProgram</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">args</span><span class="p">)</span>
+
+        <span class="c1"># run in the background</span>
+        <span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">())</span>
+        <span class="n">Chimera</span><span class="o">.</span><span class="n">runProgram</span><span class="p">(</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getProgram</span><span class="p">(),</span> <span class="n">args</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">cwd</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Check that CLUSTALO or MUSCLE program exists</span>
@@ -703,6 +928,7 @@
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="protocol_modeller_search.html">release-3.0.0</a></dd>
+            <dd><a href="../../../../rsanchezgarc-patch-1/index.html">rsanchezgarc-patch-1</a></dd>
         </dl>
     </div>
 </div>
