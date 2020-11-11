@@ -11,6 +11,13 @@ Installing Scipion v3.0
 Prepare installation
 ====================
 
+Conda (optional, recommended if you are not admin)
+--------------------------------------------------
+Although conda is not a requirement, it provides most of the dependencies Scipion and Xmipp
+needs and can be installed without being admin/root.
+
+`Miniconda <https://docs.conda.io/en/latest/miniconda.html#linux-installers>`__ would be enough.
+
 pip
 ---
 You need to have python2 or 3 already and pip or pip3. There are several ways to test if pip
@@ -49,13 +56,6 @@ and being linked at ``/usr/local/cuda``.  By default scipion will use ``/usr/loc
 installation is done against this path.
 
 Check the `config guide <scipion-configuration#gpu-variables>`_ for more detailed information.
-
-Conda (optional, recommended if you are not admin)
---------------------------------------------------
-Although conda is not a requirement, it provides most of the dependencies Scipion and Xmipp
-needs and can be installed without being admin/root.
-
-`Miniconda <https://docs.conda.io/en/latest/miniconda.html#linux-installers>`__ would be enough.
 
 Scipion installation
 ====================
@@ -182,6 +182,9 @@ more details about plugin installation options.
 
 For developers
 --------------
+
+If you are a developer, the installer can do most of the setup for you. Please go to the `installer README page <https://github.com/scipion-em/scipion-installer>`_
+
 Scipion installation also includes the Xmipp installation, by default. If you have installed Scipion in devel mode,
 Xmipp should be also installed in devel mode at ``<SCIPION_HOME>/xmipp-bundle``.
 See the `Xmipp structure guide <https://github.com/I2PC/xmipp/wiki/Xmipp-structure>`_ for more information regarding Xmipp.
