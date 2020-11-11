@@ -22,7 +22,7 @@ There is no need to make any manual download anymore, it's available from your
 terminal. Please follow `installation instructions <../scipion-modes/how-to-install>`_
 
 100% of Scipion is updatable! The core is updatable just by typing ``scipion3 update`` while
-the rest, as with previous versions, through the plugin manager or command line.
+the rest, as with the previous version, through the plugin manager or command line.
 
 There is a set of plugins for tomography that are available but, IMPORTANT, this is still in beta and
 therefore not stable yet. Wait for the announcement!
@@ -64,9 +64,10 @@ SPA
 * Grigoriefflab is deprecated and replaced by cistem plugin
 * Gctf-1.18 and Gautomatch-0.56 have new binaries for CUDA 10.1
 * Cryosparc updated to use latest versions and more protocols
-* New plugins for SPA: cryodrgn, sidesplitter, cryoassess
+* New plugins for SPA: cryoDRGN, sidesplitter, cryoassess
 * Local resolution viewers offer control of the scale.
 * Sphire (Cryolo & JANNI) updated
+* protocol to invert the hand of a map
 
 Atomic model building and refinement
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -75,7 +76,6 @@ Atomic model building and refinement
 * Chimera:Updated to chimerax-1.1. Chimera viewers have been updated.
 * Phenix: 1.18 version
 * new protocol EMValidation
-* protocol to invert hand
 
 Tomography (BETA-unstable)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -110,6 +110,10 @@ Xmipp
 * Directory layout changed, installation refactored
 * DeepRes - Local resolution
 * FSC-Q -  Map-to-model Analysis
+
+Developers
+~~~~~~~~~~
+* We have organized a developers course and as a consequence we have reviewed many `developers documentation pages <developers>`_ and produced a bunch of `tutorials <tutorials/dev-tutorials>`_
 
 
 v2.0 (2019-05-16) Diocletian
