@@ -60,19 +60,19 @@ SPA
 
 * Relion: Integrates relion3.1 methods
 * Eman: uses 2.31
-* Facilities plugin: new plugin with facilities monitors and all streaming tools and reporting to grafana as an option
+* Facilities plugin: new plugin with facilities monitors and all streaming tools and reporting to `grafana <../facilities/customize-grafana>`_ as an option
 * Grigoriefflab is deprecated and replaced by cistem plugin
 * Gctf-1.18 and Gautomatch-0.56 have new binaries for CUDA 10.1
 * Cryosparc updated to use latest versions and more protocols
 * New plugins for SPA: cryoDRGN, sidesplitter, cryoassess
 * Local resolution viewers offer control of the scale.
 * Sphire (Cryolo & JANNI) updated
-* protocol to invert the hand of a map
+* protocol to invert the handeness of a map
 
 Atomic model building and refinement
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* new tutorial (see docs)
+* new tutorial
 * Chimera:Updated to chimerax-1.1. Chimera viewers have been updated.
 * Phenix: 1.18 version
 * new protocol EMValidation
