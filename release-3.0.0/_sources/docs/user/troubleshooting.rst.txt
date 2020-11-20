@@ -84,7 +84,8 @@ If the problem persist, don't hesitate to :ref:`contact us <contact-us>`.
 General error while installing/compiling Xmipp (development installations)
 ==============================================================================
 Scipion installation also includes the Xmipp compilation and installation, by default.
-You can install only Scipion (without Xmipp) by adding the ``-noXmipp`` flag to the installation command.
+You can install only Scipion (without Xmipp) by adding the ``-noXmipp`` flag to
+the installation command.
 
 Xmipp can be installed separately following the
 `Xmipp's installation guide <https://github.com/I2PC/xmipp#xmipp-as-a-standalone-bundle-for-developers>`_.
@@ -94,11 +95,13 @@ If you are getting an error during the Xmipp compilation, consider to check the
 `Xmipp's configuration page <https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)>`_.
 
 Xmipp bundle is placed at ``<SCIPION_HOME>/xmipp-bundle`` (devel mode), see the
-`Xmipp structure guide <https://github.com/I2PC/xmipp/wiki/Xmipp-structure>`_ for more information regarding Xmipp.
+`Xmipp structure guide <https://github.com/I2PC/xmipp/wiki/Xmipp-structure>`_
+for more information regarding Xmipp.
 
-You can manually set some variables in the ``<SCIPION_HOME>/xmipp-bundle/xmipp.conf``. However, Scipion
-will automatically override this config file when recompiling Xmipp. To prevent this, ``export XMIPP_NOCONFIG=True`` or
-include ``XMIPP_NOCONFIG=True`` in the ``<SCIPION_HOME>/config/scipion.conf`` prior to trigger a new compilation.
+You can manually set some variables in the ``<SCIPION_HOME>/xmipp-bundle/xmipp.conf``.
+However, Scipion will automatically override this config file when recompiling Xmipp.
+To prevent this, ``export XMIPP_NOCONFIG=True`` or include ``XMIPP_NOCONFIG=True``
+in the ``<SCIPION_HOME>/config/scipion.conf`` prior to trigger a new compilation.
 
 To retry the Xmipp compilation during the Scipion's installation, run
 
@@ -129,15 +132,40 @@ From Scipion's version 3, no precompiled bundles are provided.
 
 The reason is:
 
-  * Scipion is now a set of general Python modules, which are installed from 'pip' and nothing needs to be compiled anymore.
+  * Scipion is now a set of general Python modules, which are installed from
+    'pip' and nothing needs to be compiled anymore.
 
-  * From Scipion's version 3, we have flexibilized the installation configuration. This makes things easier in compiling time,
-    but becomes in an explosion of possibilities on final systems configuration (mostly related with different versions of common libraries).
-    This ends up making it impossible to predict what configuration is on your system, to allow us to make a precompiled bundle for you.
+  * From Scipion's version 3, the installation configuration is more flexible.
+    This makes things easier in compiling time,
+    but becomes in an explosion of possibilities on final systems configuration
+    (mostly related with different versions of common libraries).
+    This ends up making it impossible to predict what configuration is on your system,
+    to allow us to prepare a precompiled bundle for you.
 
-Nevertheless, we have experimented a noticeable improvement in the stability in compilation time
-for the different Linux distributions (and its most recent versions) during the beta-testing period.
+Nevertheless, we have experimented a noticeable improvement in the stability
+in compilation time for the most used Linux distributions (and its most recent versions)
+during the beta-testing period.
 However, if you are in some troubles, please, don't hesitate to :ref:`contact us <contact-us>`.
+
+Compiling Xmipp to be used in both Intel and AMD cores
+======================================================
+
+Xmipp is optimizing the compilation to the architecture found in the compilation
+time. However, this is not a good idea if it must run on both AMD and Intel cores
+at once (e.g. in a cluster or so). To make more flexible the optimization on the
+compilation, then the ``CXXFLAGS`` can be set properly.
+
+Please, just
+
+::
+
+    export CXXFLAGS="-mfma -mavx2 -m3dnow -fomit-frame-pointer -std=c++11 -O3"
+
+before running the Scipion3 installer.
+
+Please, check `Xmipp's configuration page <https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)>`_
+for more details.
+
 
 Cannot compile with Java
 ========================
@@ -151,7 +179,7 @@ Cannot compile with Java
     Cannot compile with Java
 
 Java compiler is missing. Needs to install the jdk-devel version.
-In ubuntu would be like: 
+In ubuntu would be like:
 
 ::
 
@@ -159,7 +187,8 @@ In ubuntu would be like:
 
 or activate a jdk with javac using alternatives.  
 
-If this is not the case, and you have <SCIPION_HOME>/config/scipion.conf (optional), review the JAVA_XXX variables there. They might be pointing to a non existing JAVA home.
+If this is not the case, and you have <SCIPION_HOME>/config/scipion.conf (optional),
+review the JAVA_XXX variables there. They might be pointing to a non existing JAVA home.
 
 
 Troubleshooting for previous Scipion's versions
