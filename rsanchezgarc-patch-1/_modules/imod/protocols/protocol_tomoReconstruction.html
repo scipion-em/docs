@@ -311,6 +311,20 @@
                                         <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Second parameter&#39;</span><span class="p">,</span>
                                         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Gaussian fall-off parameter&#39;</span><span class="p">)</span>
 
+        <span class="n">form</span><span class="o">.</span><span class="n">addHidden</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">USE_GPU</span><span class="p">,</span>
+                       <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Use GPU for execution&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;This protocol has both CPU and GPU implementation.</span><span class="se">\</span>
+<span class="s2">                               Select the one you want to use.&quot;</span><span class="p">)</span>
+
+        <span class="n">form</span><span class="o">.</span><span class="n">addHidden</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">GPU_LIST</span><span class="p">,</span>
+                       <span class="n">params</span><span class="o">.</span><span class="n">StringParam</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="s1">&#39;0&#39;</span><span class="p">,</span>
+                       <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Choose GPU IDs&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;GPU ID. To pick the best available one set 0. For a specific GPU set its number ID.&quot;</span><span class="p">)</span>
+
     <span class="c1"># -------------------------- INSERT steps functions ---------------------</span>
     <span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSetOfTiltSeries</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
@@ -363,7 +377,19 @@
                    <span class="s2">&quot;-OFFSET </span><span class="si">%(Offset)s</span><span class="s2"> &quot;</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fakeInteractionsSIRT</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">argsTilt</span> <span class="o">+=</span> <span class="s2">&quot;-FakeSIRTiterations </span><span class="si">%d</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">fakeInteractionsSIRT</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="n">paramsTilt</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                <span class="s1">&#39;FakeSIRTInteractions&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fakeInteractionsSIRT</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="p">})</span>
+            <span class="n">argsTilt</span> <span class="o">+=</span> <span class="s2">&quot;-FakeSIRTiterations </span><span class="si">%(FakeSIRTInteractions)d</span><span class="s2"> &quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">usesGpu</span><span class="p">():</span>
+            <span class="n">paramsTilt</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                <span class="s2">&quot;useGPU&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s2">&quot;actionIfGPUFails&quot;</span><span class="p">:</span> <span class="s2">&quot;2,2&quot;</span><span class="p">,</span>
+            <span class="p">})</span>
+
+            <span class="n">argsTilt</span> <span class="o">+=</span> <span class="s2">&quot;-UseGPU </span><span class="si">%(useGPU)d</span><span class="s2"> &quot;</span> \
+                        <span class="s2">&quot;-ActionIfGPUFails </span><span class="si">%(actionIfGPUFails)s</span><span class="s2"> &quot;</span>
 
         <span class="n">Plugin</span><span class="o">.</span><span class="n">runImod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;tilt&#39;</span><span class="p">,</span> <span class="n">argsTilt</span> <span class="o">%</span> <span class="n">paramsTilt</span><span class="p">)</span>
 
@@ -386,10 +412,6 @@
         <span class="n">argsTrimvol</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%(input)s</span><span class="s2"> &quot;</span> \
                       <span class="s2">&quot;</span><span class="si">%(output)s</span><span class="s2"> &quot;</span> \
                       <span class="s2">&quot;</span><span class="si">%(rotation)s</span><span class="s2"> &quot;</span>
-
-        <span class="c1"># argsTrimvol = os.path.join(tmpPrefix, ts.getFirstItem().parseFileName(suffix=&quot;_flipped&quot;, extension=&quot;.mrc&quot;)) + &quot; &quot;</span>
-        <span class="c1"># argsTrimvol += os.path.join(extraPrefix, ts.getFirstItem().parseFileName(extension=&quot;.mrc&quot;)) + &quot; &quot;</span>
-        <span class="c1"># argsTrimvol += &quot;-yz &quot;</span>
 
         <span class="n">Plugin</span><span class="o">.</span><span class="n">runImod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;trimvol&#39;</span><span class="p">,</span> <span class="n">argsTrimvol</span> <span class="o">%</span> <span class="n">paramsTrimVol</span><span class="p">)</span></div>
 
