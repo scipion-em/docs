@@ -206,6 +206,7 @@
 <span class="kn">import</span> <span class="nn">traceback</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="k">import</span> <span class="n">Enum</span>
 
+<span class="kn">import</span> <span class="nn">bibtexparser</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">math</span>
 
@@ -604,7 +605,7 @@
 <span class="c1"># PATTERN_BOLD = r&quot;[\s]+[*]([^\s][^*]+[^\s])[*][\s]+&quot;</span>
 <span class="n">PATTERN_ITALIC</span> <span class="o">=</span> <span class="s2">&quot;(^|[\s])[_](?P&lt;italic&gt;[^\s_][^_]*[^\s_]|[^\s_])[_]&quot;</span>
 <span class="c1"># PATTERN_ITALIC = r&quot;[\s]+[_]([^\s][^_]+[^\s])[_][\s]+&quot;</span>
-<span class="n">PATTERN_LINK1</span> <span class="o">=</span> <span class="s1">&#39;(?P&lt;link1&gt;http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&amp;+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+)&#39;</span>
+<span class="n">PATTERN_LINK1</span> <span class="o">=</span> <span class="s1">&#39;(?P&lt;link1&gt;http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&amp;+#]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+)&#39;</span>
 <span class="n">PATTERN_LINK2</span> <span class="o">=</span> <span class="s2">&quot;[\[]</span><span class="si">{2}</span><span class="s2">(?P&lt;link2&gt;[^\s][^\]]+[^\s])[\]][\[](?P&lt;link2_label&gt;[^\s][^\]]+[^\s])[\]]</span><span class="si">{2}</span><span class="s2">&quot;</span>
 <span class="c1"># __PATTERN_LINK2 should be first since it could contain __PATTERN_LINK1</span>
 <span class="n">PATTERN_ALL</span> <span class="o">=</span> <span class="s1">&#39;|&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">PATTERN_BOLD</span><span class="p">,</span> <span class="n">PATTERN_ITALIC</span><span class="p">,</span> <span class="n">PATTERN_LINK2</span><span class="p">,</span> <span class="n">PATTERN_LINK1</span><span class="p">])</span>
@@ -652,24 +653,41 @@
 <span class="c1">#</span>
 <span class="c1">#    return text</span>
 
+<div class="viewcode-block" id="LazyDict"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.utils.html#pyworkflow.utils.utils.LazyDict">[docs]</a><span class="k">class</span> <span class="nc">LazyDict</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Dictionary to be initialized in the moment it is accessed for the first time.</span>
+<span class="sd">    Initialization is done by a callback passed at instantiation&quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">callback</span><span class="o">=</span><span class="nb">dict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; :param callback: method to initialize the dictionary. SHould return a dictionary&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">callback</span> <span class="o">=</span> <span class="n">callback</span>
+
+<div class="viewcode-block" id="LazyDict.evaluate_callback"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.utils.html#pyworkflow.utils.utils.LazyDict.evaluate_callback">[docs]</a>    <span class="k">def</span> <span class="nf">evaluate_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">callback</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_callback</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="fm">__getitem__</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__setitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_callback</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_callback</span><span class="p">()</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">evaluate_callback</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="fm">__iter__</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="parseBibTex"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.utils.html#pyworkflow.utils.utils.parseBibTex">[docs]</a><span class="k">def</span> <span class="nf">parseBibTex</span><span class="p">(</span><span class="n">bibtexStr</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Parse a bibtex file and return a dictionary. &quot;&quot;&quot;</span>
-    <span class="kn">import</span> <span class="nn">bibtexparser</span>
 
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">bibtexparser</span><span class="p">,</span> <span class="s1">&#39;loads&#39;</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">bibtexparser</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">bibtexStr</span><span class="p">)</span><span class="o">.</span><span class="n">entries_dict</span>
+    <span class="k">return</span> <span class="n">bibtexparser</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">bibtexStr</span><span class="p">)</span><span class="o">.</span><span class="n">entries_dict</span></div>
 
-    <span class="c1"># For older bibtexparser version 0.5</span>
-    <span class="kn">from</span> <span class="nn">bibtexparser.bparser</span> <span class="k">import</span> <span class="n">BibTexParser</span>
-    <span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">StringIO</span>
-
-    <span class="n">f</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
-    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">bibtexStr</span><span class="p">)</span>
-    <span class="n">f</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-    <span class="n">parser</span> <span class="o">=</span> <span class="n">BibTexParser</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">parser</span><span class="o">.</span><span class="n">bib_database</span><span class="o">.</span><span class="n">get_entry_dict</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="isPower2"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.utils.html#pyworkflow.utils.utils.isPower2">[docs]</a><span class="k">def</span> <span class="nf">isPower2</span><span class="p">(</span><span class="n">num</span><span class="p">):</span>
@@ -989,6 +1007,7 @@
             <dt>Branches</dt>
             <dd><a href="../../../../dependabot_pip_jinja2-2.10.1/index.html">dependabot/pip/jinja2-2.10.1</a></dd>
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
+            <dd><a href="../../../../pconesa-config--show/index.html">pconesa-config--show</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../../release-3.0.0/index.html">release-3.0.0</a></dd>
             <dd><a href="utils.html">rsanchezgarc-patch-1</a></dd>

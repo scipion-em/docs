@@ -203,7 +203,8 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">basename</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">isfile</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">import</span> <span class="n">PathParam</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils.path</span> <span class="k">import</span> <span class="n">createAbsLink</span><span class="p">,</span> <span class="n">copyFile</span>
@@ -214,7 +215,7 @@
 <span class="kn">from</span> <span class="nn">tomo.objects</span> <span class="k">import</span> <span class="n">SubTomogram</span>
 <span class="kn">from</span> <span class="nn">tomo.utils</span> <span class="k">import</span> <span class="n">_getUniqueFileName</span>
 
-<span class="kn">from</span> <span class="nn">..convert</span> <span class="k">import</span> <span class="n">readDynTable</span>
+<span class="kn">from</span> <span class="nn">..convert</span> <span class="k">import</span> <span class="n">readDynTable</span><span class="p">,</span> <span class="n">readDynCatalogue</span>
 
 
 <div class="viewcode-block" id="DynamoImportSubtomos"><a class="viewcode-back" href="../../../api/dynamo/dynamo.protocols.protocol_import_subtomos.html#dynamo.protocols.protocol_import_subtomos.DynamoImportSubtomos">[docs]</a><span class="k">class</span> <span class="nc">DynamoImportSubtomos</span><span class="p">(</span><span class="n">ProtTomoImportFiles</span><span class="p">):</span>
@@ -245,17 +246,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using pattern: &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">pattern</span><span class="p">)</span>
         <span class="n">subtomo</span> <span class="o">=</span> <span class="n">SubTomogram</span><span class="p">()</span>
         <span class="n">subtomo</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">samplingRate</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctgPath</span><span class="p">:</span>
-            <span class="n">ctlg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;dynamo_catalogue.vll&#39;</span><span class="p">)</span>
-            <span class="n">copyFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctgPath</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">ctlg</span><span class="p">)</span>
-            <span class="n">fhCtlg</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">ctlg</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctgPath</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">tomoDict</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="nb">next</span><span class="p">(</span><span class="n">fhCtlg</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fhCtlg</span><span class="p">):</span>
-                <span class="n">tomoId</span> <span class="o">=</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span>
-                <span class="n">tomoName</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">tomoDict</span><span class="p">[</span><span class="n">tomoId</span><span class="p">]</span> <span class="o">=</span> <span class="n">tomoName</span>
-            <span class="n">fhCtlg</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">tdb</span> <span class="o">=</span> <span class="n">readDynCatalogue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctgPath</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">())</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tdb</span><span class="o">.</span><span class="n">volumes</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">idv</span><span class="p">,</span> <span class="n">volume</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tdb</span><span class="o">.</span><span class="n">volumes</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tomoDict</span><span class="p">[</span><span class="n">idv</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">volume</span><span class="o">.</span><span class="n">file</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tomoDict</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">tdb</span><span class="o">.</span><span class="n">volumes</span><span class="o">.</span><span class="n">file</span>
         <span class="n">imgh</span> <span class="o">=</span> <span class="n">ImageHandler</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">subtomoSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfSubTomograms</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">subtomoSet</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">samplingRate</span><span class="p">)</span>
@@ -296,10 +294,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">subtomo</span><span class="o">.</span><span class="n">setLocation</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">newFileName</span><span class="p">)</span>
         <span class="n">readDynTable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subtomo</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctgPath</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctgPath</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
             <span class="n">scipionTomoName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tomoDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">subtomo</span><span class="o">.</span><span class="n">getVolId</span><span class="p">())</span>
             <span class="n">subtomo</span><span class="o">.</span><span class="n">setVolName</span><span class="p">(</span><span class="n">scipionTomoName</span><span class="p">)</span>
-            <span class="n">subtomo</span><span class="o">.</span><span class="n">getCoordinate3D</span><span class="p">()</span><span class="o">.</span><span class="n">setVolName</span><span class="p">(</span><span class="n">scipionTomoName</span><span class="p">)</span>
+            <span class="c1"># subtomo.getCoordinate3D().setVolName(scipionTomoName)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">subtomoSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subtomo</span><span class="p">)</span>
 
 <div class="viewcode-block" id="DynamoImportSubtomos.createOutputStep"><a class="viewcode-back" href="../../../api/dynamo/dynamo.protocols.protocol_import_subtomos.html#dynamo.protocols.protocol_import_subtomos.DynamoImportSubtomos.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -334,7 +332,24 @@
             <span class="n">baseFileName</span> <span class="o">=</span> <span class="s2">&quot;import_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fileName</span><span class="p">))</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">extension</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">baseFileName</span> <span class="o">=</span> <span class="s2">&quot;import_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fileName</span><span class="p">))</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">baseFileName</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">baseFileName</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterFiles</span><span class="p">())</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;No files matching the pattern </span><span class="si">%s</span><span class="s1"> were found.&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPattern</span><span class="p">())</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">tablePath</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">isfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tablePath</span><span class="o">.</span><span class="n">get</span><span class="p">()):</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Could not find specified dynamo catalogue file&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">errors</span>
+
+    <span class="k">def</span> <span class="nf">_warnings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">warnings</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctgPath</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">isfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctgPath</span><span class="o">.</span><span class="n">get</span><span class="p">()):</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Catalogue not specified. SubTomograms can still be imported but they won&#39;t be &quot;</span>
+                            <span class="s2">&quot;associated to any Tomogram.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">warnings</span></div>
 </pre></div>
 
            </div>
@@ -373,6 +388,7 @@
             <dt>Branches</dt>
             <dd><a href="../../../../dependabot_pip_jinja2-2.10.1/index.html">dependabot/pip/jinja2-2.10.1</a></dd>
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
+            <dd><a href="../../../../pconesa-config--show/index.html">pconesa-config--show</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../../release-3.0.0/index.html">release-3.0.0</a></dd>
             <dd><a href="protocol_import_subtomos.html">rsanchezgarc-patch-1</a></dd>

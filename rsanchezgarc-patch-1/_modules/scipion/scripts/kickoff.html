@@ -216,12 +216,13 @@
 <span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
 <span class="kn">import</span> <span class="nn">tkinter.font</span> <span class="k">as</span> <span class="nn">tkFont</span>
 <span class="kn">import</span> <span class="nn">traceback</span>
+<span class="kn">import</span> <span class="nn">time</span>
 
 <span class="kn">import</span> <span class="nn">pyworkflow</span> <span class="k">as</span> <span class="nn">pw</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.gui</span> <span class="k">import</span> <span class="n">Message</span><span class="p">,</span> <span class="n">dialog</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.plugin</span> <span class="k">import</span> <span class="n">SCIPION_JSON_TEMPLATES</span><span class="p">,</span> <span class="n">Template</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.project</span> <span class="k">import</span> <span class="n">ProjectSettings</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.project</span> <span class="k">import</span> <span class="n">ProjectSettings</span><span class="p">,</span> <span class="n">Project</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.gui</span> <span class="k">as</span> <span class="nn">pwgui</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.gui.project.base</span> <span class="k">import</span> <span class="n">ProjectBaseWindow</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.gui.widgets</span> <span class="k">import</span> <span class="n">HotButton</span><span class="p">,</span> <span class="n">Button</span>
@@ -231,8 +232,16 @@
 <span class="c1"># Custom labels</span>
 <span class="kn">from</span> <span class="nn">scipion.utils</span> <span class="k">import</span> <span class="n">getExternalJsonTemplates</span>
 
+<span class="n">ENTRY</span> <span class="o">=</span> <span class="s1">&#39;entry&#39;</span>
+<span class="n">LABEL</span> <span class="o">=</span> <span class="s1">&#39;label&#39;</span>
+<span class="n">CHECKBUTTON</span> <span class="o">=</span> <span class="s1">&#39;Checkbutton&#39;</span>
+<span class="n">YES</span> <span class="o">=</span> <span class="s2">&quot;Yes&quot;</span>
+<span class="n">NO</span> <span class="o">=</span> <span class="s2">&quot;No&quot;</span>
+
 <span class="n">FLAG_PARAM</span> <span class="o">=</span> <span class="s2">&quot;--&quot;</span>
 <span class="n">NOGUI_FLAG</span> <span class="o">=</span> <span class="n">FLAG_PARAM</span> <span class="o">+</span> <span class="s2">&quot;nogui&quot;</span>
+<span class="n">NOSCHEDULE_FLAG</span> <span class="o">=</span> <span class="n">FLAG_PARAM</span> <span class="o">+</span> <span class="s2">&quot;noschedule&quot;</span>
+
 
 <span class="n">START_BUTTON</span> <span class="o">=</span> <span class="s2">&quot;Start&quot;</span>
 <span class="n">LEN_LABEL_IN_CHARS</span> <span class="o">=</span> <span class="mi">30</span>
@@ -243,8 +252,10 @@
 <span class="n">FIELD_SEP</span> <span class="o">=</span> <span class="s1">&#39;~&#39;</span>
 <span class="n">VIEW_WIZARD</span> <span class="o">=</span> <span class="s1">&#39;wizardview&#39;</span>
 
-<span class="c1"># Session id</span>
+<span class="c1"># Project name files</span>
 <span class="n">PROJECT_NAME</span> <span class="o">=</span> <span class="s1">&#39;Project name&#39;</span>
+<span class="n">DO_NOT_SCHEDULE</span> <span class="o">=</span> <span class="s2">&quot;Cancel schedule&quot;</span>
+<span class="n">DO_NOT_SHOW_GUI</span> <span class="o">=</span> <span class="s2">&quot;Don&#39;t show the project&quot;</span>
 
 <span class="c1"># Project regex to validate the session id name</span>
 <span class="n">PROJECT_PATTERN</span> <span class="o">=</span> <span class="s2">&quot;^\w</span><span class="si">{2}</span><span class="s2">\d{4,6}-\d+$&quot;</span>
@@ -348,11 +359,14 @@
     <span class="k">def</span> <span class="nf">_fillContent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
         <span class="c1"># Add project name</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">genProjectName</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_addPair</span><span class="p">(</span><span class="n">PROJECT_NAME</span><span class="p">,</span> <span class="n">PROJECT_NAME</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">projectName</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">30</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_addPair</span><span class="p">(</span><span class="n">PROJECT_NAME</span><span class="p">,</span> <span class="n">PROJECT_NAME</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">projectName</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_addPair</span><span class="p">(</span><span class="n">DO_NOT_SCHEDULE</span><span class="p">,</span> <span class="n">DO_NOT_SCHEDULE</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">widget</span><span class="o">=</span><span class="n">CHECKBUTTON</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">flag2Value</span><span class="p">(</span><span class="n">NOSCHEDULE_FLAG</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_addPair</span><span class="p">(</span><span class="n">DO_NOT_SHOW_GUI</span><span class="p">,</span> <span class="n">DO_NOT_SHOW_GUI</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">widget</span><span class="o">=</span><span class="n">CHECKBUTTON</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">flag2Value</span><span class="p">(</span><span class="n">NOGUI_FLAG</span><span class="p">),</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">30</span><span class="p">))</span>
+
         <span class="c1"># Add template params</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_addTemplateFieldsToForm</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_addPair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">lf</span><span class="p">,</span> <span class="n">widget</span><span class="o">=</span><span class="s1">&#39;entry&#39;</span><span class="p">,</span> <span class="n">traceCallback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mouseBind</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_addPair</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">lf</span><span class="p">,</span> <span class="n">widget</span><span class="o">=</span><span class="n">ENTRY</span><span class="p">,</span> <span class="n">traceCallback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mouseBind</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
         <span class="n">label</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">lf</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bigFont</span><span class="p">)</span>
         <span class="n">label</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span> <span class="n">pady</span><span class="o">=</span><span class="n">pady</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;nes&#39;</span><span class="p">)</span>
 
@@ -364,7 +378,7 @@
         <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">widget</span> <span class="o">==</span> <span class="s1">&#39;entry&#39;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">widget</span> <span class="o">==</span> <span class="n">ENTRY</span><span class="p">:</span>
             <span class="n">widget</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span><span class="n">lf</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bigFont</span><span class="p">,</span>
                               <span class="n">textvariable</span><span class="o">=</span><span class="n">var</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">traceCallback</span><span class="p">:</span>
@@ -372,14 +386,17 @@
                     <span class="n">widget</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">&quot;&lt;Button-1&gt;&quot;</span><span class="p">,</span> <span class="n">traceCallback</span><span class="p">,</span> <span class="s2">&quot;eee&quot;</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>  <span class="c1"># call callback on type</span>
                     <span class="n">var</span><span class="o">.</span><span class="n">trace</span><span class="p">(</span><span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">traceCallback</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="n">widget</span> <span class="o">==</span> <span class="s1">&#39;label&#39;</span><span class="p">:</span>
+        <span class="k">elif</span> <span class="n">widget</span> <span class="o">==</span> <span class="n">LABEL</span><span class="p">:</span>
             <span class="n">widget</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">lf</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bigFont</span><span class="p">,</span> <span class="n">textvariable</span><span class="o">=</span><span class="n">var</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">widget</span> <span class="o">==</span> <span class="n">CHECKBUTTON</span><span class="p">:</span>
+            <span class="n">widget</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Checkbutton</span><span class="p">(</span><span class="n">lf</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bigFont</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="n">var</span><span class="p">,</span>
+                        <span class="n">onvalue</span><span class="o">=</span><span class="n">YES</span><span class="p">,</span> <span class="n">offvalue</span><span class="o">=</span><span class="n">NO</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="s2">&quot;white&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">vars</span><span class="p">[</span><span class="n">title</span><span class="p">]</span> <span class="o">=</span> <span class="n">var</span>
         <span class="n">widget</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;news&#39;</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">pady</span><span class="o">=</span><span class="n">pady</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_addTemplateFieldsToForm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">labelFrame</span><span class="p">):</span>
-        <span class="n">row</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="mi">5</span>
         <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">template</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="n">alias</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">getAlias</span><span class="p">()</span>
             <span class="n">text</span> <span class="o">=</span> <span class="n">field</span><span class="o">.</span><span class="n">getTitle</span><span class="p">()</span> <span class="k">if</span> <span class="n">alias</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">getTitle</span><span class="p">(),</span> <span class="n">alias</span><span class="p">)</span>
@@ -418,6 +435,12 @@
 
             <span class="c1"># Set parent with the data</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="o">.</span><span class="n">template</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">template</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getValue</span><span class="p">(</span><span class="n">DO_NOT_SCHEDULE</span><span class="p">)</span> <span class="o">==</span> <span class="n">YES</span> <span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">NOSCHEDULE_FLAG</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getValue</span><span class="p">(</span><span class="n">DO_NOT_SHOW_GUI</span><span class="p">)</span> <span class="o">==</span> <span class="n">YES</span> <span class="p">:</span>
+                <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">NOGUI_FLAG</span><span class="p">)</span>
+
             <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="o">.</span><span class="n">action</span> <span class="o">=</span> <span class="n">START_BUTTON</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">windows</span><span class="o">.</span><span class="n">root</span><span class="o">.</span><span class="n">withdraw</span><span class="p">()</span>
@@ -536,29 +559,56 @@
     <span class="n">scipion</span> <span class="o">=</span> <span class="n">SCIPION_EP</span>
     <span class="n">scriptsPath</span> <span class="o">=</span> <span class="n">pw</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">,</span> <span class="s1">&#39;scripts&#39;</span><span class="p">)</span>
 
+    <span class="c1"># Clean the project name as pyworkflow will do</span>
+    <span class="n">projectName</span> <span class="o">=</span> <span class="n">Project</span><span class="o">.</span><span class="n">cleanProjectName</span><span class="p">(</span><span class="n">projectName</span><span class="p">)</span>
+
     <span class="c1"># Create the project</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Creating project </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">projectName</span><span class="p">)</span>
     <span class="n">createProjectScript</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scriptsPath</span><span class="p">,</span> <span class="s1">&#39;create.py&#39;</span><span class="p">)</span>
     <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;python -m </span><span class="si">%s</span><span class="s2">  python </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">scipion</span><span class="p">,</span> <span class="n">createProjectScript</span><span class="p">,</span> <span class="n">projectName</span><span class="p">,</span> <span class="n">workflow</span><span class="p">))</span>
+    <span class="c1"># Wait 2 seconds to avoid activity</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 
-    <span class="c1"># Schedule the project</span>
-    <span class="n">scheduleProjectScript</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scriptsPath</span><span class="p">,</span> <span class="s1">&#39;schedule.py&#39;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Scheduling project </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">projectName</span><span class="p">)</span>
-    <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s2">&quot;python&quot;</span><span class="p">,</span> <span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="n">scipion</span><span class="p">,</span> <span class="s2">&quot;python&quot;</span><span class="p">,</span> <span class="n">scheduleProjectScript</span><span class="p">,</span> <span class="n">projectName</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">scheduleProject</span><span class="p">():</span>
+
+
+        <span class="c1"># Schedule the project</span>
+        <span class="n">scheduleProjectScript</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">scriptsPath</span><span class="p">,</span> <span class="s1">&#39;schedule.py&#39;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Scheduling project </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">projectName</span><span class="p">)</span>
+        <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s2">&quot;python&quot;</span><span class="p">,</span> <span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="n">scipion</span><span class="p">,</span> <span class="s2">&quot;python&quot;</span><span class="p">,</span> <span class="n">scheduleProjectScript</span><span class="p">,</span> <span class="n">projectName</span><span class="p">])</span>
+        <span class="c1"># Wait 5 seconds to avoid activity</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">launchGUI</span><span class="p">():</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Showing project </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">projectName</span><span class="p">)</span>
         <span class="c1"># Launch scipion</span>
         <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s2">&quot;python&quot;</span><span class="p">,</span> <span class="s2">&quot;-m&quot;</span><span class="p">,</span> <span class="n">scipion</span><span class="p">,</span> <span class="n">MODE_PROJECT</span><span class="p">,</span> <span class="n">projectName</span><span class="p">])</span></div>
 
+<div class="viewcode-block" id="flag2Value"><a class="viewcode-back" href="../../../api/scipion/scipion.scripts.kickoff.html#scipion.scripts.kickoff.flag2Value">[docs]</a><span class="k">def</span> <span class="nf">flag2Value</span><span class="p">(</span><span class="n">flag</span><span class="p">):</span>
+    <span class="c1"># Remove the flag from sys.argsv</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="n">getFlagArg</span><span class="p">(</span><span class="n">flag</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">flag</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">YES</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="n">NO</span></div>
 
 <div class="viewcode-block" id="launchGUI"><a class="viewcode-back" href="../../../api/scipion/scipion.scripts.kickoff.html#scipion.scripts.kickoff.launchGUI">[docs]</a><span class="k">def</span> <span class="nf">launchGUI</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;Checks if project GUI has to be launched. Only if --noGUI param is found in sys.argv it will return False&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="ow">not</span> <span class="n">getFlagArg</span><span class="p">(</span><span class="n">NOGUI_FLAG</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="scheduleProject"><a class="viewcode-back" href="../../../api/scipion/scipion.scripts.kickoff.html#scipion.scripts.kickoff.scheduleProject">[docs]</a><span class="k">def</span> <span class="nf">scheduleProject</span><span class="p">():</span>
+    <span class="k">return</span> <span class="ow">not</span> <span class="n">getFlagArg</span><span class="p">(</span><span class="n">NOSCHEDULE_FLAG</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="getFlagArg"><a class="viewcode-back" href="../../../api/scipion/scipion.scripts.kickoff.html#scipion.scripts.kickoff.getFlagArg">[docs]</a><span class="k">def</span> <span class="nf">getFlagArg</span><span class="p">(</span><span class="n">flag</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Checks if a flag exists (True) or not (False)&quot;&quot;&quot;</span>
     <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">NOGUI_FLAG</span> <span class="o">==</span> <span class="n">arg</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
-            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">flag</span> <span class="o">==</span> <span class="n">arg</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">True</span>
 
-    <span class="c1"># Not found, launch GUI</span>
-    <span class="k">return</span> <span class="kc">True</span></div>
-
+    <span class="c1"># Flag not found</span>
+    <span class="k">return</span> <span class="kc">False</span></div>
 
 <div class="viewcode-block" id="main"><a class="viewcode-back" href="../../../api/scipion/scipion.scripts.kickoff.html#scipion.scripts.kickoff.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="n">templates</span> <span class="o">=</span> <span class="n">getTemplates</span><span class="p">()</span>
@@ -609,6 +659,7 @@
             <dt>Branches</dt>
             <dd><a href="../../../../dependabot_pip_jinja2-2.10.1/index.html">dependabot/pip/jinja2-2.10.1</a></dd>
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
+            <dd><a href="../../../../pconesa-config--show/index.html">pconesa-config--show</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../../release-3.0.0/index.html">release-3.0.0</a></dd>
             <dd><a href="kickoff.html">rsanchezgarc-patch-1</a></dd>
