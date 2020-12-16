@@ -320,7 +320,9 @@
 
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterFiles</span><span class="p">()):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">next</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterFiles</span><span class="p">())</span>
+        <span class="k">except</span> <span class="ne">StopIteration</span><span class="p">:</span>
             <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;No files matching the pattern </span><span class="si">%s</span><span class="s1"> were found.&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPattern</span><span class="p">())</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">tomoFiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">pwutils</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">importTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFiles</span><span class="p">()]</span>
@@ -330,13 +332,34 @@
                 <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Cannot relate tomogram and coordinate files. In order to stablish a &quot;</span>
                               <span class="s2">&quot;relation, the filename of the corresponding tomogram and coordinate &quot;</span>
                               <span class="s2">&quot;files must be equal.&quot;</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Couldn&#39;t find a correspondence between all cordinate and tomogram files. &quot;</span>
-                      <span class="s2">&quot;In case of unexpected behaviour, check that the filename of the corresponding &quot;</span>
-                      <span class="s2">&quot;tomogram and coordinate files are equal and that all tomogram files have an associated &quot;</span>
-                      <span class="s2">&quot;coordinate file.&quot;</span><span class="p">)</span>
-
         <span class="k">return</span> <span class="n">errors</span>
+
+    <span class="k">def</span> <span class="nf">_warnings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">warnings</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">tomoFiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">pwutils</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">importTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFiles</span><span class="p">()]</span>
+        <span class="n">coordFiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">pwutils</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="k">for</span> <span class="n">file</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterFiles</span><span class="p">()]</span>
+        <span class="n">numberMatches</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">tomoFiles</span><span class="p">)</span> <span class="o">&amp;</span> <span class="nb">set</span><span class="p">(</span><span class="n">coordFiles</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">numberMatches</span> <span class="o">&lt;</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tomoFiles</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">coordFiles</span><span class="p">)):</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t find a correspondence between all cordinate and tomogram files. &quot;</span>
+                            <span class="s2">&quot;Association is performed in terms of the file name of the Tomograms and the coordinates. &quot;</span>
+                            <span class="s2">&quot;(without the extension). For example, if a Tomogram file is named Tomo_1.mrc, the coordinate &quot;</span>
+                            <span class="s2">&quot;file to be associated to it should be named Tomo_1.ext (being &#39;ext&#39; any valid extension &quot;</span>
+                            <span class="s2">&quot;- &#39;.txt&#39;, &#39;.tbl&#39;, &#39;.json&#39;).</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">mismatches_coords</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">coordFiles</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">tomoFiles</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">mismatches_coords</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The following coordinate files will not be associated to any Tomogram &quot;</span>
+                                <span class="s2">&quot;(name without extension):&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">mismatches_coords</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">file</span><span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">mismatches_tomos</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">tomoFiles</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">coordFiles</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">mismatches_tomos</span><span class="p">:</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The following Tomogram files will not be associated to any coordinates &quot;</span>
+                                <span class="s2">&quot;(name without extension):&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">mismatches_tomos</span><span class="p">:</span>
+                    <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\t</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">file</span><span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">warnings</span>
 
     <span class="c1"># ------------------ UTILS functions --------------------------------------</span>
 <div class="viewcode-block" id="ProtImportCoordinates3D.getImportFrom"><a class="viewcode-back" href="../../../api/tomo/tomo.protocols.protocol_import_coordinates.html#tomo.protocols.protocol_import_coordinates.ProtImportCoordinates3D.getImportFrom">[docs]</a>    <span class="k">def</span> <span class="nf">getImportFrom</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -408,7 +431,6 @@
             <dt>Branches</dt>
             <dd><a href="../../../../dependabot_pip_jinja2-2.10.1/index.html">dependabot/pip/jinja2-2.10.1</a></dd>
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
-            <dd><a href="../../../../pconesa-config--show/index.html">pconesa-config--show</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="protocol_import_coordinates.html">release-3.0.0</a></dd>
             <dd><a href="../../../../rsanchezgarc-patch-1/index.html">rsanchezgarc-patch-1</a></dd>

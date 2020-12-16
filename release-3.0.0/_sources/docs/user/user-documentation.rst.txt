@@ -85,20 +85,20 @@ Full processing video tutorial
 
 Know more about the `theory and practice <http://i2pc.es/coss/Docencia/ImageProcessing/imageProcessingInEM.pdf>`_ behind Image Processing in EM.
 
-
-Mouse apoferritin image processing in Scipion 2.0.0
+Mouse apoferritin image processing in Scipion 3.0.0
 ------------------------
 .. figure:: /docs/images/Cover_apoferritin.png
    :align: right
    :height: 96
    :alt: Cover_apoferritin.png
 This tutorial presents a complete
-workflow of Cryo-EM single particles inside Scipion. It
+workflow of Cryo-EM single particles inside Scipion 3. It
 demonstrates the combination of different EM-packages with high focus on Xmipp higres. \
 
 *Guide*:
 
-`scipion\_tutorial\_image\_processing\_mouse\_apoferritin.pdf <https://github.com/I2PC/scipion/wiki/tutorials/tutorial_image_processing.pdf>`__
+`apoferritin image processing tutorial in scipion3 </docs/pdfs/tutotial_scipion3_apoferritin.pdf>`__
+
 
 Model Building
 --------------

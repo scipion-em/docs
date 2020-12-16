@@ -204,15 +204,22 @@
 <span class="c1"># **************************************************************************</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">pwem.viewers</span> <span class="k">import</span> <span class="n">ObjectView</span>
 
 <span class="kn">import</span> <span class="nn">pyworkflow.viewer</span> <span class="k">as</span> <span class="nn">pwviewer</span>
+<span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.gui.dialog</span> <span class="k">import</span> <span class="n">askYesNo</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils.properties</span> <span class="k">import</span> <span class="n">Message</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils.process</span> <span class="k">import</span> <span class="n">runJob</span>
 
 <span class="kn">import</span> <span class="nn">tomo.objects</span>
-<span class="kn">from</span> <span class="nn">tomo.viewers.views_tkinter_tree</span> <span class="k">import</span> <span class="n">MeshesTreeProvider</span>
+<span class="kn">from</span> <span class="nn">tomo.viewers.views_tkinter_tree</span> <span class="k">import</span> <span class="n">MeshesTreeProvider</span><span class="p">,</span> <span class="n">TomogramsTreeProvider</span>
 
-<span class="kn">from</span> <span class="nn">dynamo.viewers.views_tkinter_tree</span> <span class="k">import</span> <span class="n">DynamoDialog</span>
+<span class="kn">from</span> <span class="nn">dynamo.viewers.views_tkinter_tree</span> <span class="k">import</span> <span class="n">DynamoDialog</span><span class="p">,</span> <span class="n">DynamoTomoDialog</span>
+<span class="kn">from</span> <span class="nn">dynamo.convert</span> <span class="k">import</span> <span class="n">textFile2Coords</span><span class="p">,</span> <span class="n">matrix2eulerAngles</span>
+<span class="kn">from</span> <span class="nn">dynamo</span> <span class="k">import</span> <span class="n">Plugin</span>
 
 
 
@@ -222,7 +229,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_environments</span> <span class="o">=</span> <span class="p">[</span><span class="n">pwviewer</span><span class="o">.</span><span class="n">DESKTOP_TKINTER</span><span class="p">]</span>
     <span class="n">_targets</span> <span class="o">=</span> <span class="p">[</span>
-        <span class="n">tomo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">SetOfMeshes</span>
+        <span class="n">tomo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">SetOfMeshes</span><span class="p">,</span>
+        <span class="n">tomo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">SetOfCoordinates3D</span>
     <span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -249,11 +257,87 @@
                 <span class="n">meshList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
             <span class="c1"># meshList.reverse()</span>
 
-            <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">()</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span>
 
             <span class="n">meshProvider</span> <span class="o">=</span> <span class="n">MeshesTreeProvider</span><span class="p">(</span><span class="n">meshList</span><span class="p">,)</span>
 
             <span class="n">setView</span> <span class="o">=</span> <span class="n">DynamoDialog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tkRoot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">meshProvider</span><span class="p">,)</span>
+
+        <span class="k">elif</span> <span class="nb">issubclass</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tomo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">SetOfCoordinates3D</span><span class="p">):</span>
+            <span class="n">outputCoords</span> <span class="o">=</span> <span class="n">obj</span>
+            <span class="n">tomos</span> <span class="o">=</span> <span class="n">outputCoords</span><span class="o">.</span><span class="n">getPrecedents</span><span class="p">()</span>
+
+            <span class="n">tomoList</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">tomos</span><span class="o">.</span><span class="n">iterItems</span><span class="p">()]</span>
+
+            <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span>
+
+            <span class="n">tomoProvider</span> <span class="o">=</span> <span class="n">TomogramsTreeProvider</span><span class="p">(</span><span class="n">tomoList</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="s1">&#39;txt&#39;</span><span class="p">,</span> <span class="p">)</span>
+
+            <span class="n">listTomosFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;tomos.vll&quot;</span><span class="p">)</span>
+            <span class="n">catalogue</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s2">&quot;tomos&quot;</span><span class="p">))</span>
+
+            <span class="c1"># Create list of tomos file</span>
+            <span class="n">tomoFid</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">listTomosFile</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">tomoFile</span> <span class="ow">in</span> <span class="n">tomos</span><span class="o">.</span><span class="n">getFiles</span><span class="p">():</span>
+                <span class="n">tomoPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">tomoFile</span><span class="p">)</span>
+                <span class="n">tomoFid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">tomoPath</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="n">tomoFid</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">tomogram</span> <span class="ow">in</span> <span class="n">tomoList</span><span class="p">:</span>
+                <span class="n">outFileCoord</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">tomogram</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()))</span> <span class="o">+</span> <span class="s2">&quot;.txt&quot;</span>
+                <span class="n">outFileAngle</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;angles_&#39;</span> <span class="o">+</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">tomogram</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()))</span> <span class="o">+</span> <span class="s2">&quot;.txt&quot;</span>
+                <span class="n">coords_tomo</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">angles_tomo</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">outputCoords</span><span class="o">.</span><span class="n">iterCoordinates</span><span class="p">(</span><span class="n">tomogram</span><span class="p">):</span>
+                    <span class="n">coords_tomo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">getPosition</span><span class="p">())</span>
+                    <span class="n">angles_shifts</span> <span class="o">=</span> <span class="n">matrix2eulerAngles</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">())</span>
+                    <span class="n">angles_tomo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">angles_shifts</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">coords_tomo</span><span class="p">:</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">outFileCoord</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">coords_tomo</span><span class="p">),</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">outFileAngle</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">angles_tomo</span><span class="p">),</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+
+            <span class="n">codeFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;coords2model.m&#39;</span><span class="p">)</span>
+            <span class="c1"># Create small program to tell Dynamo to save the coordinates in a Vesicle Model</span>
+            <span class="n">contents</span> <span class="o">=</span> <span class="s2">&quot;h=waitbar(0,&#39;Please wait, loading data in Dynamo...&#39;)</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;dcm -create </span><span class="si">%s</span><span class="s2"> -fromvll </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;path=&#39;</span><span class="si">%s</span><span class="s2">&#39;</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;catalogue=dread([&#39;</span><span class="si">%s</span><span class="s2">&#39; &#39;.ctlg&#39;])</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;nVolumes=length(catalogue.volumes)</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;for idv=1:nVolumes</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;tomoPath=catalogue.volumes</span><span class="si">{idv}</span><span class="s2">.fullFileName()</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;tomoIndex=catalogue.volumes</span><span class="si">{idv}</span><span class="s2">.index</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;[~,tomoName,~]=fileparts(tomoPath)</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;coordFile=[path &#39;/&#39; tomoName &#39;.txt&#39;]</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;if ~isfile(coordFile)</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;waitbar(idv/nVolumes,h)</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;continue</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;end</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;coords=readmatrix(coordFile,&#39;Delimiter&#39;,&#39; &#39;)</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;vesicle=dmodels.vesicle()</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;addPoint(vesicle,coords(:,1:3),coords(:,3))</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;vesicle.linkCatalogue(&#39;</span><span class="si">%s</span><span class="s2">&#39;,&#39;i&#39;,tomoIndex, &#39;s&#39;, 1)</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;vesicle.saveInCatalogue()</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;waitbar(idv/nVolumes,h)</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;end</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;delete(h)</span><span class="se">\n</span><span class="s2">&quot;</span> \
+                       <span class="s2">&quot;exit</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">catalogue</span><span class="p">,</span> <span class="n">listTomosFile</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">catalogue</span><span class="p">,</span> <span class="n">catalogue</span><span class="p">)</span>
+
+            <span class="n">codeFid</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">codeFile</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
+            <span class="n">codeFid</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">contents</span><span class="p">)</span>
+            <span class="n">codeFid</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+            <span class="n">args</span> <span class="o">=</span> <span class="s1">&#39; </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">codeFile</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
+            <span class="n">runJob</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">Plugin</span><span class="o">.</span><span class="n">getDynamoProgram</span><span class="p">(),</span> <span class="n">args</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">())</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">dlg</span> <span class="o">=</span> <span class="n">DynamoTomoDialog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tkRoot</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">provider</span><span class="o">=</span><span class="n">tomoProvider</span><span class="p">)</span>
+
+            <span class="kn">import</span> <span class="nn">tkinter</span> <span class="k">as</span> <span class="nn">tk</span>
+            <span class="n">frame</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Frame</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">askYesNo</span><span class="p">(</span><span class="n">Message</span><span class="o">.</span><span class="n">TITLE_SAVE_OUTPUT</span><span class="p">,</span> <span class="n">Message</span><span class="o">.</span><span class="n">LABEL_SAVE_OUTPUT</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+                <span class="n">textFile2Coords</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span> <span class="n">outputCoords</span><span class="o">.</span><span class="n">getPrecedents</span><span class="p">(),</span> <span class="n">path</span><span class="p">)</span>
+
+            <span class="n">pwutils</span><span class="o">.</span><span class="n">cleanPattern</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="s1">&#39;*&#39;</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">views</span></div>
 </pre></div>
@@ -294,7 +378,6 @@
             <dt>Branches</dt>
             <dd><a href="../../../dependabot_pip_jinja2-2.10.1/index.html">dependabot/pip/jinja2-2.10.1</a></dd>
             <dd><a href="../../../gh-pages/index.html">gh-pages</a></dd>
-            <dd><a href="../../../pconesa-config--show/index.html">pconesa-config--show</a></dd>
             <dd><a href="../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../release-3.0.0/_modules/dynamo/viewers/viewers_data.html">release-3.0.0</a></dd>
             <dd><a href="../../../rsanchezgarc-patch-1/index.html">rsanchezgarc-patch-1</a></dd>

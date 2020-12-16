@@ -217,7 +217,7 @@
 
 <span class="kn">from</span> <span class="nn">dynamo</span> <span class="k">import</span> <span class="n">Plugin</span>
 <span class="kn">from</span> <span class="nn">dynamo.viewers.views_tkinter_tree</span> <span class="k">import</span> <span class="n">DynamoTomoDialog</span>
-<span class="kn">from</span> <span class="nn">dynamo.convert</span> <span class="k">import</span> <span class="n">eulerAngles2matrix</span>
+<span class="kn">from</span> <span class="nn">dynamo.convert</span> <span class="k">import</span> <span class="n">textFile2Coords</span><span class="p">,</span> <span class="n">matrix2eulerAngles</span>
 
 <div class="viewcode-block" id="DynamoBoxing"><a class="viewcode-back" href="../../../api/dynamo/dynamo.protocols.protocol_boxing.html#dynamo.protocols.protocol_boxing.DynamoBoxing">[docs]</a><span class="k">class</span> <span class="nc">DynamoBoxing</span><span class="p">(</span><span class="n">ProtTomoPicking</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Manual vectorial picker from Dynamo. After choosing the Tomogram to be picked, the tomo slicer from Dynamo will be</span>
@@ -272,11 +272,16 @@
             <span class="n">inputTomograms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">tomo</span> <span class="ow">in</span> <span class="n">inputTomograms</span><span class="p">:</span>
                 <span class="n">outFileCoord</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">tomo</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()))</span> <span class="o">+</span> <span class="s2">&quot;.txt&quot;</span>
+                <span class="n">outFileAngle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;angles_&#39;</span> <span class="o">+</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">tomo</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()))</span> <span class="o">+</span> <span class="s2">&quot;.txt&quot;</span>
                 <span class="n">coords_tomo</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">angles_tomo</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">inputCoordinates</span><span class="o">.</span><span class="n">iterCoordinates</span><span class="p">(</span><span class="n">tomo</span><span class="p">):</span>
                     <span class="n">coords_tomo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">getPosition</span><span class="p">())</span>
+                    <span class="n">angles_shifts</span> <span class="o">=</span> <span class="n">matrix2eulerAngles</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">())</span>
+                    <span class="n">angles_tomo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">angles_shifts</span><span class="p">[:</span><span class="mi">3</span><span class="p">])</span>
                 <span class="k">if</span> <span class="n">coords_tomo</span><span class="p">:</span>
                     <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">outFileCoord</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">coords_tomo</span><span class="p">),</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">outFileAngle</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">angles_tomo</span><span class="p">),</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
 
             <span class="c1"># Create small program to tell Dynamo to save the inputCoordinates in a Vesicle Model</span>
             <span class="n">contents</span> <span class="o">=</span> <span class="s2">&quot;dcm -create </span><span class="si">%s</span><span class="s2"> -fromvll </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> \
@@ -325,39 +330,40 @@
         <span class="n">pwutils</span><span class="o">.</span><span class="n">cleanPattern</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;*.m&#39;</span><span class="p">))</span></div>
 
     <span class="k">def</span> <span class="nf">_createOutput</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">coord3DSetDict</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">setTomograms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="n">suffix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getOutputSuffix</span><span class="p">(</span><span class="n">SetOfCoordinates3D</span><span class="p">)</span>
-        <span class="n">coord3DSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfCoordinates3D</span><span class="p">(</span><span class="n">setTomograms</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span>
-        <span class="n">coord3DSet</span><span class="o">.</span><span class="n">setName</span><span class="p">(</span><span class="s2">&quot;tomoCoord&quot;</span><span class="p">)</span>
-        <span class="n">coord3DSet</span><span class="o">.</span><span class="n">setPrecedents</span><span class="p">(</span><span class="n">setTomograms</span><span class="p">)</span>
-        <span class="n">coord3DSet</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">setTomograms</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
-        <span class="n">coord3DSet</span><span class="o">.</span><span class="n">setBoxSize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boxSize</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
-        <span class="k">for</span> <span class="n">tomo</span> <span class="ow">in</span> <span class="n">setTomograms</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
-            <span class="n">outPoints</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">tomo</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39;.txt&#39;</span><span class="p">)</span>
-            <span class="n">outAngles</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="s1">&#39;angles_&#39;</span> <span class="o">+</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">tomo</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39;.txt&#39;</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">outPoints</span><span class="p">):</span>
-                <span class="k">continue</span>
-
-            <span class="c1"># Populate Set of 3D Coordinates with 3D Coordinates</span>
-            <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">outPoints</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
-            <span class="n">angles</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">outAngles</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">))</span>
-            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">)):</span>
-                <span class="n">coord</span> <span class="o">=</span> <span class="n">Coordinate3D</span><span class="p">()</span>
-                <span class="n">coord</span><span class="o">.</span><span class="n">setPosition</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">points</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">points</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
-                <span class="n">matrix</span> <span class="o">=</span> <span class="n">eulerAngles2matrix</span><span class="p">(</span><span class="n">angles</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">angles</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">angles</span><span class="p">[</span><span class="n">idx</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-                <span class="n">coord</span><span class="o">.</span><span class="n">setMatrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
-                <span class="n">coord</span><span class="o">.</span><span class="n">setVolume</span><span class="p">(</span><span class="n">tomo</span><span class="p">)</span>
-                <span class="n">coord3DSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
-
-            <span class="n">coord3DSetDict</span><span class="p">[</span><span class="s1">&#39;00&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coord3DSet</span>
-
-        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">OUTPUT_PREFIX</span> <span class="o">+</span> <span class="n">suffix</span>
-        <span class="n">args</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">args</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">coord3DSet</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="n">setTomograms</span><span class="p">,</span> <span class="n">coord3DSet</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">coord3DSet</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">coord3DSet</span><span class="o">.</span><span class="n">STREAM_CLOSED</span><span class="p">)</span>
+        <span class="n">textFile2Coords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">())</span>
+        <span class="c1"># coord3DSetDict = {}</span>
+        <span class="c1"># setTomograms = self.inputTomograms.get()</span>
+        <span class="c1"># suffix = self._getOutputSuffix(SetOfCoordinates3D)</span>
+        <span class="c1"># coord3DSet = self._createSetOfCoordinates3D(setTomograms, suffix)</span>
+        <span class="c1"># coord3DSet.setName(&quot;tomoCoord&quot;)</span>
+        <span class="c1"># coord3DSet.setPrecedents(setTomograms)</span>
+        <span class="c1"># coord3DSet.setSamplingRate(setTomograms.getSamplingRate())</span>
+        <span class="c1"># coord3DSet.setBoxSize(self.boxSize.get())</span>
+        <span class="c1"># for tomo in setTomograms.iterItems():</span>
+        <span class="c1">#     outPoints = pwutils.join(self._getExtraPath(), pwutils.removeBaseExt(tomo.getFileName()) + &#39;.txt&#39;)</span>
+        <span class="c1">#     outAngles = pwutils.join(self._getExtraPath(), &#39;angles_&#39; + pwutils.removeBaseExt(tomo.getFileName()) + &#39;.txt&#39;)</span>
+        <span class="c1">#     if not os.path.isfile(outPoints):</span>
+        <span class="c1">#         continue</span>
+        <span class="c1">#</span>
+        <span class="c1">#     # Populate Set of 3D Coordinates with 3D Coordinates</span>
+        <span class="c1">#     points = np.loadtxt(outPoints, delimiter=&#39; &#39;)</span>
+        <span class="c1">#     angles = np.deg2rad(np.loadtxt(outAngles, delimiter=&#39; &#39;))</span>
+        <span class="c1">#     for idx in range(len(points)):</span>
+        <span class="c1">#         coord = Coordinate3D()</span>
+        <span class="c1">#         coord.setPosition(points[idx, 0], points[idx, 1], points[idx, 2])</span>
+        <span class="c1">#         matrix = eulerAngles2matrix(angles[idx, 0], angles[idx, 1], angles[idx, 2], 0, 0, 0)</span>
+        <span class="c1">#         coord.setMatrix(matrix)</span>
+        <span class="c1">#         coord.setVolume(tomo)</span>
+        <span class="c1">#         coord3DSet.append(coord)</span>
+        <span class="c1">#</span>
+        <span class="c1">#     coord3DSetDict[&#39;00&#39;] = coord3DSet</span>
+        <span class="c1">#</span>
+        <span class="c1"># name = self.OUTPUT_PREFIX + suffix</span>
+        <span class="c1"># args = {}</span>
+        <span class="c1"># args[name] = coord3DSet</span>
+        <span class="c1"># self._defineOutputs(**args)</span>
+        <span class="c1"># self._defineSourceRelation(setTomograms, coord3DSet)</span>
+        <span class="c1"># self._updateOutputSet(name, coord3DSet, state=coord3DSet.STREAM_CLOSED)</span>
 
     <span class="c1"># --------------------------- DEFINE info functions ----------------------</span>
 <div class="viewcode-block" id="DynamoBoxing.getMethods"><a class="viewcode-back" href="../../../api/dynamo/dynamo.protocols.protocol_boxing.html#dynamo.protocols.protocol_boxing.DynamoBoxing.getMethods">[docs]</a>    <span class="k">def</span> <span class="nf">getMethods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
@@ -420,7 +426,6 @@
             <dt>Branches</dt>
             <dd><a href="../../../dependabot_pip_jinja2-2.10.1/index.html">dependabot/pip/jinja2-2.10.1</a></dd>
             <dd><a href="../../../gh-pages/index.html">gh-pages</a></dd>
-            <dd><a href="../../../pconesa-config--show/index.html">pconesa-config--show</a></dd>
             <dd><a href="../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../release-3.0.0/_modules/dynamo/protocols/protocol_boxing.html">release-3.0.0</a></dd>
             <dd><a href="../../../rsanchezgarc-patch-1/index.html">rsanchezgarc-patch-1</a></dd>

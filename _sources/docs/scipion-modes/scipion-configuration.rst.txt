@@ -94,6 +94,15 @@ want to use this instead (consider to make a backup of your config files before)
 
 Check also the `Xmipp documentation on the configuration <https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)>`_.
 
+Showing the config files
+========================
+
+If you want to show the config files in your system's default editor just type:
+
+::
+
+    scipion3 config --show
+
 
 GPU variables
 =============
@@ -186,11 +195,11 @@ Check also the `Xmipp-OpenCV documentation <https://github.com/I2PC/xmipp/wiki/X
 Running Scipion in multi-users environment
 ==========================================
 
-In the case you want to install Scipion for multiple users, it is
-convenient to have a single ``scipion.conf`` file for all of them, otherwise,
-each user must have a config file under his home folder as described above (*TODO: Is this according scipion3?*).
+In the case you want to install Scipion for multiple users, it is convenient to have a single ``scipion.conf`` file for all of them.
+From since scipion3, scipion will not generate a scipion.conf file at $HOME/.config/scipion/scipion.conf, so this is not a problem.
 
-We can launch Scipion with the ``--config </path/to/a/specific/scipion.conf>`` parameter.
+But older installations may have those config files per user and if present, scipion3 will take them into account. If you want to 
+force ignoring the scipion.conf home file you can launch Scipion with the ``--config </path/to/a/specific/scipion.conf>`` parameter.
 This parameter tells Scipion to use a configuration file placed in a specific path and **only** that one.
 
 NOTE: Scipion3 installer creates a launcher (python script) called scipion3. That file is
@@ -204,7 +213,7 @@ Fragment of scipion3 script:
     cmd += "python -m scipion --config  <scipion.conf PATH> %s" % " ".join(sys.argv[1:])
     (...)
 
-To fix the config from the console
+To force the config from the console
 
 ::
 
