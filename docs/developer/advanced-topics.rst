@@ -44,6 +44,7 @@ Profiling and Debugging
 * Check what can be reused from here: https://github.com/I2PC/xmipp-portal/wiki/DebuggingProfiling, check with Juan if he has some NOTES about profiling
 * `Profiling in C/C++: Valgrind <valgrind-suite-tools-introduction>`_
 * Debugging in Python: with PyCharm and WinPdb
+* Profiling Python with `Intel VTune Profiler <vtune-profiler>`_
 
 Virtualization
 ---------------
