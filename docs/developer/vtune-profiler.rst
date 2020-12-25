@@ -8,7 +8,8 @@
 Intel VTune profiler
 ====================
 
-VTune is a performance analysis tool from Intel for profiling serial and multithreaded applications.
+VTune is a performance analysis tool from Intel for profiling serial and multithreaded applications. The data collector profiles your application using the OS timer, interrupts a process, collects samples of all active instruction addresses with the sampling interval of 10ms, and captures a call sequence (stack) for each sample.
+By default, the collector does not gather system-wide performance data but focuses on your application only.
 Below we describe a setup for Python code analysis only, but it could be used for many other languages etc.
 Compared to other popular Python profilers like cProfile and Line_profiler it can provide code line-level granularity with minimal overhead.
 A more detailed comparison can be found `here <https://software.intel.com/content/www/us/en/develop/articles/profiling-python-with-intel-vtune-amplifier-a-covariance-demonstration.html>`_
@@ -26,7 +27,7 @@ VTune is a part of Intel oneAPI Base Toolkit. During installation, if you are in
 Setting Up VTune
 ----------------
 
-It is assumed that Scipion3 has been previously installed.
+It is assumed that Scipion3 has been previously installed. In the example below we will run "Hotspots" analysis which can show the CPU usage issues.
 
 1. Activate VTune with e.g. the following script:
 
@@ -49,8 +50,9 @@ It is assumed that Scipion3 has been previously installed.
 4. Press big Start button at the bottom. After a while the last Scipion project will open. You are free to chose whether you want to profile project window loading (remove "last" keyword), opening of a project window or running a protocol in the project. Since VTune can analyse child processes it will find the Python and other (e.g. Xmipp etc) processes forked by Scipion.
 5. Once finished, close all Scipion windows. VTune will start processing profiling data.
 
-.. warning:: You need to close the launched process (Scipion) otherwise the profiler will not complete its job!
+.. warning::
 
+   You need to close the launched process (Scipion) otherwise the profiler will not complete its job!
 
 Analysing results
 -----------------
@@ -95,6 +97,12 @@ The last process is the Scipion python (from Scipion's conda environment), that 
 
 .. figure:: /docs/images/dev-tools/vtune-sources.png
   :alt: source code analysis
+
+Summary
+-------
+
+VTune provides different analysis types, for Python code you can choose the *Hotspots, Threading, or Memory Consumption* analysis type in the Configure Analysis tab.
+If you do want to attach to a running Python process (e.g. protocol execution), you can change *Launch Application* to *Attach to Process* and select the PID for the python process (like `/path/to/pyworkflow/apps/pw_protocol_run.py /path/to/project/Runs/000353_EmpiarDownloader/logs/run.db 353`).
 
 Altogether now you should get familiar with the VTune software and get ready to profile a protocol run. The only difference is that the tree of processes, threads and functions will get more complex and also the time to run the analysis once you close Scipion will increase.
 We leave this exercise to the reader.
