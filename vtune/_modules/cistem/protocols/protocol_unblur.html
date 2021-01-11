@@ -207,17 +207,17 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">ceil</span>
 <span class="kn">from</span> <span class="nn">threading</span> <span class="k">import</span> <span class="n">Thread</span>
 
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
-<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">Image</span>
+
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol</span> <span class="k">import</span> <span class="n">STEPS_PARALLEL</span>
-<span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="k">import</span> <span class="n">ProtAlignMovies</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.gui.plotter</span> <span class="k">import</span> <span class="n">Plotter</span>
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="k">import</span> <span class="n">ProtAlignMovies</span>
 
 <span class="kn">from</span> <span class="nn">cistem</span> <span class="k">import</span> <span class="n">Plugin</span>
 <span class="kn">from</span> <span class="nn">..convert</span> <span class="k">import</span> <span class="n">readShiftsMovieAlignment</span>
@@ -262,16 +262,15 @@
 
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;doComputePSD&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                       <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Compute PSD (before/after)?&quot;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If Yes, the protocol will compute for each movie &quot;</span>
-                           <span class="s2">&quot;the average PSD before and after alignment, &quot;</span>
-                           <span class="s2">&quot;for comparison&quot;</span><span class="p">)</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Compute PSD?&quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If Yes, the protocol will compute for each &quot;</span>
+                           <span class="s2">&quot;aligned micrograph the PSD using EMAN2.&quot;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;doComputeMicThumbnail&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span>
                       <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
                       <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Compute micrograph thumbnail?&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;When using this option, we will compute a &#39;</span>
-                           <span class="s1">&#39;micrograph thumbnail and keep it with the &#39;</span>
+                           <span class="s1">&#39;micrograph thumbnail with EMAN2 and keep it with the &#39;</span>
                            <span class="s1">&#39;micrograph object for visualization purposes. &#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;extraProtocolParams&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">StringParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
                       <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
@@ -370,43 +369,23 @@
     <span class="c1"># --------------------------- STEPS functions -----------------------------</span>
     <span class="k">def</span> <span class="nf">_processMovie</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
         <span class="n">inputMovies</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputMovies</span><span class="p">()</span>
-        <span class="n">movieFolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMovieFolder</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
-        <span class="n">movieBaseName</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">movie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
-        <span class="n">aveMicFn</span> <span class="o">=</span> <span class="n">movieBaseName</span> <span class="o">+</span> <span class="s1">&#39;_uncorrected_avg.mrc&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_createLink</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_createTifLink</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_argsUnblur</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
         
         <span class="k">try</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getProgram</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">movieFolder</span><span class="p">,</span>
-                        <span class="n">env</span><span class="o">=</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">())</span>
-            <span class="n">pwutils</span><span class="o">.</span><span class="n">moveFile</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">movieFolder</span><span class="p">,</span>
-                                          <span class="bp">self</span><span class="o">.</span><span class="n">_getMovieLogFile</span><span class="p">(</span><span class="n">movie</span><span class="p">)),</span>
-                             <span class="bp">self</span><span class="o">.</span><span class="n">_getShiftsFn</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
-
-            <span class="c1"># Compute PSDs</span>
-            <span class="n">outMicFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicName</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">outMicFn</span><span class="p">):</span>
-                <span class="c1"># if only DW mic is saved</span>
-                <span class="n">outMicFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicWtName</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getProgram</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">())</span>
 
             <span class="k">def</span> <span class="nf">_extraWork</span><span class="p">():</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doComputePSD</span><span class="p">:</span>
-                    <span class="c1"># Compute uncorrected avg mic</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">averageMovie</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMovieFn</span><span class="p">(</span><span class="n">movie</span><span class="p">),</span> <span class="n">aveMicFn</span><span class="p">,</span>
-                                      <span class="n">binFactor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">binFactor</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+                <span class="n">outMicFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMicFn</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
 
-                    <span class="bp">self</span><span class="o">.</span><span class="n">computePSDImages</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="n">aveMicFn</span><span class="p">,</span> <span class="n">outMicFn</span><span class="p">,</span>
-                                          <span class="n">outputFnCorrected</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPsdJpeg</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doComputePSD</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_computePSD</span><span class="p">(</span><span class="n">outMicFn</span><span class="p">,</span> <span class="n">outputFn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPsdCorr</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">_saveAlignmentPlots</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="n">inputMovies</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
 
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_doComputeMicThumbnail</span><span class="p">():</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">computeThumbnail</span><span class="p">(</span><span class="n">outMicFn</span><span class="p">,</span>
-                                          <span class="n">outputFn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicThumbnail</span><span class="p">(</span>
-                                              <span class="n">movie</span><span class="p">))</span>
-                <span class="c1"># This protocols cleans up the temporary movie folder</span>
-                <span class="c1"># which is required mainly when using a thread for this extra work</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_cleanMovieFolder</span><span class="p">(</span><span class="n">movieFolder</span><span class="p">)</span>
+                                          <span class="n">outputFn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicThumbnail</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_useWorkerThread</span><span class="p">():</span>
                 <span class="n">thread</span> <span class="o">=</span> <span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">_extraWork</span><span class="p">)</span>
@@ -414,8 +393,21 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">_extraWork</span><span class="p">()</span>
 
-        <span class="k">except</span> <span class="ne">RuntimeError</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR: Failed to align movie </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">movie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;ERROR: Unblur has failed for </span><span class="si">%s</span><span class="s2">. </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_getMovieFn</span><span class="p">(</span><span class="n">movie</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getErrorFromUnblurTxt</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="n">e</span><span class="p">)))</span>
+
+    <span class="k">def</span> <span class="nf">_getErrorFromUnblurTxt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">,</span> <span class="n">e</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Parse output log for errors.</span>
+<span class="sd">        :param movie: input movie object</span>
+<span class="sd">        :return: the error string</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getShiftsFn</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">fh</span><span class="o">.</span><span class="n">readlines</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;Error&quot;</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;Error:&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">e</span>
 
     <span class="k">def</span> <span class="nf">_insertFinalSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">deps</span><span class="p">):</span>
         <span class="n">stepId</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;waitForThreadStep&#39;</span><span class="p">,</span>
@@ -424,10 +416,10 @@
 
 <div class="viewcode-block" id="CistemProtUnblur.waitForThreadStep"><a class="viewcode-back" href="../../../api/cistem/cistem.protocols.protocol_unblur.html#cistem.protocols.protocol_unblur.CistemProtUnblur.waitForThreadStep">[docs]</a>    <span class="k">def</span> <span class="nf">waitForThreadStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Quick and dirty (maybe desperate) way to wait</span>
-        <span class="c1"># if the PSD and thumbnail were computed with a thread</span>
+        <span class="c1"># if the PSD and thumbnail were computed in a thread</span>
         <span class="c1"># If running in streaming this will not be necessary</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_useWorkerThread</span><span class="p">():</span>
-            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>  <span class="c1"># wait 1 min to give some time the thread to finish</span></div>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># wait 10 sec for the thread to finish</span></div>
 
     <span class="c1"># --------------------------- INFO functions -------------------------------</span>
     <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -457,6 +449,14 @@
                 <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Dose per frame for input movies is 0 or not &#39;</span>
                               <span class="s1">&#39;set. You cannot apply dose filter.&#39;</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doComputeMicThumbnail</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">doComputePSD</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">pwem</span> <span class="k">import</span> <span class="n">Domain</span>
+                <span class="n">eman2</span> <span class="o">=</span> <span class="n">Domain</span><span class="o">.</span><span class="n">importFromPlugin</span><span class="p">(</span><span class="s1">&#39;eman2&#39;</span><span class="p">,</span> <span class="n">doRaise</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;EMAN2 plugin not found!</span><span class="se">\n</span><span class="s2">Computing thumbnails &quot;</span>
+                              <span class="s2">&quot;or PSD requires EMAN2 plugin and binaries installed.&quot;</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">errors</span>
 
     <span class="c1"># --------------------------- UTILS functions -----------------------------</span>
@@ -472,9 +472,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">preExp</span><span class="p">,</span> <span class="n">dose</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.0</span>
 
-        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;movieName&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getMovieFn</span><span class="p">(</span><span class="n">movie</span><span class="p">)),</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;movieName&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMovieFn</span><span class="p">(</span><span class="n">movie</span><span class="p">),</span>
                 <span class="s1">&#39;micFnName&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMicFn</span><span class="p">(</span><span class="n">movie</span><span class="p">),</span>
-                <span class="s1">&#39;shiftsFn&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMovieLogFile</span><span class="p">(</span><span class="n">movie</span><span class="p">),</span>
+                <span class="s1">&#39;shiftsFn&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getShiftsFn</span><span class="p">(</span><span class="n">movie</span><span class="p">),</span>
                 <span class="s1">&#39;samplingRate&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span><span class="p">,</span>
                 <span class="s1">&#39;voltage&#39;</span><span class="p">:</span> <span class="n">movie</span><span class="o">.</span><span class="n">getAcquisition</span><span class="p">()</span><span class="o">.</span><span class="n">getVoltage</span><span class="p">(),</span>
                 <span class="s1">&#39;bfactor&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">bfactor</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
@@ -549,25 +549,17 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">movieFn</span>
 
-    <span class="k">def</span> <span class="nf">_createLink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_createTifLink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
+        <span class="c1"># unblur recognises only tif, not tiff</span>
         <span class="n">movieFn</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">movieFn</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;tiff&quot;</span><span class="p">):</span>
             <span class="n">pwutils</span><span class="o">.</span><span class="n">createLink</span><span class="p">(</span><span class="n">movieFn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMovieFn</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">_getRelPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">baseName</span><span class="p">,</span> <span class="n">refPath</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">baseName</span><span class="p">),</span> <span class="n">refPath</span><span class="p">)</span>
-
     <span class="k">def</span> <span class="nf">_getMicFn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
-        <span class="n">movieFolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMovieFolder</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doApplyDoseFilter</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getRelPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicWtName</span><span class="p">(</span><span class="n">movie</span><span class="p">),</span>
-                                    <span class="n">movieFolder</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicWtName</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getRelPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicName</span><span class="p">(</span><span class="n">movie</span><span class="p">),</span>
-                                    <span class="n">movieFolder</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_getMovieLogFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s1">&#39;movie_</span><span class="si">%06d</span><span class="s1">_shifts.txt&#39;</span> <span class="o">%</span> <span class="n">movie</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicName</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">_getShiftsFn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getMovieRoot</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_shifts.txt&#39;</span><span class="p">)</span>
@@ -584,16 +576,28 @@
         <span class="k">return</span> <span class="n">xShiftsCorr</span><span class="p">,</span> <span class="n">yShiftsCorr</span>
 
     <span class="k">def</span> <span class="nf">_doComputeMicThumbnail</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">doComputeMicThumbnail</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">doComputeMicThumbnail</span>
+
+    <span class="k">def</span> <span class="nf">_computePSD</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputFn</span><span class="p">,</span> <span class="n">outputFn</span><span class="p">,</span> <span class="n">scaleFactor</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Generate a thumbnail of the PSD with EMAN2&quot;&quot;&quot;</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">inputFn</span><span class="p">,</span> <span class="n">outputFn</span><span class="p">)</span>
+        <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--process=math.realtofft --meanshrink </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="n">scaleFactor</span>
+        <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--fixintscaling=sane&quot;</span>
+
+        <span class="kn">from</span> <span class="nn">pwem</span> <span class="k">import</span> <span class="n">Domain</span>
+        <span class="n">eman2</span> <span class="o">=</span> <span class="n">Domain</span><span class="o">.</span><span class="n">importFromPlugin</span><span class="p">(</span><span class="s1">&#39;eman2&#39;</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">pyworkflow.utils.process</span> <span class="k">import</span> <span class="n">runJob</span>
+        <span class="n">runJob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="p">,</span> <span class="n">eman2</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getProgram</span><span class="p">(</span><span class="s1">&#39;e2proc2d.py&#39;</span><span class="p">),</span> <span class="n">args</span><span class="p">,</span>
+               <span class="n">env</span><span class="o">=</span><span class="n">eman2</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="n">outputFn</span>
 
     <span class="k">def</span> <span class="nf">_preprocessOutputMicrograph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mic</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
         <span class="n">mic</span><span class="o">.</span><span class="n">plotGlobal</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPlotGlobal</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doComputePSD</span><span class="p">:</span>
             <span class="n">mic</span><span class="o">.</span><span class="n">psdCorr</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPsdCorr</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
-            <span class="n">mic</span><span class="o">.</span><span class="n">psdJpeg</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPsdJpeg</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_doComputeMicThumbnail</span><span class="p">():</span>
-            <span class="n">mic</span><span class="o">.</span><span class="n">thumbnail</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span>
-                <span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicThumbnail</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
+            <span class="n">mic</span><span class="o">.</span><span class="n">thumbnail</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicThumbnail</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">_getNameExt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">,</span> <span class="n">postFix</span><span class="p">,</span> <span class="n">ext</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMovieRoot</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span> <span class="o">+</span> <span class="n">postFix</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">ext</span>
@@ -603,10 +607,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getNameExt</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="s1">&#39;_global_shifts&#39;</span><span class="p">,</span> <span class="s1">&#39;png&#39;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_getPsdCorr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getNameExt</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="s1">&#39;_psd_comparison&#39;</span><span class="p">,</span> <span class="s1">&#39;psd&#39;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_getPsdJpeg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getNameExt</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="s1">&#39;_psd&#39;</span><span class="p">,</span> <span class="s1">&#39;jpeg&#39;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getNameExt</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="s1">&#39;_psd&#39;</span><span class="p">,</span> <span class="s1">&#39;png&#39;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_saveAlignmentPlots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">,</span> <span class="n">pixSize</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Compute alignment shift plots and save to file as png images. &quot;&quot;&quot;</span>
