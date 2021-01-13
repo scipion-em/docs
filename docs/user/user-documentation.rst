@@ -97,7 +97,7 @@ demonstrates the combination of different EM-packages with high focus on Xmipp h
 
 *Guide*:
 
-`apoferritin image processing tutorial in scipion3 </docs/pdfs/tutotial_scipion3_apoferritin.pdf>`__
+`apoferritin image processing tutorial in scipion3 <https://github.com/scipion-em/docs/raw/release-3.0.0/docs/pdfs/tutotial_scipion3_apoferritin.pdf>`__
 
 
 Model Building
