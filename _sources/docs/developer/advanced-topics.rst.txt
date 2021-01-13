@@ -25,12 +25,6 @@ Most of the Scipion graphic user interfaces (GUIs) to visualize EM objects
 Xmipp ShowJ and Particle Picker. Implementation details are available
 `[here] <scipion-java>`_.
 
-Web development
-----------------
-
-* `Web developments and tools <web-developers-page>`_
-* Conventions: Description of the conventions followed in Scipion.
-
 Scipion from the command line
 ------------------------------
 
@@ -43,7 +37,7 @@ Profiling and Debugging
 
 * Check what can be reused from here: https://github.com/I2PC/xmipp-portal/wiki/DebuggingProfiling, check with Juan if he has some NOTES about profiling
 * `Profiling in C/C++: Valgrind <valgrind-suite-tools-introduction>`_
-* Debugging in Python: with PyCharm and WinPdb
+* Profiling Python with `PyCharm <pycharm-profiling>`_
 * Profiling Python with `Intel VTune Profiler <vtune-profiler>`_
 
 Virtualization
