@@ -204,15 +204,11 @@ This will fix the fonts issue when using conda installation
 
 ::
 
-    conda activate scipion3
-    conda remove tk --force
+    scipion3 run conda remove tk --force
     wget https://anaconda.org/scipion/tk/8.6.10/download/linux-64/tk-8.6.10-h14c3975_1005.tar.bz2
-    conda install tk-8.6.10-h14c3975_1005.tar.bz2
+    scipion3 run conda install tk-8.6.10-h14c3975_1005.tar.bz2
     
-.. attention::
-    First versions of the installer was naming the environment to .scipion3env, so use conda activate .scipion3env instead. 
-    To know the exact name of the environment used by scipion3 use *scipion3 run printenv | grep* 
-
+    
 Configure
 ---------
 In Scipion3, configuration step is optional. Without a configuration file, Scipion and the plugins

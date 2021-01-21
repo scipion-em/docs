@@ -53,6 +53,18 @@ property (``ml2d`` in this example), it will be used as a label to display the p
 menus. If not provided, the protocol class name will be used, but this
 name is probably less meaningful to final users.
 
+Protocol development status definition
+--------------------------------------
+Protocols defines the variable ``_devStatus`` which represents the
+development status. By default it defines it as production mode, but it can be
+modified as BETA or NEW. These values can be imported from the ``pyworkflow``
+package as shown below:
+
+.. code-block:: python
+
+     from pyworkflow import PROD, BETA, NEW
+
+
 Structure of a protocol class
 -----------------------------
 
@@ -63,12 +75,17 @@ place to make variable initialization or similar things.
 
 .. code-block:: python
 
+    ...
+    from pyworkflow import BETA
+    ...
+
     class XmippProtML2D(ProtClassify2D):
         """
         Perform (multi-reference) 2D-alignment using
         a maximum-likelihood ( *ML* ) target function.
         """
         _label = 'ml2d'
+        _devStatus = BETA
 
         def __init__(self, **kwargs):
             pass
