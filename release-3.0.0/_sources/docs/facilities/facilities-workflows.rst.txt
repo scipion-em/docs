@@ -123,7 +123,7 @@ from the command line as follow
 
 .. code-block:: bash
 
-    scipion3 python -m pyworkflow.project.scripts.create name="myAcquisition" workflow="/path/to/your/workflow.json"
+    scipion3 python -m pyworkflow.project.scripts.create "myAcquisition" "/path/to/your/workflow.json"
     scipion3 python -m pyworkflow.project.scripts.schedule myAcquisition
     scipion3 project myAcquisition
 

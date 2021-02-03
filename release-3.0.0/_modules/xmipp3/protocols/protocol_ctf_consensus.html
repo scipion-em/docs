@@ -213,7 +213,7 @@
 
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="k">import</span> <span class="n">VERSION_2_0</span>
 <span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">SetOfCTF</span><span class="p">,</span> <span class="n">SetOfMicrographs</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="k">import</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Integer</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="k">import</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Pointer</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 
@@ -537,7 +537,12 @@
 
         <span class="c1"># We have finished when there is not more input ctf (stream closed)</span>
         <span class="c1"># and the number of processed ctf is equal to the number of inputs</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">isStreamClosed</span> <span class="ow">and</span> <span class="n">allDone</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allCtf1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculateConsensus</span><span class="p">:</span>
+            <span class="n">maxCtfSize</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allCtf1</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allCtf2</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">maxCtfSize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">allCtf1</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">isStreamClosed</span> <span class="ow">and</span> <span class="n">allDone</span> <span class="o">==</span> <span class="n">maxCtfSize</span><span class="p">)</span>
 
         <span class="n">streamMode</span> <span class="o">=</span> <span class="n">Set</span><span class="o">.</span><span class="n">STREAM_CLOSED</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="k">else</span> <span class="n">Set</span><span class="o">.</span><span class="n">STREAM_OPEN</span>
 
@@ -567,8 +572,14 @@
         <span class="k">def</span> <span class="nf">updateRelationsAndClose</span><span class="p">(</span><span class="n">cSet</span><span class="p">,</span> <span class="n">mSet</span><span class="p">,</span> <span class="n">first</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
 
             <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPath</span><span class="p">(</span><span class="s1">&#39;ctfs&#39;</span><span class="o">+</span><span class="n">label</span><span class="o">+</span><span class="s1">&#39;.sqlite&#39;</span><span class="p">)):</span>
+
+                <span class="n">micsAttrName</span> <span class="o">=</span> <span class="s1">&#39;outputMicrographs&#39;</span><span class="o">+</span><span class="n">label</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="n">micsAttrName</span><span class="p">,</span> <span class="n">mSet</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">)</span>
+                <span class="c1"># Set micrograph as pointer to protocol to prevent pointee end up as another attribute (String, Booelan,...)</span>
+                <span class="c1"># that happens somewhere while scheduling.</span>
+                <span class="n">cSet</span><span class="o">.</span><span class="n">setMicrographs</span><span class="p">(</span><span class="n">Pointer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extended</span><span class="o">=</span><span class="n">micsAttrName</span><span class="p">))</span>
+
                 <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="s1">&#39;outputCTF&#39;</span><span class="o">+</span><span class="n">label</span><span class="p">,</span> <span class="n">cSet</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="s1">&#39;outputMicrographs&#39;</span><span class="o">+</span><span class="n">label</span><span class="p">,</span> <span class="n">mSet</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">first</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_defineTransformRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputCTF</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getMicrographs</span><span class="p">(),</span>
