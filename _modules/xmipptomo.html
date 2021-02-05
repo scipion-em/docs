@@ -200,8 +200,8 @@
 <span class="c1"># *  e-mail address &#39;scipion@cnb.csic.es&#39;</span>
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
-
 <span class="kn">import</span> <span class="nn">xmipp3</span>
+<span class="kn">import</span> <span class="nn">subprocess</span><span class="o">,</span> <span class="nn">os</span>
 
 <span class="n">_logo</span> <span class="o">=</span> <span class="s2">&quot;xmipp_logo.png&quot;</span>
 <span class="n">_references</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;delaRosaTrevin2013&#39;</span><span class="p">]</span>
@@ -210,7 +210,75 @@
 <div class="viewcode-block" id="Plugin"><a class="viewcode-back" href="../api/xmipptomo/xmipptomo.html#xmipptomo.Plugin">[docs]</a><span class="k">class</span> <span class="nc">Plugin</span><span class="p">(</span><span class="n">xmipp3</span><span class="o">.</span><span class="n">Plugin</span><span class="p">):</span>
 <div class="viewcode-block" id="Plugin.defineBinaries"><a class="viewcode-back" href="../api/xmipptomo/xmipptomo.html#xmipptomo.Plugin.defineBinaries">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">defineBinaries</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
-        <span class="k">pass</span></div></div>
+        <span class="n">preMsgs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cudaMsgs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">nvidiaDriverVer</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;CUDA&#39;</span><span class="p">,</span> <span class="s1">&#39;True&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;True&#39;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">nvidiaDriverVer</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s2">&quot;nvidia-smi&quot;</span><span class="p">,</span>
+                                                    <span class="s2">&quot;--query-gpu=driver_version&quot;</span><span class="p">,</span>
+                                                    <span class="s2">&quot;--format=csv,noheader&quot;</span><span class="p">],</span>
+                                                   <span class="n">env</span><span class="o">=</span><span class="n">xmipp3</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">(),</span>
+                                                   <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span>
+                                                   <span class="p">)</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">nvidiaDriverVer</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">390</span><span class="p">:</span>
+                    <span class="n">preMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Incompatible driver </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">nvidiaDriverVer</span><span class="p">)</span>
+                    <span class="n">cudaMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Your NVIDIA drivers are too old (&lt;390). &quot;</span>
+                                    <span class="s2">&quot;Tensorflow was installed without GPU support. &quot;</span>
+                                    <span class="s2">&quot;Just CPU computations enabled (slow computations).&quot;</span><span class="p">)</span>
+                    <span class="n">nvidiaDriverVer</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">preMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">nvidiaDriverVer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">preMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;CUDA support find. Driver version: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">nvidiaDriverVer</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Tensorflow installed with CUDA SUPPORT.&quot;</span>
+            <span class="n">cudaMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="n">useGpu</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">preMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;CUDA will NOT be USED. (not found or incompatible)&quot;</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Tensorflow installed without GPU. Just CPU computations &quot;</span>
+                   <span class="s2">&quot;enabled (slow computations). To enable CUDA (drivers&gt;390 needed), &quot;</span>
+                   <span class="s2">&quot;set CUDA=True in &#39;scipion.conf&#39; file&quot;</span><span class="p">)</span>
+            <span class="n">cudaMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="n">useGpu</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># commands  = [(command, target), (cmd, tgt), ...]</span>
+        <span class="n">cmdsInstall</span> <span class="o">=</span> <span class="p">[(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">envName</span> <span class="o">+</span> <span class="s2">&quot;.yml&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">envName</span> <span class="ow">in</span>
+                       <span class="n">xmipp3</span><span class="o">.</span><span class="n">CondaEnvManager</span><span class="o">.</span><span class="n">yieldInstallAllCmds</span><span class="p">(</span><span class="n">useGpu</span><span class="o">=</span><span class="n">useGpu</span><span class="p">)]</span>
+
+        <span class="n">now</span> <span class="o">=</span> <span class="n">xmipp3</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="n">installDLvars</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;modelsUrl&#39;</span><span class="p">:</span> <span class="s2">&quot;http://scipion.cnb.csic.es/downloads/scipion/software/em&quot;</span><span class="p">,</span>
+                         <span class="s1">&#39;syncBin&#39;</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getHome</span><span class="p">(</span><span class="s1">&#39;bin/xmipp_sync_data&#39;</span><span class="p">),</span>
+                         <span class="s1">&#39;modelsDir&#39;</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getHome</span><span class="p">(</span><span class="s1">&#39;models&#39;</span><span class="p">),</span>
+                         <span class="s1">&#39;modelsPrefix&#39;</span><span class="p">:</span> <span class="s2">&quot;models_UPDATED_on&quot;</span><span class="p">,</span>
+                         <span class="s1">&#39;xmippLibToken&#39;</span><span class="p">:</span> <span class="s1">&#39;xmippLibToken&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;libXmipp&#39;</span><span class="p">:</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getHome</span><span class="p">(</span><span class="s1">&#39;lib/libXmipp.so&#39;</span><span class="p">),</span>
+                         <span class="s1">&#39;preMsgsStr&#39;</span><span class="p">:</span> <span class="s1">&#39; ; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">preMsgs</span><span class="p">),</span>
+                         <span class="s1">&#39;afterMsgs&#39;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2"> &gt; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cudaMsgs</span><span class="p">)}</span>
+
+        <span class="n">installDLvars</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;modelsTarget&#39;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span>
+                                              <span class="o">%</span> <span class="p">(</span><span class="n">installDLvars</span><span class="p">[</span><span class="s1">&#39;modelsPrefix&#39;</span><span class="p">],</span>
+                                                 <span class="n">now</span><span class="o">.</span><span class="n">day</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">month</span><span class="p">,</span> <span class="n">now</span><span class="o">.</span><span class="n">year</span><span class="p">)})</span>
+
+        <span class="n">modelsDownloadCmd</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;rm </span><span class="si">%(modelsPrefix)s</span><span class="s2">_* </span><span class="si">%(xmippLibToken)s</span><span class="s2"> 2&gt;/dev/null ; &quot;</span>
+                             <span class="s2">&quot;echo &#39;Downloading pre-trained models...&#39; ; &quot;</span>
+                             <span class="s2">&quot;</span><span class="si">%(syncBin)s</span><span class="s2"> update </span><span class="si">%(modelsDir)s</span><span class="s2"> </span><span class="si">%(modelsUrl)s</span><span class="s2"> DLmodels &amp;&amp; &quot;</span>
+                             <span class="s2">&quot;touch </span><span class="si">%(modelsTarget)s</span><span class="s2"> &amp;&amp; echo &#39; &gt; </span><span class="si">%(afterMsgs)s</span><span class="s2">&#39;&quot;</span>
+                             <span class="o">%</span> <span class="n">installDLvars</span><span class="p">,</span>  <span class="c1"># End of command</span>
+                             <span class="n">installDLvars</span><span class="p">[</span><span class="s1">&#39;modelsTarget&#39;</span><span class="p">])</span>  <span class="c1"># Target</span>
+
+        <span class="n">xmippInstallCheck</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;if ls </span><span class="si">%(libXmipp)s</span><span class="s2"> &gt; /dev/null ; &quot;</span>
+                             <span class="s2">&quot;then touch </span><span class="si">%(xmippLibToken)s</span><span class="s2">; echo &#39; &gt; </span><span class="si">%(preMsgsStr)s</span><span class="s2">&#39; ; &quot;</span>
+                             <span class="s2">&quot;else echo ; echo &#39; &gt; Xmipp installation not found, &quot;</span>
+                             <span class="s2">&quot;please install it first (xmippSrc or xmippBin*).&#39;;echo;&quot;</span>
+                             <span class="s2">&quot; fi&quot;</span> <span class="o">%</span> <span class="n">installDLvars</span><span class="p">,</span>  <span class="c1"># End of command</span>
+                             <span class="n">installDLvars</span><span class="p">[</span><span class="s1">&#39;xmippLibToken&#39;</span><span class="p">])</span>  <span class="c1"># Target</span>
+
+        <span class="n">env</span><span class="o">.</span><span class="n">addPackage</span><span class="p">(</span><span class="n">xmipp3</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">XMIPP_DLTK_NAME</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s1">&#39;0.2&#39;</span><span class="p">,</span> <span class="n">urlSuffix</span><span class="o">=</span><span class="s1">&#39;external&#39;</span><span class="p">,</span>
+                       <span class="n">commands</span><span class="o">=</span><span class="p">[</span><span class="n">xmippInstallCheck</span><span class="p">]</span> <span class="o">+</span> <span class="n">cmdsInstall</span> <span class="o">+</span> <span class="p">[</span><span class="n">modelsDownloadCmd</span><span class="p">],</span>
+                       <span class="n">deps</span><span class="o">=</span><span class="p">[],</span> <span class="n">tar</span><span class="o">=</span><span class="n">xmipp3</span><span class="o">.</span><span class="n">constants</span><span class="o">.</span><span class="n">XMIPP_DLTK_NAME</span> <span class="o">+</span> <span class="s1">&#39;.tgz&#39;</span><span class="p">,</span>
+                       <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
