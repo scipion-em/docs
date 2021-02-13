@@ -205,6 +205,7 @@
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">glob</span> <span class="k">import</span> <span class="n">glob</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">emtable</span> <span class="k">import</span> <span class="n">Table</span>
@@ -215,9 +216,9 @@
                                         <span class="n">LabelParam</span><span class="p">,</span> <span class="n">PathParam</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="k">import</span> <span class="n">LEVEL_ADVANCED</span>
 
-<span class="kn">import</span> <span class="nn">pwem</span>
+<span class="kn">from</span> <span class="nn">pwem.constants</span> <span class="k">import</span> <span class="n">ALIGN_PROJ</span><span class="p">,</span> <span class="n">ALIGN_NONE</span>
 <span class="kn">from</span> <span class="nn">pwem.emlib.image</span> <span class="k">import</span> <span class="n">ImageHandler</span>
-<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">SetOfClasses3D</span>
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">SetOfClasses3D</span><span class="p">,</span> <span class="n">SetOfParticles</span><span class="p">,</span> <span class="n">SetOfVolumes</span><span class="p">,</span> <span class="n">Volume</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="k">import</span> <span class="n">EMProtocol</span>
 
 <span class="kn">import</span> <span class="nn">relion.convert</span>
@@ -278,9 +279,9 @@
             <span class="s1">&#39;model&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">extraIter</span> <span class="o">+</span> <span class="s1">&#39;model.star&#39;</span><span class="p">,</span>
             <span class="s1">&#39;optimiser&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">extraIter</span> <span class="o">+</span> <span class="s1">&#39;optimiser.star&#39;</span><span class="p">,</span>
             <span class="s1">&#39;angularDist_xmipp&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">extraIter</span> <span class="o">+</span> <span class="s1">&#39;angularDist_xmipp.xmd&#39;</span><span class="p">,</span>
-            <span class="s1">&#39;all_avgPmax&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s1">&#39;iterations_avgPmax.star&#39;</span><span class="p">),</span>
-            <span class="s1">&#39;all_changes&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s1">&#39;iterations_changes.star&#39;</span><span class="p">),</span>
-            <span class="s1">&#39;selected_volumes&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s1">&#39;selected_volumes_xmipp.xmd&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;all_avgPmax&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPath</span><span class="p">(</span><span class="s1">&#39;iterations_avgPmax.star&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;all_changes&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPath</span><span class="p">(</span><span class="s1">&#39;iterations_changes.star&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;selected_volumes&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPath</span><span class="p">(</span><span class="s1">&#39;selected_volumes_xmipp.xmd&#39;</span><span class="p">),</span>
             <span class="s1">&#39;dataFinal&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;relion_data.star&quot;</span><span class="p">),</span>
             <span class="s1">&#39;modelFinal&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;relion_model.star&quot;</span><span class="p">),</span>
             <span class="s1">&#39;finalvolume&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;relion_class</span><span class="si">%(ref3d)03d</span><span class="s2">.mrc:mrc&quot;</span><span class="p">),</span>
@@ -308,7 +309,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_iterTemplate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="nb">iter</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;000&#39;</span><span class="p">,</span> <span class="s1">&#39;???&#39;</span><span class="p">)</span>
         <span class="c1"># Iterations will be identify by _itXXX_ where XXX is the iteration number</span>
         <span class="c1"># and is restricted to only 3 digits.</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_iterRegex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;_it(\d{3,3})_&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_iterRegex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s1">&#39;_it(\d</span><span class="si">{3}</span><span class="s1">)_&#39;</span><span class="p">)</span>
 
     <span class="c1"># -------------------------- DEFINE param functions -----------------------</span>
     <span class="k">def</span> <span class="nf">_defineConstants</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -346,13 +347,7 @@
                            <span class="s1">&#39;input particles will be considered as PRIORS. This &#39;</span>
                            <span class="s1">&#39;option can be used to do restricted local &#39;</span>
                            <span class="s1">&#39;search within a range centered around those priors.&#39;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;fillRandomSubset&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;not doContinue and copyAlignment&#39;</span><span class="p">,</span>
-                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Consider random subset value?&#39;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;If set to Yes, then random subset value &#39;</span>
-                           <span class="s1">&#39;of input particles will be put into the&#39;</span>
-                           <span class="s1">&#39;star file that is generated.&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addHidden</span><span class="p">(</span><span class="s1">&#39;fillRandomSubset&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;maskDiameterA&#39;</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Particle mask diameter (A)&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The experimental images will be masked with a &#39;</span>
@@ -961,10 +956,9 @@
 
             <span class="c1"># Pass stack file as None to avoid write the images files</span>
             <span class="c1"># If copyAlignment is set to False pass alignType to ALIGN_NONE</span>
-            <span class="n">alignType</span> <span class="o">=</span> <span class="n">imgSet</span><span class="o">.</span><span class="n">getAlignment</span><span class="p">()</span> <span class="k">if</span> <span class="n">copyAlignment</span> <span class="k">else</span> <span class="n">pwem</span><span class="o">.</span><span class="n">ALIGN_NONE</span>
-            <span class="n">hasAlign</span> <span class="o">=</span> <span class="n">alignType</span> <span class="o">!=</span> <span class="n">pwem</span><span class="o">.</span><span class="n">ALIGN_NONE</span>
+            <span class="n">alignType</span> <span class="o">=</span> <span class="n">imgSet</span><span class="o">.</span><span class="n">getAlignment</span><span class="p">()</span> <span class="k">if</span> <span class="n">copyAlignment</span> <span class="k">else</span> <span class="n">ALIGN_NONE</span>
+            <span class="n">hasAlign</span> <span class="o">=</span> <span class="n">alignType</span> <span class="o">!=</span> <span class="n">ALIGN_NONE</span>
             <span class="n">alignToPrior</span> <span class="o">=</span> <span class="n">hasAlign</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;alignmentAsPriors&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-            <span class="n">fillRandomSubset</span> <span class="o">=</span> <span class="n">hasAlign</span> <span class="ow">and</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;fillRandomSubset&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doCtfManualGroups</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_defocusGroups</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createDefocusGroups</span><span class="p">()</span>
@@ -974,8 +968,7 @@
                 <span class="n">imgSet</span><span class="p">,</span> <span class="n">imgStar</span><span class="p">,</span>
                 <span class="n">outputDir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span>
                 <span class="n">alignType</span><span class="o">=</span><span class="n">alignType</span><span class="p">,</span>
-                <span class="n">postprocessImageRow</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_postprocessParticleRow</span><span class="p">,</span>
-                <span class="n">fillRandomSubset</span><span class="o">=</span><span class="n">fillRandomSubset</span><span class="p">)</span>
+                <span class="n">postprocessImageRow</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_postprocessParticleRow</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">alignToPrior</span><span class="p">:</span>
                 <span class="n">tableName</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
@@ -1023,7 +1016,7 @@
                               <span class="s2">&quot;image dimensions!&quot;</span><span class="p">)</span>
 
             <span class="c1"># if doing scaling, the input is not on abs greyscale</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="s1">&#39;referenceVolume&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="s1">&#39;referenceVolume&#39;</span><span class="p">):</span>
                 <span class="n">volX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getReferenceVolumes</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getXDim</span><span class="p">()</span>
                 <span class="n">ptclX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getInputParticles</span><span class="p">()</span><span class="o">.</span><span class="n">getXDim</span><span class="p">()</span>
                 <span class="k">if</span> <span class="p">(</span><span class="n">ptclX</span> <span class="o">!=</span> <span class="n">volX</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">isMapAbsoluteGreyScale</span><span class="p">:</span>
@@ -1132,16 +1125,15 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">limitResolEStep</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">args</span><span class="p">[</span><span class="s1">&#39;--strict_highres_exp&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">limitResolEStep</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">IS_3D</span><span class="p">:</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">IS_3D_INIT</span><span class="p">:</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isMapAbsoluteGreyScale</span><span class="p">:</span>
-                    <span class="n">args</span><span class="p">[</span><span class="s1">&#39;--firstiter_cc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-                <span class="n">args</span><span class="p">[</span><span class="s1">&#39;--ini_high&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialLowPassFilterA</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-                <span class="n">args</span><span class="p">[</span><span class="s1">&#39;--sym&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symmetryGroup</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">IS_GT30</span><span class="p">():</span>
-                    <span class="c1"># We use the same pixel size as input particles, since</span>
-                    <span class="c1"># we convert anyway the input volume to match same size</span>
-                    <span class="n">args</span><span class="p">[</span><span class="s1">&#39;--ref_angpix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ps</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">IS_3D</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">IS_3D_INIT</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isMapAbsoluteGreyScale</span><span class="p">:</span>
+                <span class="n">args</span><span class="p">[</span><span class="s1">&#39;--firstiter_cc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="n">args</span><span class="p">[</span><span class="s1">&#39;--ini_high&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialLowPassFilterA</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="n">args</span><span class="p">[</span><span class="s1">&#39;--sym&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symmetryGroup</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">IS_GT30</span><span class="p">():</span>
+                <span class="c1"># We use the same pixel size as input particles, since</span>
+                <span class="c1"># we convert anyway the input volume to match same size</span>
+                <span class="n">args</span><span class="p">[</span><span class="s1">&#39;--ref_angpix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ps</span>
 
         <span class="n">refArg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getRefArg</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">refArg</span><span class="p">:</span>
@@ -1328,7 +1320,7 @@
         <span class="n">data_sqlite</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;data_scipion&#39;</span><span class="p">,</span> <span class="nb">iter</span><span class="o">=</span><span class="n">it</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">data_sqlite</span><span class="p">):</span>
-            <span class="n">iterImgSet</span> <span class="o">=</span> <span class="n">pwem</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">SetOfParticles</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">data_sqlite</span><span class="p">)</span>
+            <span class="n">iterImgSet</span> <span class="o">=</span> <span class="n">SetOfParticles</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">data_sqlite</span><span class="p">)</span>
             <span class="n">iterImgSet</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getInputParticles</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_fillDataFromIter</span><span class="p">(</span><span class="n">iterImgSet</span><span class="p">,</span> <span class="n">it</span><span class="p">)</span>
             <span class="n">iterImgSet</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
@@ -1361,13 +1353,13 @@
 
     <span class="k">def</span> <span class="nf">_getReferenceVolumes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return a list with all input references.</span>
-<span class="sd">        (Could be one or more volumes. ).</span>
+<span class="sd">        (Could be one or more volumes).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">inputObj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">referenceVolume</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inputObj</span><span class="p">,</span> <span class="n">pwem</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">Volume</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inputObj</span><span class="p">,</span> <span class="n">Volume</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">[</span><span class="n">inputObj</span><span class="p">]</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inputObj</span><span class="p">,</span> <span class="n">pwem</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">SetOfVolumes</span><span class="p">):</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inputObj</span><span class="p">,</span> <span class="n">SetOfVolumes</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">[</span><span class="n">vol</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span> <span class="k">for</span> <span class="n">vol</span> <span class="ow">in</span> <span class="n">inputObj</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Invalid input reference of class: </span><span class="si">%s</span><span class="s2">&quot;</span>
@@ -1395,14 +1387,18 @@
         <span class="n">index</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="n">inputVol</span><span class="o">.</span><span class="n">getLocation</span><span class="p">()</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">replaceBaseExt</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%02d</span><span class="s1">.mrc&#39;</span> <span class="o">%</span> <span class="n">index</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">_convertVol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ih</span><span class="p">,</span> <span class="n">inputVol</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_convertVol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputVol</span><span class="p">):</span>
         <span class="n">outputFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convertVolFn</span><span class="p">(</span><span class="n">inputVol</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">outputFn</span><span class="p">:</span>
-            <span class="n">xdim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getInputParticles</span><span class="p">()</span><span class="o">.</span><span class="n">getXDim</span><span class="p">()</span>
-            <span class="n">img</span> <span class="o">=</span> <span class="n">ih</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">inputVol</span><span class="p">)</span>
-            <span class="n">img</span><span class="o">.</span><span class="n">scale</span><span class="p">(</span><span class="n">xdim</span><span class="p">,</span> <span class="n">xdim</span><span class="p">,</span> <span class="n">xdim</span><span class="p">)</span>
-            <span class="n">img</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">outputFn</span><span class="p">)</span>
+            <span class="n">oldPix</span> <span class="o">=</span> <span class="n">inputVol</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
+            <span class="n">newPix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getInputParticles</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
+            <span class="n">newDim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getInputParticles</span><span class="p">()</span><span class="o">.</span><span class="n">getXDim</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">math</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">newPix</span><span class="p">,</span> <span class="n">oldPix</span><span class="p">,</span> <span class="n">abs_tol</span><span class="o">=</span><span class="mf">0.001</span><span class="p">):</span>
+                <span class="n">relion</span><span class="o">.</span><span class="n">convert</span><span class="o">.</span><span class="n">convertMask</span><span class="p">(</span><span class="n">inputVol</span><span class="p">,</span> <span class="n">outputFn</span><span class="p">,</span> <span class="n">newPix</span><span class="o">=</span><span class="n">newPix</span><span class="p">,</span>
+                                           <span class="n">newDim</span><span class="o">=</span><span class="n">newDim</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">relion</span><span class="o">.</span><span class="n">convert</span><span class="o">.</span><span class="n">convertMask</span><span class="p">(</span><span class="n">inputVol</span><span class="p">,</span> <span class="n">outputFn</span><span class="p">,</span> <span class="n">threshold</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">outputFn</span>
 
@@ -1416,11 +1412,11 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">IS_3D_INIT</span><span class="p">:</span>
                 <span class="n">refVols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getReferenceVolumes</span><span class="p">()</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">refVols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_convertVol</span><span class="p">(</span><span class="n">ih</span><span class="p">,</span> <span class="n">refVols</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_convertVol</span><span class="p">(</span><span class="n">refVols</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
                 <span class="k">else</span><span class="p">:</span>  <span class="c1"># input SetOfVolumes as references</span>
                     <span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;rlnReferenceImage&#39;</span><span class="p">])</span>
                     <span class="k">for</span> <span class="n">vol</span> <span class="ow">in</span> <span class="n">refVols</span><span class="p">:</span>
-                        <span class="n">newVolFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convertVol</span><span class="p">(</span><span class="n">ih</span><span class="p">,</span> <span class="n">vol</span><span class="p">)</span>
+                        <span class="n">newVolFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convertVol</span><span class="p">(</span><span class="n">vol</span><span class="p">)</span>
                         <span class="n">table</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="n">newVolFn</span><span class="p">)</span>
                     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getRefStar</span><span class="p">(),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
                         <span class="n">table</span><span class="o">.</span><span class="n">writeStar</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
@@ -1457,7 +1453,7 @@
             <span class="n">mdParts</span><span class="o">.</span><span class="n">addColumns</span><span class="p">(</span><span class="s1">&#39;rlnOriginYPrior=rlnOriginY&#39;</span><span class="p">)</span>
         <span class="n">mdParts</span><span class="o">.</span><span class="n">addColumns</span><span class="p">(</span><span class="s1">&#39;rlnAnglePsiPrior=rlnAnglePsi&#39;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">alignType</span> <span class="o">==</span> <span class="n">pwem</span><span class="o">.</span><span class="n">ALIGN_PROJ</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">alignType</span> <span class="o">==</span> <span class="n">ALIGN_PROJ</span><span class="p">:</span>
             <span class="n">mdParts</span><span class="o">.</span><span class="n">addColumns</span><span class="p">(</span><span class="s1">&#39;rlnAngleRotPrior=rlnAngleRot&#39;</span><span class="p">)</span>
             <span class="n">mdParts</span><span class="o">.</span><span class="n">addColumns</span><span class="p">(</span><span class="s1">&#39;rlnAngleTiltPrior=rlnAngleTilt&#39;</span><span class="p">)</span>
 

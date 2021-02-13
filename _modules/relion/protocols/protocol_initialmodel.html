@@ -206,7 +206,7 @@
 <span class="c1"># **************************************************************************</span>
 <span class="kn">from</span> <span class="nn">emtable</span> <span class="k">import</span> <span class="n">Table</span>
 
-<span class="kn">import</span> <span class="nn">pwem</span>
+<span class="kn">from</span> <span class="nn">pwem.constants</span> <span class="k">import</span> <span class="n">ALIGN_PROJ</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="k">import</span> <span class="n">ProtInitialVolume</span>
 <span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">Volume</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">import</span> <span class="p">(</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span>
@@ -248,8 +248,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">maskZero</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">copyAlignment</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hasReferenceCTFCorrected</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">doCtfManualGroups</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">realignMovieFrames</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="c1"># -------------------------- DEFINE param functions -----------------------</span>
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
@@ -330,6 +328,22 @@
                            <span class="s1">&#39;on the CTFs (e.g. 10-20%) often yields better &#39;</span>
                            <span class="s1">&#39;results. Therefore, this option is not generally &#39;</span>
                            <span class="s1">&#39;recommended.&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;doCtfManualGroups&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Do manual grouping ctfs?&#39;</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;not doContinue&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Set this to Yes the CTFs will grouping manually.&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;defocusRange&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Defocus range for group creation (in Angstroms)&#39;</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;doCtfManualGroups and not doContinue&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Particles will be grouped by defocus.&#39;</span>
+                           <span class="s1">&#39;This parameter is the bin for a histogram.&#39;</span>
+                           <span class="s1">&#39;All particles assigned to a bin form a group&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;numParticles&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;minimum size for defocus group&#39;</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;doCtfManualGroups and not doContinue&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;If defocus group is smaller than this value, &#39;</span>
+                           <span class="s1">&#39;it will be expanded until number of particles &#39;</span>
+                           <span class="s1">&#39;per defocus group is reached&#39;</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="s1">&#39;Optimisation&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;numberOfClasses&#39;</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -606,7 +620,7 @@
         <span class="n">tableName</span> <span class="o">=</span> <span class="s1">&#39;particles@&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">IS_GT30</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
         <span class="n">outImgsFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;data&#39;</span><span class="p">,</span> <span class="nb">iter</span><span class="o">=</span><span class="n">iteration</span><span class="p">)</span>
         <span class="n">imgSet</span><span class="o">.</span><span class="n">setAlignmentProj</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">convert</span><span class="o">.</span><span class="n">createReader</span><span class="p">(</span><span class="n">alignType</span><span class="o">=</span><span class="n">pwem</span><span class="o">.</span><span class="n">ALIGN_PROJ</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">convert</span><span class="o">.</span><span class="n">createReader</span><span class="p">(</span><span class="n">alignType</span><span class="o">=</span><span class="n">ALIGN_PROJ</span><span class="p">)</span>
         <span class="n">mdIter</span> <span class="o">=</span> <span class="n">convert</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">iterRows</span><span class="p">(</span><span class="n">tableName</span> <span class="o">+</span> <span class="n">outImgsFn</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="s1">&#39;rlnImageId&#39;</span><span class="p">)</span>
         <span class="n">imgSet</span><span class="o">.</span><span class="n">copyItems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getInputParticles</span><span class="p">(),</span> <span class="n">doClone</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                          <span class="n">updateItemCallback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_createItemMatrix</span><span class="p">,</span>
