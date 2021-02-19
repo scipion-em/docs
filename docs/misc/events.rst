@@ -18,7 +18,7 @@ Events
 * August 26-30: Course on Scipion processing in Buenos Aires
 * September 1-12: Participation in the EMBO Practical Course on Image Processing for CryoEM in London
 * September 10-13: Course on Scipion processing and hybrid modelling in Madrid
-* September 17-20: link:https://www.itqb.unl.pt/impact/workshops/2019-september-18-20-data-processing-workshop-workshop-on-cryo-em-applied-to-macromolecular-complexes-from-proteins-to-cells[Data Processing Workshop on Cryo-EM applied to macromolecular complexes in Lisbon]
+* September 17-20: `Data Processing Workshop on Cryo-EM applied to macromolecular complexes in Lisbon<https://www.itqb.unl.pt/impact/workshops/2019-september-18-20-data-processing-workshop-workshop-on-cryo-em-applied-to-macromolecular-complexes-from-proteins-to-cells>`_
 
 2018
 ====
