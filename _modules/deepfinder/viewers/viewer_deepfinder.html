@@ -182,19 +182,29 @@
 <span class="kn">from</span> <span class="nn">deepfinder.protocols</span> <span class="k">import</span> <span class="n">DeepFinderSegment</span><span class="p">,</span> <span class="n">DeepFinderGenerateTrainingTargetsSpheres</span>
 <span class="kn">from</span> <span class="nn">tomo.protocols</span> <span class="k">import</span> <span class="n">ProtImportTomograms</span>
 
+<span class="kn">from</span> <span class="nn">deepfinder</span> <span class="k">import</span> <span class="n">Plugin</span>
+
 <div class="viewcode-block" id="DeepFinderViewer"><a class="viewcode-back" href="../../../api/deepfinder/deepfinder.viewers.viewer_deepfinder.html#deepfinder.viewers.viewer_deepfinder.DeepFinderViewer">[docs]</a><span class="k">class</span> <span class="nc">DeepFinderViewer</span><span class="p">(</span><span class="n">pwviewer</span><span class="o">.</span><span class="n">Viewer</span><span class="p">):</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;Ortho-slice volume explorer&#39;</span>
     <span class="n">_targets</span> <span class="o">=</span> <span class="p">[</span>
         <span class="n">tomo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">Tomogram</span><span class="p">,</span>
         <span class="n">tomo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">TomoMask</span><span class="p">,</span>
         <span class="n">tomo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">SetOfTomograms</span><span class="p">,</span>
-        <span class="n">tomo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">SetOfTomoMasks</span><span class="p">,</span>
-        <span class="n">ProtImportTomograms</span><span class="p">,</span>
-        <span class="n">DeepFinderGenerateTrainingTargetsSpheres</span><span class="p">,</span>
-        <span class="n">DeepFinderSegment</span>
+        <span class="n">tomo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">SetOfTomoMasks</span><span class="c1">#,</span>
+        <span class="c1">#ProtImportTomograms,</span>
+        <span class="c1">#DeepFinderGenerateTrainingTargetsSpheres,</span>
+        <span class="c1">#DeepFinderSegment</span>
     <span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_visualize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">Plugin</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">()</span>
+        <span class="n">view</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">cls</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tomo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">Tomogram</span><span class="p">):</span>
+            <span class="n">view</span> <span class="o">=</span> <span class="n">DeepFinderTomoView</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">issubclass</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">tomo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">SetOfTomograms</span><span class="p">):</span>
+            <span class="n">view</span> <span class="o">=</span> <span class="n">DeepFinderTomoView</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
 
         <span class="c1"># deepfinder_args = &#39;&#39;</span>
         <span class="c1"># if self.tomogram.get() != None:</span>
@@ -209,7 +219,29 @@
         <span class="c1">#         if fname_tomo != &#39;&#39;:  # if a tomo is linked to segmentation, also display tomo</span>
         <span class="c1">#             deepfinder_args += &#39; -t &#39; + fname_tomo</span>
 
-        <span class="k">pass</span></div>
+        <span class="n">view</span><span class="o">.</span><span class="n">_env</span> <span class="o">=</span> <span class="n">env</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">view</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="DeepFinderTomoView"><a class="viewcode-back" href="../../../api/deepfinder/deepfinder.viewers.viewer_deepfinder.html#deepfinder.viewers.viewer_deepfinder.DeepFinderTomoView">[docs]</a><span class="k">class</span> <span class="nc">DeepFinderTomoView</span><span class="p">(</span><span class="n">pwviewer</span><span class="o">.</span><span class="n">CommandView</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Wrapper to visualize different type of objects with the DeepFinderDisplay &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">fname</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
+        <span class="c1">#deepfinder_args = &#39;-t &#39; + fname</span>
+        <span class="c1">#Plugin.runDeepFinder(self, &#39;display&#39;, deepfinder_args)</span>
+        <span class="n">pwviewer</span><span class="o">.</span><span class="n">CommandView</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Plugin</span><span class="o">.</span><span class="n">getDeepFinderCmd</span><span class="p">(</span><span class="s1">&#39;display&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; -t&#39;</span> <span class="o">+</span> <span class="n">fname</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DeepFinderSetOfTomogramsView"><a class="viewcode-back" href="../../../api/deepfinder/deepfinder.viewers.viewer_deepfinder.html#deepfinder.viewers.viewer_deepfinder.DeepFinderSetOfTomogramsView">[docs]</a><span class="k">class</span> <span class="nc">DeepFinderSetOfTomogramsView</span><span class="p">(</span><span class="n">pwviewer</span><span class="o">.</span><span class="n">CommandView</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Wrapper to visualize set of tomograms with DeepFinderDisplay &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">set</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">:</span>
+            <span class="n">fname</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
+            <span class="c1">#deepfinder_args = &#39;-t &#39; + fname</span>
+            <span class="c1">#Plugin.runDeepFinder(self, &#39;display&#39;, deepfinder_args) # /!\ Can cause OOM if too many items</span>
+            <span class="n">pwviewer</span><span class="o">.</span><span class="n">CommandView</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Plugin</span><span class="o">.</span><span class="n">getDeepFinderCmd</span><span class="p">(</span><span class="s1">&#39;display&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; -t&#39;</span> <span class="o">+</span> <span class="n">fname</span><span class="p">)</span></div>
+
+
 </pre></div>
 
            </div>
