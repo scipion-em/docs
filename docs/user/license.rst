@@ -8,7 +8,7 @@ Licenses
 ========
 All scipion code and plugins, are licensed under the GPL3 (http://www.gnu.org/licenses/gpl-3.0.html)
 
-Now, Scipion interact and in some cases installs 3rd party software with its own LICENCE that must be observed.
+Now, Scipion interacts, and in some cases installs 3rd party software with its own LICENCE that must be observed.
 
 So, it is under the user responsability to check the license of each of the software scipion is installing.
 
