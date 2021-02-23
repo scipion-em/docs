@@ -69,6 +69,14 @@ later on.
 
    docs/misc/contact-us
 
+.. _license:
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Licences
+
+   docs/user/license
+
 
 How to Contribute
 =================
