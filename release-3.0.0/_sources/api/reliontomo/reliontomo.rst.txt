@@ -15,7 +15,7 @@ Submodules
 .. toctree::
 
    reliontomo.bibtex
-   reliontomo.contants
+   reliontomo.constants
 
 Module contents
 ---------------

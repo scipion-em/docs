@@ -214,12 +214,17 @@
 <span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">Transform</span><span class="p">,</span> <span class="n">Volume</span>
 <span class="kn">from</span> <span class="nn">pwem.constants</span> <span class="k">import</span> <span class="n">ALIGN_PROJ</span>
 
+<span class="kn">from</span> <span class="nn">pyworkflow.utils.path</span> <span class="k">import</span> <span class="n">cleanPath</span>
+
 <span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="k">import</span> <span class="p">(</span><span class="n">rowToAlignment</span><span class="p">,</span> <span class="n">alignmentToRow</span><span class="p">,</span> <span class="n">writeSetOfParticles</span><span class="p">,</span>
                             <span class="n">readSetOfParticles</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">xmipp3.constants</span> <span class="k">import</span> <span class="n">SYM_URL</span>
 
 <span class="n">ALIGN_MASK_CIRCULAR</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">ALIGN_MASK_BINARY_FILE</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="n">ALIGN_GLOBAL</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">ALIGN_LOCAL</span> <span class="o">=</span> <span class="mi">1</span>
 
 
 <div class="viewcode-block" id="XmippProtAlignVolumeParticles"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_align_volume_and_particles.html#xmipp3.protocols.protocol_align_volume_and_particles.XmippProtAlignVolumeParticles">[docs]</a><span class="k">class</span> <span class="nc">XmippProtAlignVolumeParticles</span><span class="p">(</span><span class="n">ProtAlignVolume</span><span class="p">):</span>
@@ -251,6 +256,8 @@
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select one set of particles to be aligned against &#39;</span>
                            <span class="s1">&#39;the reference set of particles using the transformation &#39;</span>
                            <span class="s1">&#39;calculated with the reference and input volumes.&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;alignmentMode&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ALIGN_GLOBAL</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Global&quot;</span><span class="p">,</span><span class="s2">&quot;Local&quot;</span><span class="p">],</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Alignment mode&quot;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;symmetryGroup&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">StringParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;c1&#39;</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Symmetry group&quot;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;See </span><span class="si">%s</span><span class="s1"> page for a description of the symmetries &#39;</span>
@@ -327,10 +334,14 @@
         <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot;--i1 </span><span class="si">%s</span><span class="s2"> --i2 </span><span class="si">%s</span><span class="s2"> --apply </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> \
                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fnRefVol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnInputVol</span><span class="p">,</span> <span class="n">outVolFn</span><span class="p">)</span>
         <span class="n">args</span> <span class="o">+=</span> <span class="n">maskArgs</span>
-        <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; --frm &quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alignmentMode</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">==</span><span class="n">ALIGN_GLOBAL</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; --frm&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; --local&quot;</span>
         <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; --copyGeo </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">fhInputTranMat</span>        
-        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_volume_align&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></div>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_volume_align&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+        <span class="n">cleanPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fnRefVol</span><span class="p">)</span>
+        <span class="n">cleanPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fnInputVol</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="XmippProtAlignVolumeParticles.alignParticlesStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_align_volume_and_particles.html#xmipp3.protocols.protocol_align_volume_and_particles.XmippProtAlignVolumeParticles.alignParticlesStep">[docs]</a>    <span class="k">def</span> <span class="nf">alignParticlesStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
@@ -354,7 +365,8 @@
             <span class="n">rowOut</span><span class="o">.</span><span class="n">copyFromRow</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
             <span class="n">alignmentToRow</span><span class="p">(</span><span class="n">resultMat</span><span class="p">,</span> <span class="n">rowOut</span><span class="p">,</span> <span class="n">ALIGN_PROJ</span><span class="p">)</span>
             <span class="n">rowOut</span><span class="o">.</span><span class="n">addToMd</span><span class="p">(</span><span class="n">outputParts</span><span class="p">)</span>
-        <span class="n">outputParts</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">outParticlesFn</span><span class="p">)</span></div>
+        <span class="n">outputParts</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">outParticlesFn</span><span class="p">)</span>
+        <span class="n">cleanPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imgsInputFn</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="XmippProtAlignVolumeParticles.createOutputStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_align_volume_and_particles.html#xmipp3.protocols.protocol_align_volume_and_particles.XmippProtAlignVolumeParticles.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>   

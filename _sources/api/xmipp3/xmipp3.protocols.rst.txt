@@ -94,15 +94,17 @@ Submodules
    xmipp3.protocols.protocol_screen_deepConsensus
    xmipp3.protocols.protocol_screen_deeplearning
    xmipp3.protocols.protocol_screen_particles
+   xmipp3.protocols.protocol_simulate_ctf
    xmipp3.protocols.protocol_solid_angles
    xmipp3.protocols.protocol_split_volume
    xmipp3.protocols.protocol_split_volume_hierarchical_cluster
    xmipp3.protocols.protocol_structure_map_sph
-   xmipp3.protocols.protocol_subtract_projection
    xmipp3.protocols.protocol_trigger_data
    xmipp3.protocols.protocol_validate_fscq
    xmipp3.protocols.protocol_validate_nontilt
    xmipp3.protocols.protocol_validate_overfitting
+   xmipp3.protocols.protocol_volume_adjust_sub
+   xmipp3.protocols.protocol_volume_consensus
    xmipp3.protocols.protocol_volume_deform_sph
    xmipp3.protocols.protocol_volume_local_sharpening
    xmipp3.protocols.protocol_volume_strain

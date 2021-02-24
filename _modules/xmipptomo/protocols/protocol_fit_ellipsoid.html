@@ -113,6 +113,10 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../docs/misc/contact-us.html">Contact Us</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Licences</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../docs/user/license.html">Licenses</a></li>
+</ul>
 
             
           
@@ -205,19 +209,19 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 
-<span class="kn">from</span> <span class="nn">os</span> <span class="k">import</span> <span class="n">path</span><span class="p">,</span> <span class="n">listdir</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">dirname</span><span class="p">,</span> <span class="n">join</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">import</span> <span class="n">PointerParam</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutlis</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="k">import</span> <span class="n">EMProtocol</span>
 <span class="kn">from</span> <span class="nn">tomo.protocols</span> <span class="k">import</span> <span class="n">ProtTomoBase</span>
-<span class="kn">from</span> <span class="nn">tomo.objects</span> <span class="k">import</span> <span class="n">Mesh</span><span class="p">,</span> <span class="n">Ellipsoid</span>
+<span class="kn">from</span> <span class="nn">tomo.objects</span> <span class="k">import</span> <span class="n">MeshPoint</span><span class="p">,</span> <span class="n">Ellipsoid</span><span class="p">,</span> <span class="n">SubTomogram</span>
 <span class="kn">from</span> <span class="nn">tomo.utils</span> <span class="k">import</span> <span class="n">fit_ellipsoid</span><span class="p">,</span> <span class="n">generatePointCloud</span>
 
 
 <div class="viewcode-block" id="XmippProtFitEllipsoid"><a class="viewcode-back" href="../../../api/xmipptomo/xmipptomo.protocols.protocol_fit_ellipsoid.html#xmipptomo.protocols.protocol_fit_ellipsoid.XmippProtFitEllipsoid">[docs]</a><span class="k">class</span> <span class="nc">XmippProtFitEllipsoid</span><span class="p">(</span><span class="n">EMProtocol</span><span class="p">,</span> <span class="n">ProtTomoBase</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; This protocol adjust a SetOfSubtomograms (with coordinates), to a vesicle (ellipsoid), defining regions of</span>
-<span class="sd">    interest (SetOfMeshes) for each vesicle as output.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot; This protocol adjust a SetOfSubtomograms with coordinates assigned or a SetOfCoordinates3D, to a vesicle</span>
+<span class="sd">    (ellipsoid), defining regions of interest (SetOfMeshes) for each vesicle as output.&quot;&quot;&quot;</span>
 
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;fit vesicles&#39;</span>
 
@@ -227,8 +231,10 @@
     <span class="c1"># --------------------------- DEFINE param functions ------------------------</span>
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Input&#39;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputSubtomos&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s2">&quot;SetOfSubTomograms&quot;</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Subtomograms&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Subtomograms in vesicles, they should come from Pyseg.&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;input&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s2">&quot;SetOfSubTomograms, SetOfCoordinates3D&quot;</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Subtomograms/Coordinates3D&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Subtomograms or coordinates3D picked in vesicles. If there are more than one vesicle per &#39;</span>
+                           <span class="s1">&#39;tomogram, input subtomograms or coordinates should have assigned groupId.&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputTomos&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Tomograms&quot;</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;SetOfTomograms&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select tomograms from which subtomograms come.&#39;</span><span class="p">)</span>
 
@@ -239,39 +245,58 @@
 
     <span class="c1"># --------------------------- STEPS functions -------------------------------</span>
 <div class="viewcode-block" id="XmippProtFitEllipsoid.fitEllipsoidStep"><a class="viewcode-back" href="../../../api/xmipptomo/xmipptomo.protocols.protocol_fit_ellipsoid.html#xmipptomo.protocols.protocol_fit_ellipsoid.XmippProtFitEllipsoid.fitEllipsoidStep">[docs]</a>    <span class="k">def</span> <span class="nf">fitEllipsoidStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">inputSubtomos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSubtomos</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="nb">input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="n">inputTomos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputTomos</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">outSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfMeshes</span><span class="p">()</span>
-
-        <span class="k">for</span> <span class="n">tomo</span> <span class="ow">in</span> <span class="n">inputTomos</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfMeshes</span><span class="p">(</span><span class="n">inputTomos</span><span class="p">)</span>
+        <span class="n">totalMeshes</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">tomo</span> <span class="ow">in</span> <span class="n">inputTomos</span><span class="o">.</span><span class="n">iterItems</span><span class="p">(</span><span class="n">iterate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
             <span class="n">vesicleList</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">vesicleIdList</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">tomoName</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">tomo</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
+            <span class="n">tomoName</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">tomo</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
             <span class="n">tomoDim</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">tomo</span><span class="o">.</span><span class="n">getDim</span><span class="p">()]</span>
+            <span class="n">firstItem</span> <span class="o">=</span> <span class="nb">input</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getInputisSubtomo</span><span class="p">(</span><span class="n">firstItem</span><span class="p">):</span>
+                <span class="n">dirName</span> <span class="o">=</span> <span class="n">dirname</span><span class="p">(</span><span class="n">firstItem</span><span class="o">.</span><span class="n">getVolName</span><span class="p">())</span>
+                <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">input</span><span class="o">.</span><span class="n">iterItems</span><span class="p">(</span><span class="n">where</span><span class="o">=</span><span class="s2">&quot;_volName=&#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">join</span><span class="p">(</span><span class="n">dirName</span><span class="p">,</span> <span class="n">tomoName</span><span class="p">)):</span>
+                    <span class="n">vesicleId</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getVesicleId</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">vesicleId</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vesicleIdList</span><span class="p">:</span>
+                        <span class="n">vesicleIdList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vesicleId</span><span class="p">)</span>
+                        <span class="n">vesicle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfSubTomograms</span><span class="p">(</span><span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">pwutlis</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">tomoName</span><span class="p">)</span> <span class="o">+</span>
+                                                                <span class="s1">&#39;_vesicle_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">vesicleId</span><span class="p">))</span>
+                        <span class="n">vesicleList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vesicle</span><span class="p">)</span>
+                    <span class="n">idx</span> <span class="o">=</span> <span class="n">vesicleIdList</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">vesicleId</span><span class="p">)</span>
+                    <span class="n">vesicleList</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
 
-            <span class="c1"># Split input particles by tomograms and by vesicles in each tomogram</span>
-            <span class="k">for</span> <span class="n">subtomo</span> <span class="ow">in</span> <span class="n">inputSubtomos</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">tomoName</span> <span class="o">==</span> <span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">subtomo</span><span class="o">.</span><span class="n">getVolName</span><span class="p">()):</span>
-                    <span class="k">continue</span>
-                <span class="n">vesicleId</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getVesicleId</span><span class="p">(</span><span class="n">subtomo</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">vesicleId</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vesicleIdList</span><span class="p">:</span>
-                    <span class="n">vesicleIdList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vesicleId</span><span class="p">)</span>
-                    <span class="n">vesicle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfSubTomograms</span><span class="p">(</span><span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">pwutlis</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">tomoName</span><span class="p">)</span> <span class="o">+</span>
-                                                            <span class="s1">&#39;_vesicle_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">vesicleId</span><span class="p">))</span>
-                    <span class="n">vesicleList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vesicle</span><span class="p">)</span>
-                <span class="n">idx</span> <span class="o">=</span> <span class="n">vesicleIdList</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">vesicleId</span><span class="p">)</span>
-                <span class="n">vesicleList</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subtomo</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">input</span><span class="o">.</span><span class="n">iterCoordinates</span><span class="p">(</span><span class="n">volume</span><span class="o">=</span><span class="n">tomo</span><span class="p">):</span>
+                    <span class="n">vesicleId</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getVesicleId</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">vesicleId</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">vesicleIdList</span><span class="p">:</span>
+                        <span class="n">vesicleIdList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vesicleId</span><span class="p">)</span>
+                        <span class="n">vesicle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfCoordinates3D</span><span class="p">(</span><span class="n">inputTomos</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">pwutlis</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">tomoName</span><span class="p">)</span>
+                                                                 <span class="o">+</span> <span class="s1">&#39;_vesicle_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">vesicleId</span><span class="p">))</span>
+                        <span class="n">vesicleList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vesicle</span><span class="p">)</span>
+                    <span class="n">idx</span> <span class="o">=</span> <span class="n">vesicleIdList</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">vesicleId</span><span class="p">)</span>
+                    <span class="n">vesicleList</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
 
-            <span class="c1"># For each vesicle:</span>
+            <span class="n">totalMeshes</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vesicleList</span><span class="p">)</span>
+
             <span class="k">for</span> <span class="n">vesicle</span> <span class="ow">in</span> <span class="n">vesicleList</span><span class="p">:</span>
                 <span class="n">x</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="n">y</span> <span class="o">=</span> <span class="p">[]</span>
                 <span class="n">z</span> <span class="o">=</span> <span class="p">[]</span>
-                <span class="k">for</span> <span class="n">subtomo</span> <span class="ow">in</span> <span class="n">vesicle</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
-                    <span class="n">coord</span> <span class="o">=</span> <span class="n">subtomo</span><span class="o">.</span><span class="n">getCoordinate3D</span><span class="p">()</span>
-                    <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">getX</span><span class="p">())</span><span class="o">/</span><span class="n">tomoDim</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                    <span class="n">y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">getY</span><span class="p">())</span><span class="o">/</span><span class="n">tomoDim</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-                    <span class="n">z</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">getZ</span><span class="p">())</span><span class="o">/</span><span class="n">tomoDim</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getInputisSubtomo</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()):</span>
+                    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">vesicle</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
+                        <span class="n">coord</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getCoor</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                        <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">getX</span><span class="p">())</span> <span class="o">/</span> <span class="n">tomoDim</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                        <span class="n">y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">getY</span><span class="p">())</span> <span class="o">/</span> <span class="n">tomoDim</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="n">z</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">getZ</span><span class="p">())</span> <span class="o">/</span> <span class="n">tomoDim</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">vesicle</span><span class="o">.</span><span class="n">iterCoordinates</span><span class="p">(</span><span class="n">volume</span><span class="o">=</span><span class="n">tomo</span><span class="p">):</span>
+                        <span class="n">coord</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getCoor</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                        <span class="n">x</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">getX</span><span class="p">())</span> <span class="o">/</span> <span class="n">tomoDim</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                        <span class="n">y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">getY</span><span class="p">())</span> <span class="o">/</span> <span class="n">tomoDim</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="n">z</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">getZ</span><span class="p">())</span> <span class="o">/</span> <span class="n">tomoDim</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
 
                 <span class="p">[</span><span class="n">center</span><span class="p">,</span> <span class="n">radii</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">chi2</span><span class="p">]</span> <span class="o">=</span> <span class="n">fit_ellipsoid</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">z</span><span class="p">))</span>
                 <span class="n">algDesc</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%f</span><span class="s1">*x*x + </span><span class="si">%f</span><span class="s1">*y*y + </span><span class="si">%f</span><span class="s1">*z*z + 2*</span><span class="si">%f</span><span class="s1">*x*y + 2*</span><span class="si">%f</span><span class="s1">*x*z + 2*</span><span class="si">%f</span><span class="s1">*y*z + 2*</span><span class="si">%f</span><span class="s1">*x + 2*</span><span class="si">%f</span><span class="s1">*y + 2*</span><span class="si">%f</span><span class="s1">*z + </span><span class="si">%f</span><span class="s1"> &#39;</span> \
@@ -282,22 +307,22 @@
                 <span class="n">adjEllipsoid</span><span class="o">.</span><span class="n">setRadii</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">radii</span><span class="p">))</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">algDesc</span><span class="p">)</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Chi2: &#39;</span><span class="p">,</span> <span class="n">chi2</span><span class="p">)</span>
-
-                <span class="n">fnVesicle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">subtomo</span><span class="o">.</span><span class="n">getVolName</span><span class="p">())</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;_vesicle_&#39;</span> <span class="o">+</span>
-                                               <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVesicleId</span><span class="p">(</span><span class="n">subtomo</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39;.txt&#39;</span><span class="p">)</span>
                 <span class="n">pointCloud</span> <span class="o">=</span> <span class="n">generatePointCloud</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">tomo</span><span class="o">.</span><span class="n">getDim</span><span class="p">())</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">pointCloud</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;It does not seem like any output is produced!&quot;</span><span class="p">)</span>
 
-                <span class="n">fhVesicle</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fnVesicle</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
                 <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">pointCloud</span><span class="p">:</span>
-                    <span class="n">fhVesicle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%f</span><span class="s1">,</span><span class="si">%f</span><span class="s1">,</span><span class="si">%f</span><span class="s1">,</span><span class="si">%d</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">point</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getVesicleId</span><span class="p">(</span><span class="n">subtomo</span><span class="p">)))</span>
-                <span class="n">fhVesicle</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-                <span class="n">mesh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="n">group</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVesicleId</span><span class="p">(</span><span class="n">subtomo</span><span class="p">),</span> <span class="n">path</span><span class="o">=</span><span class="n">fnVesicle</span><span class="p">)</span>  <span class="c1"># Group = vesicle in this case</span>
-                <span class="n">mesh</span><span class="o">.</span><span class="n">setDescription</span><span class="p">(</span><span class="n">adjEllipsoid</span><span class="p">)</span>
-                <span class="n">mesh</span><span class="o">.</span><span class="n">setVolume</span><span class="p">(</span><span class="n">tomo</span><span class="o">.</span><span class="n">clone</span><span class="p">())</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">outSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mesh</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">outSet</span><span class="o">.</span><span class="n">setVolumes</span><span class="p">(</span><span class="n">inputTomos</span><span class="p">)</span></div>
+                    <span class="n">meshPoint</span> <span class="o">=</span> <span class="n">MeshPoint</span><span class="p">()</span>
+                    <span class="n">meshPoint</span><span class="o">.</span><span class="n">setX</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">meshPoint</span><span class="o">.</span><span class="n">setY</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">meshPoint</span><span class="o">.</span><span class="n">setZ</span><span class="p">(</span><span class="n">point</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                    <span class="n">meshPoint</span><span class="o">.</span><span class="n">setGroupId</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVesicleId</span><span class="p">(</span><span class="n">item</span><span class="p">))</span>
+                    <span class="n">meshPoint</span><span class="o">.</span><span class="n">setDescription</span><span class="p">(</span><span class="n">adjEllipsoid</span><span class="p">)</span>
+                    <span class="n">meshPoint</span><span class="o">.</span><span class="n">setVolume</span><span class="p">(</span><span class="n">tomo</span><span class="o">.</span><span class="n">clone</span><span class="p">())</span>
+                    <span class="n">meshPoint</span><span class="o">.</span><span class="n">setVolumeName</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">tomo</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">outSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">meshPoint</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outSet</span><span class="o">.</span><span class="n">setPrecedents</span><span class="p">(</span><span class="n">inputTomos</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outSet</span><span class="o">.</span><span class="n">setNumberOfMeshes</span><span class="p">(</span><span class="n">totalMeshes</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="XmippProtFitEllipsoid.createOutputStep"><a class="viewcode-back" href="../../../api/xmipptomo/xmipptomo.protocols.protocol_fit_ellipsoid.html#xmipptomo.protocols.protocol_fit_ellipsoid.XmippProtFitEllipsoid.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputMeshes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">outSet</span><span class="p">)</span>
@@ -306,33 +331,51 @@
     <span class="c1"># --------------------------- INFO functions --------------------------------</span>
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">validateMsgs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSubtomos</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">9</span><span class="p">:</span>
-            <span class="n">validateMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;At least 9 subtomograms are required to fit a unique ellipsoid&#39;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSubtomos</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span><span class="o">.</span><span class="n">hasCoordinate3D</span><span class="p">():</span>
-            <span class="n">validateMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Subtomograms should have coordinates&#39;</span><span class="p">)</span>
+        <span class="nb">input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">input</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">9</span><span class="p">:</span>
+            <span class="n">validateMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;At least 9 subtomograms/coordinates are required to fit a unique ellipsoid&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getInputisSubtomo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">input</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span><span class="o">.</span><span class="n">hasCoordinate3D</span><span class="p">():</span>
+                <span class="n">validateMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Subtomograms should have coordinates&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">validateMsgs</span>
 
     <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">summary</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">listdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isFinished</span><span class="p">():</span>
             <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Output vesicles not ready yet.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> subtomograms from </span><span class="si">%d</span><span class="s2"> tomograms</span><span class="se">\n</span><span class="si">%d</span><span class="s2"> vesicles adjusted&quot;</span> <span class="o">%</span>
-                           <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputSubtomos</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSize</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputTomos</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSize</span><span class="p">(),</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">outputMeshes</span><span class="o">.</span><span class="n">getSize</span><span class="p">()))</span>
+            <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%d</span><span class="s2"> subtomograms/coordinates3D from </span><span class="si">%d</span><span class="s2"> tomograms</span><span class="se">\n</span><span class="si">%d</span><span class="s2"> vesicles adjusted&quot;</span> <span class="o">%</span>
+                           <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSize</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputTomos</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSize</span><span class="p">(),</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">outputMeshes</span><span class="o">.</span><span class="n">getNumberOfMeshes</span><span class="p">()))</span>
         <span class="k">return</span> <span class="n">summary</span>
 
     <span class="k">def</span> <span class="nf">_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;Fit an ellipsoid and compute a 3D set of points (mesh) for each of the </span><span class="si">%d</span><span class="s2"> vesicles adjusted.&quot;</span> <span class="o">%</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">outputMeshes</span><span class="o">.</span><span class="n">getSize</span><span class="p">()]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isFinished</span><span class="p">():</span>
+            <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;Protocol not finished yet&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;Fit an ellipsoid and compute a 3D set of points (mesh) for each of the </span><span class="si">%d</span><span class="s2"> vesicles adjusted.&quot;</span> <span class="o">%</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">outputMeshes</span><span class="o">.</span><span class="n">getNumberOfMeshes</span><span class="p">()]</span>
 
     <span class="c1"># --------------------------- UTILS functions --------------------------------------------</span>
-    <span class="k">def</span> <span class="nf">_getVesicleId</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subtomo</span><span class="p">):</span>
-        <span class="n">coor</span> <span class="o">=</span> <span class="n">subtomo</span><span class="o">.</span><span class="n">getCoordinate3D</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_getInputisSubtomo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">SubTomogram</span><span class="p">):</span>
+            <span class="k">return</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">def</span> <span class="nf">_getCoor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getInputisSubtomo</span><span class="p">(</span><span class="n">item</span><span class="p">):</span>
+            <span class="n">coor</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">getCoordinate3D</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">coor</span> <span class="o">=</span> <span class="n">item</span>
+        <span class="k">return</span> <span class="n">coor</span>
+
+    <span class="k">def</span> <span class="nf">_getVesicleId</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+        <span class="n">coor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getCoor</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">coor</span><span class="o">.</span><span class="n">hasGroupId</span><span class="p">():</span>
             <span class="n">vesicleId</span> <span class="o">=</span> <span class="n">coor</span><span class="o">.</span><span class="n">getGroupId</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">vesicleId</span> <span class="o">=</span> <span class="s1">&#39;1&#39;</span>  <span class="c1"># For now it works with several vesicles in the same tomo just for Pyseg subtomos</span>
+            <span class="n">vesicleId</span> <span class="o">=</span> <span class="s1">&#39;1&#39;</span>  <span class="c1"># For now it works with several vesicles in the same tomo just for subtomos with groupId</span>
         <span class="k">return</span> <span class="n">vesicleId</span>
 
     <span class="k">def</span> <span class="nf">_evaluateQuadric</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>

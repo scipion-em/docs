@@ -113,6 +113,10 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../docs/misc/contact-us.html">Contact Us</a></li>
 </ul>
+<p class="caption"><span class="caption-text">Licences</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../docs/user/license.html">Licenses</a></li>
+</ul>
 
             
           
@@ -205,8 +209,9 @@
 <span class="c1"># **************************************************************************</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">from</span> <span class="nn">distutils.spawn</span> <span class="k">import</span> <span class="n">find_executable</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">exists</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span>
 
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
 <span class="kn">from</span> <span class="nn">pwem.emlib.image</span> <span class="k">import</span> <span class="n">ImageHandler</span>
@@ -231,11 +236,11 @@
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Visualization volumes subtraction output&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;displayVol&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span>
-                      <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;chimera&#39;</span><span class="p">,</span> <span class="s1">&#39;slices&#39;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="n">VOLUME_CHIMERA</span><span class="p">,</span>
+                      <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;chimerax&#39;</span><span class="p">,</span> <span class="s1">&#39;slices&#39;</span><span class="p">],</span> <span class="n">default</span><span class="o">=</span><span class="n">VOLUME_CHIMERA</span><span class="p">,</span>
                       <span class="n">display</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="o">.</span><span class="n">DISPLAY_HLIST</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Display volume with&#39;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;*chimera*: display volumes as surface with &#39;</span>
-                           <span class="s1">&#39;Chimera.</span><span class="se">\n</span><span class="s1">*slices*: display volumes as 2D slices &#39;</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;*chimerax*: display volumes as surface with &#39;</span>
+                           <span class="s1">&#39;ChimeraX.</span><span class="se">\n</span><span class="s1">*slices*: display volumes as 2D slices &#39;</span>
                            <span class="s1">&#39;along z axis.</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_getVisualizeDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -245,7 +250,7 @@
 
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">find_executable</span><span class="p">(</span><span class="n">Chimera</span><span class="o">.</span><span class="n">getProgram</span><span class="p">())</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;chimera is not available. Either install it or choose&quot;</span>
+            <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;chimerax is not available. Either install it or choose&quot;</span>
                     <span class="s2">&quot; option &#39;slices&#39;. &quot;</span><span class="p">]</span>
         <span class="k">return</span> <span class="p">[]</span>
 
@@ -260,23 +265,21 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_showVolumesXmipp</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_createSetOfVolumes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s1">&#39;tmpVolumes.sqlite&#39;</span><span class="p">)):</span>
-            <span class="n">tmpFileName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s2">&quot;tmpVolumes.sqlite&quot;</span><span class="p">)</span>
-            <span class="n">_outputVol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">outputVolume</span>
-            <span class="n">setOfVolumes</span> <span class="o">=</span> <span class="n">SetOfVolumes</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">tmpFileName</span><span class="p">)</span>
-            <span class="n">setOfVolumes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_outputVol</span><span class="p">)</span>
-            <span class="n">setOfVolumes</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">tmpFileName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s1">&#39;tmpVolumes.sqlite&#39;</span><span class="p">)</span>
-            <span class="n">setOfVolumes</span> <span class="o">=</span> <span class="n">SetOfVolumes</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">tmpFileName</span><span class="p">)</span>
+        <span class="n">tmpFileName</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">(),</span> <span class="s1">&#39;tmpVolumes_adjust.sqlite&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">tmpFileName</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tmpFileName</span><span class="p">)</span>
+        <span class="n">_outputVol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">outputVolume</span>
+        <span class="n">setOfVolumes</span> <span class="o">=</span> <span class="n">SetOfVolumes</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">tmpFileName</span><span class="p">)</span>
+        <span class="n">setOfVolumes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_outputVol</span><span class="p">)</span>
+        <span class="n">setOfVolumes</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">setOfVolumes</span>
 
     <span class="k">def</span> <span class="nf">_showVolumesChimera</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">tmpFileNameCMD</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s2">&quot;chimera.cxc&quot;</span><span class="p">)</span>
+        <span class="n">tmpFileNameCMD</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">(),</span> <span class="s2">&quot;vol_adjust_chimera.cxc&quot;</span><span class="p">)</span>
         <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">tmpFileNameCMD</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
         <span class="n">dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">outputVolume</span><span class="o">.</span><span class="n">getDim</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">sampling</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">outputVolume</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
-        <span class="n">tmpFileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s2">&quot;axis.bild&quot;</span><span class="p">))</span>
+        <span class="n">tmpFileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">tempfile</span><span class="o">.</span><span class="n">gettempdir</span><span class="p">(),</span> <span class="s2">&quot;axis_vol_adjust.bild&quot;</span><span class="p">))</span>
         <span class="n">Chimera</span><span class="o">.</span><span class="n">createCoordinateAxisFile</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span>
                                          <span class="n">bildFileName</span><span class="o">=</span><span class="n">tmpFileName</span><span class="p">,</span>
                                          <span class="n">sampling</span><span class="o">=</span><span class="n">sampling</span><span class="p">)</span>
@@ -334,9 +337,12 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
+            <dd><a href="../../../../dependabot_pip_jinja2-2.10.1/index.html">dependabot/pip/jinja2-2.10.1</a></dd>
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="viewer_volume_subtraction.html">release-3.0.0</a></dd>
+            <dd><a href="../../../../rsanchezgarc-patch-1/index.html">rsanchezgarc-patch-1</a></dd>
+            <dd><a href="../../../../vtune/index.html">vtune</a></dd>
         </dl>
     </div>
 </div>
