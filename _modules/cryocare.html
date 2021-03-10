@@ -235,12 +235,14 @@
         <span class="k">return</span> <span class="n">activation</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">scipionHome</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Plugin.getEnviron"><a class="viewcode-back" href="../api/cryocare/cryocare.html#cryocare.Plugin.getEnviron">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">getEnviron</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">getEnviron</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">gpuId</span><span class="o">=</span><span class="s1">&#39;0&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Setup the environment variables needed to launch cryocare. &quot;&quot;&quot;</span>
         <span class="n">environ</span> <span class="o">=</span> <span class="n">Environ</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">)</span>
         <span class="k">if</span> <span class="s1">&#39;PYTHONPATH&#39;</span> <span class="ow">in</span> <span class="n">environ</span><span class="p">:</span>
             <span class="c1"># this is required for python virtual env to work</span>
             <span class="k">del</span> <span class="n">environ</span><span class="p">[</span><span class="s1">&#39;PYTHONPATH&#39;</span><span class="p">]</span>
+
+        <span class="n">environ</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;CUDA_VISIBLE_DEVICES&#39;</span><span class="p">:</span> <span class="n">gpuId</span><span class="p">})</span>
 
         <span class="n">cudaLib</span> <span class="o">=</span> <span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CRYOCARE_CUDA_LIB</span><span class="p">,</span> <span class="n">pwem</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">CUDA_LIB</span><span class="p">)</span>
         <span class="n">environ</span><span class="o">.</span><span class="n">addLibrary</span><span class="p">(</span><span class="n">cudaLib</span><span class="p">)</span>
@@ -255,15 +257,15 @@
 
         <span class="c1"># Create the environment</span>
         <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;conda create -y -n </span><span class="si">%s</span><span class="s1"> -c conda-forge -c anaconda python=3.6 &#39;</span> \
-                           <span class="s1">&#39;tensorflow-gpu==1.15 &#39;</span> \
-                           <span class="s1">&#39;&amp;&amp; &#39;</span> \
-                           <span class="o">%</span> <span class="n">CRYOCARE_ENV_NAME</span>
+                           <span class="s1">&#39;cudatoolkit==10.0.130 &amp;&amp; &#39;</span> <span class="o">%</span> <span class="n">CRYOCARE_ENV_NAME</span>
 
         <span class="c1"># Activate new the environment</span>
         <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;conda activate </span><span class="si">%s</span><span class="s1"> &amp;&amp; &#39;</span> <span class="o">%</span> <span class="n">CRYOCARE_ENV_NAME</span>
 
         <span class="c1"># Install non-conda required packages</span>
-        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;pip install &quot;numpy&lt;1.19.0,&gt;=1.16.0&quot;&#39;</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;pip install &quot;opt-einsum==2.3.2&quot; &#39;</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;pip install &quot;tensorflow-gpu==1.15&quot; &#39;</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;pip install &quot;numpy&lt;1.19.0,&gt;=1.16.0&quot; &#39;</span>
         <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;pip install mrcfile &amp;&amp; &#39;</span>
         <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;pip install csbdeep &amp;&amp; &#39;</span>
         <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;pip install &quot;h5py&lt;3.0.0&quot; &#39;</span>
@@ -302,12 +304,12 @@
         <span class="k">return</span> <span class="n">neededProgs</span></div>
 
 <div class="viewcode-block" id="Plugin.runCryocare"><a class="viewcode-back" href="../api/cryocare/cryocare.html#cryocare.Plugin.runCryocare">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">runCryocare</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">program</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">runCryocare</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">program</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">gpuId</span><span class="o">=</span><span class="s1">&#39;0&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Run cryoCARE command from a given protocol. &quot;&quot;&quot;</span>
         <span class="n">fullProgram</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> &amp;&amp; </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">getCondaActivationCmd</span><span class="p">(),</span>
                                        <span class="bp">cls</span><span class="o">.</span><span class="n">getCryocareEnvActivation</span><span class="p">(),</span>
                                        <span class="n">program</span><span class="p">)</span>
-        <span class="n">protocol</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="n">fullProgram</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="bp">cls</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">(),</span> <span class="n">cwd</span><span class="o">=</span><span class="n">cwd</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div></div>
+        <span class="n">protocol</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="n">fullProgram</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="bp">cls</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">(</span><span class="n">gpuId</span><span class="o">=</span><span class="n">gpuId</span><span class="p">),</span> <span class="n">cwd</span><span class="o">=</span><span class="n">cwd</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
