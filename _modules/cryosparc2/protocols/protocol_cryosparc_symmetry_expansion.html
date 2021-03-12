@@ -211,6 +211,7 @@
 <span class="kn">import</span> <span class="nn">os</span>
 
 <span class="kn">from</span> <span class="nn">pwem</span> <span class="k">import</span> <span class="n">ALIGN_PROJ</span>
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">SetOfParticles</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="k">import</span> <span class="n">ProtOperateParticles</span>
 
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
@@ -222,7 +223,7 @@
 <span class="kn">from</span> <span class="nn">.protocol_base</span> <span class="k">import</span> <span class="n">ProtCryosparcBase</span>
 <span class="kn">from</span> <span class="nn">..convert</span> <span class="k">import</span> <span class="p">(</span><span class="n">defineArgs</span><span class="p">,</span> <span class="n">convertCs2Star</span><span class="p">,</span> <span class="n">readSetOfParticles</span><span class="p">,</span>
                        <span class="n">cryosparcToLocation</span><span class="p">,</span> <span class="n">createItemMatrix</span><span class="p">,</span>
-                       <span class="n">setCryosparcAttributes</span><span class="p">)</span>
+                       <span class="n">setCryosparcAttributes</span><span class="p">,</span> <span class="n">writeSetOfParticles</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="p">(</span><span class="n">addComputeSectionParams</span><span class="p">,</span> <span class="n">calculateNewSamplingRate</span><span class="p">,</span>
                      <span class="n">cryosparcValidate</span><span class="p">,</span> <span class="n">gpusValidate</span><span class="p">,</span> <span class="n">enqueueJob</span><span class="p">,</span>
                      <span class="n">waitForCryosparc</span><span class="p">,</span> <span class="n">clearIntermediateResults</span><span class="p">,</span>
@@ -323,29 +324,16 @@
         <span class="n">parser</span> <span class="o">=</span> <span class="n">defineArgs</span><span class="p">()</span>
         <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">argsList</span><span class="p">)</span>
         <span class="n">convertCs2Star</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-
         <span class="n">imgSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getInputParticles</span><span class="p">()</span>
-
-        <span class="n">outImgSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfParticles</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setFilePattern</span><span class="p">(</span><span class="n">imgSet</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
+        <span class="n">outImgSet</span> <span class="o">=</span> <span class="n">SetOfParticles</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">())</span>
         <span class="n">outImgSet</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="n">imgSet</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_fillDataFromIter</span><span class="p">(</span><span class="n">outImgSet</span><span class="p">)</span>
+        <span class="n">readSetOfParticles</span><span class="p">(</span><span class="n">outputStarFn</span><span class="p">,</span> <span class="n">outImgSet</span><span class="p">,</span>
+                           <span class="n">alignType</span><span class="o">=</span><span class="n">imgSet</span><span class="o">.</span><span class="n">getAlignment</span><span class="p">(),</span>
+                           <span class="n">postprocessImageRow</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">updateParticlePath</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputParticles</span><span class="o">=</span><span class="n">outImgSet</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineTransformRelation</span><span class="p">(</span><span class="n">imgSet</span><span class="p">,</span> <span class="n">outImgSet</span><span class="p">)</span></div>
-
-    <span class="k">def</span> <span class="nf">_fillDataFromIter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imgSet</span><span class="p">):</span>
-        <span class="n">outImgsFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;out_particles&#39;</span><span class="p">)</span>
-        <span class="n">imgSet</span><span class="o">.</span><span class="n">setAlignmentProj</span><span class="p">()</span>
-        <span class="n">imgSet</span><span class="o">.</span><span class="n">copyItems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getInputParticles</span><span class="p">(),</span>
-                         <span class="n">updateItemCallback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_createItemMatrix</span><span class="p">,</span>
-                         <span class="n">itemDataIterator</span><span class="o">=</span><span class="n">md</span><span class="o">.</span><span class="n">iterRows</span><span class="p">(</span><span class="n">outImgsFn</span><span class="p">,</span>
-                                                      <span class="n">sortByLabel</span><span class="o">=</span><span class="n">md</span><span class="o">.</span><span class="n">RLN_IMAGE_ID</span><span class="p">))</span>
-
-    <span class="k">def</span> <span class="nf">_createItemMatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
-        <span class="n">createItemMatrix</span><span class="p">(</span><span class="n">particle</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="n">ALIGN_PROJ</span><span class="p">)</span>
-        <span class="n">setCryosparcAttributes</span><span class="p">(</span><span class="n">particle</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span>
-                               <span class="n">md</span><span class="o">.</span><span class="n">RLN_PARTICLE_RANDOM_SUBSET</span><span class="p">)</span>
-
 
     <span class="c1"># --------------------------- INFO functions -------------------------------</span>
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

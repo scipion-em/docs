@@ -263,7 +263,7 @@
 
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Training Parameters&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;psize&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span>
-                      <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>  <span class="c1"># 40: 1st element in [40, 44, 48, 52, 56, 60, 64]</span>
+                      <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>  <span class="c1"># 40: 1st element in [40, 44, 48, 52, 56, 60, 64]</span>
                       <span class="n">choices</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">65</span><span class="p">,</span> <span class="mi">4</span><span class="p">)),</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Patch size&#39;</span><span class="p">,</span>
                       <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -359,7 +359,43 @@
         <span class="n">Plugin</span><span class="o">.</span><span class="n">runDeepFinder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="n">deepfinder_args</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DeepFinderTrain.trainingStep"><a class="viewcode-back" href="../../../api/deepfinder/deepfinder.protocols.protocol_train.html#deepfinder.protocols.protocol_train.DeepFinderTrain.trainingStep">[docs]</a>    <span class="k">def</span> <span class="nf">trainingStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span></div>
+        <span class="c1"># Get tomo paths, target paths, train objl and valid objl for DeepFinder:</span>
+        <span class="n">path_tomos</span><span class="p">,</span> <span class="n">path_targets</span><span class="p">,</span> <span class="n">objl_train</span><span class="p">,</span> <span class="n">objl_valid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getDeepFinderObjectsFromInput</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tomoMasksTrain</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">tomoMasksValid</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">coord</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+
+        <span class="c1"># Save objl to extra folder:</span>
+        <span class="n">fname_objl_train</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;objl_train.xml&#39;</span><span class="p">))</span>
+        <span class="n">cv</span><span class="o">.</span><span class="n">objl_write</span><span class="p">(</span><span class="n">objl_train</span><span class="p">,</span> <span class="n">fname_objl_train</span><span class="p">)</span>
+        <span class="n">fname_objl_valid</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;objl_valid.xml&#39;</span><span class="p">))</span>
+        <span class="n">cv</span><span class="o">.</span><span class="n">objl_write</span><span class="p">(</span><span class="n">objl_valid</span><span class="p">,</span> <span class="n">fname_objl_valid</span><span class="p">)</span>
+
+        <span class="c1"># Get number of classes from objl, and store as attribute (useful for output step):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nClass</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">cv</span><span class="o">.</span><span class="n">objl_get_labels</span><span class="p">(</span><span class="n">objl_train</span><span class="p">))</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># (+1 for background class)</span>
+
+        <span class="c1"># Save parameters to xml file:</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">ParamsTrain</span><span class="p">()</span>
+
+        <span class="n">params</span><span class="o">.</span><span class="n">path_out</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">path_tomo</span> <span class="o">=</span> <span class="n">path_tomos</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">path_target</span> <span class="o">=</span> <span class="n">path_targets</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">path_objl_train</span> <span class="o">=</span> <span class="n">fname_objl_train</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">path_objl_valid</span> <span class="o">=</span> <span class="n">fname_objl_valid</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">Ncl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nClass</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">psize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decodeContValue</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;psize&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">bsize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bsize</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">nepochs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">epochs</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">steps_per_e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stepsPerE</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">steps_per_v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stepsPerV</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">flag_direct_read</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># in current deepfinder version only works with tomos/targets stored as h5</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">flag_bootstrap</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bootstrap</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">rnd_shift</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rndShift</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+        <span class="n">fname_params</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;params_train.xml&#39;</span><span class="p">))</span>
+        <span class="n">params</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fname_params</span><span class="p">)</span>
+
+        <span class="c1"># Launch DeepFinder training:</span>
+        <span class="n">deepfinder_args</span> <span class="o">=</span> <span class="s1">&#39;-p &#39;</span> <span class="o">+</span> <span class="n">fname_params</span>
+        <span class="n">Plugin</span><span class="o">.</span><span class="n">runDeepFinder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;train&#39;</span><span class="p">,</span> <span class="n">deepfinder_args</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DeepFinderTrain.createOutputStep"><a class="viewcode-back" href="../../../api/deepfinder/deepfinder.protocols.protocol_train.html#deepfinder.protocols.protocol_train.DeepFinderTrain.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">netWeights</span> <span class="o">=</span> <span class="n">DeepFinderNet</span><span class="p">()</span>
@@ -374,7 +410,6 @@
         <span class="sd">&quot;&quot;&quot;Decode the psize value and represent it as expected by DeepFinder&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">PSIZE_CHOICES</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
 
-    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_getDeepFinderObjectsFromInput</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tomoMaskSetTrain</span><span class="p">,</span> <span class="n">tomoMaskSetValid</span><span class="p">,</span> <span class="n">coord3DSet</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get all objects of specified class.</span>
 <span class="sd">        Args:</span>
@@ -388,7 +423,7 @@
 <span class="sd">            list of dict : objl_valid</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Join the tomoMaskSets. 1st valid, then train. Order is important!</span>
-        <span class="n">tomoMaskSetAll</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_joinSetsOfTomoMasks</span><span class="p">(</span><span class="n">tomoMaskSetValid</span><span class="p">,</span> <span class="n">tomoMaskSetTrain</span><span class="p">)</span>
+        <span class="n">tomoMaskSetAll</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_joinSetsOfTomoMasks</span><span class="p">(</span><span class="n">tomoMaskSetValid</span><span class="p">,</span> <span class="n">tomoMaskSetTrain</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPath</span><span class="p">())</span>
 
         <span class="c1"># Get the file paths for tomos and targets (=tomoMasks)</span>
         <span class="n">path_tomos</span><span class="p">,</span> <span class="n">path_targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPathListsFromTomoMaskSet</span><span class="p">(</span><span class="n">tomoMaskSetAll</span><span class="p">)</span>
@@ -397,24 +432,24 @@
         <span class="n">objl_all</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getObjlFromInputCoordinatesV2</span><span class="p">(</span><span class="n">tomoMaskSetAll</span><span class="p">,</span> <span class="n">coord3DSet</span><span class="p">)</span>
 
         <span class="c1"># Separate objl into objl_valid and objl_train:</span>
-        <span class="n">Nvalid</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tomoMaskSetValid</span><span class="o">.</span><span class="n">getPrecedents</span><span class="p">())</span>
-        <span class="n">Ntrain</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tomoMaskSetTrain</span><span class="o">.</span><span class="n">getPrecedents</span><span class="p">())</span>
+        <span class="n">Nvalid</span> <span class="o">=</span> <span class="n">tomoMaskSetValid</span><span class="o">.</span><span class="fm">__len__</span><span class="p">()</span>
+        <span class="n">Ntrain</span> <span class="o">=</span> <span class="n">tomoMaskSetTrain</span><span class="o">.</span><span class="fm">__len__</span><span class="p">()</span>
 
         <span class="n">tidx_list_valid</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">Nvalid</span><span class="p">))</span>
         <span class="n">tidx_list_train</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">Nvalid</span><span class="p">,</span> <span class="n">Nvalid</span><span class="o">+</span><span class="n">Ntrain</span><span class="p">))</span>
 
         <span class="n">objl_valid</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">tidx</span> <span class="ow">in</span> <span class="n">tidx_list_valid</span><span class="p">:</span>
-            <span class="n">objl_valid</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cv</span><span class="o">.</span><span class="n">objl_get_tomo</span><span class="p">(</span><span class="n">objl_all</span><span class="p">,</span> <span class="n">tidx</span><span class="p">))</span>
+            <span class="n">objl_valid</span> <span class="o">=</span> <span class="n">objl_valid</span> <span class="o">+</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_get_tomo</span><span class="p">(</span><span class="n">objl_all</span><span class="p">,</span> <span class="n">tidx</span><span class="p">)</span>
 
         <span class="n">objl_train</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">tidx</span> <span class="ow">in</span> <span class="n">tidx_list_train</span><span class="p">:</span>
-            <span class="n">objl_train</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cv</span><span class="o">.</span><span class="n">objl_get_tomo</span><span class="p">(</span><span class="n">objl_all</span><span class="p">,</span> <span class="n">tidx</span><span class="p">))</span>
+            <span class="n">objl_train</span> <span class="o">=</span> <span class="n">objl_train</span> <span class="o">+</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_get_tomo</span><span class="p">(</span><span class="n">objl_all</span><span class="p">,</span> <span class="n">tidx</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">path_tomos</span><span class="p">,</span> <span class="n">path_targets</span><span class="p">,</span> <span class="n">objl_train</span><span class="p">,</span> <span class="n">objl_valid</span>
 
     <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_joinSetsOfTomoMasks</span><span class="p">(</span><span class="n">tomoMaskSet1</span><span class="p">,</span> <span class="n">tomoMaskSet2</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_joinSetsOfTomoMasks</span><span class="p">(</span><span class="n">tomoMaskSet1</span><span class="p">,</span> <span class="n">tomoMaskSet2</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Joins two tomoMaskSets.</span>
 <span class="sd">        Args:</span>
 <span class="sd">            tomoMaskSet1 (SetOfTomoMasks)</span>
@@ -422,7 +457,10 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            SetOfTomoMasks</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">tomoMaskSet</span> <span class="o">=</span> <span class="n">SetOfTomoMasks</span>
+        <span class="c1">#tomoMaskSet = SetOfTomoMasks()</span>
+        <span class="n">tomoMaskSet</span> <span class="o">=</span> <span class="n">SetOfTomoMasks</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="s1">&#39;setOfTomoMasks</span><span class="si">%s</span><span class="s1">.sqlite&#39;</span><span class="p">)</span>
+        <span class="n">tomoMaskSet</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="n">tomoMaskSet1</span><span class="p">)</span>
+        <span class="n">tomoMaskSet</span><span class="o">.</span><span class="n">setName</span><span class="p">(</span><span class="s1">&#39;target set&#39;</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">tomoMask</span> <span class="ow">in</span> <span class="n">tomoMaskSet1</span><span class="p">:</span>
             <span class="n">tomoMaskSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tomoMask</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">tomoMask</span> <span class="ow">in</span> <span class="n">tomoMaskSet2</span><span class="p">:</span>
