@@ -184,8 +184,10 @@
 <span></span><span class="c1"># ******************************************************************************</span>
 <span class="c1"># *</span>
 <span class="c1"># * Authors:     J.M. De la Rosa Trevin (delarosatrevin@scilifelab.se) [1]</span>
+<span class="c1"># * Authors:     Grigory Sharov     (gsharov@mrc-lmb.cam.ac.uk) [2]</span>
 <span class="c1"># *</span>
 <span class="c1"># * [1] SciLifeLab, Stockholm University</span>
+<span class="c1"># * [2] MRC Laboratory of Molecular Biology, MRC-LMB</span>
 <span class="c1"># *</span>
 <span class="c1"># * This program is free software; you can redistribute it and/or modify</span>
 <span class="c1"># * it under the terms of the GNU General Public License as published by</span>
@@ -227,30 +229,29 @@
 
 
 <div class="viewcode-block" id="ProtRelionMotioncor"><a class="viewcode-back" href="../../../api/relion/relion.protocols.protocol_motioncor.html#relion.protocols.protocol_motioncor.ProtRelionMotioncor">[docs]</a><span class="k">class</span> <span class="nc">ProtRelionMotioncor</span><span class="p">(</span><span class="n">ProtAlignMovies</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Wrapper for the Relion&#39;s implementation of motioncor algorithm.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Wrapper for the Relion&#39;s implementation of motioncor algorithm. &quot;&quot;&quot;</span>
 
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;motion correction&#39;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-
         <span class="n">ProtAlignMovies</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stepsExecutionMode</span> <span class="o">=</span> <span class="n">STEPS_SERIAL</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">updatedSets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isEER</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="k">def</span> <span class="nf">_getConvertExtension</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Check whether it is needed to convert to .mrc or not &quot;&quot;&quot;</span>
         <span class="n">ext</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">getExt</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.mrc&#39;</span><span class="p">,</span> <span class="s1">&#39;.mrcs&#39;</span><span class="p">,</span> <span class="s1">&#39;.tiff&#39;</span><span class="p">,</span> <span class="s1">&#39;.tif&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;mrc&#39;</span>
+        <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.mrc&#39;</span><span class="p">,</span> <span class="s1">&#39;.mrcs&#39;</span><span class="p">,</span> <span class="s1">&#39;.tiff&#39;</span><span class="p">,</span> <span class="s1">&#39;.tif&#39;</span><span class="p">,</span> <span class="s1">&#39;.eer&#39;</span><span class="p">,</span> <span class="s1">&#39;.gain&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;mrc&#39;</span>
 
     <span class="c1"># -------------------------- DEFINE param functions -----------------------</span>
     <span class="k">def</span> <span class="nf">_defineAlignmentParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
-
         <span class="n">line</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="s1">&#39;Frames for corrected SUM&#39;</span><span class="p">,</span>
                             <span class="n">help</span><span class="o">=</span><span class="s1">&#39;First and last frames to use in corrected &#39;</span>
                                  <span class="s1">&#39;average (starts counting at 1 and 0 as last &#39;</span>
-                                 <span class="s1">&#39;means util the last frame in the movie). &#39;</span><span class="p">)</span>
+                                 <span class="s1">&#39;means until the last frame in the movie). &#39;</span>
+                                 <span class="s1">&#39;When using EER, the frames are not hardware &#39;</span>
+                                 <span class="s1">&#39;frames, but fractions.&#39;</span><span class="p">)</span>
         <span class="n">line</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;sumFrame0&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;from&#39;</span><span class="p">)</span>
         <span class="n">line</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;sumFrameN&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
@@ -259,10 +260,7 @@
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;doDW&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Do dose-weighting?&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;If set to Yes, the averaged micrographs will be &#39;</span>
-                           <span class="s1">&#39;dose-weighted. </span><span class="se">\n\n</span><span class="s1">&#39;</span>
-                           <span class="s1">&#39;NOTE: In Scipion the Voltage and and Dose &#39;</span>
-                           <span class="s1">&#39;information is provided during import, so you &#39;</span>
-                           <span class="s1">&#39;do not need to provide them anymore. &#39;</span><span class="p">)</span>
+                           <span class="s1">&#39;dose-weighted.&#39;</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;saveNonDW&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                       <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;doDW&#39;</span><span class="p">,</span>
@@ -273,40 +271,35 @@
                            <span class="s1">&#39;the choice, CTF refinement job is always done on &#39;</span>
                            <span class="s1">&#39;dose-weighted particles.&#39;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">IS_GT30</span><span class="p">():</span>
-            <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;savePSsum&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                          <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Save sum of power spectra?&#39;</span><span class="p">,</span>
-                          <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Sum of non-dose weighted power spectra &#39;</span>
-                               <span class="s1">&#39;provides better signal for CTF estimation. &#39;</span>
-                               <span class="s1">&#39;The power spectra can be used by CTFFIND4 &#39;</span>
-                               <span class="s1">&#39;but not by GCTF.&#39;</span><span class="p">)</span>
-            <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;dosePSsum&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
-                          <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;savePSsum&#39;</span><span class="p">,</span>
-                          <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Sum power spectra every e/A2&#39;</span><span class="p">,</span>
-                          <span class="n">help</span><span class="o">=</span><span class="s1">&#39;McMullan et al. (Ultramicroscopy, 2015) &#39;</span>
-                               <span class="s1">&#39;suggests summing power spectra every &#39;</span>
-                               <span class="s1">&#39;4.0 e/A2 gives optimal Thon rings.&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;savePSsum&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Save sum of power spectra?&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Sum of non-dose weighted power spectra &#39;</span>
+                           <span class="s1">&#39;provides better signal for CTF estimation. &#39;</span>
+                           <span class="s1">&#39;The power spectra can be used by CTFFIND4 &#39;</span>
+                           <span class="s1">&#39;but not by GCTF.&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;dosePSsum&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;savePSsum&#39;</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Sum power spectra every e/A2&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;McMullan et al. (Ultramicroscopy, 2015) &#39;</span>
+                           <span class="s1">&#39;suggests summing power spectra every &#39;</span>
+                           <span class="s1">&#39;4.0 e/A2 gives optimal Thon rings.&#39;</span><span class="p">)</span>
+
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;doComputePSD&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Compute PSD?&quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If Yes, the protocol will compute for each &quot;</span>
+                           <span class="s2">&quot;aligned micrograph the PSD using EMAN2.&quot;</span><span class="p">)</span>
+
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;doComputeMicThumbnail&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span>
+                      <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Compute micrograph thumbnail?&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;When using this option, we will compute a &#39;</span>
+                           <span class="s1">&#39;micrograph thumbnail with EMAN2 and keep it with the &#39;</span>
+                           <span class="s1">&#39;micrograph object for visualization purposes.&#39;</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;extraParams&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">StringParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
                       <span class="n">expertLevel</span><span class="o">=</span><span class="n">cons</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Additional parameters&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Extra parameters for Relion motion correction. &quot;</span><span class="p">)</span>
-
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;doComputePSD&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">cons</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Compute PSD (before/after)?&quot;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;If Yes, the protocol will compute for each movie &quot;</span>
-                           <span class="s2">&quot;the average PSD before and after alignment, &quot;</span>
-                           <span class="s2">&quot;for comparison&quot;</span><span class="p">)</span>
-
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;doComputeMicThumbnail&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span>
-                      <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">cons</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Compute micrograph thumbnail?&#39;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;When using this option, we will compute a &#39;</span>
-                           <span class="s1">&#39;micrograph thumbnail and keep it with the &#39;</span>
-                           <span class="s1">&#39;micrograph object for visualization purposes.</span><span class="se">\n\n</span><span class="s1">&#39;</span>
-                           <span class="s1">&#39;*IMPORTANT: this requires EMAN2 plugin and binaries.*&#39;</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="s2">&quot;Motion&quot;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;bfactor&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
@@ -329,7 +322,7 @@
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;binFactor&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Binning factor&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Bin the micrographs this much by a windowing &#39;</span>
-                           <span class="s1">&#39;operation in the Fourier Tranform. Binning at &#39;</span>
+                           <span class="s1">&#39;operation in the Fourier Transform. Binning at &#39;</span>
                            <span class="s1">&#39;this level is hard to un-do later on, but may be &#39;</span>
                            <span class="s1">&#39;useful to down-scale super-resolution images. &#39;</span>
                            <span class="s1">&#39;Float-values may be used. Do make sure though &#39;</span>
@@ -379,6 +372,23 @@
                            <span class="s1">&#39;Leave empty if you do not have any defects, &#39;</span>
                            <span class="s1">&#39;or do not want to correct for defects on your detector.&#39;</span><span class="p">)</span>
 
+        <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="s2">&quot;EER&quot;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;eerGroup&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;EER fractionation&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The number of hardware frames to group into one &quot;</span>
+                           <span class="s2">&quot;fraction. This option is relevant only for Falcon4 &quot;</span>
+                           <span class="s2">&quot;movies in the EER format. Falcon 4 operates at &quot;</span>
+                           <span class="s2">&quot;248 frames/s.</span><span class="se">\n</span><span class="s2">Fractionate such that each fraction &quot;</span>
+                           <span class="s2">&quot;has about 0.5 to 1.25 e/A2.&quot;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;eerSampling&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">cons</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                      <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">],</span>
+                      <span class="n">display</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="o">.</span><span class="n">DISPLAY_HLIST</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;EER upsampling&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;EER upsampling (1 = 4K or 2 = 8K). 8K rendering is not &quot;</span>
+                           <span class="s2">&quot;recommended by Relion. See &quot;</span>
+                           <span class="s2">&quot;https://relion.readthedocs.io/en/latest/Reference/MovieCompression.html&quot;</span><span class="p">)</span>
+
         <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="c1"># --------------------------- STEPS functions -------------------------------</span>
@@ -406,8 +416,7 @@
         <span class="c1"># the input files relative to that</span>
         <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot;--i </span><span class="si">%s</span><span class="s2"> --o output/ &quot;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">inputStar</span><span class="p">)</span>
         <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--use_own &quot;</span>
-        <span class="n">f0</span><span class="p">,</span> <span class="n">fN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getRange</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
-        <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--first_frame_sum </span><span class="si">%d</span><span class="s2"> --last_frame_sum </span><span class="si">%d</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f0</span><span class="p">,</span> <span class="n">fN</span><span class="p">)</span>
+        <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--first_frame_sum </span><span class="si">%d</span><span class="s2"> --last_frame_sum </span><span class="si">%d</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getFrameRange</span><span class="p">())</span>
         <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--bin_factor </span><span class="si">%f</span><span class="s2"> --bfactor </span><span class="si">%d</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">binFactor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">bfactor</span><span class="p">)</span>
         <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--angpix </span><span class="si">%0.5f</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">movie</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
         <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--patch_x </span><span class="si">%d</span><span class="s2"> --patch_y </span><span class="si">%d</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">patchX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">patchY</span><span class="p">)</span>
@@ -420,32 +429,38 @@
             <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --gain_rot </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">gainRot</span>
             <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --gain_flip </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">gainFlip</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">IS_GT30</span><span class="p">():</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">defectFile</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-                <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --defect_file &quot;</span><span class="si">%s</span><span class="s1">&quot; &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">defectFile</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">defectFile</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --defect_file &quot;</span><span class="si">%s</span><span class="s1">&quot; &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">defectFile</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_savePsSum</span><span class="p">():</span>
-                <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --grouping_for_ps </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calcPsDose</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_savePsSum</span><span class="p">():</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --grouping_for_ps </span><span class="si">%d</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calcPsDose</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doDW</span><span class="p">:</span>
             <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--dose_weighting &quot;</span>
-            <span class="n">preExp</span><span class="p">,</span> <span class="n">dose</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getCorrectedDose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+            <span class="n">preExp</span><span class="p">,</span> <span class="n">dose</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getCorrectedDose</span><span class="p">(</span><span class="n">inputMovies</span><span class="p">)</span>
+            <span class="c1"># when using EER, the hardware frames are grouped</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isEER</span><span class="p">:</span>
+                <span class="n">dose</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eerGroup</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
             <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--dose_per_frame </span><span class="si">%f</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="n">dose</span>
             <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--preexposure </span><span class="si">%f</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="n">preExp</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">saveNonDW</span><span class="p">:</span>
                 <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; --save_noDW &quot;</span>
 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isEER</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; --eer_grouping </span><span class="si">%d</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">eerGroup</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; --eer_upsampling </span><span class="si">%d</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eerSampling</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">extraParams</span><span class="o">.</span><span class="n">hasValue</span><span class="p">():</span>
             <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">extraParams</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getProgram</span><span class="p">(),</span> <span class="n">args</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">movieFolder</span><span class="p">)</span>
-
+            <span class="bp">self</span><span class="o">.</span><span class="n">_saveAlignmentPlots</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="n">inputMovies</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_computeExtra</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_moveFiles</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR: processing movie: &quot;</span><span class="p">,</span> <span class="n">movie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR processing movie: &quot;</span><span class="p">,</span> <span class="n">movie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
 
     <span class="c1"># --------------------------- INFO functions ------------------------------</span>
     <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -456,26 +471,60 @@
         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;Zivanov2019&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Check base validation before the specific ones for Motioncor</span>
-        <span class="n">errors</span> <span class="o">=</span> <span class="n">ProtAlignMovies</span><span class="o">.</span><span class="n">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">inputMovies</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">relion</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getActiveVersion</span><span class="p">():</span>
-            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Could not detect the current Relion version. </span><span class="se">\n</span><span class="s2">&quot;</span>
-                          <span class="s2">&quot;RELION_HOME=&#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">relion</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getHome</span><span class="p">())</span>
+        <span class="c1"># check if the first movie exists</span>
+        <span class="n">firstMovie</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">firstMovie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()):</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The input movie files do not exist!!! &quot;</span>
+                          <span class="s2">&quot;Since usually input movie files are symbolic links, &quot;</span>
+                          <span class="s2">&quot;please check that links are not broken if you &quot;</span>
+                          <span class="s2">&quot;moved the project folder. &quot;</span><span class="p">)</span>
 
-        <span class="n">acq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getAcquisition</span><span class="p">()</span>
+        <span class="c1"># check frames range</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">lastFrame</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">inputMovies</span><span class="o">.</span><span class="n">getFramesRange</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isEER</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">getExt</span><span class="p">(</span><span class="n">firstMovie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span> <span class="o">==</span> <span class="s2">&quot;.eer&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isEER</span><span class="p">:</span>
+            <span class="n">lastFrame</span> <span class="o">//=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eerGroup</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Frames range to sum must be within </span><span class="si">%d</span><span class="s2"> - </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">lastFrame</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sumFrameN</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sumFrameN</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">lastFrame</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="mi">1</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sumFrame0</span> <span class="o">&lt;</span> <span class="n">lastFrame</span><span class="p">):</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sumFrameN</span> <span class="o">&lt;=</span> <span class="n">lastFrame</span><span class="p">):</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sumFrame0</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">sumFrameN</span><span class="p">):</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># check dose for DW</span>
+        <span class="n">acq</span> <span class="o">=</span> <span class="n">inputMovies</span><span class="o">.</span><span class="n">getAcquisition</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doDW</span><span class="p">:</span>
             <span class="n">dose</span> <span class="o">=</span> <span class="n">acq</span><span class="o">.</span><span class="n">getDosePerFrame</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">dose</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">dose</span> <span class="o">&lt;</span> <span class="mf">0.001</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">dose</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">dose</span> <span class="o">&lt;</span> <span class="mf">0.00001</span><span class="p">:</span>
                 <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Input movies do not contain the dose per frame, &quot;</span>
-                              <span class="s2">&quot;dose-weighting can not be performed. &quot;</span><span class="p">)</span>
+                              <span class="s2">&quot;dose-weighting can not be performed.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># check grouping in EER case</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isEER</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">groupFrames</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;*Group frames* option should be set to 1 when processing &quot;</span>
+                          <span class="s2">&quot;EER movies. Please use *EER fractionation* option &quot;</span>
+                          <span class="s2">&quot;instead.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># check eman2 plugin</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doComputeMicThumbnail</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">doComputePSD</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="kn">from</span> <span class="nn">pwem</span> <span class="k">import</span> <span class="n">Domain</span>
+                <span class="n">eman2</span> <span class="o">=</span> <span class="n">Domain</span><span class="o">.</span><span class="n">importFromPlugin</span><span class="p">(</span><span class="s1">&#39;eman2&#39;</span><span class="p">,</span> <span class="n">doRaise</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;EMAN2 plugin not found!</span><span class="se">\n</span><span class="s2">Computing thumbnails &quot;</span>
+                              <span class="s2">&quot;or PSD requires EMAN2 plugin and binaries installed.&quot;</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">errors</span>
 
     <span class="c1"># ------------------------ Extra BASE functions ---------------------------</span>
-    <span class="k">def</span> <span class="nf">_getRelPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">baseName</span><span class="p">,</span> <span class="n">refPath</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">baseName</span><span class="p">),</span> <span class="n">refPath</span><span class="p">)</span>
-
     <span class="k">def</span> <span class="nf">_getNameExt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">,</span> <span class="n">postFix</span><span class="p">,</span> <span class="n">ext</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMovieRoot</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span> <span class="o">+</span> <span class="n">postFix</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">ext</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span> <span class="k">if</span> <span class="n">extra</span> <span class="k">else</span> <span class="n">fn</span>
@@ -504,8 +553,7 @@
         <span class="sd">&quot;&quot;&quot; Parse motion values from the &#39;corrected_micrographs.star&#39; file</span>
 <span class="sd">        generated for each movie. &quot;&quot;&quot;</span>
         <span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMovieExtraFn</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="s1">&#39;corrected_micrographs.star&#39;</span><span class="p">)</span>
-        <span class="n">micsTableName</span> <span class="o">=</span> <span class="s1">&#39;micrographs&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">IS_GT30</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
-        <span class="n">table</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">fileName</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span> <span class="n">tableName</span><span class="o">=</span><span class="n">micsTableName</span><span class="p">)</span>
+        <span class="n">table</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">fileName</span><span class="o">=</span><span class="n">fn</span><span class="p">,</span> <span class="n">tableName</span><span class="o">=</span><span class="s1">&#39;micrographs&#39;</span><span class="p">)</span>
         <span class="n">row</span> <span class="o">=</span> <span class="n">table</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">mic</span><span class="o">.</span><span class="n">_rlnAccumMotionTotal</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">rlnAccumMotionTotal</span><span class="p">)</span>
         <span class="n">mic</span><span class="o">.</span><span class="n">_rlnAccumMotionEarly</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">rlnAccumMotionEarly</span><span class="p">)</span>
@@ -513,7 +561,7 @@
 
     <span class="k">def</span> <span class="nf">_getMovieShifts</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">,</span> <span class="n">outStarFn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">outStar</span> <span class="o">=</span> <span class="n">outStarFn</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMovieExtraFn</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="s1">&#39;.star&#39;</span><span class="p">)</span>
-        <span class="n">first</span><span class="p">,</span> <span class="n">last</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getRange</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
+        <span class="n">first</span><span class="p">,</span> <span class="n">last</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFrameRange</span><span class="p">()</span>
         <span class="n">n</span> <span class="o">=</span> <span class="n">last</span> <span class="o">-</span> <span class="n">first</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="n">table</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">Table</span><span class="p">(</span><span class="n">fileName</span><span class="o">=</span><span class="n">outStar</span><span class="p">,</span> <span class="n">tableName</span><span class="o">=</span><span class="s1">&#39;global_shift&#39;</span><span class="p">)</span>
         <span class="n">xShifts</span><span class="p">,</span> <span class="n">yShifts</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
@@ -526,6 +574,12 @@
                 <span class="k">break</span>
 
         <span class="k">return</span> <span class="n">xShifts</span><span class="p">,</span> <span class="n">yShifts</span>
+
+    <span class="k">def</span> <span class="nf">_getBinFactor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isEER</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">binFactor</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">binFactor</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eerSampling</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
 
     <span class="c1"># --------------------------- UTILS functions -----------------------------</span>
     <span class="k">def</span> <span class="nf">_getProgram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">program</span><span class="o">=</span><span class="s1">&#39;relion_run_motioncorr&#39;</span><span class="p">):</span>
@@ -546,50 +600,42 @@
         <span class="n">movieBase</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">movie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">movieBase</span><span class="p">,</span> <span class="n">suffix</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">_getAbsPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">baseName</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">baseName</span><span class="p">))</span>
-
     <span class="k">def</span> <span class="nf">_getPlotGlobal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getNameExt</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="s1">&#39;_global_shifts&#39;</span><span class="p">,</span> <span class="s1">&#39;png&#39;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_getPsdCorr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getNameExt</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="s1">&#39;_psd_comparison&#39;</span><span class="p">,</span> <span class="s1">&#39;psd&#39;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_getPsdJpeg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getNameExt</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="s1">&#39;_psd&#39;</span><span class="p">,</span> <span class="s1">&#39;jpeg&#39;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getNameExt</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="s1">&#39;_psd&#39;</span><span class="p">,</span> <span class="s1">&#39;png&#39;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_setPlotInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">,</span> <span class="n">mic</span><span class="p">):</span>
         <span class="n">mic</span><span class="o">.</span><span class="n">plotGlobal</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPlotGlobal</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doComputePSD</span><span class="p">:</span>
             <span class="n">mic</span><span class="o">.</span><span class="n">psdCorr</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPsdCorr</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
-            <span class="n">mic</span><span class="o">.</span><span class="n">psdJpeg</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPsdJpeg</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doComputeMicThumbnail</span><span class="p">:</span>
-            <span class="n">mic</span><span class="o">.</span><span class="n">thumbnail</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span>
-                <span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicThumbnail</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
+            <span class="n">mic</span><span class="o">.</span><span class="n">thumbnail</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicThumbnail</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">_computeExtra</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Compute thumbnail, PSD and plots. &quot;&quot;&quot;</span>
-        <span class="n">inputMovies</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="n">movieFolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMovieFolder</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot; Compute thumbnail and PSD. &quot;&quot;&quot;</span>
         <span class="n">outMicFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMovieOutFn</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="s1">&#39;.mrc&#39;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doComputeMicThumbnail</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">computeThumbnail</span><span class="p">(</span><span class="n">outMicFn</span><span class="p">,</span>
                                   <span class="n">outputFn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicThumbnail</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
-
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doComputePSD</span><span class="p">:</span>
-            <span class="n">movieFn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">movieFolder</span><span class="p">,</span> <span class="n">movie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
-            <span class="n">aveMicFn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">movieFolder</span><span class="p">,</span>
-                                    <span class="n">pwutils</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">movieFn</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_tmp.mrc&quot;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">averageMovie</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="n">movieFn</span><span class="p">,</span> <span class="n">aveMicFn</span><span class="p">,</span>
-                              <span class="n">binFactor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">binFactor</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-                              <span class="n">dark</span><span class="o">=</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">getDark</span><span class="p">(),</span>
-                              <span class="n">gain</span><span class="o">=</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">getGain</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_computePSD</span><span class="p">(</span><span class="n">outMicFn</span><span class="p">,</span> <span class="n">outputFn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPsdCorr</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">computePSDImages</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="n">aveMicFn</span><span class="p">,</span> <span class="n">outMicFn</span><span class="p">,</span>
-                                  <span class="n">outputFnCorrected</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPsdJpeg</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
+    <span class="k">def</span> <span class="nf">_computePSD</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputFn</span><span class="p">,</span> <span class="n">outputFn</span><span class="p">,</span> <span class="n">scaleFactor</span><span class="o">=</span><span class="mi">6</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Generate a thumbnail of the PSD with EMAN2&quot;&quot;&quot;</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">inputFn</span><span class="p">,</span> <span class="n">outputFn</span><span class="p">)</span>
+        <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--process=math.realtofft --meanshrink </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="n">scaleFactor</span>
+        <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--fixintscaling=sane&quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_saveAlignmentPlots</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="n">inputMovies</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
+        <span class="kn">from</span> <span class="nn">pwem</span> <span class="k">import</span> <span class="n">Domain</span>
+        <span class="n">eman2</span> <span class="o">=</span> <span class="n">Domain</span><span class="o">.</span><span class="n">importFromPlugin</span><span class="p">(</span><span class="s1">&#39;eman2&#39;</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">pyworkflow.utils.process</span> <span class="k">import</span> <span class="n">runJob</span>
+        <span class="n">runJob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="p">,</span> <span class="n">eman2</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getProgram</span><span class="p">(</span><span class="s1">&#39;e2proc2d.py&#39;</span><span class="p">),</span> <span class="n">args</span><span class="p">,</span>
+               <span class="n">env</span><span class="o">=</span><span class="n">eman2</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="n">outputFn</span>
 
     <span class="k">def</span> <span class="nf">_moveFiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
         <span class="c1"># It really annoying that Relion default names changes if you use DW or not</span>
@@ -617,30 +663,10 @@
         <span class="n">fn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMovieFolder</span><span class="p">(</span><span class="n">movie</span><span class="p">),</span> <span class="s1">&#39;output&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span>
         <span class="n">pwutils</span><span class="o">.</span><span class="n">moveFile</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMovieExtraFn</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="n">suffix</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">_getRange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
-        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getNumberOfFrames</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
-        <span class="n">iniFrame</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">indxFrame</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">getFramesRange</span><span class="p">()</span>
-        <span class="n">first</span><span class="p">,</span> <span class="n">last</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFrameRange</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">iniFrame</span> <span class="o">!=</span> <span class="n">indxFrame</span><span class="p">:</span>
-            <span class="n">first</span> <span class="o">-=</span> <span class="n">iniFrame</span>
-            <span class="n">last</span> <span class="o">-=</span> <span class="n">iniFrame</span>
-
-        <span class="k">return</span> <span class="n">first</span><span class="p">,</span> <span class="n">last</span>
-
-    <span class="k">def</span> <span class="nf">_getNumberOfFrames</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
-        <span class="n">_</span><span class="p">,</span> <span class="n">lstFrame</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">getFramesRange</span><span class="p">()</span>
-
-        <span class="k">if</span> <span class="n">movie</span><span class="o">.</span><span class="n">hasAlignment</span><span class="p">():</span>
-            <span class="n">_</span><span class="p">,</span> <span class="n">lastFrmAligned</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">getAlignment</span><span class="p">()</span><span class="o">.</span><span class="n">getRange</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">lastFrmAligned</span> <span class="o">!=</span> <span class="n">lstFrame</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">lastFrmAligned</span>
-        <span class="k">return</span> <span class="n">movie</span><span class="o">.</span><span class="n">getNumberOfFrames</span><span class="p">()</span>
-
     <span class="k">def</span> <span class="nf">_saveAlignmentPlots</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">,</span> <span class="n">pixSize</span><span class="p">):</span>
         <span class="c1"># Create plots and save as an image</span>
         <span class="n">shiftsX</span><span class="p">,</span> <span class="n">shiftsY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMovieShifts</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMovieOutFn</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="s1">&#39;.star&#39;</span><span class="p">))</span>
-        <span class="n">first</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFrameRange</span><span class="p">(</span><span class="n">movie</span><span class="o">.</span><span class="n">getNumberOfFrames</span><span class="p">(),</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span>
+        <span class="n">first</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFrameRange</span><span class="p">()</span>
         <span class="n">plotter</span> <span class="o">=</span> <span class="n">createGlobalAlignmentPlot</span><span class="p">(</span><span class="n">shiftsX</span><span class="p">,</span> <span class="n">shiftsY</span><span class="p">,</span> <span class="n">first</span><span class="p">,</span> <span class="n">pixSize</span><span class="p">)</span>
         <span class="n">plotter</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPlotGlobal</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
         <span class="n">plotter</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -691,9 +717,15 @@
                          <span class="n">state</span><span class="o">=</span><span class="n">pwobj</span><span class="o">.</span><span class="n">Set</span><span class="o">.</span><span class="n">STREAM_OPEN</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Redefine this method to update optics info. &quot;&quot;&quot;</span>
 
+        <span class="n">ogDict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;rlnMicrographOriginalPixelSize&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()}</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isEER</span><span class="p">:</span>
+            <span class="n">ogDict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;rlnEERUpsampling&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">eerSampling</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+                           <span class="s1">&#39;rlnEERGrouping&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">eerGroup</span><span class="o">.</span><span class="n">get</span><span class="p">()})</span>
+
         <span class="k">if</span> <span class="n">outputName</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">updatedSets</span><span class="p">:</span>
             <span class="n">og</span> <span class="o">=</span> <span class="n">OpticsGroups</span><span class="o">.</span><span class="n">fromImages</span><span class="p">(</span><span class="n">outputSet</span><span class="p">)</span>
-            <span class="n">og</span><span class="o">.</span><span class="n">updateAll</span><span class="p">(</span><span class="n">rlnMicrographOriginalPixelSize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
+            <span class="n">og</span><span class="o">.</span><span class="n">updateAll</span><span class="p">(</span><span class="o">**</span><span class="n">ogDict</span><span class="p">)</span>
             <span class="n">og</span><span class="o">.</span><span class="n">toImages</span><span class="p">(</span><span class="n">outputSet</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">updatedSets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outputName</span><span class="p">)</span>
 
@@ -702,6 +734,9 @@
 
     <span class="k">def</span> <span class="nf">_calcPsDose</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">_</span><span class="p">,</span> <span class="n">dose</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getCorrectedDose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="c1"># when using EER, the hardware frames are grouped</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isEER</span><span class="p">:</span>
+            <span class="n">dose</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">eerGroup</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="n">dose_for_ps</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dosePSsum</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">/</span> <span class="n">dose</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">dose_for_ps</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">dose_for_ps</span>
@@ -726,13 +761,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMovieRoot</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_aligned_mic_PS.mrc&#39;</span>
 
-    <span class="k">def</span> <span class="nf">_getFrameRange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">prefix</span><span class="p">):</span>
-        <span class="c1"># Reimplement this method to ignore prefix (called from base class)</span>
-        <span class="c1"># and always use &#39;sum&#39; as prefix</span>
-        <span class="k">return</span> <span class="n">ProtAlignMovies</span><span class="o">.</span><span class="n">_getFrameRange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span>
-
-<div class="viewcode-block" id="ProtRelionMotioncor.IS_GT30"><a class="viewcode-back" href="../../../api/relion/relion.protocols.protocol_motioncor.html#relion.protocols.protocol_motioncor.ProtRelionMotioncor.IS_GT30">[docs]</a>    <span class="k">def</span> <span class="nf">IS_GT30</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">relion</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">IS_GT30</span><span class="p">()</span></div></div>
+    <span class="k">def</span> <span class="nf">_getFrameRange</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># Reimplement this method</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">sumFrame0</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">sumFrameN</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
 
 
 <div class="viewcode-block" id="createGlobalAlignmentPlot"><a class="viewcode-back" href="../../../api/relion/relion.protocols.protocol_motioncor.html#relion.protocols.protocol_motioncor.createGlobalAlignmentPlot">[docs]</a><span class="k">def</span> <span class="nf">createGlobalAlignmentPlot</span><span class="p">(</span><span class="n">meanX</span><span class="p">,</span> <span class="n">meanY</span><span class="p">,</span> <span class="n">first</span><span class="p">,</span> <span class="n">pixSize</span><span class="p">):</span>
