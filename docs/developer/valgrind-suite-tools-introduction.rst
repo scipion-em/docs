@@ -10,7 +10,7 @@ Valgrind suite tools introduction
 
 The **Valgrind** suite tools (http://valgrind.org/) is a set of tools that are executed to perform different analysis of a program execution: time analysis, memory usage analysis, synchronization analysis and others.
 
-Depdending on the type of analysis to be performed, a different tool must be invoked from valgrind to analyze the execution. Current valgrind set include the following tools:
+Depending on the type of analysis to be performed, a different tool must be invoked from valgrind to analyze the execution. Current valgrind set include the following tools:
 
 **Memcheck**: memory management analysis (i.e. memory leaks, invalid access).
 

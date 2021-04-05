@@ -36,7 +36,7 @@ the worker and accepted by the buildmaster, but commands and results travel both
 ways within this connection. The buildmaster is always in charge, so all
 commands travel exclusively from the buildmaster to the worker.
 
-The buildmaster constist of several pieces:
+The buildmaster consists of several pieces:
 
 
 .. figure:: /docs/images/buildbot/build_master01.png
@@ -58,12 +58,12 @@ buildbot:
 * **production**: represents the stable code of release 3.0.0 (???????)
 * **devel**: represents the code in development of the release 3.0.0.
 
-For that reason, we have three `BuildFactorys` that are in charge of
+For that reason, we have three `BuildFactories` that are in charge of
 automatically executing the code of the aforementioned branches:
 
-* **supportBuilGroupFactory**: this BuildFactorys is automatically released on Sundays.
-* **productionBuildGroupFactory**: this BuildFactorys is automatically released on Saturday.
-* **develBuildGroupFactory**: this BuildFactorys is automatically released on Monday, Wednesday and Friday.
+* **supportBuildGroupFactory**: this BuildFactory is automatically released on Sundays.
+* **productionBuildGroupFactory**: this BuildFactory is automatically released on Saturday.
+* **develBuildGroupFactory**: this BuildFactory is automatically released on Monday, Wednesday and Friday.
 
 
 .. figure:: /docs/images/buildbot/build_master02.png
@@ -88,8 +88,3 @@ following steps must be followed:
 2. Make sure the plugin is on Pypi (to test in production mode).
 3. :ref:`Contact white Scipion Team <contact-us>` in order to include it into Buildbot.
    For that steps, send us an email with the link to repository.
-
-
-
-
-

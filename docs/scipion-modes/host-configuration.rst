@@ -166,7 +166,7 @@ you can find a very simple tutorial about installing Slurm in Ubuntu.
         #SBATCH -o %_(JOB_LOGS)s.out
         #SBATCH -e %_(JOB_LOGS)s.err
         ### Partition (queue) name
-        ### if the system has only 1 queue, it can be omited
+        ### if the system has only 1 queue, it can be omitted
         ### if you want to specify the queue, ensure the name in the scipion dialog matches
         ### a slurm partition, then leave only 1 # sign in the next line
         ##### SBATCH -p %_(JOB_QUEUE)s
@@ -246,7 +246,7 @@ Example for Torque-PBS
             # Use as working dir the path where qsub was launched
             WORKDIR=$PBS_O_WORKDIR
             #################################
-            ### Set environment varible to know running mode is non interactive
+            ### Set environment variable to know running mode is non interactive
             export XMIPP_IN_QUEUE=1
             ### Switch to the working directory;
             cd $WORKDIR

@@ -70,7 +70,7 @@ GPU purchase guide
 
 Most popular GPU card brand is NVidia. It has 3 main product lines:
 
-* Tesla: optimized for scientific computing and reliavility. "Expensive", but you get direct long-term Nvidia support, better drivers, ECC memory. Very good double-precision performance (though your algorithm may work well with just simple-precission).
+* Tesla: optimized for scientific computing and reliability. "Expensive", but you get direct long-term Nvidia support, better drivers, ECC memory. Very good double-precision performance (though your algorithm may work well with just single-precision).
 * Quadro: also high-quality components, but more focused on CAD applications
 * GeForce: marketed for gaming, they can also be used as GPU, like Quadro and Tesla. "Cheap" models available. Usually they are bulky and power hungry, since they are intended for consumer desktop PC. Therefore, they may be a pain to install in a standard 1U server. Additionally, most servers vendors do not support this kind of cards.
 

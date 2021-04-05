@@ -65,7 +65,7 @@ To retry the Xmipp compilation during the Scipion's installation, run
 
     python -m scipioninstaller /path/where/you/want/scipion [-venv] -j 4
 
-Alternativelly, if scipion3 is already installed you can go with the plugin manager or by running
+Alternatively, if scipion3 is already installed you can go with the plugin manager or by running
 
 ::
 
@@ -109,7 +109,7 @@ To retry the Xmipp compilation during the Scipion's installation, run
 
     python -m scipioninstaller /path/where/you/want/scipion [-venv] -j 4 -dev
 
-Alternativelly, if scipion3 is already installed you can go with
+Alternatively, if scipion3 is already installed you can go with
 
 ::
 

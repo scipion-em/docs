@@ -75,7 +75,7 @@ providing more stability in streaming protocols keeping processing new data
 even if a certain bunch fails for some reason, etc.
 
 In addition, we have work more in the concept of consensus protocols, for
-merging and combining different approaches (from different EM softwares)
+merging and combining different approaches (from different EM software)
 to do the same tasks, in order to get an improved result based on that
 different results.
 The consensus protocols family are for *CTF estimation*, *Picking*,

@@ -67,7 +67,7 @@ Follow these steps:
 .. figure:: /docs/images/dev/template_practice/practice1_project_gui_summary.png
    :alt: project gui summary
 
-8. Check also tabs Methods and Output Log. On the last one, in the **run.stdout** subtab you can see the output produced by the
+8. Check also tabs Methods and Output Log. On the last one, in the **run.stdout** tab you can see the output produced by the
    protocol and detailed information about the protocol execution.
 
 .. figure:: /docs/images/dev/template_practice/practice1_project_gui_log.png
