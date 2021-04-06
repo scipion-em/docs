@@ -22,7 +22,7 @@ on `AWS instance types <https://aws.amazon.com/ec2/instance-types/>`_.
 * Launch a ScipionCloud instance: Enter "Instances" panel, then click "Launch instance". Follow the wizard filling in the required information:
 
   * Choose the ScipionCloud AMI: in *"Community AMIs"* section, search for "scipion" and find the latest release. The ScipionCloud AMI is currently available only in Ireland region but if you would like to use it in a different region contact us and we will make a copy there.
-  * Choose the instance type, according to how much resources (CPU, RAM, GPU, disk) you want to use. Regarding disk, you can use an integrated SSD disk, or attach an EBS Volumen. Press "Next: Configure instance details"
+  * Choose the instance type, according to how much resources (CPU, RAM, GPU, disk) you want to use. Regarding disk, you can use an integrated SSD disk, or attach an EBS Volume. Press "Next: Configure instance details"
   * Configure instance:
 
     * Number of instances: 1
@@ -90,7 +90,7 @@ The following software is installed on the machine:
   * Gctf 1.06
   * Gautomatch 0.53
   * Eman 2.21
-  * Frealing 9.07
+  * Frealign 9.07
   * Motioncor2 1.2.1
   * Relion 3.0
   * resmap   1.1.5s2
@@ -115,7 +115,7 @@ Managing instances
 * Select the instance and either click on ‘Actions’ or Right-click on the instance and select Instance State and the action required.
 
   * Stop: the instance is turned off, but everything related to it is kept (IP address change unless you use Elastic IPs). You can power it on again with the Start command. While an instance is off, you are only charged for disk use.
-  * Terminate: the instance is deleted, and all non-permanent storage dissappear. You should make sure all your data is safe before terminating an instance.
+  * Terminate: the instance is deleted, and all non-permanent storage disappear. You should make sure all your data is safe before terminating an instance.
   * Change instance type: This can be useful when running EM workflows since one could start with a small machine for the preprocessing steps, or even with a GPU machine if needed, and then switch to a more powerful machine with higher memory for the classification and refinement steps. In order to change the type the VM needs to be stopped first, then click on "Options" and select "Instance settings / Change instance type".
 
 Using external EBS volumes

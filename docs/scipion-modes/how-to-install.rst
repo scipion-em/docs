@@ -238,10 +238,10 @@ Remove the files under ``software/tmp`` folder (if exists):
 
 ::
 
-    rm -rf sofware/tmp/*
+    rm -rf software/tmp/*
 
 The downloaded .tgz files of the EM packages can also be removed:
 
 ::
 
-    rm -rf sofware/em/*.tgz
+    rm -rf software/em/*.tgz
