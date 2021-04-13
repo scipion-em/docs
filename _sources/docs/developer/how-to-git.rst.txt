@@ -324,8 +324,8 @@ can be found `[here] <http://nvie.com/posts/a-successful-git-branching-model>`_.
    :alt: Table mode.
 
 
-Gitting in Scipion
-==================
+Git with Scipion
+================
 
 Fork I2PC/scipion
 -----------------

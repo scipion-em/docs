@@ -201,15 +201,144 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">basename</span>
 <span class="kn">import</span> <span class="nn">pwem</span>
+<span class="kn">import</span> <span class="nn">os</span>
 
-<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;0.2&#39;</span>
+<span class="kn">import</span> <span class="nn">pyworkflow</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="k">import</span> <span class="n">Environ</span>
+<span class="kn">from</span> <span class="nn">pyseg.constants</span> <span class="k">import</span> <span class="n">PYSEG_HOME</span><span class="p">,</span> <span class="n">PYSEG</span><span class="p">,</span> <span class="n">PYSEG_SOURCE_URL</span><span class="p">,</span> <span class="n">PYSEG_ENV_ACTIVATION</span><span class="p">,</span> <span class="n">DEFAULT_ACTIVATION_CMD</span><span class="p">,</span> \
+    <span class="n">PYSEG_ENV_NAME</span><span class="p">,</span> <span class="n">CFITSIO</span><span class="p">,</span> <span class="n">DISPERSE</span><span class="p">,</span> <span class="n">DEFAULT_VERSION</span>
+
 <span class="n">_logo</span> <span class="o">=</span> <span class="s2">&quot;icon.png&quot;</span>
-<span class="n">_references</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AMartinez-Sanchez2020&#39;</span><span class="p">]</span>
+<span class="n">_references</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;MartinezSanchez2020&#39;</span><span class="p">]</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s1">&#39;3.0.0b0&#39;</span>
 
 
 <div class="viewcode-block" id="Plugin"><a class="viewcode-back" href="../api/pyseg/pyseg.html#pyseg.Plugin">[docs]</a><span class="k">class</span> <span class="nc">Plugin</span><span class="p">(</span><span class="n">pwem</span><span class="o">.</span><span class="n">Plugin</span><span class="p">):</span>
-    <span class="k">pass</span></div>
+
+    <span class="n">_homeVar</span> <span class="o">=</span> <span class="n">PYSEG_HOME</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_defineVariables</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_defineVar</span><span class="p">(</span><span class="n">PYSEG_ENV_ACTIVATION</span><span class="p">,</span> <span class="n">DEFAULT_ACTIVATION_CMD</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_defineEmVar</span><span class="p">(</span><span class="n">PYSEG_HOME</span><span class="p">,</span> <span class="n">PYSEG</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="n">DEFAULT_VERSION</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Plugin.getPysegEnvActivation"><a class="viewcode-back" href="../api/pyseg/pyseg.html#pyseg.Plugin.getPysegEnvActivation">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getPysegEnvActivation</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="n">activation</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getVar</span><span class="p">(</span><span class="n">PYSEG_ENV_ACTIVATION</span><span class="p">)</span>
+        <span class="n">scipionHome</span> <span class="o">=</span> <span class="n">pyworkflow</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">SCIPION_HOME</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span>
+        <span class="k">return</span> <span class="n">activation</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">scipionHome</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Plugin.getEnviron"><a class="viewcode-back" href="../api/pyseg/pyseg.html#pyseg.Plugin.getEnviron">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getEnviron</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Setup the environment variables needed to launch pyseg. &quot;&quot;&quot;</span>
+        <span class="n">environ</span> <span class="o">=</span> <span class="n">Environ</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">)</span>
+        <span class="n">pySegDir</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getHome</span><span class="p">()</span>
+
+        <span class="c1"># Add required disperse path to PATH and pyto path to PYTHONPATH</span>
+        <span class="n">environ</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;PATH&#39;</span><span class="p">:</span> <span class="n">join</span><span class="p">(</span><span class="n">pySegDir</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_build&#39;</span> <span class="o">%</span> <span class="n">DISPERSE</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">),</span>
+                        <span class="s1">&#39;PYTHONPATH&#39;</span><span class="p">:</span> <span class="n">join</span><span class="p">(</span><span class="n">pySegDir</span><span class="p">,</span> <span class="s1">&#39;pyseg_system-</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">DEFAULT_VERSION</span><span class="p">,</span> <span class="s1">&#39;code&#39;</span><span class="p">)</span>
+                        <span class="p">})</span>
+
+        <span class="k">return</span> <span class="n">environ</span></div>
+
+<div class="viewcode-block" id="Plugin.defineBinaries"><a class="viewcode-back" href="../api/pyseg/pyseg.html#pyseg.Plugin.defineBinaries">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">defineBinaries</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+        <span class="c1"># At this point of the installation execution cls.getHome() is None, so the em path should be provided</span>
+        <span class="n">pysegHome</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">pwem</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">EM_ROOT</span><span class="p">,</span> <span class="n">PYSEG</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="n">DEFAULT_VERSION</span><span class="p">)</span>
+
+        <span class="n">PYSEG_INSTALLED</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_installed&#39;</span> <span class="o">%</span> <span class="n">PYSEG</span>
+        <span class="n">thirdPartyPath</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">pysegHome</span><span class="p">,</span> <span class="s1">&#39;pyseg_system-</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">DEFAULT_VERSION</span><span class="p">,</span> <span class="s1">&#39;sys&#39;</span><span class="p">,</span> <span class="s1">&#39;install&#39;</span><span class="p">,</span>
+                              <span class="n">DISPERSE</span><span class="p">,</span> <span class="s1">&#39;0.9.24_pyseg_gcc7&#39;</span><span class="p">,</span> <span class="s1">&#39;sources&#39;</span><span class="p">)</span>
+
+        <span class="c1"># PySeg Conda environment</span>
+        <span class="n">genPySegCondaEnvCmd</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_genCmdToDefineSegCondaEnv</span><span class="p">()</span>
+        <span class="c1"># PySeg source code</span>
+        <span class="n">getPySegCmd</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_genCmdToGetPySegSrcCode</span><span class="p">(</span><span class="n">pysegHome</span><span class="p">)</span>
+        <span class="c1"># Third party software - CFitsIO</span>
+        <span class="n">installCFitsIOCmd</span><span class="p">,</span> <span class="n">CFITSIO_BUILD_PATH</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_genCmdToInstallCFitsIO</span><span class="p">(</span><span class="n">thirdPartyPath</span><span class="p">,</span> <span class="n">pysegHome</span><span class="p">)</span>
+        <span class="c1"># Third party software - disperse</span>
+        <span class="n">installDisperseCmd</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_genCmdToInstallDisperse</span><span class="p">(</span><span class="n">thirdPartyPath</span><span class="p">,</span> <span class="n">CFITSIO_BUILD_PATH</span><span class="p">,</span> <span class="n">pysegHome</span><span class="p">)</span>
+
+        <span class="n">installationCmd</span> <span class="o">=</span> <span class="s1">&#39; &amp;&amp; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">genPySegCondaEnvCmd</span><span class="p">,</span> <span class="n">getPySegCmd</span><span class="p">,</span> <span class="n">installCFitsIOCmd</span><span class="p">,</span> <span class="n">installDisperseCmd</span><span class="p">])</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39; &amp;&amp; touch </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">PYSEG_INSTALLED</span>  <span class="c1"># Flag installation finished</span>
+        <span class="n">env</span><span class="o">.</span><span class="n">addPackage</span><span class="p">(</span><span class="n">PYSEG</span><span class="p">,</span>
+                       <span class="n">version</span><span class="o">=</span><span class="n">DEFAULT_VERSION</span><span class="p">,</span>
+                       <span class="n">tar</span><span class="o">=</span><span class="s1">&#39;void.tgz&#39;</span><span class="p">,</span>
+                       <span class="n">commands</span><span class="o">=</span><span class="p">[(</span><span class="n">installationCmd</span><span class="p">,</span> <span class="n">PYSEG_INSTALLED</span><span class="p">)],</span>
+                       <span class="n">neededProgs</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;wget&quot;</span><span class="p">,</span> <span class="s2">&quot;make&quot;</span><span class="p">,</span> <span class="s2">&quot;cmake&quot;</span><span class="p">,</span> <span class="s2">&quot;tar&quot;</span><span class="p">,</span> <span class="s2">&quot;libgsl-dev&quot;</span><span class="p">],</span>
+                       <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_genCmdToGetPySegSrcCode</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">pySegDir</span><span class="p">):</span>
+        <span class="n">installationCmd</span> <span class="o">=</span> <span class="s1">&#39;wget &#39;</span> <span class="o">+</span> <span class="n">PYSEG_SOURCE_URL</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39; &amp;&amp; tar zxf </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">join</span><span class="p">(</span><span class="n">pySegDir</span><span class="p">,</span> <span class="n">basename</span><span class="p">(</span><span class="n">PYSEG_SOURCE_URL</span><span class="p">))</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39; &amp;&amp; rm -rf </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">join</span><span class="p">(</span><span class="n">pySegDir</span><span class="p">,</span> <span class="n">DEFAULT_VERSION</span> <span class="o">+</span> <span class="s1">&#39;.tar&#39;</span><span class="p">)</span>  <span class="c1"># rm downloaded file (&gt;600 MB)</span>
+
+        <span class="k">return</span> <span class="n">installationCmd</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_genCmdToInstallCFitsIO</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">thirdPartyPath</span><span class="p">,</span> <span class="n">pySegDir</span><span class="p">):</span>
+        <span class="n">CFITSIO_BUILD_PATH</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">pySegDir</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_build&#39;</span> <span class="o">%</span> <span class="n">CFITSIO</span><span class="p">)</span>
+        <span class="n">installationCmd</span> <span class="o">=</span> <span class="s1">&#39;tar zxf </span><span class="si">%s</span><span class="s1"> -C </span><span class="si">%s</span><span class="s1"> &amp;&amp; &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">thirdPartyPath</span><span class="p">,</span> <span class="s1">&#39;cfitsio_3.380.tar.gz&#39;</span><span class="p">),</span> <span class="n">pySegDir</span><span class="p">)</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;cd </span><span class="si">%s</span><span class="s1"> &amp;&amp; &#39;</span> <span class="o">%</span> <span class="n">join</span><span class="p">(</span><span class="n">pySegDir</span><span class="p">,</span> <span class="n">CFITSIO</span><span class="p">)</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;mkdir </span><span class="si">%s</span><span class="s1"> &amp;&amp; &#39;</span> <span class="o">%</span> <span class="n">CFITSIO_BUILD_PATH</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;./configure --prefix=</span><span class="si">%s</span><span class="s1"> &amp;&amp; &#39;</span> <span class="o">%</span> <span class="n">CFITSIO_BUILD_PATH</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;make &amp;&amp; make install&#39;</span>
+
+        <span class="k">return</span> <span class="n">installationCmd</span><span class="p">,</span> <span class="n">CFITSIO_BUILD_PATH</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_genCmdToInstallDisperse</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">thirdPartyPath</span><span class="p">,</span> <span class="n">CFITSIO_BUILD_PATH</span><span class="p">,</span> <span class="n">pySegDir</span><span class="p">):</span>
+        <span class="n">DISPERSE_BUILD_PATH</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">pySegDir</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">_build&#39;</span> <span class="o">%</span> <span class="n">DISPERSE</span><span class="p">)</span>
+        <span class="n">installationCmd</span> <span class="o">=</span> <span class="s1">&#39;tar zxf </span><span class="si">%s</span><span class="s1"> -C </span><span class="si">%s</span><span class="s1"> &amp;&amp; &#39;</span> <span class="o">%</span> \
+                          <span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">thirdPartyPath</span><span class="p">,</span> <span class="s1">&#39;disperse_v0.9.24_pyseg_gcc7.tar.gz&#39;</span><span class="p">),</span> <span class="n">pySegDir</span><span class="p">)</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;cd </span><span class="si">%s</span><span class="s1"> &amp;&amp; &#39;</span> <span class="o">%</span> <span class="n">join</span><span class="p">(</span><span class="n">pySegDir</span><span class="p">,</span> <span class="n">DISPERSE</span><span class="p">)</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;mkdir </span><span class="si">%s</span><span class="s1"> &amp;&amp; &#39;</span> <span class="o">%</span> <span class="n">DISPERSE_BUILD_PATH</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;cmake . -DCMAKE_INSTALL_PREFIX=</span><span class="si">%s</span><span class="s1"> -DCFITSIO_DIR=</span><span class="si">%s</span><span class="s1"> &amp;&amp; &#39;</span> \
+                           <span class="o">%</span> <span class="p">(</span><span class="n">DISPERSE_BUILD_PATH</span><span class="p">,</span> <span class="n">CFITSIO_BUILD_PATH</span><span class="p">)</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;make &amp;&amp; make install &amp;&amp; &#39;</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;cd ..&#39;</span>
+
+        <span class="k">return</span> <span class="n">installationCmd</span>
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_genCmdToDefineSegCondaEnv</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="n">installationCmd</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getCondaActivationCmd</span><span class="p">()</span>
+
+        <span class="c1"># Create the environment</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;conda create -y -n </span><span class="si">%s</span><span class="s1">  -c conda-forge -c anaconda python=2.7 &#39;</span> \
+                           <span class="s1">&#39;opencv=4.2.0 &#39;</span> \
+                           <span class="s1">&#39;graph-tool=2.29 &amp;&amp; &#39;</span> <span class="o">%</span> <span class="n">PYSEG_ENV_NAME</span>
+
+        <span class="c1"># Activate new the environment</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;conda activate </span><span class="si">%s</span><span class="s1"> &amp;&amp; &#39;</span> <span class="o">%</span> <span class="n">PYSEG_ENV_NAME</span>
+
+        <span class="c1"># Install non-conda required packages</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;pip install beautifulsoup4==4.9.3 &amp;&amp; &#39;</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;pip install lxml==4.6.3 &amp;&amp; &#39;</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;pip install pillow==6.2.2 &amp;&amp;&#39;</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;pip install pyfits==3.5 &amp;&amp; &#39;</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;pip install scikit-image==0.14.5 &amp;&amp; &#39;</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;pip install scikit-learn==0.20.4 &amp;&amp; &#39;</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;pip install scikit-fmm==2021.2.2 &amp;&amp; &#39;</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;pip install scipy==1.2.1 &amp;&amp; &#39;</span>
+        <span class="n">installationCmd</span> <span class="o">+=</span> <span class="s1">&#39;pip install vtk==8.1.2&#39;</span>
+
+        <span class="k">return</span> <span class="n">installationCmd</span>
+
+<div class="viewcode-block" id="Plugin.runPySeg"><a class="viewcode-back" href="../api/pyseg/pyseg.html#pyseg.Plugin.runPySeg">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">runPySeg</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">program</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Run pySeg command from a given protocol. &quot;&quot;&quot;</span>
+        <span class="n">fullProgram</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1"> &amp;&amp; </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">getCondaActivationCmd</span><span class="p">(),</span>
+                                       <span class="bp">cls</span><span class="o">.</span><span class="n">getPysegEnvActivation</span><span class="p">(),</span>
+                                       <span class="n">program</span><span class="p">)</span>
+        <span class="n">protocol</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="n">fullProgram</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="bp">cls</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">(),</span> <span class="n">cwd</span><span class="o">=</span><span class="n">cwd</span><span class="p">)</span></div></div>
+
+
+
+
 
 </pre></div>
 
@@ -247,12 +376,12 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../dependabot_pip_jinja2-2.10.1/index.html">dependabot/pip/jinja2-2.10.1</a></dd>
+            <dd><a href="../../dependabot_pip_jinja2-2.11.3/index.html">dependabot/pip/jinja2-2.11.3</a></dd>
+            <dd><a href="../../dependabot_pip_pygments-2.7.4/index.html">dependabot/pip/pygments-2.7.4</a></dd>
             <dd><a href="../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../release-3.0.0/index.html">release-3.0.0</a></dd>
             <dd><a href="pyseg.html">rsanchezgarc-patch-1</a></dd>
-            <dd><a href="../../vtune/index.html">vtune</a></dd>
         </dl>
     </div>
 </div>

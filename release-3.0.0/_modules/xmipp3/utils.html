@@ -211,9 +211,11 @@
 <span class="sd">This module contains utils functions for Xmipp protocols</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">basename</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="k">import</span> <span class="n">Config</span>
+<span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 <span class="kn">from</span> <span class="nn">pwem</span> <span class="k">import</span> <span class="n">emlib</span>
 
 
@@ -234,6 +236,58 @@
 <span class="s1">CUDNN_VERSION = 6 or 7</span>
 <span class="s1">&#39;&#39;&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">SCIPION_CONFIG</span><span class="p">)</span>
 
+
+<div class="viewcode-block" id="writeImageFromArray"><a class="viewcode-back" href="../../api/xmipp3/xmipp3.utils.html#xmipp3.utils.writeImageFromArray">[docs]</a><span class="k">def</span> <span class="nf">writeImageFromArray</span><span class="p">(</span><span class="n">array</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">emlib</span><span class="o">.</span><span class="n">Image</span><span class="p">()</span>
+    <span class="n">img</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
+    <span class="n">img</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="readImage"><a class="viewcode-back" href="../../api/xmipp3/xmipp3.utils.html#xmipp3.utils.readImage">[docs]</a><span class="k">def</span> <span class="nf">readImage</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">emlib</span><span class="o">.</span><span class="n">Image</span><span class="p">()</span>
+    <span class="n">img</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">img</span></div>
+
+<div class="viewcode-block" id="applyTransform"><a class="viewcode-back" href="../../api/xmipp3/xmipp3.utils.html#xmipp3.utils.applyTransform">[docs]</a><span class="k">def</span> <span class="nf">applyTransform</span><span class="p">(</span><span class="n">imag_array</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39; Apply a transformation(M) to a np array(imag) and return it in a given shape</span>
+<span class="sd">  &#39;&#39;&#39;</span>
+  <span class="n">imag</span> <span class="o">=</span> <span class="n">emlib</span><span class="o">.</span><span class="n">Image</span><span class="p">()</span>
+  <span class="n">imag</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">imag_array</span><span class="p">)</span>
+  <span class="n">imag</span> <span class="o">=</span> <span class="n">imag</span><span class="o">.</span><span class="n">applyWarpAffine</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">M</span><span class="o">.</span><span class="n">flatten</span><span class="p">()),</span> <span class="n">shape</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">imag</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="rotation"><a class="viewcode-back" href="../../api/xmipp3/xmipp3.utils.html#xmipp3.utils.rotation">[docs]</a><span class="k">def</span> <span class="nf">rotation</span><span class="p">(</span><span class="n">imag</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
+  <span class="sd">&#39;&#39;&#39;Rotate a np.array and return also the transformation matrix</span>
+<span class="sd">  #imag: np.array</span>
+<span class="sd">  #angle: angle in degrees</span>
+<span class="sd">  #shape: output shape</span>
+<span class="sd">  #P: transform matrix (further transformation in addition to the rotation)&#39;&#39;&#39;</span>
+  <span class="p">(</span><span class="n">hsrc</span><span class="p">,</span> <span class="n">wsrc</span><span class="p">)</span> <span class="o">=</span> <span class="n">imag</span><span class="o">.</span><span class="n">shape</span>
+  <span class="n">angle</span> <span class="o">*=</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span>
+  <span class="n">T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">wsrc</span> <span class="o">/</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="n">hsrc</span> <span class="o">/</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+  <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">),</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="p">),</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+  <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">T</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">T</span><span class="p">)),</span> <span class="n">P</span><span class="p">)</span>
+
+  <span class="n">transformed</span> <span class="o">=</span> <span class="n">applyTransform</span><span class="p">(</span><span class="n">imag</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">transformed</span><span class="p">,</span> <span class="n">M</span></div>
+
+<div class="viewcode-block" id="flipYImage"><a class="viewcode-back" href="../../api/xmipp3/xmipp3.utils.html#xmipp3.utils.flipYImage">[docs]</a><span class="k">def</span> <span class="nf">flipYImage</span><span class="p">(</span><span class="n">inFn</span><span class="p">,</span> <span class="n">outFn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">outDir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Flips an image in the Y axis&#39;&#39;&#39;</span>
+    <span class="k">if</span> <span class="n">outFn</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s1">&#39;_flipped&#39;</span> <span class="ow">in</span> <span class="n">basename</span><span class="p">(</span><span class="n">inFn</span><span class="p">):</span>
+            <span class="n">ext</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">getExt</span><span class="p">(</span><span class="n">inFn</span><span class="p">)</span>
+            <span class="n">outFn</span> <span class="o">=</span> <span class="n">inFn</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="s1">&#39;_flipped&#39;</span> <span class="o">+</span> <span class="n">ext</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outFn</span> <span class="o">=</span> <span class="n">inFn</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_flipped&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">outDir</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">outFn</span> <span class="o">=</span> <span class="n">outDir</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">basename</span><span class="p">(</span><span class="n">outFn</span><span class="p">)</span>
+    <span class="n">gainImg</span> <span class="o">=</span> <span class="n">readImage</span><span class="p">(</span><span class="n">inFn</span><span class="p">)</span>
+    <span class="n">imag_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">gainImg</span><span class="o">.</span><span class="n">getData</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+    <span class="c1"># Flipped Y matrix</span>
+    <span class="n">M</span><span class="p">,</span> <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">imag_array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]),</span> <span class="mi">0</span>
+    <span class="n">flipped_array</span><span class="p">,</span> <span class="n">M</span> <span class="o">=</span> <span class="n">rotation</span><span class="p">(</span><span class="n">imag_array</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">imag_array</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+    <span class="n">writeImageFromArray</span><span class="p">(</span><span class="n">flipped_array</span><span class="p">,</span> <span class="n">outFn</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">outFn</span></div>
 
 <div class="viewcode-block" id="copy_image"><a class="viewcode-back" href="../../api/xmipp3/xmipp3.utils.html#xmipp3.utils.copy_image">[docs]</a><span class="k">def</span> <span class="nf">copy_image</span><span class="p">(</span><span class="n">imag</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Return a copy of a xmipp_image</span>
@@ -471,12 +525,12 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../../dependabot_pip_jinja2-2.10.1/index.html">dependabot/pip/jinja2-2.10.1</a></dd>
+            <dd><a href="../../../dependabot_pip_jinja2-2.11.3/index.html">dependabot/pip/jinja2-2.11.3</a></dd>
+            <dd><a href="../../../dependabot_pip_pygments-2.7.4/index.html">dependabot/pip/pygments-2.7.4</a></dd>
             <dd><a href="../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="utils.html">release-3.0.0</a></dd>
             <dd><a href="../../../rsanchezgarc-patch-1/index.html">rsanchezgarc-patch-1</a></dd>
-            <dd><a href="../../../vtune/index.html">vtune</a></dd>
         </dl>
     </div>
 </div>

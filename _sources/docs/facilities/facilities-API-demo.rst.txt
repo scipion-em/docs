@@ -291,7 +291,7 @@ is ready to be used becomes crucial. For instance
 
         return True
 
-    # Waiting for a non empty ouput from MotioCor2 to continue
+    # Waiting for a non empty output from MotioCor2 to continue
     waitOutput(protMotionCor, 'outputMicrographs')
 
     # Importing, creating and launching the gCTF protocol

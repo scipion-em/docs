@@ -217,18 +217,18 @@
 
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="k">import</span> <span class="n">BETA</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">import</span> <span class="p">(</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span>
-                                        <span class="n">LEVEL_ADVANCED</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span> <span class="n">Positive</span><span class="p">,</span>
-                                        <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span> <span class="n">String</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">Volume</span><span class="p">,</span> <span class="n">FSC</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">import</span> <span class="p">(</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span>
+                                        <span class="n">Positive</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">Volume</span>
 
 <span class="kn">from</span> <span class="nn">.protocol_base</span> <span class="k">import</span> <span class="n">ProtCryosparcBase</span>
 <span class="kn">from</span> <span class="nn">..convert</span> <span class="k">import</span> <span class="p">(</span><span class="n">defineArgs</span><span class="p">,</span> <span class="n">convertCs2Star</span><span class="p">,</span> <span class="n">createItemMatrix</span><span class="p">,</span>
                        <span class="n">setCryosparcAttributes</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="p">(</span><span class="n">addComputeSectionParams</span><span class="p">,</span> <span class="n">get_job_streamlog</span><span class="p">,</span>
-                     <span class="n">calculateNewSamplingRate</span><span class="p">,</span> <span class="n">cryosparcValidate</span><span class="p">,</span> <span class="n">gpusValidate</span><span class="p">,</span>
-                     <span class="n">enqueueJob</span><span class="p">,</span> <span class="n">waitForCryosparc</span><span class="p">,</span> <span class="n">clearIntermediateResults</span><span class="p">,</span>
-                     <span class="n">addSymmetryParam</span><span class="p">,</span> <span class="n">getCryosparcVersion</span><span class="p">,</span> <span class="n">getSymmetry</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="p">(</span><span class="n">addComputeSectionParams</span><span class="p">,</span> <span class="n">calculateNewSamplingRate</span><span class="p">,</span>
+                     <span class="n">cryosparcValidate</span><span class="p">,</span> <span class="n">gpusValidate</span><span class="p">,</span> <span class="n">enqueueJob</span><span class="p">,</span>
+                     <span class="n">waitForCryosparc</span><span class="p">,</span> <span class="n">clearIntermediateResults</span><span class="p">,</span>
+                     <span class="n">addSymmetryParam</span><span class="p">,</span> <span class="n">getCryosparcVersion</span><span class="p">,</span> <span class="n">getSymmetry</span><span class="p">,</span>
+                     <span class="n">fixVolume</span><span class="p">,</span> <span class="n">copyFiles</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">..constants</span> <span class="k">import</span> <span class="o">*</span>
 
 
@@ -240,6 +240,7 @@
     <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">BETA</span>
     <span class="n">_protCompatibility</span> <span class="o">=</span> <span class="p">[</span><span class="n">V3_0_0</span><span class="p">,</span> <span class="n">V3_1_0</span><span class="p">]</span>
     <span class="n">_className</span> <span class="o">=</span> <span class="s2">&quot;new_local_refine&quot;</span>
+    <span class="n">_fscColumns</span> <span class="o">=</span> <span class="mi">6</span>
 
     <span class="k">def</span> <span class="nf">_initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineFileNames</span><span class="p">()</span>
@@ -406,87 +407,39 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create the protocol output. Convert cryosparc file to Relion file</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="kn">import</span> <span class="nn">ast</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_initializeUtilsVariables</span><span class="p">()</span>
-        <span class="n">get_job_streamlog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-                          <span class="bp">self</span><span class="o">.</span><span class="n">runLocalRefinement</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-                          <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;stream_log&#39;</span><span class="p">))</span>
+        <span class="n">idd</span><span class="p">,</span> <span class="n">itera</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">findLastIteration</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runLocalRefinement</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
-        <span class="c1"># Get the metadata information from stream.log</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;stream_log&#39;</span><span class="p">))</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="n">csOutputFolder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">projectPath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">runLocalRefinement</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
-        <span class="n">x</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">csOutputPattern</span> <span class="o">=</span> <span class="s2">&quot;cryosparc_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
+                                                  <span class="bp">self</span><span class="o">.</span><span class="n">runLocalRefinement</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
+                                                  <span class="n">itera</span><span class="p">)</span>
+        <span class="n">csParticlesName</span> <span class="o">=</span> <span class="n">csOutputPattern</span> <span class="o">+</span> <span class="s2">&quot;_particles.cs&quot;</span>
+        <span class="n">fnVolName</span> <span class="o">=</span> <span class="n">csOutputPattern</span> <span class="o">+</span> <span class="s2">&quot;_volume_map.mrc&quot;</span>
+        <span class="n">half1Name</span> <span class="o">=</span> <span class="n">csOutputPattern</span> <span class="o">+</span> <span class="s2">&quot;_volume_map_half_A.mrc&quot;</span>
+        <span class="n">half2Name</span> <span class="o">=</span> <span class="n">csOutputPattern</span> <span class="o">+</span> <span class="s2">&quot;_volume_map_half_B.mrc&quot;</span>
 
-        <span class="c1"># Find the ID of last iteration and the map resolution</span>
-        <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s1">&#39;text&#39;</span> <span class="ow">in</span> <span class="n">y</span><span class="p">:</span>
-                <span class="n">z</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">])</span>
-                <span class="k">if</span> <span class="n">z</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;FSC Iteration&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">z</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span>
-                        <span class="s1">&#39;FSC iIteration&#39;</span><span class="p">):</span>
-                    <span class="n">idd</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="s1">&#39;imgfiles&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">][</span><span class="s1">&#39;fileid&#39;</span><span class="p">]</span>
-                    <span class="n">itera</span> <span class="o">=</span> <span class="n">z</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">3</span><span class="p">:]</span>
-                <span class="k">elif</span> <span class="s1">&#39;Using Filter Radius&#39;</span> <span class="ow">in</span> <span class="n">z</span><span class="p">:</span>
-                    <span class="n">nomRes</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)[</span>
-                        <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
-                        <span class="s1">&#39;A&#39;</span><span class="p">,</span> <span class="s1">&#39;Å&#39;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">mapResolution</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="n">nomRes</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="s1">&#39;Estimated Bfactor&#39;</span> <span class="ow">in</span> <span class="n">z</span><span class="p">:</span>
-                    <span class="n">estBFactor</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="s1">&#39;text&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">,</span>
-                                                                      <span class="s1">&#39;&#39;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">estBFactor</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="n">estBFactor</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="c1"># Copy the CS output to extra folder</span>
+        <span class="n">copyFiles</span><span class="p">(</span><span class="n">csOutputFolder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">files</span><span class="o">=</span><span class="p">[</span><span class="n">csParticlesName</span><span class="p">,</span>
+                                                               <span class="n">fnVolName</span><span class="p">,</span>
+                                                               <span class="n">half1Name</span><span class="p">,</span>
+                                                               <span class="n">half2Name</span><span class="p">])</span>
 
-        <span class="n">csParticlesName</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;cryosparc_&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span>
-                           <span class="bp">self</span><span class="o">.</span><span class="n">runLocalRefinement</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">itera</span> <span class="o">+</span> <span class="s2">&quot;_particles.cs&quot;</span><span class="p">)</span>
-        <span class="n">csFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">projectPath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-                              <span class="bp">self</span><span class="o">.</span><span class="n">runLocalRefinement</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-                              <span class="n">csParticlesName</span><span class="p">)</span>
-
-        <span class="c1"># Create the output folder</span>
-        <span class="n">outputFolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">runLocalRefinement</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;mkdir &quot;</span> <span class="o">+</span> <span class="n">outputFolder</span><span class="p">)</span>
-
-        <span class="c1"># Copy the particles to scipion output folder</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;cp -r &quot;</span> <span class="o">+</span> <span class="n">csFile</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">outputFolder</span><span class="p">)</span>
-        <span class="n">csFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outputFolder</span><span class="p">,</span> <span class="n">csParticlesName</span><span class="p">)</span>
-
+        <span class="n">csFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">csParticlesName</span><span class="p">)</span>
         <span class="n">outputStarFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;out_particles&#39;</span><span class="p">)</span>
         <span class="n">argsList</span> <span class="o">=</span> <span class="p">[</span><span class="n">csFile</span><span class="p">,</span> <span class="n">outputStarFn</span><span class="p">]</span>
-
         <span class="n">parser</span> <span class="o">=</span> <span class="n">defineArgs</span><span class="p">()</span>
         <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">argsList</span><span class="p">)</span>
         <span class="n">convertCs2Star</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
 
-        <span class="n">fnVolName</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;cryosparc_&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span>
-                     <span class="bp">self</span><span class="o">.</span><span class="n">runLocalRefinement</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">itera</span> <span class="o">+</span> <span class="s2">&quot;_volume_map.mrc&quot;</span><span class="p">)</span>
-        <span class="n">half1Name</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;cryosparc_&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span>
-                     <span class="bp">self</span><span class="o">.</span><span class="n">runLocalRefinement</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">itera</span> <span class="o">+</span>
-                     <span class="s2">&quot;_volume_map_half_A.mrc&quot;</span><span class="p">)</span>
-        <span class="n">half2Name</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;cryosparc_&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span>
-                     <span class="bp">self</span><span class="o">.</span><span class="n">runLocalRefinement</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="n">itera</span> <span class="o">+</span>
-                     <span class="s2">&quot;_volume_map_half_B.mrc&quot;</span><span class="p">)</span>
-
-        <span class="n">fnVol</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">projectPath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-                             <span class="bp">self</span><span class="o">.</span><span class="n">runLocalRefinement</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">fnVolName</span><span class="p">)</span>
-        <span class="n">half1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">projectPath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-                             <span class="bp">self</span><span class="o">.</span><span class="n">runLocalRefinement</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">half1Name</span><span class="p">)</span>
-        <span class="n">half2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">projectPath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-                             <span class="bp">self</span><span class="o">.</span><span class="n">runLocalRefinement</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">half2Name</span><span class="p">)</span>
-
-        <span class="c1"># Copy the volumes to extra folder</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;cp -r &quot;</span> <span class="o">+</span> <span class="n">fnVol</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">outputFolder</span><span class="p">)</span>
-        <span class="n">fnVol</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outputFolder</span><span class="p">,</span> <span class="n">fnVolName</span><span class="p">)</span>
-
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;cp -r &quot;</span> <span class="o">+</span> <span class="n">half1</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">outputFolder</span><span class="p">)</span>
-        <span class="n">half1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outputFolder</span><span class="p">,</span> <span class="n">half1Name</span><span class="p">)</span>
-
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;cp -r &quot;</span> <span class="o">+</span> <span class="n">half2</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">outputFolder</span><span class="p">)</span>
-        <span class="n">half2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outputFolder</span><span class="p">,</span> <span class="n">half2Name</span><span class="p">)</span>
-
+        <span class="n">fnVol</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">fnVolName</span><span class="p">)</span>
+        <span class="n">half1</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">half1Name</span><span class="p">)</span>
+        <span class="n">half2</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">half2Name</span><span class="p">)</span>
         <span class="n">imgSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getInputParticles</span><span class="p">()</span>
         <span class="n">vol</span> <span class="o">=</span> <span class="n">Volume</span><span class="p">()</span>
+        <span class="n">fixVolume</span><span class="p">([</span><span class="n">fnVol</span><span class="p">,</span> <span class="n">half1</span><span class="p">,</span> <span class="n">half2</span><span class="p">])</span>
         <span class="n">vol</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">fnVol</span><span class="p">)</span>
         <span class="n">vol</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">calculateNewSamplingRate</span><span class="p">(</span><span class="n">vol</span><span class="o">.</span><span class="n">getDim</span><span class="p">(),</span>
                                                      <span class="n">imgSet</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">(),</span>
@@ -501,29 +454,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputParticles</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">vol</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputParticles</span><span class="o">=</span><span class="n">outImgSet</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineTransformRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputParticles</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">outImgSet</span><span class="p">)</span>
-        <span class="c1"># Need to get the host IP address if it is not stanalone installation</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;wget 127.0.0.1:39000/file/&quot;</span> <span class="o">+</span> <span class="n">idd</span> <span class="o">+</span> <span class="s2">&quot; -nd -P&quot;</span> <span class="o">+</span>
-                  <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">())</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;mv &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="n">idd</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span>
-                  <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;/fsc.txt&quot;</span><span class="p">)</span>
-        <span class="c1"># Convert into scipion fsc format</span>
-        <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;/fsc.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span>
-        <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
-        <span class="n">wv</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">corr</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-            <span class="n">wv</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span>
-                    <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getInputParticles</span><span class="p">()</span><span class="o">.</span><span class="n">getDim</span><span class="p">()[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span>
-                <span class="n">imgSet</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()))))</span>
-            <span class="n">corr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">6</span><span class="p">])</span>
-        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-
-        <span class="n">fsc</span> <span class="o">=</span> <span class="n">FSC</span><span class="p">(</span><span class="n">objLabel</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getRunName</span><span class="p">())</span>
-        <span class="n">fsc</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">wv</span><span class="p">,</span> <span class="n">corr</span><span class="p">)</span>
-        <span class="n">wv2</span><span class="p">,</span> <span class="n">corr2</span> <span class="o">=</span> <span class="n">fsc</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputFSC</span><span class="o">=</span><span class="n">fsc</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="n">vol</span><span class="p">,</span> <span class="n">fsc</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createFSC</span><span class="p">(</span><span class="n">idd</span><span class="p">,</span> <span class="n">imgSet</span><span class="p">,</span> <span class="n">vol</span><span class="p">)</span></div>
 
     <span class="c1"># --------------------------- INFO functions -------------------------------</span>
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -581,7 +512,7 @@
                     <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Estimated Bfactor: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">estBFactor</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">summary</span>
 
-    <span class="c1"># ---------------Utils Functions-----------------------------------------------------------</span>
+    <span class="c1"># ---------------Utils Functions------------------------------------</span>
 
     <span class="k">def</span> <span class="nf">_fillDataFromIter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imgSet</span><span class="p">):</span>
         <span class="n">outImgsFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;out_particles&#39;</span><span class="p">)</span>
@@ -721,12 +652,12 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../../dependabot_pip_jinja2-2.10.1/index.html">dependabot/pip/jinja2-2.10.1</a></dd>
+            <dd><a href="../../../dependabot_pip_jinja2-2.11.3/index.html">dependabot/pip/jinja2-2.11.3</a></dd>
+            <dd><a href="../../../dependabot_pip_pygments-2.7.4/index.html">dependabot/pip/pygments-2.7.4</a></dd>
             <dd><a href="../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../release-3.0.0/_modules/cryosparc2/protocols/protocol_cryosparc_new_local_refine.html">release-3.0.0</a></dd>
             <dd><a href="../../../rsanchezgarc-patch-1/index.html">rsanchezgarc-patch-1</a></dd>
-            <dd><a href="../../../vtune/index.html">vtune</a></dd>
         </dl>
     </div>
 </div>

@@ -210,7 +210,8 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">ceil</span>
 
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
@@ -219,6 +220,7 @@
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="k">as</span> <span class="nn">cons</span>
 <span class="kn">import</span> <span class="nn">pwem.emlib.metadata</span> <span class="k">as</span> <span class="nn">md</span>
+<span class="kn">from</span> <span class="nn">pwem</span> <span class="k">import</span> <span class="n">emlib</span>
 <span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">Image</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols.protocol_align_movies</span> <span class="k">import</span> <span class="n">createAlignmentPlot</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="k">import</span> <span class="n">VERSION_1_1</span>
@@ -226,6 +228,7 @@
 
 <span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="k">import</span> <span class="n">writeMovieMd</span>
 <span class="kn">from</span> <span class="nn">xmipp3.base</span> <span class="k">import</span> <span class="n">isXmippCudaPresent</span>
+<span class="kn">import</span> <span class="nn">xmipp3.utils</span> <span class="k">as</span> <span class="nn">xmutils</span>
 
 
 <div class="viewcode-block" id="XmippProtMovieCorr"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_correlation.html#xmipp3.protocols.protocol_movie_correlation.XmippProtMovieCorr">[docs]</a><span class="k">class</span> <span class="nc">XmippProtMovieCorr</span><span class="p">(</span><span class="n">ProtAlignMovies</span><span class="p">):</span>
@@ -241,6 +244,9 @@
 
     <span class="c1"># Map to xmipp interpolation values in command line</span>
     <span class="n">INTERP_MAP</span> <span class="o">=</span> <span class="p">{</span><span class="n">INTERP_LINEAR</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">INTERP_CUBIC</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
+
+    <span class="n">NO_ROTATION</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">NO_FLIP</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;FlexAlign&#39;</span>
     <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_1_1</span>
@@ -340,6 +346,22 @@
 <span class="s1">                        The alignment is then performed on the summed frames.&#39;</span><span class="p">,</span>
                     <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;doLocalAlignment&#39;</span><span class="p">)</span>
 
+        <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;Gain orientation&quot;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;gainRot&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span>
+                      <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;no rotation&#39;</span><span class="p">,</span> <span class="s1">&#39;90 degrees&#39;</span><span class="p">,</span>
+                               <span class="s1">&#39;180 degrees&#39;</span><span class="p">,</span> <span class="s1">&#39;270 degrees&#39;</span><span class="p">],</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Rotate gain reference:&quot;</span><span class="p">,</span>
+                      <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">NO_ROTATION</span><span class="p">,</span>
+                      <span class="n">display</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="o">.</span><span class="n">DISPLAY_COMBO</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Rotate gain reference counter-clockwise.&quot;</span><span class="p">)</span>
+
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;gainFlip&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span>
+                      <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;no flip&#39;</span><span class="p">,</span> <span class="s1">&#39;upside down&#39;</span><span class="p">,</span> <span class="s1">&#39;left right&#39;</span><span class="p">],</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Flip gain reference:&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">NO_FLIP</span><span class="p">,</span>
+                      <span class="n">display</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="o">.</span><span class="n">DISPLAY_COMBO</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Flip gain reference after rotation. &quot;</span>
+                           <span class="s2">&quot;For tiff movies, gain is automatically upside-down flipped&quot;</span><span class="p">)</span>
+
         <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="c1">#--------------------------- STEPS functions -------------------------------</span>
@@ -383,6 +405,16 @@
 
         <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --cropDRCorner </span><span class="si">%d</span><span class="s1"> </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dimX</span><span class="p">,</span> <span class="n">dimY</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">args</span></div>
+
+<div class="viewcode-block" id="XmippProtMovieCorr.getUserAngle"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_correlation.html#xmipp3.protocols.protocol_movie_correlation.XmippProtMovieCorr.getUserAngle">[docs]</a>    <span class="k">def</span> <span class="nf">getUserAngle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="n">anglesDic</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span><span class="mi">90</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span><span class="mi">180</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span><span class="mi">270</span><span class="p">}</span>
+      <span class="k">return</span> <span class="n">anglesDic</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">gainRot</span><span class="o">.</span><span class="n">get</span><span class="p">()]</span></div>
+
+<div class="viewcode-block" id="XmippProtMovieCorr.getUserFlip"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_correlation.html#xmipp3.protocols.protocol_movie_correlation.XmippProtMovieCorr.getUserFlip">[docs]</a>    <span class="k">def</span> <span class="nf">getUserFlip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imag_array</span><span class="p">):</span>
+      <span class="n">flipDic</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]),</span>
+                 <span class="mi">1</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">imag_array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]]),</span>
+                 <span class="mi">2</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">imag_array</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])}</span>
+      <span class="k">return</span> <span class="n">flipDic</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">gainFlip</span><span class="o">.</span><span class="n">get</span><span class="p">()]</span></div>
 
 <div class="viewcode-block" id="XmippProtMovieCorr.getGPUArgs"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_correlation.html#xmipp3.protocols.protocol_movie_correlation.XmippProtMovieCorr.getGPUArgs">[docs]</a>    <span class="k">def</span> <span class="nf">getGPUArgs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">args</span> <span class="o">=</span> <span class="s1">&#39; --device </span><span class="si">%(GPU)s</span><span class="s1">&#39;</span>
@@ -435,7 +467,17 @@
             <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --dark &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getDark</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getGain</span><span class="p">():</span>
-            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --gain &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getGain</span><span class="p">()</span>
+            <span class="n">ext</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">getExt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.tif&#39;</span><span class="p">,</span> <span class="s1">&#39;.tiff&#39;</span><span class="p">]:</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">flipY</span> <span class="o">=</span> <span class="kc">True</span>
+              <span class="n">inGainFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getGain</span><span class="p">()</span>
+              <span class="n">gainFn</span> <span class="o">=</span> <span class="n">xmutils</span><span class="o">.</span><span class="n">flipYImage</span><span class="p">(</span><span class="n">inGainFn</span><span class="p">,</span> <span class="n">outDir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+              <span class="n">gainFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getGain</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gainRot</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">gainFlip</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+              <span class="n">gainFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformGain</span><span class="p">(</span><span class="n">gainFn</span><span class="p">)</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --gain &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">gainFn</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">autoControlPoints</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_setControlPoints</span><span class="p">()</span>
@@ -460,6 +502,25 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_saveAlignmentPlots</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span></div>
 
     <span class="c1">#--------------------------- UTILS functions ------------------------------</span>
+<div class="viewcode-block" id="XmippProtMovieCorr.transformGain"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_correlation.html#xmipp3.protocols.protocol_movie_correlation.XmippProtMovieCorr.transformGain">[docs]</a>    <span class="k">def</span> <span class="nf">transformGain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gainFn</span><span class="p">,</span> <span class="n">outFn</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+      <span class="sd">&#39;&#39;&#39;Transforms the gain image with the user especifications&#39;&#39;&#39;</span>
+      <span class="k">if</span> <span class="n">outFn</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">getExt</span><span class="p">(</span><span class="n">gainFn</span><span class="p">)</span>
+        <span class="n">baseName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">gainFn</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="s1">&#39;_transformed&#39;</span> <span class="o">+</span> <span class="n">ext</span><span class="p">)</span>
+        <span class="n">outFn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">baseName</span><span class="p">))</span>
+
+      <span class="n">gainImg</span> <span class="o">=</span> <span class="n">xmutils</span><span class="o">.</span><span class="n">readImage</span><span class="p">(</span><span class="n">gainFn</span><span class="p">)</span>
+      <span class="n">imag_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">gainImg</span><span class="o">.</span><span class="n">getData</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+
+      <span class="c1"># Building the transformation matrix</span>
+      <span class="n">angle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getUserAngle</span><span class="p">()</span>
+      <span class="n">M</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getUserFlip</span><span class="p">(</span><span class="n">imag_array</span><span class="p">)</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Transforming gain: </span><span class="si">{}</span><span class="s1"> degrees rotation, </span><span class="si">{}</span><span class="s1"> flip&#39;</span><span class="o">.</span>
+            <span class="nb">format</span><span class="p">(</span><span class="n">angle</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;no&#39;</span><span class="p">,</span> <span class="s1">&#39;vertical&#39;</span><span class="p">,</span> <span class="s1">&#39;horizontal&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">gainFlip</span><span class="o">.</span><span class="n">get</span><span class="p">()]))</span>
+      <span class="n">flipped_array</span><span class="p">,</span> <span class="n">M</span> <span class="o">=</span> <span class="n">xmutils</span><span class="o">.</span><span class="n">rotation</span><span class="p">(</span><span class="n">imag_array</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">imag_array</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+      <span class="n">xmutils</span><span class="o">.</span><span class="n">writeImageFromArray</span><span class="p">(</span><span class="n">flipped_array</span><span class="p">,</span> <span class="n">outFn</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">outFn</span></div>
+
     <span class="k">def</span> <span class="nf">_getShiftsFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getMovieRoot</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_shifts.xmd&#39;</span><span class="p">)</span>
 
@@ -631,12 +692,12 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../../../dependabot_pip_jinja2-2.10.1/index.html">dependabot/pip/jinja2-2.10.1</a></dd>
+            <dd><a href="../../../../dependabot_pip_jinja2-2.11.3/index.html">dependabot/pip/jinja2-2.11.3</a></dd>
+            <dd><a href="../../../../dependabot_pip_pygments-2.7.4/index.html">dependabot/pip/pygments-2.7.4</a></dd>
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="protocol_movie_correlation.html">release-3.0.0</a></dd>
             <dd><a href="../../../../rsanchezgarc-patch-1/index.html">rsanchezgarc-patch-1</a></dd>
-            <dd><a href="../../../../vtune/index.html">vtune</a></dd>
         </dl>
     </div>
 </div>

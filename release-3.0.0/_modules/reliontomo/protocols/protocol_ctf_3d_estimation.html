@@ -218,7 +218,6 @@
 <span class="kn">from</span> <span class="nn">operator</span> <span class="k">import</span> <span class="n">sub</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">pwem.emlib.image</span> <span class="k">import</span> <span class="n">ImageHandler</span>
-<span class="kn">from</span> <span class="nn">reliontomo.constants</span> <span class="k">import</span> <span class="n">V30_VALIDATION_MSG</span>
 
 <span class="n">CTFDIRBASENAME</span> <span class="o">=</span> <span class="s1">&#39;Ctf3D&#39;</span>
 <span class="n">CTF3D_PER_VOLUME</span> <span class="o">=</span> <span class="mi">0</span>
@@ -246,6 +245,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">initialized</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ctfMRCFileList</span> <span class="o">=</span> <span class="p">[]</span>
 
+    <span class="c1"># @classmethod</span>
+    <span class="c1"># def isDisabled(cls):</span>
+    <span class="c1">#     return Plugin.IS_30()</span>
+
     <span class="c1"># --------------------------- DEFINE param functions --------------------------------------------</span>
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Inputs&#39;</span><span class="p">)</span>
@@ -254,11 +257,11 @@
                       <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                       <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;SetOfCoordinates3D&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select a set of subtomogram coordinates.&#39;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputSetCTFTomoSeries&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">PointerParam</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;CTF tomo series&#39;</span><span class="p">,</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputCTFTiltSeries&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">PointerParam</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Tilt series&#39;</span><span class="p">,</span>
                       <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                      <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;SetOfCTFTomoSeries&#39;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select a set of CTF tomo series.&#39;</span><span class="p">)</span>
+                      <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;SetOfTiltSeries&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select a set of tilt series (ctf estimated).&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;doseFilesPath&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">PathParam</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Dose files directory&quot;</span><span class="p">,</span>
                       <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -359,8 +362,6 @@
 <span class="sd">        return summary message for NORMAL EXECUTION.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">validateMsgs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initialize</span><span class="p">()</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">Plugin</span><span class="o">.</span><span class="n">IS_30</span><span class="p">():</span>
-            <span class="n">validateMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">V30_VALIDATION_MSG</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">validateMsgs</span>
 
     <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -376,9 +377,16 @@
         <span class="n">validateMsgs</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">initialized</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">coordSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputCoordinates</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">ctfTomoSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSetCTFTomoSeries</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">tsSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctfTomoSet</span><span class="o">.</span><span class="n">getSetOfTiltSeries</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tsSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputCTFTiltSeries</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">EstimationMode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctf3dMode</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+            <span class="c1"># Check if the CTF has been estimated for the tilt images in the set introduced</span>
+            <span class="c1"># (Check the first tilt image of the first tilt series of the set, because the _hastCTF attribute</span>
+            <span class="c1"># is only updated to True in the tilt images and not in the tilt series or set the tilt series, as</span>
+            <span class="c1"># it should be. Thus, it is assumed that if the first tilt image of the first tilt series in the set</span>
+            <span class="c1"># has CTF, all the rest will be the same)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">tsSet</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span><span class="o">.</span><span class="n">hasCTF</span><span class="p">():</span>
+                <span class="n">validateMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Introduced tilt series don&#39;t provide a estimated CTF for each tilt image.&quot;</span><span class="p">)</span>
 
             <span class="c1"># Assign each dose file to a tilt series</span>
             <span class="n">doseFilesNoOk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getDoseFiles</span><span class="p">()</span>
@@ -404,37 +412,37 @@
             <span class="k">return</span> <span class="s2">&quot;There are no files matching the pattern </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pattern</span>
 
     <span class="k">def</span> <span class="nf">_assignDoseFilesToTS</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matches</span><span class="p">):</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
         <span class="n">nonMatchingTS</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">remTS</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tsSet</span><span class="p">)</span>
         <span class="n">remDose</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">matches</span><span class="p">)</span>
-        <span class="n">tsList</span> <span class="o">=</span> <span class="p">[</span><span class="n">ts</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">ignoreAttrs</span><span class="o">=</span><span class="p">[])</span> <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tsSet</span><span class="p">]</span>
-        <span class="n">ctfSeriesList</span> <span class="o">=</span> <span class="p">[</span><span class="n">ctfSeries</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">ignoreAttrs</span><span class="o">=</span><span class="p">[])</span> <span class="k">for</span> <span class="n">ctfSeries</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctfTomoSet</span><span class="p">]</span>
-        <span class="n">tomoList</span> <span class="o">=</span> <span class="p">[</span><span class="n">tomo</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span> <span class="k">for</span> <span class="n">tomo</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordSet</span><span class="o">.</span><span class="n">getPrecedents</span><span class="p">()]</span>
+        <span class="n">tsList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tsSet</span><span class="p">:</span>
+            <span class="n">tsList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ts</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">ignoreAttrs</span><span class="o">=</span><span class="p">[]))</span>
+        <span class="n">tomoList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">tomo</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordSet</span><span class="o">.</span><span class="n">getPrecedents</span><span class="p">():</span>
+            <span class="n">tomoList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tomo</span><span class="o">.</span><span class="n">clone</span><span class="p">())</span>
 
-        <span class="k">def</span> <span class="nf">sortTomoNames</span><span class="p">(</span><span class="n">tomoList</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">getTomoNames</span><span class="p">(</span><span class="n">tomoList</span><span class="p">):</span>
             <span class="k">return</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">tomo</span> <span class="k">for</span> <span class="n">tomo</span> <span class="ow">in</span> <span class="n">tomoList</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()])</span>
 
-        <span class="k">def</span> <span class="nf">sortIds</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">getTsId</span><span class="p">()</span>
+        <span class="k">def</span> <span class="nf">getTsIds</span><span class="p">(</span><span class="n">tsList</span><span class="p">):</span>
+            <span class="k">return</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">ts</span><span class="o">.</span><span class="n">getTsId</span><span class="p">()</span> <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="n">tsList</span><span class="p">])</span>
 
-        <span class="n">tomoList</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">sortTomoNames</span><span class="p">)</span>
-        <span class="n">tsList</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">sortIds</span><span class="p">)</span>
-        <span class="n">ctfSeriesList</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">sortIds</span><span class="p">)</span>
+        <span class="n">tomoList</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">getTomoNames</span><span class="p">)</span>
+        <span class="n">tsList</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="n">getTsIds</span><span class="p">)</span>
         <span class="n">matches</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
-        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">for</span> <span class="n">ctfs</span><span class="p">,</span> <span class="n">ts</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ctfSeriesList</span><span class="p">,</span> <span class="n">tsList</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">ind</span><span class="p">,</span> <span class="n">ts</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tsList</span><span class="p">):</span>
             <span class="c1"># This clone command was used to pass the value by value instead of by reference, because</span>
             <span class="c1"># all the elements of list self.tsExpandedList were overwritten on each iteration of this loop</span>
             <span class="n">tsId</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">getTsId</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;TS_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
             <span class="n">remTS</span> <span class="o">-=</span> <span class="mi">1</span>
             <span class="k">for</span> <span class="n">doseFile</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
-                <span class="n">doseBaseName</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">doseFile</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_ExpDose&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">doseBaseName</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">doseFile</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">tsId</span> <span class="ow">in</span> <span class="n">doseBaseName</span> <span class="ow">or</span> <span class="n">doseBaseName</span> <span class="ow">in</span> <span class="n">tsId</span><span class="p">:</span>
                     <span class="c1"># Get the corresponding subtomograms coordinates</span>
-                    <span class="n">coordList</span> <span class="o">=</span> <span class="p">[</span><span class="n">coord</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span> <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordSet</span><span class="o">.</span><span class="n">iterCoordinates</span><span class="p">(</span><span class="n">volume</span><span class="o">=</span><span class="n">tomoList</span><span class="p">[</span><span class="n">counter</span><span class="p">])]</span>
+                    <span class="n">coordList</span> <span class="o">=</span> <span class="p">[</span><span class="n">coord</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span> <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">coordSet</span><span class="o">.</span><span class="n">iterCoordinates</span><span class="p">(</span><span class="n">volume</span><span class="o">=</span><span class="n">tomoList</span><span class="p">[</span><span class="n">ind</span><span class="p">])]</span>
                     <span class="c1"># Add to the TS Expanded list</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">tsExpandedList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ExtendedTS</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">ctfs</span><span class="p">,</span> <span class="n">DoseFile</span><span class="p">(</span><span class="n">doseFile</span><span class="p">),</span> <span class="n">coordList</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">tsExpandedList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ExtendedTS</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">DoseFile</span><span class="p">(</span><span class="n">doseFile</span><span class="p">),</span> <span class="n">coordList</span><span class="p">))</span>
                     <span class="n">matches</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">doseFile</span><span class="p">)</span>
                     <span class="n">remDose</span> <span class="o">-=</span> <span class="mi">1</span>
                     <span class="k">break</span>
@@ -442,12 +450,9 @@
             <span class="k">if</span> <span class="n">remTS</span> <span class="o">!=</span> <span class="n">remDose</span><span class="p">:</span>
                 <span class="n">nonMatchingTS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">+</span> <span class="n">tsId</span><span class="p">)</span>
 
-            <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
-
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">tsExpandedList</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">No matching dose files were found&#39;</span>
-        <span class="k">elif</span> <span class="n">nonMatchingTS</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">+=</span> <span class="s2">&quot;No matching dose file was found for the following TS:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">nonMatchingTS</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">nonMatchingTS</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;No matching dose file was found for the following TS:</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> \
+                   <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">nonMatchingTS</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_getProgram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">program</span><span class="o">=</span><span class="s1">&#39;relion_preprocess&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Get the program name depending on the MPI use or not. &quot;&quot;&quot;</span>
@@ -503,7 +508,6 @@
         <span class="n">mrcFileList</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">coordCounter</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">ts</span> <span class="o">=</span> <span class="n">tsExp</span><span class="o">.</span><span class="n">getTS</span><span class="p">()</span>
-        <span class="n">ctfs</span> <span class="o">=</span> <span class="n">tsExp</span><span class="o">.</span><span class="n">getCTFSeries</span><span class="p">()</span>
         <span class="n">coordList</span> <span class="o">=</span> <span class="n">tsExp</span><span class="o">.</span><span class="n">getCoords</span><span class="p">()</span>
         <span class="n">tiltList</span> <span class="o">=</span> <span class="n">tsExp</span><span class="o">.</span><span class="n">getDoseFileTiltAngles</span><span class="p">()</span>
         <span class="n">doseList</span> <span class="o">=</span> <span class="n">tsExp</span><span class="o">.</span><span class="n">getDoseFileDoses</span><span class="p">()</span>
@@ -523,8 +527,8 @@
             <span class="n">mrcFileList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mrc3DStar</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">ctfMRCFileList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mrc3DStar</span><span class="p">)</span>
 
-            <span class="k">for</span> <span class="n">ti</span><span class="p">,</span> <span class="n">ctf</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">ctfs</span><span class="p">):</span>
-                <span class="n">avgDefocus</span> <span class="o">=</span> <span class="p">(</span><span class="n">ctf</span><span class="o">.</span><span class="n">getDefocusU</span><span class="p">()</span> <span class="o">+</span> <span class="n">ctf</span><span class="o">.</span><span class="n">getDefocusV</span><span class="p">())</span> <span class="o">/</span> <span class="mi">2</span>
+            <span class="k">for</span> <span class="n">ti</span> <span class="ow">in</span> <span class="n">ts</span><span class="p">:</span>
+                <span class="n">avgDefocus</span> <span class="o">=</span> <span class="p">(</span><span class="n">ti</span><span class="o">.</span><span class="n">getCTF</span><span class="p">()</span><span class="o">.</span><span class="n">getDefocusU</span><span class="p">()</span> <span class="o">+</span> <span class="n">ti</span><span class="o">.</span><span class="n">getCTF</span><span class="p">()</span><span class="o">.</span><span class="n">getDefocusV</span><span class="p">())</span> <span class="o">/</span> <span class="mi">2</span>
                 <span class="n">tiltAngleDegs</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">getTiltAngle</span><span class="p">()</span>
                 <span class="n">tiltAngleRads</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">tiltAngleDegs</span><span class="p">)</span>
                 <span class="n">xTomo</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">getX</span><span class="p">()</span> <span class="o">-</span> <span class="p">(</span><span class="n">sizeX</span> <span class="o">/</span> <span class="mi">2</span><span class="p">))</span> <span class="o">*</span> <span class="n">setTsInfo</span><span class="p">[</span><span class="n">SRATE</span><span class="p">]</span>
@@ -557,7 +561,6 @@
         <span class="n">starFileList</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">mrcFileList</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">ts</span> <span class="o">=</span> <span class="n">tsExp</span><span class="o">.</span><span class="n">getTS</span><span class="p">()</span>
-        <span class="n">ctfs</span> <span class="o">=</span> <span class="n">tsExp</span><span class="o">.</span><span class="n">getCTFSeries</span><span class="p">()</span>
         <span class="n">tiltList</span> <span class="o">=</span> <span class="n">tsExp</span><span class="o">.</span><span class="n">getDoseFileTiltAngles</span><span class="p">()</span>
         <span class="n">doseList</span> <span class="o">=</span> <span class="n">tsExp</span><span class="o">.</span><span class="n">getDoseFileDoses</span><span class="p">()</span>
         <span class="n">tomoTable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createTable</span><span class="p">()</span>
@@ -571,8 +574,8 @@
         <span class="n">mrcFileList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mrc3DStar</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ctfMRCFileList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mrc3DStar</span><span class="p">)</span>
 
-        <span class="k">for</span> <span class="n">ti</span><span class="p">,</span> <span class="n">ctf</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">ctfs</span><span class="p">):</span>
-            <span class="n">avgDefocus</span> <span class="o">=</span> <span class="p">(</span><span class="n">ctf</span><span class="o">.</span><span class="n">getDefocusU</span><span class="p">()</span> <span class="o">+</span> <span class="n">ctf</span><span class="o">.</span><span class="n">getDefocusV</span><span class="p">())</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">for</span> <span class="n">ti</span> <span class="ow">in</span> <span class="n">ts</span><span class="p">:</span>
+            <span class="n">avgDefocus</span> <span class="o">=</span> <span class="p">(</span><span class="n">ti</span><span class="o">.</span><span class="n">getCTF</span><span class="p">()</span><span class="o">.</span><span class="n">getDefocusU</span><span class="p">()</span> <span class="o">+</span> <span class="n">ti</span><span class="o">.</span><span class="n">getCTF</span><span class="p">()</span><span class="o">.</span><span class="n">getDefocusV</span><span class="p">())</span> <span class="o">/</span> <span class="mi">2</span>
             <span class="n">tiltAngleDegs</span> <span class="o">=</span> <span class="n">ti</span><span class="o">.</span><span class="n">getTiltAngle</span><span class="p">()</span>
             <span class="n">tiltAngleRads</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">deg2rad</span><span class="p">(</span><span class="n">tiltAngleDegs</span><span class="p">)</span>
             <span class="c1"># Weighting the 3D CTF model using the tilt dependent scale factor and the dose dependent B-Factor</span>
@@ -610,9 +613,8 @@
 <span class="c1"># This class represents a expanded version of the tilt series, and adds the additional data</span>
 <span class="c1"># required to calculate the CTF3d</span>
 <div class="viewcode-block" id="ExtendedTS"><a class="viewcode-back" href="../../../api/reliontomo/reliontomo.protocols.protocol_ctf_3d_estimation.html#reliontomo.protocols.protocol_ctf_3d_estimation.ExtendedTS">[docs]</a><span class="k">class</span> <span class="nc">ExtendedTS</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">ctfs</span><span class="p">,</span> <span class="n">doseFileObj</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">,</span> <span class="n">doseFileObj</span><span class="p">,</span> <span class="n">coords</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ts</span> <span class="o">=</span> <span class="n">ts</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_ctfs</span> <span class="o">=</span> <span class="n">ctfs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_doseFile</span> <span class="o">=</span> <span class="n">doseFileObj</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span> <span class="o">=</span> <span class="n">coords</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_ctfStarFileList</span> <span class="o">=</span> <span class="p">[]</span>
@@ -620,9 +622,6 @@
 
 <div class="viewcode-block" id="ExtendedTS.getTS"><a class="viewcode-back" href="../../../api/reliontomo/reliontomo.protocols.protocol_ctf_3d_estimation.html#reliontomo.protocols.protocol_ctf_3d_estimation.ExtendedTS.getTS">[docs]</a>    <span class="k">def</span> <span class="nf">getTS</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ts</span></div>
-
-<div class="viewcode-block" id="ExtendedTS.getCTFSeries"><a class="viewcode-back" href="../../../api/reliontomo/reliontomo.protocols.protocol_ctf_3d_estimation.html#reliontomo.protocols.protocol_ctf_3d_estimation.ExtendedTS.getCTFSeries">[docs]</a>    <span class="k">def</span> <span class="nf">getCTFSeries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ctfs</span></div>
 
 <div class="viewcode-block" id="ExtendedTS.getDoseFile"><a class="viewcode-back" href="../../../api/reliontomo/reliontomo.protocols.protocol_ctf_3d_estimation.html#reliontomo.protocols.protocol_ctf_3d_estimation.ExtendedTS.getDoseFile">[docs]</a>    <span class="k">def</span> <span class="nf">getDoseFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_doseFile</span></div>
@@ -716,12 +715,12 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../../../dependabot_pip_jinja2-2.10.1/index.html">dependabot/pip/jinja2-2.10.1</a></dd>
+            <dd><a href="../../../../dependabot_pip_jinja2-2.11.3/index.html">dependabot/pip/jinja2-2.11.3</a></dd>
+            <dd><a href="../../../../dependabot_pip_pygments-2.7.4/index.html">dependabot/pip/pygments-2.7.4</a></dd>
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="protocol_ctf_3d_estimation.html">release-3.0.0</a></dd>
             <dd><a href="../../../../rsanchezgarc-patch-1/index.html">rsanchezgarc-patch-1</a></dd>
-            <dd><a href="../../../../vtune/index.html">vtune</a></dd>
         </dl>
     </div>
 </div>

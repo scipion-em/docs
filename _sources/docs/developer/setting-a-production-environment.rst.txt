@@ -116,6 +116,6 @@ Restart (Bounce)
 Scipion deployments
 
 For single-user ("private") use, Scipion can be deployed anywhere; for example, in the user's home directory.
-On multi-user machines, the prefered location is /usr/local/scipion.
+On multi-user machines, the preferred location is /usr/local/scipion.
 In cluster environments, Scipion should be installed in the shared filesystem, so all nodes have access to it. In crunchy, for example, the preferred path is /gpfs/fs1/apps/scipion
 

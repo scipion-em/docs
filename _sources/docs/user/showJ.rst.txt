@@ -189,4 +189,4 @@ dismiss objects from a set without modifying the original set
 .. |table_mode, width=20| image:: /docs/images/guis/02.TableView.png
 .. |find_replace, height=20| image:: /docs/images/guis/binocular.png
 .. |plot_labels, height=20| image:: /docs/images/guis/plot.png
-.. |number_of_colums, height=20| image:: /docs/images/guis/06.3DAxis.png
+.. |number_of_columns, height=20| image:: /docs/images/guis/06.3DAxis.png

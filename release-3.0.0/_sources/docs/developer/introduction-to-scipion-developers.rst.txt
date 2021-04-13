@@ -19,7 +19,7 @@ If you are new to Scipion, you will find useful to follow this steps:
     with so much information, you can read this again.
 2.  Read the `Scipion Architecture <architecture>`_ to have an idea
     of the "big picture" of the project. You should know the basic
-    components of Scipions and how they interact.
+    components of Scipion and how they interact.
 3.  `How-to-Install <https://scipion-em.github.io/docs/docs/scipion-modes/install-from-sources.html>`_ in your system. You will get
     your hands dirty with some source code compilation and installations.
 4.  `Eclipse-IDE <eclipse>`_ before start developing

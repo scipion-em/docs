@@ -8,7 +8,7 @@
 Scipion in the EGI Federated Cloud
 ====================================
 
-EGI Federated Cloud is a seamless grid of academic private clouds and virtualised resources, built around open standards and focusing on the requirements of the scientific community.
+EGI Federated Cloud is a seamless grid of academic private clouds and virtualized resources, built around open standards and focusing on the requirements of the scientific community.
 It can be found under 'Cloud Compute on the `EGI services catalog <https://www.egi.eu/services/>`_.
 
 More information can be found on `EGI Federated Cloud <https://www.egi.eu/federation/egi-federated-cloud/>`_ web site.

@@ -87,7 +87,7 @@ Scipion. In the next subsections, we will explain each component
 separately.
 
 .. image:: /docs/images/scipion-architecture.png
-    :alt: Scipin architecture
+    :alt: Scipion architecture
     :height: 400
     :align: center
 
@@ -188,7 +188,7 @@ There are five major types of GUIs in Scipion:
   are intuitively represented.
 * **Form window**: This is the second-most important window type. It is
   dynamically generated for each protocol and contains fields for each
-  protocol's paramaters. This is convenient for developers when creating
+  protocol's parameters. This is convenient for developers when creating
   new protocols, because they only need to think about defining the input
   parameters and not about GUI programming.
 * **Wizards**: Wizards are simple and specific GUIs that assist
@@ -198,7 +198,7 @@ There are five major types of GUIs in Scipion:
 * **Data viewers**: Visualization of data is essential to analyze image
   processing results. In Scipion, we have re-used some of the data
   visualization tools developed in existing EM software packages, such as
-  xmipp's ``showj`` and Eman particle picking. We have also developed some new
+  Xmipp's ``showj`` and Eman particle picking. We have also developed some new
   tools, such as a web tool similar to xmipp ``showj``, which is very useful
   for displaying tables, galleries of images, or volumes.
 

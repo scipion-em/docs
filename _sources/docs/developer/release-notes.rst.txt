@@ -67,7 +67,7 @@ SPA
 * New plugins for SPA: cryoDRGN, sidesplitter, cryoassess
 * Local resolution viewers offer control of the scale.
 * Sphire (Cryolo & JANNI) updated
-* protocol to invert the handeness of a map
+* protocol to invert the handedness of a map
 
 Atomic model building and refinement
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

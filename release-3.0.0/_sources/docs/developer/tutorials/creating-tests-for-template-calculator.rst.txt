@@ -47,7 +47,7 @@ files that your test needs to load in order to launch your protocol (e.g. a micr
 the import micrographs protocol test) or to feed some of your protocol inputs (e.g. a coordinates file or/and a tomogram file).
 
 For the protocol which is going to be used in this tutorial, we use a basic calculator with three
-required inputs: operation, which can be chosen from a list of four options (Sum, Substract, Multiply and Divide) and two
+required inputs: operation, which can be chosen from a list of four options (Sum, Subtract, Multiply and Divide) and two
 numeric operands. The figure below shows how the protocol GUI looks like and the corresponding protocol code:
 
 .. figure:: /docs/images/dev/template_practice/practice1_intro_frontend_gui_code_II.png
@@ -107,7 +107,7 @@ Writing the tests
 
     3.3 Store operand1 value in a class attribute named **cls.op1** and do the same for operand2 with **cls.op2**.
 
-4. Write four tests, one for each operation offered by the calculator protocol (Sum, Substract, Multiply and Divide).
+4. Write four tests, one for each operation offered by the calculator protocol (Sum, Subtract, Multiply and Divide).
    Each test must:
 
     4.1  Create a calculator protocol object with the attributes operation, operand1 and operand2.

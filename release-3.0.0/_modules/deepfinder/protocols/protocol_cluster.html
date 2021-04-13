@@ -207,9 +207,10 @@
 <span class="c1"># *  e-mail address &#39;you@yourinstitution.email&#39;</span>
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="k">import</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Set</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="k">import</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Float</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol</span> <span class="k">import</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span> <span class="n">PointerParam</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils.properties</span> <span class="k">import</span> <span class="n">Message</span>
+<span class="kn">from</span> <span class="nn">tomo.objects</span> <span class="k">import</span> <span class="n">Coordinate3D</span>
 <span class="kn">from</span> <span class="nn">tomo.protocols</span> <span class="k">import</span> <span class="n">ProtTomoPicking</span>
 <span class="kn">from</span> <span class="nn">deepfinder.objects</span> <span class="k">import</span> <span class="n">Coordinate3DWithScore</span>
 
@@ -230,12 +231,17 @@
 
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;cluster&#39;</span>
 
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
+        <span class="n">ProtTomoPicking</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
+        <span class="c1">#ProtDeepFinderBase.__init__(self, **args)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clusteringSummary</span> <span class="o">=</span> <span class="n">String</span><span class="p">()</span>
+
     <span class="c1"># --------------------------- DEFINE param functions ----------------------</span>
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">Message</span><span class="o">.</span><span class="n">LABEL_INPUT</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputSegmentations&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span>
-                      <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;SetOfTomograms&#39;</span><span class="p">,</span>
+                      <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;SetOfTomoMasks&#39;</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Segmentation maps&quot;</span><span class="p">,</span> <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Please select the segmentation maps you would like to analyze.&#39;</span><span class="p">)</span>
 
@@ -270,9 +276,15 @@
         <span class="c1"># Convert DeepFinder annotation output to Scipion SetOfCoordinates3D</span>
         <span class="n">setSegmentations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSegmentations</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 
-        <span class="c1"># First, determine the classes that have been found (check in all object lists):</span>
-        <span class="n">objl</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">segm</span> <span class="ow">in</span> <span class="n">setSegmentations</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
+
+        <span class="n">coord3DSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfCoordinates3DWithScore</span><span class="p">(</span><span class="n">setSegmentations</span><span class="p">)</span>
+        <span class="n">coord3DSet</span><span class="o">.</span><span class="n">setName</span><span class="p">(</span><span class="s1">&#39;Detected objects&#39;</span><span class="p">)</span>
+        <span class="n">coord3DSet</span><span class="o">.</span><span class="n">setPrecedents</span><span class="p">(</span><span class="n">setSegmentations</span><span class="p">)</span>
+        <span class="n">coord3DSet</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">setSegmentations</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
+
+        <span class="n">coordCounter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">clusteringSummary</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">segmInd</span><span class="p">,</span> <span class="n">segm</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">setSegmentations</span><span class="o">.</span><span class="n">iterItems</span><span class="p">()):</span>
             <span class="c1"># Get objl filename:</span>
             <span class="n">fname_segm</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">segm</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
             <span class="n">fname_segm</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">fname_segm</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
@@ -280,79 +292,59 @@
 
             <span class="c1"># Read objl:</span>
             <span class="n">objl_tomo</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_read</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">fname_objl</span><span class="p">)))</span>
-            <span class="n">objl</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">objl_tomo</span><span class="p">)</span>
 
-        <span class="n">lbl_list</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_get_labels</span><span class="p">(</span><span class="n">objl</span><span class="p">)</span>  <span class="c1"># get unique class labels</span>
-
-        <span class="c1"># For each class, iterate over all object lists (1 per tomo) and store coordinates</span>
-        <span class="c1"># in SetOfCoordinates3D (1 per class)</span>
-        <span class="c1"># Remark: only 1 setOfCoordinates3D can exist at a time, else:</span>
-        <span class="c1"># &quot;Protocol failed: Cannot operate on a closed database.&quot;</span>
-        <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="n">lbl_list</span><span class="p">:</span>
-            <span class="n">coord3DSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfCoordinates3DWithScore</span><span class="p">(</span><span class="n">setSegmentations</span><span class="p">,</span>
-                                                        <span class="n">lbl</span><span class="p">)</span>  <span class="c1"># lbl is a suffix for sqlite filename. Important, else overwrite!</span>
-            <span class="n">coord3DSet</span><span class="o">.</span><span class="n">setName</span><span class="p">(</span><span class="s1">&#39;Class &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">lbl</span><span class="p">))</span>
-            <span class="n">coord3DSet</span><span class="o">.</span><span class="n">setPrecedents</span><span class="p">(</span><span class="n">setSegmentations</span><span class="p">)</span>
-            <span class="n">coord3DSet</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">setSegmentations</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
-
-            <span class="k">for</span> <span class="n">segm</span> <span class="ow">in</span> <span class="n">setSegmentations</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
-                <span class="c1"># Get objl filename:</span>
-                <span class="n">fname_segm</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">segm</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
-                <span class="n">fname_segm</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">fname_segm</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                <span class="n">fname_objl</span> <span class="o">=</span> <span class="s1">&#39;objl_&#39;</span> <span class="o">+</span> <span class="n">fname_segm</span> <span class="o">+</span> <span class="s1">&#39;.xml&#39;</span>
-
-                <span class="c1"># Read objl:</span>
-                <span class="n">objl_tomo</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_read</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">fname_objl</span><span class="p">)))</span>
+            <span class="c1"># Generate string for protocol summary:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Segmentation &#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">segmInd</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;: a total of &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">objl_tomo</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39; objects has been found.&#39;</span>
+            <span class="n">clusteringSummary</span> <span class="o">+=</span> <span class="n">msg</span>
+            <span class="n">lbl_list</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_get_labels</span><span class="p">(</span><span class="n">objl_tomo</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="n">lbl_list</span><span class="p">:</span>
                 <span class="n">objl_class</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_get_class</span><span class="p">(</span><span class="n">objl_tomo</span><span class="p">,</span> <span class="n">lbl</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">objl_class</span><span class="p">)):</span>
-                    <span class="n">x</span> <span class="o">=</span> <span class="n">objl_class</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
-                    <span class="n">y</span> <span class="o">=</span> <span class="n">objl_class</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">]</span>
-                    <span class="n">z</span> <span class="o">=</span> <span class="n">objl_class</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;z&#39;</span><span class="p">]</span>
-                    <span class="n">score</span> <span class="o">=</span> <span class="n">objl_class</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;cluster_size&#39;</span><span class="p">]</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Class &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">lbl</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">objl_class</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39; objects&#39;</span>
+                <span class="n">clusteringSummary</span> <span class="o">+=</span> <span class="n">msg</span>
+            <span class="n">clusteringSummary</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
 
-                    <span class="n">coord</span> <span class="o">=</span> <span class="n">Coordinate3DWithScore</span><span class="p">()</span>
-                    <span class="n">coord</span><span class="o">.</span><span class="n">setPosition</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
-                    <span class="n">coord</span><span class="o">.</span><span class="n">setScore</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
-                    <span class="n">coord</span><span class="o">.</span><span class="n">setVolume</span><span class="p">(</span><span class="n">segm</span><span class="p">)</span>
-                    <span class="c1"># coord.setVolName(segm.getFileName())</span>
-                    <span class="n">coord3DSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
+            <span class="c1"># Get tomo corresponding to current tomomask:</span>
+            <span class="n">tomo</span> <span class="o">=</span> <span class="n">segm</span><span class="o">.</span><span class="n">getTomogram</span><span class="p">()</span>
 
-            <span class="c1"># Link to output:</span>
-            <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;outputCoordinates3D_class&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">lbl</span><span class="p">)</span>
-            <span class="n">args</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="n">coord3DSet</span><span class="o">.</span><span class="n">setStreamState</span><span class="p">(</span><span class="n">Set</span><span class="o">.</span><span class="n">STREAM_OPEN</span><span class="p">)</span>
-            <span class="n">args</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">coord3DSet</span>
+            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">objl_tomo</span><span class="p">)):</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">objl_tomo</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">objl_tomo</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">]</span>
+                <span class="n">z</span> <span class="o">=</span> <span class="n">objl_tomo</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;z&#39;</span><span class="p">]</span>
+                <span class="n">lbl</span> <span class="o">=</span> <span class="n">objl_tomo</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
+                <span class="n">score</span> <span class="o">=</span> <span class="n">objl_tomo</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;cluster_size&#39;</span><span class="p">]</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="n">setSegmentations</span><span class="p">,</span> <span class="n">coord3DSet</span><span class="p">)</span>
+                <span class="n">coord</span> <span class="o">=</span> <span class="n">Coordinate3D</span><span class="p">()</span>
+                <span class="n">coord</span><span class="o">.</span><span class="n">setObjId</span><span class="p">(</span><span class="n">coordCounter</span><span class="p">)</span>
+                <span class="n">coord</span><span class="o">.</span><span class="n">setPosition</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+                <span class="n">coord</span><span class="o">.</span><span class="n">setVolume</span><span class="p">(</span><span class="n">tomo</span><span class="p">)</span>
+                <span class="n">coord</span><span class="o">.</span><span class="n">setVolId</span><span class="p">(</span><span class="n">segmInd</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">coord</span><span class="o">.</span><span class="n">_dfLabel</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">lbl</span><span class="p">))</span>
+                <span class="n">coord</span><span class="o">.</span><span class="n">_dfScore</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
 
-        <span class="c1"># I (emoebel) don&#39;t know what this is for, but is apparently necessary (copied from Estrella&#39;s XmippProtCCroi)</span>
-        <span class="k">for</span> <span class="n">outputset</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterOutputsNew</span><span class="p">():</span>
-            <span class="n">outputset</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">setStreamState</span><span class="p">(</span><span class="n">Set</span><span class="o">.</span><span class="n">STREAM_CLOSED</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">()</span></div>
+                <span class="n">coord3DSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
+
+                <span class="n">coordCounter</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputCoordinates</span><span class="o">=</span><span class="n">coord3DSet</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="n">setSegmentations</span><span class="p">,</span> <span class="n">coord3DSet</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">clusteringSummary</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">clusteringSummary</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusteringSummary</span><span class="p">)</span></div>
+
 
 
     <span class="c1"># --------------------------- DEFINE info functions ---------------------- # TODO</span>
-<div class="viewcode-block" id="DeepFinderCluster.getMethods"><a class="viewcode-back" href="../../../api/deepfinder/deepfinder.protocols.protocol_cluster.html#deepfinder.protocols.protocol_cluster.DeepFinderCluster.getMethods">[docs]</a>    <span class="k">def</span> <span class="nf">getMethods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
-        <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;User picked </span><span class="si">%d</span><span class="s1"> particles &#39;</span> <span class="o">%</span> <span class="n">output</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">msg</span></div>
+    <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Summarize what the protocol has done&quot;&quot;&quot;</span>
+        <span class="n">summary</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isFinished</span><span class="p">():</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clusteringSummary</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+                <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">clusteringSummary</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
-    <span class="k">def</span> <span class="nf">_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">methodsMsgs</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputTomograms</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;Input tomogram not available yet.&#39;</span><span class="p">]</span>
+            <span class="c1"># if self._noAnnotations.get():</span>
+            <span class="c1">#     summary.append(&#39;NO OBJECTS WERE TAKEN.&#39;)</span>
 
-        <span class="n">methodsMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Input tomograms imported of dims </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getDim</span><span class="p">())))</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">getOutputsSize</span><span class="p">()</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">output</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterOutputAttributes</span><span class="p">():</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMethods</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
-                <span class="n">methodsMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getObjectTag</span><span class="p">(</span><span class="n">output</span><span class="p">),</span> <span class="n">msg</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">methodsMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Message</span><span class="o">.</span><span class="n">TEXT_NO_OUTPUT_CO</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">methodsMsgs</span></div>
+        <span class="k">return</span> <span class="n">summary</span></div>
 </pre></div>
 
            </div>
@@ -389,12 +381,12 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../../../dependabot_pip_jinja2-2.10.1/index.html">dependabot/pip/jinja2-2.10.1</a></dd>
+            <dd><a href="../../../../dependabot_pip_jinja2-2.11.3/index.html">dependabot/pip/jinja2-2.11.3</a></dd>
+            <dd><a href="../../../../dependabot_pip_pygments-2.7.4/index.html">dependabot/pip/pygments-2.7.4</a></dd>
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="protocol_cluster.html">release-3.0.0</a></dd>
             <dd><a href="../../../../rsanchezgarc-patch-1/index.html">rsanchezgarc-patch-1</a></dd>
-            <dd><a href="../../../../vtune/index.html">vtune</a></dd>
         </dl>
     </div>
 </div>

@@ -353,7 +353,7 @@ also writes metadata for the references if needed.
 The ``writeSetOfParticles`` function iterates over each individual image
 in the input ``SetOfParticles`` and adds a line to a valid STAR file
 using the Xmipp MetaData class in Python. By the same logic, any other
-file format could be generated when writting a ``convertInputStep``
+file format could be generated when writing a ``convertInputStep``
 function. Read more about iterating over a ``SetOfParticles`` and
 querying its attributes in :doc:`Using Sets <using-sets>`.
 

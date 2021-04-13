@@ -210,10 +210,10 @@
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="k">import</span> <span class="n">VERSION_1_1</span>
+<span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="k">import</span> <span class="n">Set</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol</span> <span class="k">import</span> <span class="n">STEPS_PARALLEL</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">import</span> <span class="p">(</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span>
@@ -226,7 +226,7 @@
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="k">import</span> <span class="n">EMProtocol</span><span class="p">,</span> <span class="n">ProtProcessMovies</span>
 
 <span class="kn">from</span> <span class="nn">pwem</span> <span class="k">import</span> <span class="n">emlib</span>
-<span class="kn">from</span> <span class="nn">xmipp3.utils</span> <span class="k">import</span> <span class="n">normalize_array</span>
+<span class="kn">import</span> <span class="nn">xmipp3.utils</span> <span class="k">as</span> <span class="nn">xmutils</span>
 
 
 <div class="viewcode-block" id="XmippProtMovieGain"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_gain.html#xmipp3.protocols.protocol_movie_gain.XmippProtMovieGain">[docs]</a><span class="k">class</span> <span class="nc">XmippProtMovieGain</span><span class="p">(</span><span class="n">ProtProcessMovies</span><span class="p">):</span>
@@ -239,6 +239,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;movie gain&#39;</span>
     <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_1_1</span>
+
+    <span class="n">estimatedDatabase</span> <span class="o">=</span> <span class="s1">&#39;estGains.sqlite&#39;</span>
+    <span class="n">residualDatabase</span> <span class="o">=</span> <span class="s1">&#39;resGains.sqlite&#39;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
         <span class="n">EMProtocol</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
@@ -293,11 +296,11 @@
     <span class="c1"># -------------------------- STEPS functions ------------------------------</span>
 <div class="viewcode-block" id="XmippProtMovieGain.createOutputStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_gain.html#xmipp3.protocols.protocol_movie_gain.XmippProtMovieGain.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimateGain</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-            <span class="n">estGainsSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfImages</span><span class="p">,</span> <span class="s1">&#39;estGains.sqlite&#39;</span><span class="p">)</span>
+            <span class="n">estGainsSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfImages</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimatedDatabase</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="s1">&#39;estimatedGains&#39;</span><span class="p">,</span> <span class="n">estGainsSet</span><span class="p">,</span> <span class="n">Set</span><span class="o">.</span><span class="n">STREAM_CLOSED</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimateResidualGain</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-            <span class="n">resGainsSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfImages</span><span class="p">,</span> <span class="s1">&#39;resGains.sqlite&#39;</span><span class="p">)</span>
+            <span class="n">resGainsSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfImages</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">residualDatabase</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="s1">&#39;residualGains&#39;</span><span class="p">,</span> <span class="n">resGainsSet</span><span class="p">,</span> <span class="n">Set</span><span class="o">.</span><span class="n">STREAM_CLOSED</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_insertNewMoviesSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">insertedDict</span><span class="p">,</span> <span class="n">inputMovies</span><span class="p">):</span>
@@ -362,8 +365,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">estimatedIds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movieId</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">estimateGainFun</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="n">noSigma</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="n">estGain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">readImage</span><span class="p">(</span><span class="n">estGainFn</span><span class="p">)</span>
-        <span class="n">expGain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">readImage</span><span class="p">(</span><span class="n">expGainFn</span><span class="p">)</span>
+        <span class="n">estGain</span> <span class="o">=</span> <span class="n">xmutils</span><span class="o">.</span><span class="n">readImage</span><span class="p">(</span><span class="n">estGainFn</span><span class="p">)</span>
+        <span class="n">expGain</span> <span class="o">=</span> <span class="n">xmutils</span><span class="o">.</span><span class="n">readImage</span><span class="p">(</span><span class="n">expGainFn</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">match_orientation</span><span class="p">(</span><span class="n">expGain</span><span class="p">,</span> <span class="n">estGain</span><span class="p">)</span>
 
         <span class="n">orientedSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfImages</span><span class="p">,</span> <span class="s1">&#39;orientedGain.sqlite&#39;</span><span class="p">)</span>
@@ -381,13 +384,12 @@
         <span class="n">oriArray</span> <span class="o">=</span> <span class="n">oriArray</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">oriArray</span><span class="p">)</span>
 
         <span class="n">oriGain</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">oriArray</span><span class="p">)</span>
-        <span class="n">oriGain</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getOrientedGainPath</span><span class="p">())</span></div>
+        <span class="n">oriGain</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getFinalGainPath</span><span class="p">())</span></div>
 
     <span class="k">def</span> <span class="nf">_processMovie</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
         <span class="n">movieId</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">doGainProcess</span><span class="p">(</span><span class="n">movieId</span><span class="p">):</span>
             <span class="k">return</span>
-        <span class="n">fnMovie</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
         <span class="n">inputGain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputGain</span><span class="p">()</span>
           
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimateGain</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">movieId</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimatedIds</span><span class="p">:</span>
@@ -454,7 +456,7 @@
                 <span class="n">outputSet</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="n">inputMovies</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">fixGain</span><span class="p">:</span>
-                    <span class="n">outputSet</span><span class="o">.</span><span class="n">setGain</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getFinalGainPath</span><span class="p">())</span>
+                    <span class="n">outputSet</span><span class="o">.</span><span class="n">setGain</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getFinalGainPath</span><span class="p">(</span><span class="n">tifFlipped</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">outputSet</span>
 
@@ -475,11 +477,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="s1">&#39;outputMovies&#39;</span><span class="p">,</span> <span class="n">moviesSet</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimateGain</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-                <span class="n">estGainsSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfImages</span><span class="p">,</span> <span class="s1">&#39;estGains.sqlite&#39;</span><span class="p">)</span>
+                <span class="n">estGainsSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfImages</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimatedDatabase</span><span class="p">)</span>
                 <span class="n">estGainsSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateGainsOutput</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="n">estGainsSet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getEstimatedGainPath</span><span class="p">(</span><span class="n">movieId</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="s1">&#39;estimatedGains&#39;</span><span class="p">,</span> <span class="n">estGainsSet</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimateResidualGain</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-                <span class="n">resGainsSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfImages</span><span class="p">,</span> <span class="s1">&#39;resGains.sqlite&#39;</span><span class="p">)</span>
+                <span class="n">resGainsSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfImages</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">residualDatabase</span><span class="p">)</span>
                 <span class="n">resGainsSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateGainsOutput</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="n">resGainsSet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getResidualGainPath</span><span class="p">(</span><span class="n">movieId</span><span class="p">))</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="s1">&#39;residualGains&#39;</span><span class="p">,</span> <span class="n">resGainsSet</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">)</span>
 
@@ -514,9 +516,9 @@
             <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">doGainProcess</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">newDone</span><span class="p">]):</span>
                 <span class="c1"># update outputGains if any residualGain is processed in newDone</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimateGain</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-                    <span class="n">estGainsSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfImages</span><span class="p">,</span> <span class="s1">&#39;estGains.sqlite&#39;</span><span class="p">)</span>
+                    <span class="n">estGainsSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfImages</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimatedDatabase</span><span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimateResidualGain</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-                    <span class="n">resGainsSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfImages</span><span class="p">,</span> <span class="s1">&#39;resGains.sqlite&#39;</span><span class="p">)</span>
+                    <span class="n">resGainsSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfImages</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">residualDatabase</span><span class="p">)</span>
                   
                 <span class="k">for</span> <span class="n">movie</span> <span class="ow">in</span> <span class="n">newDone</span><span class="p">:</span>
                     <span class="n">movieId</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
@@ -581,7 +583,7 @@
         <span class="n">best_cor</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="c1">#Building conjugate of FT of estimated gain for correlations</span>
         <span class="n">est_gain_array</span> <span class="o">=</span> <span class="n">est_gain</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span>
-        <span class="n">est_gain_array</span> <span class="o">=</span> <span class="n">normalize_array</span><span class="p">(</span><span class="n">est_gain_array</span><span class="p">)</span>
+        <span class="n">est_gain_array</span> <span class="o">=</span> <span class="n">xmutils</span><span class="o">.</span><span class="n">normalize_array</span><span class="p">(</span><span class="n">est_gain_array</span><span class="p">)</span>
         <span class="n">est_gain_array_FT_conj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">est_gain_array</span><span class="p">))</span>
 
         <span class="c1"># Iterating for mirrors</span>
@@ -596,7 +598,7 @@
                     <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
                 <span class="n">angle</span> <span class="o">=</span> <span class="n">irot</span> <span class="o">*</span> <span class="mi">90</span>
                 <span class="c1">#Transformating the imag array (mirror + rotation)</span>
-                <span class="n">imag_array</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="n">rotation</span><span class="p">(</span><span class="n">imag_array</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">est_gain_array</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
+                <span class="n">imag_array</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="n">xmutils</span><span class="o">.</span><span class="n">rotation</span><span class="p">(</span><span class="n">imag_array</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">est_gain_array</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">M</span><span class="p">)</span>
 
                 <span class="c1"># calculating correlation</span>
                 <span class="n">correlationFunction</span> <span class="o">=</span> <span class="n">arrays_correlation_FT</span><span class="p">(</span><span class="n">imag_array</span><span class="p">,</span><span class="n">est_gain_array_FT_conj</span><span class="p">)</span>
@@ -605,8 +607,7 @@
                 <span class="n">maxVal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">correlationFunction</span><span class="p">)</span>
                 <span class="n">minLoc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">correlationFunction</span> <span class="o">==</span> <span class="n">minVal</span><span class="p">)</span>
                 <span class="n">maxLoc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">correlationFunction</span> <span class="o">==</span> <span class="n">maxVal</span><span class="p">)</span>
-                <span class="c1">#print(&#39;Correlation values&#39;)</span>
-                <span class="c1">#print(minVal, maxVal, minLoc, maxLoc)</span>
+
                 <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">minVal</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">abs</span><span class="p">(</span><span class="n">best_cor</span><span class="p">):</span>
                     <span class="n">corLoc</span> <span class="o">=</span> <span class="n">translation_correction</span><span class="p">(</span><span class="n">minLoc</span><span class="p">,</span><span class="n">est_gain_array</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
                     <span class="n">best_cor</span> <span class="o">=</span> <span class="n">minVal</span>
@@ -622,34 +623,24 @@
 
         <span class="c1"># Multiply by inverse of translation matrix</span>
         <span class="n">best_M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">T</span><span class="p">),</span> <span class="n">best_R</span><span class="p">)</span>
-        <span class="n">best_gain_array</span> <span class="o">=</span> <span class="n">applyTransform</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">exp_gain</span><span class="o">.</span><span class="n">getData</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">best_M</span><span class="p">,</span> <span class="n">est_gain_array</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">best_gain_array</span> <span class="o">=</span> <span class="n">xmutils</span><span class="o">.</span><span class="n">applyTransform</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">exp_gain</span><span class="o">.</span><span class="n">getData</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">),</span> <span class="n">best_M</span><span class="p">,</span> <span class="n">est_gain_array</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
 
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Best correlation: &#39;</span><span class="p">,</span> <span class="n">best_cor</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Rotation angle: </span><span class="si">{}</span><span class="se">\n</span><span class="s1">Vertical mirror: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">best_transf</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">best_transf</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="mi">1</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Rotation angle: </span><span class="si">{}</span><span class="se">\n</span><span class="s1">Horizontal mirror: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">best_transf</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">best_transf</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="mi">1</span><span class="p">))</span>
 
         <span class="n">inv_best_gain_array</span> <span class="o">=</span> <span class="n">invert_array</span><span class="p">(</span><span class="n">best_gain_array</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">best_cor</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">writeImageFromArray</span><span class="p">(</span><span class="n">best_gain_array</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getOrientedGainPath</span><span class="p">())</span>
-            <span class="c1">#self.writeImageFromArray(inv_best_gain_array, self.getBestCorrectionPath())</span>
+            <span class="n">xmutils</span><span class="o">.</span><span class="n">writeImageFromArray</span><span class="p">(</span><span class="n">best_gain_array</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getOrientedGainPath</span><span class="p">())</span>
+            <span class="c1">#xmutils.writeImageFromArray(inv_best_gain_array, self.getBestCorrectionPath())</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">writeImageFromArray</span><span class="p">(</span><span class="n">inv_best_gain_array</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getOrientedGainPath</span><span class="p">())</span></div>
-            <span class="c1">#self.writeImageFromArray(best_gain_array, self.getBestCorrectionPath())</span>
+            <span class="n">xmutils</span><span class="o">.</span><span class="n">writeImageFromArray</span><span class="p">(</span><span class="n">inv_best_gain_array</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getOrientedGainPath</span><span class="p">())</span></div>
+            <span class="c1">#xmutils.writeImageFromArray(best_gain_array, self.getBestCorrectionPath())</span>
 
     <span class="c1"># ------------------------- UTILS functions --------------------------------</span>
-<div class="viewcode-block" id="XmippProtMovieGain.writeImageFromArray"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_gain.html#xmipp3.protocols.protocol_movie_gain.XmippProtMovieGain.writeImageFromArray">[docs]</a>    <span class="k">def</span> <span class="nf">writeImageFromArray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">array</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
-        <span class="n">img</span> <span class="o">=</span> <span class="n">emlib</span><span class="o">.</span><span class="n">Image</span><span class="p">()</span>
-        <span class="n">img</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
-        <span class="n">img</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span></div>
-
 <div class="viewcode-block" id="XmippProtMovieGain.invertImage"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_gain.html#xmipp3.protocols.protocol_movie_gain.XmippProtMovieGain.invertImage">[docs]</a>    <span class="k">def</span> <span class="nf">invertImage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span><span class="p">,</span> <span class="n">outFn</span><span class="p">):</span>
         <span class="n">array</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span>
         <span class="n">inv_array</span> <span class="o">=</span> <span class="n">invert_array</span><span class="p">(</span><span class="n">array</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">writeImageFromArray</span><span class="p">(</span><span class="n">inv_array</span><span class="p">,</span> <span class="n">outFn</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="XmippProtMovieGain.readImage"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_gain.html#xmipp3.protocols.protocol_movie_gain.XmippProtMovieGain.readImage">[docs]</a>    <span class="k">def</span> <span class="nf">readImage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
-        <span class="n">img</span> <span class="o">=</span> <span class="n">emlib</span><span class="o">.</span><span class="n">Image</span><span class="p">()</span>
-        <span class="n">img</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">img</span></div>
+        <span class="n">xmutils</span><span class="o">.</span><span class="n">writeImageFromArray</span><span class="p">(</span><span class="n">inv_array</span><span class="p">,</span> <span class="n">outFn</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="XmippProtMovieGain.getInputGain"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_gain.html#xmipp3.protocols.protocol_movie_gain.XmippProtMovieGain.getInputGain">[docs]</a>    <span class="k">def</span> <span class="nf">getInputGain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getGain</span><span class="p">()</span></div>
@@ -660,13 +651,16 @@
 <div class="viewcode-block" id="XmippProtMovieGain.getResidualGainPath"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_gain.html#xmipp3.protocols.protocol_movie_gain.XmippProtMovieGain.getResidualGainPath">[docs]</a>    <span class="k">def</span> <span class="nf">getResidualGainPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movieId</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;movie_</span><span class="si">%06d</span><span class="s2">_residual_gain.xmp&quot;</span> <span class="o">%</span> <span class="n">movieId</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="XmippProtMovieGain.getFlippedOrientedGainPath"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_gain.html#xmipp3.protocols.protocol_movie_gain.XmippProtMovieGain.getFlippedOrientedGainPath">[docs]</a>    <span class="k">def</span> <span class="nf">getFlippedOrientedGainPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;orientedGain_flipped.mrc&quot;</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="XmippProtMovieGain.getOrientedGainPath"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_gain.html#xmipp3.protocols.protocol_movie_gain.XmippProtMovieGain.getOrientedGainPath">[docs]</a>    <span class="k">def</span> <span class="nf">getOrientedGainPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;orientedGain.mrc&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="XmippProtMovieGain.getOrientedCorrectionPath"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_gain.html#xmipp3.protocols.protocol_movie_gain.XmippProtMovieGain.getOrientedCorrectionPath">[docs]</a>    <span class="k">def</span> <span class="nf">getOrientedCorrectionPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;orientedCorrection.mrc&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="XmippProtMovieGain.getFinalGainPath"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_gain.html#xmipp3.protocols.protocol_movie_gain.XmippProtMovieGain.getFinalGainPath">[docs]</a>    <span class="k">def</span> <span class="nf">getFinalGainPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="XmippProtMovieGain.getFinalGainPath"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_gain.html#xmipp3.protocols.protocol_movie_gain.XmippProtMovieGain.getFinalGainPath">[docs]</a>    <span class="k">def</span> <span class="nf">getFinalGainPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tifFlipped</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="n">fnBest</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getOrientedGainPath</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fnBest</span><span class="p">):</span>
             <span class="c1"># If the best orientatin has been calculated, take it</span>
@@ -685,6 +679,11 @@
                     <span class="bp">self</span><span class="o">.</span><span class="n">estimatedIds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movieId</span><span class="p">)</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">estimateGainFun</span><span class="p">(</span><span class="n">firstMovie</span><span class="p">)</span>
                 <span class="n">finalGainFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getEstimatedGainPath</span><span class="p">(</span><span class="n">movieId</span><span class="p">)</span>
+
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">getExt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.tif&#39;</span><span class="p">,</span> <span class="s1">&#39;.tiff&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">tifFlipped</span><span class="p">:</span>
+            <span class="n">finalGainFn</span> <span class="o">=</span> <span class="n">xmutils</span><span class="o">.</span><span class="n">flipYImage</span><span class="p">(</span><span class="n">finalGainFn</span><span class="p">,</span> <span class="n">outDir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">())</span>
+
         <span class="k">return</span> <span class="n">finalGainFn</span></div>
 
 <div class="viewcode-block" id="XmippProtMovieGain.searchEstimatedGainPath"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_gain.html#xmipp3.protocols.protocol_movie_gain.XmippProtMovieGain.searchEstimatedGainPath">[docs]</a>    <span class="k">def</span> <span class="nf">searchEstimatedGainPath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -733,37 +732,11 @@
 
 
 <span class="c1"># --------------------- WORKERS --------------------------------------</span>
-
-<div class="viewcode-block" id="applyTransform"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_gain.html#xmipp3.protocols.protocol_movie_gain.applyTransform">[docs]</a><span class="k">def</span> <span class="nf">applyTransform</span><span class="p">(</span><span class="n">imag_array</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39; Apply a transformation(M) to a np array(imag) and return it in a given shape</span>
-<span class="sd">    &#39;&#39;&#39;</span>
-    <span class="n">imag</span> <span class="o">=</span> <span class="n">emlib</span><span class="o">.</span><span class="n">Image</span><span class="p">()</span>
-    <span class="n">imag</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">imag_array</span><span class="p">)</span>
-    <span class="n">imag</span> <span class="o">=</span> <span class="n">imag</span><span class="o">.</span><span class="n">applyWarpAffine</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">M</span><span class="o">.</span><span class="n">flatten</span><span class="p">()),</span> <span class="n">shape</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">imag</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span></div>
-
-
-<div class="viewcode-block" id="rotation"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_gain.html#xmipp3.protocols.protocol_movie_gain.rotation">[docs]</a><span class="k">def</span> <span class="nf">rotation</span><span class="p">(</span><span class="n">imag</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="n">P</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Rotate a np.array and return also the transformation matrix</span>
-<span class="sd">    #imag: np.array</span>
-<span class="sd">    #angle: angle in degrees</span>
-<span class="sd">    #shape: output shape</span>
-<span class="sd">    #P: transform matrix (further transformation in addition to the rotation)&#39;&#39;&#39;</span>
-    <span class="p">(</span><span class="n">hsrc</span><span class="p">,</span> <span class="n">wsrc</span><span class="p">)</span> <span class="o">=</span> <span class="n">imag</span><span class="o">.</span><span class="n">shape</span>
-    <span class="n">angle</span> <span class="o">*=</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">180</span>
-    <span class="n">T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="n">wsrc</span> <span class="o">/</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="n">hsrc</span> <span class="o">/</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
-    <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">),</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="n">math</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">angle</span><span class="p">),</span> <span class="n">math</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">angle</span><span class="p">),</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
-    <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">T</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="n">T</span><span class="p">)),</span> <span class="n">P</span><span class="p">)</span>
-
-    <span class="n">transformed</span> <span class="o">=</span> <span class="n">applyTransform</span><span class="p">(</span><span class="n">imag</span><span class="p">,</span> <span class="n">M</span><span class="p">,</span> <span class="n">shape</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">transformed</span><span class="p">,</span> <span class="n">M</span></div>
-
-
 <div class="viewcode-block" id="arrays_correlation_FT"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_gain.html#xmipp3.protocols.protocol_movie_gain.arrays_correlation_FT">[docs]</a><span class="k">def</span> <span class="nf">arrays_correlation_FT</span><span class="p">(</span><span class="n">ar1</span><span class="p">,</span><span class="n">ar2_ft_conj</span><span class="p">,</span><span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39;Return the correlation matrix of an array and the FT_conjugate of a second array using the fourier transform</span>
 <span class="sd">    &#39;&#39;&#39;</span>
     <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
-        <span class="n">ar1</span><span class="o">=</span><span class="n">normalize_array</span><span class="p">(</span><span class="n">ar1</span><span class="p">)</span>
+        <span class="n">ar1</span><span class="o">=</span><span class="n">xmutils</span><span class="o">.</span><span class="n">normalize_array</span><span class="p">(</span><span class="n">ar1</span><span class="p">)</span>
 
     <span class="n">ar1_FT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fft</span><span class="o">.</span><span class="n">fft2</span><span class="p">(</span><span class="n">ar1</span><span class="p">)</span>
     <span class="n">corr2FT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">ar1_FT</span><span class="p">,</span> <span class="n">ar2_ft_conj</span><span class="p">)</span>
@@ -836,12 +809,12 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../../dependabot_pip_jinja2-2.10.1/index.html">dependabot/pip/jinja2-2.10.1</a></dd>
+            <dd><a href="../../../dependabot_pip_jinja2-2.11.3/index.html">dependabot/pip/jinja2-2.11.3</a></dd>
+            <dd><a href="../../../dependabot_pip_pygments-2.7.4/index.html">dependabot/pip/pygments-2.7.4</a></dd>
             <dd><a href="../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../release-3.0.0/_modules/xmipp3/protocols/protocol_movie_gain.html">release-3.0.0</a></dd>
             <dd><a href="../../../rsanchezgarc-patch-1/index.html">rsanchezgarc-patch-1</a></dd>
-            <dd><a href="../../../vtune/index.html">vtune</a></dd>
         </dl>
     </div>
 </div>

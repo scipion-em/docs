@@ -26,11 +26,11 @@ In some cases, the plugins need to know the version of the binary behind and is 
 from the folder name (relion-*3.1.0* in this case)
 
 Therefore, the home folder name has a special meaning for some plugins. If you have an existing installation
-sowewhere/else, the safest way would be to link it where the plugin expects to find it:
+somewhere/else, the safest way would be to link it where the plugin expects to find it:
 
 ::
 
-    ln -s path/to/my/optimeized/relion3.1 SCIPION_HOME/software/em/relion-3.1.0
+    ln -s path/to/my/optimized/relion3.1 SCIPION_HOME/software/em/relion-3.1.0
  
 Editing the configuration file
 ==============================

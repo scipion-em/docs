@@ -253,5 +253,5 @@ Running our tests
 -----------------
 
 Once the test is created, we would only have to run it.
-`[clic here] <running-tests>`_
+`[click here] <running-tests>`_
 for more information on how to run the tests.

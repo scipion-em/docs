@@ -215,7 +215,8 @@
 <span class="kn">from</span> <span class="nn">..convert</span> <span class="k">import</span> <span class="p">(</span><span class="n">rowToAlignment</span><span class="p">,</span> <span class="n">defineArgs</span><span class="p">,</span> <span class="n">convertCs2Star</span><span class="p">,</span>
                        <span class="n">cryosparcToLocation</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="p">(</span><span class="n">addComputeSectionParams</span><span class="p">,</span> <span class="n">cryosparcValidate</span><span class="p">,</span> <span class="n">gpusValidate</span><span class="p">,</span>
-                     <span class="n">enqueueJob</span><span class="p">,</span> <span class="n">waitForCryosparc</span><span class="p">,</span> <span class="n">clearIntermediateResults</span><span class="p">)</span>
+                     <span class="n">enqueueJob</span><span class="p">,</span> <span class="n">waitForCryosparc</span><span class="p">,</span> <span class="n">clearIntermediateResults</span><span class="p">,</span>
+                     <span class="n">copyFiles</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">..constants</span> <span class="k">import</span> <span class="o">*</span>
 
 
@@ -433,93 +434,41 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create the protocol output. Convert cryosparc file to Relion file</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_initializeUtilsVariables</span><span class="p">()</span>
         <span class="nb">print</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">yellowStr</span><span class="p">(</span><span class="s2">&quot;Creating the output...&quot;</span><span class="p">),</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">_numberOfIter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOnlineEMIterator</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberFinalIterator</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span>
-        <span class="n">_numberOfIterSuffix</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s2">&quot;_00&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numberOnlineEMIterator</span><span class="o">.</span><span class="n">get</span><span class="p">()))</span>
-        <span class="k">if</span> <span class="n">_numberOfIter</span> <span class="o">&gt;</span> <span class="mi">9</span><span class="p">:</span>
-            <span class="n">_numberOfIterSuffix</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s2">&quot;_0&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">_numberOfIter</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">_numberOfIter</span> <span class="o">&gt;</span> <span class="mi">99</span><span class="p">:</span>
-            <span class="n">_numberOfIterSuffix</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">_numberOfIter</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initializeUtilsVariables</span><span class="p">()</span>
 
-        <span class="n">csParticlesName</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;cryosparc_&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span>
-                           <span class="s2">&quot;_&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">runClass2D</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="n">_numberOfIterSuffix</span> <span class="o">+</span>
-                           <span class="s2">&quot;_particles.cs&quot;</span><span class="p">)</span>
-        <span class="n">csFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">projectPath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-                              <span class="bp">self</span><span class="o">.</span><span class="n">runClass2D</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">csParticlesName</span><span class="p">)</span>
+        <span class="n">csOutputFolder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">projectPath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">runClass2D</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="n">_numberOfIterSuffix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getNumberOfIterSuffix</span><span class="p">()</span>
+        <span class="n">csOutputPattern</span> <span class="o">=</span> <span class="s2">&quot;cryosparc_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
+                                                 <span class="bp">self</span><span class="o">.</span><span class="n">runClass2D</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
+                                                 <span class="n">_numberOfIterSuffix</span><span class="p">)</span>
+        <span class="n">csParticlesName</span> <span class="o">=</span> <span class="n">csOutputPattern</span> <span class="o">+</span> <span class="s2">&quot;_particles.cs&quot;</span>
+        <span class="n">csClassAveragesName</span> <span class="o">=</span> <span class="n">csOutputPattern</span> <span class="o">+</span> <span class="s2">&quot;_class_averages.cs&quot;</span>
+        <span class="n">mrcFileName</span> <span class="o">=</span> <span class="n">csOutputPattern</span> <span class="o">+</span> <span class="s2">&quot;_class_averages.mrc&quot;</span>
 
-        <span class="n">outputFolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">runClass2D</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;mkdir &quot;</span> <span class="o">+</span> <span class="n">outputFolder</span><span class="p">)</span>
+        <span class="c1"># Copy the CS output to extra folder</span>
+        <span class="n">copyFiles</span><span class="p">(</span><span class="n">csOutputFolder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">files</span><span class="o">=</span><span class="p">[</span><span class="n">csParticlesName</span><span class="p">,</span>
+                                                               <span class="n">csClassAveragesName</span><span class="p">,</span>
+                                                               <span class="n">mrcFileName</span><span class="p">])</span>
 
-        <span class="c1"># Copy the particles to scipion output folder</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;cp -r &quot;</span> <span class="o">+</span> <span class="n">csFile</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">outputFolder</span><span class="p">)</span>
-        <span class="n">csFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outputFolder</span><span class="p">,</span> <span class="n">csParticlesName</span><span class="p">)</span>
-
+        <span class="n">csPartFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">csParticlesName</span><span class="p">)</span>
         <span class="n">outputStarFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;out_particles&#39;</span><span class="p">)</span>
-        <span class="n">argsList</span> <span class="o">=</span> <span class="p">[</span><span class="n">csFile</span><span class="p">,</span> <span class="n">outputStarFn</span><span class="p">]</span>
+        <span class="n">argsList</span> <span class="o">=</span> <span class="p">[</span><span class="n">csPartFile</span><span class="p">,</span> <span class="n">outputStarFn</span><span class="p">]</span>
 
         <span class="n">parser</span> <span class="o">=</span> <span class="n">defineArgs</span><span class="p">()</span>
         <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">argsList</span><span class="p">)</span>
         <span class="n">convertCs2Star</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
 
-        <span class="n">csClassAveragesName</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;cryosparc_&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span>
-                               <span class="bp">self</span><span class="o">.</span><span class="n">runClass2D</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="n">_numberOfIterSuffix</span> <span class="o">+</span>
-                               <span class="s2">&quot;_class_averages.cs&quot;</span><span class="p">)</span>
-
-        <span class="n">csFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">projectPath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-                              <span class="bp">self</span><span class="o">.</span><span class="n">runClass2D</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">csClassAveragesName</span><span class="p">)</span>
-
-        <span class="c1"># Copy the particles to scipion output folder</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;cp -r &quot;</span> <span class="o">+</span> <span class="n">csFile</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">outputFolder</span><span class="p">)</span>
-        <span class="n">csFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outputFolder</span><span class="p">,</span> <span class="n">csClassAveragesName</span><span class="p">)</span>
-
+        <span class="n">csClassAverageFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">csClassAveragesName</span><span class="p">)</span>
         <span class="n">outputClassFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;out_class&#39;</span><span class="p">)</span>
-        <span class="n">argsList</span> <span class="o">=</span> <span class="p">[</span><span class="n">csFile</span><span class="p">,</span> <span class="n">outputClassFn</span><span class="p">]</span>
+        <span class="n">argsList</span> <span class="o">=</span> <span class="p">[</span><span class="n">csClassAverageFile</span><span class="p">,</span> <span class="n">outputClassFn</span><span class="p">]</span>
 
         <span class="n">parser</span> <span class="o">=</span> <span class="n">defineArgs</span><span class="p">()</span>
         <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">argsList</span><span class="p">)</span>
         <span class="n">convertCs2Star</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
 
-        <span class="c1"># Copy the mrc file to scipion output folder</span>
-        <span class="n">mrcFileName</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;cryosparc_&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span> <span class="o">+</span>
-                       <span class="bp">self</span><span class="o">.</span><span class="n">runClass2D</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="n">_numberOfIterSuffix</span> <span class="o">+</span>
-                       <span class="s2">&quot;_class_averages.mrc&quot;</span><span class="p">)</span>
-
-        <span class="n">csFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">projectPath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-                              <span class="bp">self</span><span class="o">.</span><span class="n">runClass2D</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">mrcFileName</span><span class="p">)</span>
-
-        <span class="c1"># Copy the particles to scipion output folder</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;cp -r &quot;</span> <span class="o">+</span> <span class="n">csFile</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">outputFolder</span><span class="p">)</span>
-
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;out_class&#39;</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">input_file</span><span class="p">,</span> \
-                <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;out_class_m2&#39;</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output_file</span><span class="p">:</span>
-            <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># mutex lock</span>
-            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># start</span>
-            <span class="n">k</span> <span class="o">=</span> <span class="mi">1</span>
-            <span class="n">l</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">input_file</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;_rln&quot;</span><span class="p">):</span>
-                    <span class="n">output_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
-                    <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span>
-                <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="n">output_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
-                <span class="k">elif</span> <span class="n">j</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()):</span>
-                        <span class="k">if</span> <span class="s1">&#39;@&#39;</span> <span class="ow">in</span> <span class="n">m</span><span class="p">:</span>
-                            <span class="k">break</span>
-                    <span class="n">output_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[:</span><span class="n">n</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span>
-                                      <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;@&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;@&#39;</span> <span class="o">+</span>
-                                      <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span>
-                                      <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;@&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span>
-                                      <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-                    <span class="n">j</span> <span class="o">=</span> <span class="mi">1</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">output_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[:</span><span class="n">n</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span>
-                                      <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;@&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;@&#39;</span> <span class="o">+</span>
-                                      <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span>
-                                      <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;@&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span>
-                                      <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">:])</span><span class="o">+</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_createModelFile</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_loadClassesInfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;out_class_m2&#39;</span><span class="p">))</span>
         <span class="n">inputParticles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getInputParticles</span><span class="p">()</span>
         <span class="n">classes2DSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfClasses2D</span><span class="p">(</span><span class="n">inputParticles</span><span class="p">)</span>
@@ -602,29 +551,33 @@
             <span class="n">class2Drep</span><span class="o">.</span><span class="n">setLocation</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">fn</span><span class="p">)</span>
             <span class="n">class2Drep</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">class2D</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
 
+    <span class="k">def</span> <span class="nf">_createModelFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;out_class&#39;</span><span class="p">),</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">input_file</span><span class="p">,</span> \
+                <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;out_class_m2&#39;</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">output_file</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">input_file</span><span class="p">:</span>
+                <span class="k">if</span> <span class="s2">&quot;@&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="n">row</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">@</span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">&quot;</span>
+                    <span class="n">classNumber</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;@&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">image</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">output_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">row</span> <span class="o">%</span> <span class="p">(</span><span class="n">classNumber</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">image</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">output_file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_getNumberOfIterSuffix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">_numberOfIter</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numberOnlineEMIterator</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">numberFinalIterator</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">_numberOfIterSuffix</span> <span class="o">=</span> <span class="s2">&quot;_00</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numberOnlineEMIterator</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">_numberOfIter</span> <span class="o">&gt;</span> <span class="mi">9</span><span class="p">:</span>
+            <span class="n">_numberOfIterSuffix</span> <span class="o">=</span> <span class="s2">&quot;_0</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">_numberOfIter</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_numberOfIter</span> <span class="o">&gt;</span> <span class="mi">99</span><span class="p">:</span>
+            <span class="n">_numberOfIterSuffix</span> <span class="o">=</span> <span class="s2">&quot;_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">_numberOfIter</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">_numberOfIterSuffix</span>
+
     <span class="k">def</span> <span class="nf">_defineParamsName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Define a list with all protocol parameters names&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lane</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="s1">&#39;compute_lane&#39;</span><span class="p">))</span>
 
-<div class="viewcode-block" id="ProtCryo2D.doRunClass2D"><a class="viewcode-back" href="../../../api/cryosparc2/cryosparc2.protocols.protocol_cryosparc2d.html#cryosparc2.protocols.protocol_cryosparc2d.ProtCryo2D.doRunClass2D">[docs]</a>    <span class="k">def</span> <span class="nf">doRunClass2D</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        do_run_class_2D:  do_job(job_type, puid=&#39;P1&#39;, wuid=&#39;W1&#39;,</span>
-<span class="sd">                                 uuid=&#39;devuser&#39;, params={},</span>
-<span class="sd">                                 input_group_connects={})</span>
-<span class="sd">        returns: the new uid of the job that was created</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># {&#39;particles&#39; : &#39;JXX.imported_particles&#39; }</span>
-        <span class="n">input_group_conect</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;particles&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">par</span><span class="p">)}</span>
-
-        <span class="c1"># Determinate the GPUs or the number of GPUs to use (in dependence of</span>
-        <span class="c1"># the cryosparc version)</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">gpusToUse</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">()</span>
-            <span class="n">numberGPU</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gpusToUse</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-            <span class="n">gpusToUse</span> <span class="o">=</span> <span class="kc">False</span>
-            <span class="n">numberGPU</span> <span class="o">=</span> <span class="mi">1</span>
-
+<div class="viewcode-block" id="ProtCryo2D.assignParamValue"><a class="viewcode-back" href="../../../api/cryosparc2/cryosparc2.protocols.protocol_cryosparc2d.html#cryosparc2.protocols.protocol_cryosparc2d.ProtCryo2D.assignParamValue">[docs]</a>    <span class="k">def</span> <span class="nf">assignParamValue</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;class2D_K&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numberOfClasses</span><span class="o">.</span><span class="n">get</span><span class="p">()),</span>
                   <span class="s2">&quot;class2D_max_res&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">maximunResolution</span><span class="o">.</span><span class="n">get</span><span class="p">()),</span>
                   <span class="s2">&quot;class2D_sigma_init_factor&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">initialClassification</span><span class="o">.</span><span class="n">get</span><span class="p">()),</span>
@@ -645,19 +598,39 @@
                   <span class="s2">&quot;class2D_sigma_num_anneal_iters&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iterationToStartAnneal</span><span class="o">.</span><span class="n">get</span><span class="p">()),</span>
                   <span class="s2">&quot;class2D_sigma_use_white&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">useWhiteNoiseModel</span><span class="o">.</span><span class="n">get</span><span class="p">()),</span>
                   <span class="s2">&quot;intermediate_plots&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="s1">&#39;False&#39;</span><span class="p">),</span>
-                  <span class="s2">&quot;compute_use_ssd&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compute_use_ssd</span><span class="o">.</span><span class="n">get</span><span class="p">()),</span>
-                  <span class="s2">&quot;compute_num_gpus&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">numberGPU</span><span class="p">)}</span>
-
+                  <span class="s2">&quot;compute_use_ssd&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compute_use_ssd</span><span class="o">.</span><span class="n">get</span><span class="p">())}</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">class2D_window_inner_A</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;class2D_window_inner_A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">class2D_window_inner_A</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+                <span class="n">params</span><span class="p">[</span><span class="s2">&quot;class2D_window_inner_A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">class2D_window_inner_A</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">class2D_window_outer_A</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">params</span><span class="p">[</span><span class="s2">&quot;class2D_window_outer_A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">class2D_window_outer_A</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+                <span class="n">params</span><span class="p">[</span><span class="s2">&quot;class2D_window_outer_A&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">class2D_window_outer_A</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">params</span></div>
 
+<div class="viewcode-block" id="ProtCryo2D.doRunClass2D"><a class="viewcode-back" href="../../../api/cryosparc2/cryosparc2.protocols.protocol_cryosparc2d.html#cryosparc2.protocols.protocol_cryosparc2d.ProtCryo2D.doRunClass2D">[docs]</a>    <span class="k">def</span> <span class="nf">doRunClass2D</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        do_run_class_2D:  do_job(job_type, puid=&#39;P1&#39;, wuid=&#39;W1&#39;,</span>
+<span class="sd">                                 uuid=&#39;devuser&#39;, params={},</span>
+<span class="sd">                                 input_group_connects={})</span>
+<span class="sd">        returns: the new uid of the job that was created</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># {&#39;particles&#39; : &#39;JXX.imported_particles&#39; }</span>
+        <span class="n">input_group_conect</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;particles&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">par</span><span class="p">)}</span>
+
+        <span class="c1"># Determinate the GPUs or the number of GPUs to use (in dependence of</span>
+        <span class="c1"># the cryosparc version)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">gpusToUse</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">()</span>
+            <span class="n">numberGPU</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">gpusToUse</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="n">gpusToUse</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">numberGPU</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">assignParamValue</span><span class="p">()</span>
+        <span class="n">params</span><span class="p">[</span><span class="s2">&quot;compute_num_gpus&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">numberGPU</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">runClass2D</span> <span class="o">=</span> <span class="n">enqueueJob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_className</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-                                <span class="bp">self</span><span class="o">.</span><span class="n">workSpaceName</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-                                <span class="nb">str</span><span class="p">(</span><span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">),</span>
-                                <span class="nb">str</span><span class="p">(</span><span class="n">input_group_conect</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">),</span>
-                                <span class="bp">self</span><span class="o">.</span><span class="n">lane</span><span class="p">,</span> <span class="n">gpusToUse</span><span class="p">)</span>
+                                     <span class="bp">self</span><span class="o">.</span><span class="n">workSpaceName</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
+                                     <span class="nb">str</span><span class="p">(</span><span class="n">params</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">),</span>
+                                     <span class="nb">str</span><span class="p">(</span><span class="n">input_group_conect</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;&quot;&#39;</span><span class="p">),</span>
+                                     <span class="bp">self</span><span class="o">.</span><span class="n">lane</span><span class="p">,</span> <span class="n">gpusToUse</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">currenJob</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">runClass2D</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
@@ -705,12 +678,12 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../../../dependabot_pip_jinja2-2.10.1/index.html">dependabot/pip/jinja2-2.10.1</a></dd>
+            <dd><a href="../../../../dependabot_pip_jinja2-2.11.3/index.html">dependabot/pip/jinja2-2.11.3</a></dd>
+            <dd><a href="../../../../dependabot_pip_pygments-2.7.4/index.html">dependabot/pip/pygments-2.7.4</a></dd>
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../../release-3.0.0/index.html">release-3.0.0</a></dd>
             <dd><a href="protocol_cryosparc2d.html">rsanchezgarc-patch-1</a></dd>
-            <dd><a href="../../../../vtune/index.html">vtune</a></dd>
         </dl>
     </div>
 </div>

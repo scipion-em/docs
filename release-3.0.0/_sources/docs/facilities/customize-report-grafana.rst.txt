@@ -185,7 +185,7 @@ A dashboard is a set of one or more panels organized and arranged into one or mo
 
 * `Summary <https://grafana.com/grafana/dashboards/12351>`_ (ID=12351): general description of the session acquisition 
 * `CTF <https://grafana.com/grafana/dashboards/12352>`_ (ID=12352): data related with CTF such as defocus, astigmatism, etc
-* `Gain <https://grafana.com/grafana/dashboards/12353>`_ (ID=12353): microcope gain estimation 
+* `Gain <https://grafana.com/grafana/dashboards/12353>`_ (ID=12353): microscope gain estimation
 * `System <https://grafana.com/grafana/dashboards/12354>`_ (ID=12354): cpu, memory, disk access, etc.
 * `Gallery <https://grafana.com/grafana/dashboards/12355>`_ (ID=12355): gallery with micrographs, PSD, CTF, etc
 
@@ -223,7 +223,7 @@ available in the plugin home directory). The file structure is
     verify_ssl=False
     timeZone =Europe/Madrid
     # add this number of hours to time reported
-    # by the computer. USeful if time is not set ptoperly
+    # by the computer. Useful if time is not set properly
     # in your computer
     timeDelta=0
     
@@ -245,9 +245,9 @@ available in the plugin home directory). The file structure is
 
     # import base64
     # def enCrypt(message):
-    #     """Totally naive encription routine that will not
+    #     """Totally naive encryption routine that will not
     #     stop a hacker. Use it to encrypt usernames and password.
-    #     Ussage: enCrypt("myusername")"""
+    #     Usage: enCrypt("myusername")"""
 
     #     message_bytes = message.encode('ascii')
     #     base64_bytes = base64.b64encode(message_bytes)
@@ -266,4 +266,4 @@ Important: you will need to install the following modules in Scipion python:
 Where is my project?
 ____________________
 
-Last but not least the report should be accesible at the URL  https://grafanahost:8888/d/oYW5BSeWz/scipion_projects?var-project=scipion_project_name and a username and password will be needed to connect to grafana unless you have implemented anonymous authentification (see "https://grafana.com/docs/grafana/latest/auth/overview/#anonymous-authentication")
+Last but not least the report should be accessible at the URL  https://grafanahost:8888/d/oYW5BSeWz/scipion_projects?var-project=scipion_project_name and a username and password will be needed to connect to grafana unless you have implemented anonymous authentication (see "https://grafana.com/docs/grafana/latest/auth/overview/#anonymous-authentication")

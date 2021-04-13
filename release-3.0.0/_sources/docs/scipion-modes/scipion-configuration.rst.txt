@@ -220,6 +220,12 @@ To force the config from the console
     scipion3 --config <scipion.conf PATH>
 
 
+Disable local plugins installation:
+
+Python's installation engine fallsback to a local/write access forlder if the default destination is protected. Therefore a user could end up installing/updating plugins there. On unix systems it is $HOME/.local/lib/pythonX.Y/site-packages. If you set PYTHONUSERBASE( = $HOME/.local) environment variable to a protected folder or the same your installation points to, you can prevent user to update install any plugin. 
+
+To know where is you can run scipion3 python -m site --user-base
+
 ======
 
 If you have problems compiling Scipion, see :ref:`Troubleshooting <troubleshooting>` page.

@@ -210,14 +210,15 @@
 
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">import</span> <span class="p">(</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span>
-                                        <span class="n">LEVEL_ADVANCED</span><span class="p">,</span> <span class="n">Positive</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,)</span>
+                                        <span class="n">LEVEL_ADVANCED</span><span class="p">,</span> <span class="n">Positive</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span>
+                                        <span class="n">IntParam</span><span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">.protocol_base</span> <span class="k">import</span> <span class="n">ProtCryosparcBase</span>
 <span class="kn">from</span> <span class="nn">..convert</span> <span class="k">import</span> <span class="p">(</span><span class="n">defineArgs</span><span class="p">,</span> <span class="n">convertCs2Star</span><span class="p">,</span> <span class="n">readSetOfParticles</span><span class="p">,</span>
                        <span class="n">cryosparcToLocation</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="k">import</span> <span class="p">(</span><span class="n">addComputeSectionParams</span><span class="p">,</span> <span class="n">calculateNewSamplingRate</span><span class="p">,</span>
                      <span class="n">cryosparcValidate</span><span class="p">,</span> <span class="n">gpusValidate</span><span class="p">,</span> <span class="n">enqueueJob</span><span class="p">,</span>
-                     <span class="n">waitForCryosparc</span><span class="p">,</span> <span class="n">clearIntermediateResults</span><span class="p">)</span>
+                     <span class="n">waitForCryosparc</span><span class="p">,</span> <span class="n">clearIntermediateResults</span><span class="p">,</span> <span class="n">copyFiles</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">..constants</span> <span class="k">import</span> <span class="o">*</span>
 
 
@@ -271,9 +272,10 @@
         <span class="c1"># -----------[Particles Subtraction]------------------------</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;Particle Subtraction&quot;</span><span class="p">)</span>
 
-        <span class="c1"># form.addParam(&#39;n_particles&#39;, IntParam, default=-1,</span>
-        <span class="c1">#               label=&#39;Number of particles to subtract:&#39;,</span>
-        <span class="c1">#               help=&#39;Leave as -1 to process all particles.&#39;)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;n_particles&#39;</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Number of particles to subtract:&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Leave as None to process all particles.&#39;</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inner_radius&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.85</span><span class="p">,</span>
                       <span class="n">validators</span><span class="o">=</span><span class="p">[</span><span class="n">Positive</span><span class="p">],</span>
@@ -299,30 +301,24 @@
                            <span class="s2">&quot;generate it. Disabling this parameter breaks the &quot;</span>
                            <span class="s2">&quot;assumptions of gold-standard FSC calculation.&quot;</span><span class="p">)</span>
 
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;lpf_volume&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;lpf_volume&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Low-pass Filter Input Structure (A)&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Apply a lowpass filter to the specified reoslution &#39;</span>
                            <span class="s1">&#39;in Angstroms to the input volume before subtraction.&#39;</span>
-                           <span class="s1">&#39;Leave 0.0 to ignore a lowpass filter&#39;</span><span class="p">)</span>
+                           <span class="s1">&#39;Leave None to ignore a lowpass filter&#39;</span><span class="p">)</span>
 
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;mask_threshold&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;mask_threshold&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                      <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Mask threshold&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The threshold of binarization of the mask. Must be &#39;</span>
-                           <span class="s1">&#39;set to dilate or pad. Leave 0.0 to skip mask processing.&#39;</span><span class="p">)</span>
+                           <span class="s1">&#39;set to dilate or pad. Leave None to skip mask processing.&#39;</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;mask_fill_holes&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Fill holes&quot;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Fill the holes in the binarized mask&quot;</span><span class="p">)</span>
-
-        <span class="c1"># form.addParam(&#39;mask_dilator&#39;, FloatParam, default=0.0,</span>
-        <span class="c1">#               label=&#39;Mask Dilation Radius&#39;,</span>
-        <span class="c1">#               help=&#39;The radius of the spherical mask used to dilate &#39;</span>
-        <span class="c1">#                    &#39;the mask. Leave 0 to skip dilation.&#39;)</span>
-        <span class="c1">#</span>
-        <span class="c1"># form.addParam(&#39;mask_pad&#39;, FloatParam, default=0.0,</span>
-        <span class="c1">#               label=&#39;Cosine padding width&#39;,</span>
-        <span class="c1">#               help=&#39;The width of the cosine-padded region at the edge&#39;</span>
-        <span class="c1">#                    &#39;of the mask. Leave 0 to skip padding.&#39;)</span>
 
         <span class="c1"># --------------[Compute settings]---------------------------</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;Compute settings&quot;</span><span class="p">)</span>
@@ -351,23 +347,22 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_initializeUtilsVariables</span><span class="p">()</span>
         <span class="n">outputStarFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;out_particles&#39;</span><span class="p">)</span>
+        <span class="n">csOutputFolder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">projectPath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
+                                      <span class="bp">self</span><span class="o">.</span><span class="n">runPartStract</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="n">csFileName</span> <span class="o">=</span> <span class="s2">&quot;subtracted_particles.cs&quot;</span>
 
         <span class="c1"># Create the output folder</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;cp -r &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectPath</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">projectName</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span>
-                  <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">runPartStract</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">())</span>
+        <span class="n">copyFiles</span><span class="p">(</span><span class="n">csOutputFolder</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">runPartStract</span><span class="o">.</span><span class="n">get</span><span class="p">()))</span>
 
-        <span class="n">csFileName</span> <span class="o">=</span> <span class="s2">&quot;subtracted_particles.cs&quot;</span>
         <span class="n">csFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">runPartStract</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
                               <span class="n">csFileName</span><span class="p">)</span>
-
         <span class="n">argsList</span> <span class="o">=</span> <span class="p">[</span><span class="n">csFile</span><span class="p">,</span> <span class="n">outputStarFn</span><span class="p">]</span>
-
         <span class="n">parser</span> <span class="o">=</span> <span class="n">defineArgs</span><span class="p">()</span>
         <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">argsList</span><span class="p">)</span>
         <span class="n">convertCs2Star</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
 
         <span class="n">imgSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getInputParticles</span><span class="p">()</span>
-
         <span class="n">outImgSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfParticles</span><span class="p">()</span>
         <span class="n">outImgSet</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="n">imgSet</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_fillDataFromIter</span><span class="p">(</span><span class="n">outImgSet</span><span class="p">)</span>
@@ -432,7 +427,8 @@
 
     <span class="k">def</span> <span class="nf">_defineParamsName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Define a list with all protocol parameters names&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_paramsName</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;inner_radius&#39;</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_paramsName</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;n_particles&#39;</span><span class="p">,</span>
+                            <span class="s1">&#39;inner_radius&#39;</span><span class="p">,</span>
                             <span class="s1">&#39;outer_radius&#39;</span><span class="p">,</span>
                             <span class="s1">&#39;use_premult&#39;</span><span class="p">,</span>
                             <span class="s1">&#39;use_halfmaps&#39;</span><span class="p">,</span>
@@ -453,14 +449,18 @@
         <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">for</span> <span class="n">paramName</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_paramsName</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">paramName</span> <span class="o">!=</span> <span class="s1">&#39;lpf_volume&#39;</span> <span class="ow">and</span> <span class="n">paramName</span> <span class="o">!=</span> <span class="s1">&#39;mask_threshold&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">paramName</span> <span class="o">!=</span> <span class="s1">&#39;lpf_volume&#39;</span> <span class="ow">and</span> <span class="n">paramName</span> <span class="o">!=</span> <span class="s1">&#39;mask_threshold&#39;</span> <span class="ow">and</span> <span class="n">paramName</span> <span class="o">!=</span> <span class="s1">&#39;n_particles&#39;</span><span class="p">:</span>
                 <span class="n">params</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">paramName</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="n">paramName</span><span class="p">))</span>
-            <span class="k">elif</span> <span class="n">paramName</span> <span class="o">==</span> <span class="s1">&#39;lpf_volume&#39;</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">paramName</span> <span class="o">==</span> <span class="s1">&#39;lpf_volume&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="n">paramName</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="n">paramName</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">params</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">paramName</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="n">paramName</span><span class="p">))</span>
-            <span class="k">elif</span> <span class="n">paramName</span> <span class="o">==</span> <span class="s1">&#39;mask_threshold&#39;</span><span class="p">:</span>
-                <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="n">paramName</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">elif</span> <span class="n">paramName</span> <span class="o">==</span> <span class="s1">&#39;mask_threshold&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="n">paramName</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="n">paramName</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">params</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">paramName</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="n">paramName</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="p">(</span><span class="n">paramName</span> <span class="o">==</span> <span class="s1">&#39;n_particles&#39;</span> <span class="ow">and</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="n">paramName</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
+                  <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="n">paramName</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="n">params</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">paramName</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="n">paramName</span><span class="p">))</span>
 
         <span class="c1"># Determinate the GPUs to use (in dependence of</span>
         <span class="c1"># the cryosparc version)</span>
@@ -521,12 +521,12 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../../../dependabot_pip_jinja2-2.10.1/index.html">dependabot/pip/jinja2-2.10.1</a></dd>
+            <dd><a href="../../../../dependabot_pip_jinja2-2.11.3/index.html">dependabot/pip/jinja2-2.11.3</a></dd>
+            <dd><a href="../../../../dependabot_pip_pygments-2.7.4/index.html">dependabot/pip/pygments-2.7.4</a></dd>
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../../release-3.0.0/index.html">release-3.0.0</a></dd>
             <dd><a href="protocol_cryosparc_part_subtract.html">rsanchezgarc-patch-1</a></dd>
-            <dd><a href="../../../../vtune/index.html">vtune</a></dd>
         </dl>
     </div>
 </div>
