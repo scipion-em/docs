@@ -213,7 +213,7 @@
 
 
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">basename</span>
-
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">pwem.convert.atom_struct</span> <span class="k">import</span> <span class="n">cifToPdb</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="k">import</span> <span class="n">replaceBaseExt</span>
 
@@ -231,6 +231,8 @@
                             <span class="n">getImageLocation</span><span class="p">,</span> <span class="n">createItemMatrix</span><span class="p">,</span>
                             <span class="n">setXmippAttributes</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.convert</span> <span class="k">import</span> <span class="n">modeToRow</span>
+<span class="kn">from</span> <span class="nn">pwem.utils</span> <span class="k">import</span> <span class="n">runProgram</span>
+<span class="kn">from</span> <span class="nn">pwem</span> <span class="k">import</span> <span class="n">Domain</span>
 
 <span class="n">NMA_ALIGNMENT_WAV</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">NMA_ALIGNMENT_PROJ</span> <span class="o">=</span> <span class="mi">1</span>
@@ -288,7 +290,7 @@
                            <span class="s1">&#39;is computed for rigid-body alignment in Projection Matching and Wavelets methods. </span><span class="se">\n</span><span class="s1">&#39;</span>
                            <span class="s1">&#39;This alignment is refined with Splines method when Wavelets and Splines alignment is chosen.&#39;</span><span class="p">)</span>
 
-        <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 
         <span class="c1"># --------------------------- INSERT steps functions --------------------------------------------</span>
 
@@ -307,17 +309,15 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">atomsFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">atomsFn</span><span class="p">))</span>
             <span class="n">copyFile</span><span class="p">(</span><span class="n">atomsFn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">atomsFn</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">localFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">replaceBaseExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">atomsFn</span><span class="p">),</span> <span class="s1">&#39;pdb&#39;</span><span class="p">))</span>
-            <span class="n">cifToPdb</span><span class="p">(</span><span class="n">atomsFn</span><span class="p">,</span> <span class="n">localFn</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">atomsFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">localFn</span><span class="p">))</span>
+            <span class="n">pdb_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputModes</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39;/atoms.pdb&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">atomsFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">pdb_name</span><span class="p">))</span>
+            <span class="n">copyFile</span><span class="p">(</span><span class="n">pdb_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">atomsFn</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;convertInputStep&#39;</span><span class="p">,</span> <span class="n">atomsFn</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">copyDeformations</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>  <span class="c1"># ONLY FOR DEBUGGING</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s2">&quot;performNmaStep&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">atomsFn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">modesFn</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># TODO: for debugging and testing it will be useful to copy the deformations</span>
-            <span class="c1"># metadata file, not just the deformation.txt file         </span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;copyDeformationsStep&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">copyDeformations</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;createOutputStep&#39;</span><span class="p">)</span>
@@ -398,7 +398,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">alignmentMethod</span> <span class="o">==</span> <span class="n">NMA_ALIGNMENT_PROJ</span><span class="p">:</span>
             <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--projMatch &quot;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_nma_alignment&quot;</span><span class="p">,</span> <span class="n">args</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span>
+        <span class="c1"># runProgram(&quot;xmipp_nma_alignment&quot;, args % locals())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_nma_alignment&quot;</span><span class="p">,</span> <span class="n">args</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">(),</span>
+                    <span class="n">env</span><span class="o">=</span><span class="n">Domain</span><span class="o">.</span><span class="n">importFromPlugin</span><span class="p">(</span><span class="s1">&#39;xmipp3&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">())</span>
 
         <span class="n">cleanPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPath</span><span class="p">(</span><span class="s1">&#39;nmaTodo.xmd&#39;</span><span class="p">))</span>
 

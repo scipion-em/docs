@@ -207,7 +207,7 @@
 <span class="c1"># **************************************************************************</span>
 
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">basename</span>
-
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="k">import</span> <span class="n">getListFromRangeString</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="k">import</span> <span class="n">ProtAnalysis3D</span>
 <span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="k">import</span> <span class="p">(</span><span class="n">writeSetOfVolumes</span><span class="p">,</span> <span class="n">xmippToLocation</span><span class="p">,</span> <span class="n">createItemMatrix</span><span class="p">,</span>
@@ -222,6 +222,8 @@
 <span class="kn">from</span> <span class="nn">.convert</span> <span class="k">import</span> <span class="n">modeToRow</span>
 <span class="kn">from</span> <span class="nn">pwem.convert.atom_struct</span> <span class="k">import</span> <span class="n">cifToPdb</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="k">import</span> <span class="n">replaceBaseExt</span>
+<span class="kn">from</span> <span class="nn">pwem.utils</span> <span class="k">import</span> <span class="n">runProgram</span>
+<span class="kn">from</span> <span class="nn">pwem</span> <span class="k">import</span> <span class="n">Domain</span>
 
 <span class="n">WEDGE_MASK_NONE</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">WEDGE_MASK_THRE</span> <span class="o">=</span> <span class="mi">1</span>
@@ -276,10 +278,10 @@
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Upper tilt value&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The upper tilt angle used in obtaining the tilt series&#39;</span><span class="p">)</span>
 
-        <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Search parameters&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Combined elastic and rigid-body alignment&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;trustRegionScale&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
                       <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;CONDOR optimiser parameter trustRegionScale &#39;</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Elastic alignment trust region scale &#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;For elastic alignment, this parameter scales the initial &#39;</span>
                            <span class="s1">&#39;value of the trust region radius of CONDOR optimization. &#39;</span>
                            <span class="s1">&#39;The default value of 1 works in majority of cases. </span><span class="se">\n</span><span class="s1">&#39;</span>
@@ -303,14 +305,15 @@
         <span class="c1">#                    &#39;right set of nma deformation amplitudes&#39;)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;frm_freq&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
                       <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Maximum normalized pixel frequency&#39;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The normalized frequency should be a number between -0.5 and 0.5 &#39;</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Maximum cross correlation frequency&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The normalized frequency should be between 0 and 0.5 &#39;</span>
                            <span class="s1">&#39;The more it is, the bigger the search frequency is, the more time it demands, &#39;</span>
                            <span class="s1">&#39;keeping it as default is recommended.&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;frm_maxshift&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
                       <span class="n">expertlevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Maximum shift for rigid body search&#39;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The maximum shift is a number between 1 and half the size of your volume. Keep as default&#39;</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Maximum shift for rigid body alignment (in pixels)&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The maximum shift is a number between 1 and half the size of your volume. &#39;</span>
+                           <span class="s1">&#39;It represents the maximum distance searched in x,y and z directions. Keep as default&#39;</span>
                            <span class="s1">&#39; if your target is near the center in your subtomograms&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 
@@ -330,17 +333,15 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">atomsFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">atomsFn</span><span class="p">))</span>
             <span class="n">copyFile</span><span class="p">(</span><span class="n">atomsFn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">atomsFn</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">localFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">replaceBaseExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">atomsFn</span><span class="p">),</span> <span class="s1">&#39;pdb&#39;</span><span class="p">))</span>
-            <span class="n">cifToPdb</span><span class="p">(</span><span class="n">atomsFn</span><span class="p">,</span> <span class="n">localFn</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">atomsFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">localFn</span><span class="p">))</span>
+            <span class="n">pdb_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputModes</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39;/atoms.pdb&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">atomsFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">pdb_name</span><span class="p">))</span>
+            <span class="n">copyFile</span><span class="p">(</span><span class="n">pdb_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">atomsFn</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;convertInputStep&#39;</span><span class="p">,</span> <span class="n">atomsFn</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">copyDeformations</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>  <span class="c1"># SERVES_FOR_DEBUGGING AND COMPUTING ON CLUSTERS</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s2">&quot;performNmaStep&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">atomsFn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">modesFn</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># TODO: for debugging and testing it will be useful to copy the deformations</span>
-            <span class="c1"># metadata file, not just the deformation.txt file</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;copyDeformationsStep&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">copyDeformations</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;createOutputStep&#39;</span><span class="p">)</span>
@@ -441,8 +442,10 @@
             <span class="n">tiltF</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tiltHigh</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
             <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--tilt_values </span><span class="si">%(tilt0)d</span><span class="s2"> </span><span class="si">%(tiltF)d</span><span class="s2"> &quot;</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="n">args</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_nma_alignment_vol&quot;</span><span class="p">,</span> <span class="n">args</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span>
+        <span class="c1"># print(args % locals())</span>
+        <span class="c1"># runProgram(&quot;xmipp_nma_alignment_vol&quot;, args % locals())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_nma_alignment_vol&quot;</span><span class="p">,</span> <span class="n">args</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">(),</span>
+                    <span class="n">env</span><span class="o">=</span><span class="n">Domain</span><span class="o">.</span><span class="n">importFromPlugin</span><span class="p">(</span><span class="s1">&#39;xmipp3&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">())</span>
 
         <span class="n">cleanPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPath</span><span class="p">(</span><span class="s1">&#39;nmaTodo.xmd&#39;</span><span class="p">))</span>
 

@@ -213,6 +213,8 @@
 <span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">Volume</span>
 <span class="kn">import</span> <span class="nn">pwem.emlib.metadata</span> <span class="k">as</span> <span class="nn">md</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
+<span class="kn">from</span> <span class="nn">pwem.utils</span> <span class="k">import</span> <span class="n">runProgram</span>
+<span class="kn">from</span> <span class="nn">pwem</span> <span class="k">import</span> <span class="n">Domain</span>
 
 <span class="n">WEDGE_MASK_NONE</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">WEDGE_MASK_THRE</span> <span class="o">=</span> <span class="mi">1</span>
@@ -277,15 +279,16 @@
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Advanced parameters&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;frm_freq&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
                       <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Maximum normalized pixel frequency&#39;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The normalized frequency should be a number between -0.5 and 0.5 &#39;</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Maximum cross correlation frequency&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The normalized frequency should be between 0 and 0.5 &#39;</span>
                            <span class="s1">&#39;The more it is, the bigger the search frequency is, the more time it demands, &#39;</span>
-                           <span class="s1">&#39;keeping it as default is recommended&#39;</span><span class="p">)</span>
+                           <span class="s1">&#39;keeping it as default is recommended.&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;frm_maxshift&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
                       <span class="n">expertlevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Maximum shift for rigid body search&#39;</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Maximum shift for rigid body alignment (in pixels)&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The maximum shift is a number between 1 and half the size of your volume. &#39;</span>
-                           <span class="s1">&#39;Increase it if your target is far from the center of the volumes&#39;</span><span class="p">)</span>
+                           <span class="s1">&#39;It represents the maximum distance searched in x,y and z directions. Keep as default&#39;</span>
+                           <span class="s1">&#39; if your target is near the center in your subtomograms&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 
     <span class="c1"># --------------------------- INSERT steps functions --------------------------------------------</span>
@@ -341,12 +344,12 @@
                 <span class="n">imgPath</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_IMAGE</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">counter</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">args</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --type vol&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_image_convert&#39;</span><span class="p">,</span><span class="n">args</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_image_convert&#39;</span><span class="p">,</span><span class="n">args</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> --plus </span><span class="si">%(tempVol)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_image_operate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_image_operate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
             <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(tempVol)s</span><span class="s1"> --divide </span><span class="si">%(counter)s</span><span class="s1"> -o </span><span class="si">%(initialref)s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_image_operate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_image_operate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
             <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;rm -f </span><span class="si">%(tempVol)s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span>
             <span class="n">reference</span> <span class="o">=</span> <span class="n">initialref</span>
 
@@ -364,10 +367,12 @@
                 <span class="c1"># args += &quot; %(tilt0)d %(tiltF)d &quot;</span>
                 <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--tilt_values </span><span class="si">%(tilt0)d</span><span class="s2"> </span><span class="si">%(tiltF)d</span><span class="s2"> &quot;</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_volumeset_align&quot;</span><span class="p">,</span> <span class="n">args</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span>
+            <span class="c1"># This command does not allow mpi processing</span>
+            <span class="c1"># runProgram(&quot;xmipp_volumeset_align&quot;, args % locals())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_volumeset_align&quot;</span><span class="p">,</span> <span class="n">args</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">(),</span>
+                        <span class="n">env</span> <span class="o">=</span> <span class="n">Domain</span><span class="o">.</span><span class="n">importFromPlugin</span><span class="p">(</span><span class="s1">&#39;xmipp3&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">())</span>
 
             <span class="c1"># By now, the alignment is done, the averaging should take place</span>
-
             <span class="n">mdImgs</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="n">md_itr</span><span class="p">)</span>
             <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">first</span> <span class="o">=</span> <span class="kc">True</span>
@@ -402,21 +407,21 @@
                         <span class="n">first</span> <span class="o">=</span> <span class="kc">False</span>
                     <span class="c1"># First got to rotate each volume 90 degrees about the y axis, align it, then rotate back and sum it</span>
                     <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --rotate_volume euler 0 90 0&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
                     <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(tempVol)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --rotate_volume euler </span><span class="si">%(rot)s</span><span class="s1"> </span><span class="si">%(tilt)s</span><span class="s1"> </span><span class="si">%(psi)s</span><span class="s1">&#39;</span> \
                              <span class="s1">&#39; --shift </span><span class="si">%(x_shift)s</span><span class="s1"> </span><span class="si">%(y_shift)s</span><span class="s1"> </span><span class="si">%(z_shift)s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
 
-                <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">counter</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;cp </span><span class="si">%(tempVol)s</span><span class="s2"> </span><span class="si">%(avr_itr)s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span>
 
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(tempVol)s</span><span class="s1"> --plus </span><span class="si">%(avr_itr)s</span><span class="s1"> -o </span><span class="si">%(avr_itr)s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_image_operate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                    <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_image_operate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
 
             <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(avr_itr)s</span><span class="s1"> --divide </span><span class="si">%(counter)s</span><span class="s1"> -o </span><span class="si">%(avr_itr)s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_image_operate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_image_operate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
             <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;rm -f </span><span class="si">%(tempVol)s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span>
             <span class="c1"># Updating the reference then realigning:</span>
             <span class="n">reference</span> <span class="o">=</span> <span class="n">avr_itr</span>
@@ -490,21 +495,21 @@
                     <span class="n">first</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="c1"># First got to rotate each volume 90 degrees about the y axis, align it, then rotate back and sum it</span>
                 <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --rotate_volume euler 0 90 0&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
                 <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(tempVol)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --rotate_volume euler </span><span class="si">%(rot)s</span><span class="s1"> </span><span class="si">%(tilt)s</span><span class="s1"> </span><span class="si">%(psi)s</span><span class="s1">&#39;</span> \
                          <span class="s1">&#39; --shift </span><span class="si">%(x_shift)s</span><span class="s1"> </span><span class="si">%(y_shift)s</span><span class="s1"> </span><span class="si">%(z_shift)s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">counter</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;cp </span><span class="si">%(tempVol)s</span><span class="s2"> </span><span class="si">%(volume_out)s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span>
 
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(tempVol)s</span><span class="s1"> --plus </span><span class="si">%(volume_out)s</span><span class="s1"> -o </span><span class="si">%(volume_out)s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_image_operate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_image_operate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
 
         <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(volume_out)s</span><span class="s1"> --divide </span><span class="si">%(counter)s</span><span class="s1"> -o </span><span class="si">%(volume_out)s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_image_operate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_image_operate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
         <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;rm -f </span><span class="si">%(tempVol)s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span>
          <span class="c1"># Averaging is done</span>
 
