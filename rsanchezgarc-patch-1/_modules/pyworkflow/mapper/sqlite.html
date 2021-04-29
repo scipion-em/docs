@@ -203,8 +203,8 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 
 <span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="k">import</span> <span class="n">replaceExt</span><span class="p">,</span> <span class="n">joinExt</span>
+<span class="kn">from</span> <span class="nn">.sqlite_db</span> <span class="k">import</span> <span class="n">SqliteDb</span><span class="p">,</span> <span class="n">OperationalError</span>
 <span class="kn">from</span> <span class="nn">.mapper</span> <span class="k">import</span> <span class="n">Mapper</span>
-<span class="kn">from</span> <span class="nn">.sqlite_db</span> <span class="k">import</span> <span class="n">SqliteDb</span>
 
 <span class="n">ID</span> <span class="o">=</span> <span class="s1">&#39;id&#39;</span>
 <span class="n">CREATION</span> <span class="o">=</span> <span class="s1">&#39;creation&#39;</span>
@@ -922,6 +922,7 @@
                 <span class="c1"># #&#39;temp_store&#39;: &#39;MEMORY&#39;,</span>
                 <span class="c1"># PRAGMA schema.cache_size = pages;</span>
                 <span class="c1"># #&#39;cache_size&#39;: &#39;5000&#39; # versus -2000</span>
+                <span class="c1"># &quot;temp_store_directory&quot;: &quot;&#39;.&#39;&quot;,</span>
             <span class="p">}</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">db</span> <span class="o">=</span> <span class="n">SqliteFlatDb</span><span class="p">(</span><span class="n">dbName</span><span class="p">,</span> <span class="n">tablePrefix</span><span class="p">,</span>
                                    <span class="n">pragmas</span><span class="o">=</span><span class="n">pragmas</span><span class="p">,</span> <span class="n">indexes</span><span class="o">=</span><span class="n">indexes</span><span class="p">)</span>
@@ -1112,10 +1113,19 @@
             
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objTemplate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__loadObjDict</span><span class="p">()</span>
-        <span class="n">objRows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">selectAll</span><span class="p">(</span><span class="n">orderBy</span><span class="o">=</span><span class="n">orderBy</span><span class="p">,</span>
-                                    <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span>
-                                    <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">,</span>
-                                    <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">objRows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">selectAll</span><span class="p">(</span><span class="n">orderBy</span><span class="o">=</span><span class="n">orderBy</span><span class="p">,</span>
+                                        <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span>
+                                        <span class="n">where</span><span class="o">=</span><span class="n">where</span><span class="p">,</span>
+                                        <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">OperationalError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;&quot;&quot;Error executing selectAll command: </span><span class="si">%s</span><span class="s2">.</span>
+<span class="s2">You may want to change the directory used by sqlite to create temporary files</span>
+<span class="s2">to one that has enough free space. By default this directory is /tmp</span>
+<span class="s2">You may achieve this goal by defining the SQLITE_TMPDIR environment variable</span>
+<span class="s2">and restarting scipion. Export command:</span>
+<span class="s2">    export SQLITE_TMPDIR=. &quot;&quot;&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">OperationalError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__objectsFromRows</span><span class="p">(</span><span class="n">objRows</span><span class="p">,</span> <span class="n">iterate</span><span class="p">,</span> <span class="n">objectFilter</span><span class="p">)</span> </div>
 
