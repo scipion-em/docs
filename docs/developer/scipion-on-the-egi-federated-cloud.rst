@@ -5,31 +5,14 @@
 .. _scipion-on-the-egi-federated-cloud:
 
 ====================================
-Scipion in the EGI Federated Cloud
+Scipion in the EOSC
 ====================================
+The European Open Science Cloud (EOSC) initiative will offer researchers a virtual environment with open and seamless services for storage, management, analysis and re-use of research data, across borders and scientific disciplines by federating existing data infrastructures.
 
-EGI Federated Cloud is a seamless grid of academic private clouds and virtualized resources, built around open standards and focusing on the requirements of the scientific community.
-It can be found under 'Cloud Compute on the `EGI services catalog <https://www.egi.eu/services/>`_.
+EOSC resources can be accessed from the 'EOSC portal <https://eosc-portal.eu/>`_.
 
-More information can be found on `EGI Federated Cloud <https://www.egi.eu/federation/egi-federated-cloud/>`_ web site.
-
-How to use Scipion in the EGI Federated Cloud
+How to use Scipion in the EOSC
 =============================================
-For extended documentation have a look at the `User support <https://wiki.egi.eu/wiki/Federated_Cloud_user_support>`_ site but in summary the steps are:
-
-User registration
--------------------
-* Request a X509 certificate.
-
-    Yo can obtain a certificate from your national `IGTF Certificate Authority (CA) <https://www.eugridpma.org/members/worldmap/>`_.
-    In Spain the CA in charge of issuing these types of certificates is TCS and the steps for CSIC are:
-
-       * Go to https://digicert.com/sso
-       * Write "csic" in the field and select the option with the institution full name. Click on "Start single sign-on"
-       * Provide your CSIC intranet credentials
-       * Fill up the form, select Grid Premium as the certificate type, expiration date and e-mail
-       * Click on "Request  Certificate" and the certificate will be automatically generated and installed on the browser
-
 * Become part of a supported Virtual Organization (VO):
 
     * List of existing VOs can be found link:http://operations-portal.egi.eu/vo/search[here].
