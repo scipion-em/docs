@@ -22,7 +22,11 @@ ScipionCloud development has been possible thanks to European Horizon 2020, the 
 
 EOSC-Life
 ---------
-*“Building a digital space for the life sciences”.**
+*“Building a digital space for the life sciences”.*
+
+We participated in Work Package 3 developing one of the Science demonstrators: "`Cryo Electron Microscopy Workflows and Automated Data Deposition <https://www.eosc-life.eu/d2/>`_".
+
+We participate in Work Package 1 Open Call with project for CryoEM data that aims to extend the work done in previous demonstrator in two different aspects: First, by using standard workflow technologies such as Ontologies, Common Workflow Language and RO-Crate packing and second, working on the integration of EGI Datahub (OneData) service to achieve CryoEM data cloudification. This project is a collaboration with CEITEC and Masaryk University from Brno.
 
 MoBrain
 --------
