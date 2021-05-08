@@ -20,6 +20,12 @@ Cloud-related projects
 
 ScipionCloud development has been possible thanks to European Horizon 2020, the biggest EU Research and Innovation programme, which has financed the following projects:
 
+EOSC-Synergy
+------------
+*"Expanding the capacity and capabilities of EOSC by leveraging the experience, effort and resources of national publicly-funded digital infrastructures".*
+
+We work on Work Package 4 developing one of the thematic services that will be included in the EOSC portal. The `ScipionCloud service <https://www.eosc-synergy.eu/thematic-services/scipion/>`_ will allow Instruct users to deploy a dynamic cluster in the cloud  to keep processing the data acquired at the facility. 
+
 EOSC-Life
 ---------
 *“Building a digital space for the life sciences”.*
