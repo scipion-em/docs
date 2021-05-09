@@ -9,10 +9,12 @@ Scipion in the EOSC
 ====================================
 The European Open Science Cloud (EOSC) initiative will offer researchers a virtual environment with open and seamless services for storage, management, analysis and re-use of research data, across borders and scientific disciplines by federating existing data infrastructures.
 
-EOSC resources can be accessed from the 'EOSC portal <https://eosc-portal.eu/>`_.
+EOSC resources can be accessed from the `EOSC portal <https://eosc-portal.eu/>`_.
 
 How to use Scipion in the EOSC
-=============================================
+==============================
+Scipion cloud is being developed as one of the EOSC-Synergy thematic services with the purpose to appear as an EOSC service in the EOSC portal.
+
 * Become part of a supported Virtual Organization (VO):
 
     * List of existing VOs can be found link:http://operations-portal.egi.eu/vo/search[here].
