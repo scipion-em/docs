@@ -225,6 +225,7 @@
 <span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">SetOfClasses3D</span><span class="p">,</span> <span class="n">SetOfParticles</span><span class="p">,</span> <span class="n">SetOfVolumes</span><span class="p">,</span> <span class="n">Volume</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="k">import</span> <span class="n">EMProtocol</span>
 
+<span class="kn">import</span> <span class="nn">relion</span>
 <span class="kn">import</span> <span class="nn">relion.convert</span>
 <span class="kn">from</span> <span class="nn">..constants</span> <span class="k">import</span> <span class="n">ANGULAR_SAMPLING_LIST</span><span class="p">,</span> <span class="n">MASK_FILL_ZERO</span>
 
@@ -992,6 +993,18 @@
         <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --j </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfThreads</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getProgram</span><span class="p">(),</span> <span class="n">params</span><span class="p">)</span></div>
 
+    <span class="k">def</span> <span class="nf">_getEnviron</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">relion</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">useGpu</span><span class="p">():</span>
+            <span class="n">prepend</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;RELION_PREPEND&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prepend</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;RELION_PREPEND_CPU&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+        <span class="n">env</span><span class="o">.</span><span class="n">setPrepend</span><span class="p">(</span><span class="n">prepend</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">env</span>
+
 <div class="viewcode-block" id="ProtRelionBase.createOutputStep"><a class="viewcode-back" href="../../../api/relion/relion.protocols.protocol_base.html#relion.protocols.protocol_base.ProtRelionBase.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>  <span class="c1"># should be implemented in subclasses</span></div>
 
@@ -1265,7 +1278,14 @@
         <span class="sd">&quot;&quot;&quot; Get the program name depending on the MPI use or not. &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">program</span> <span class="o">+=</span> <span class="s1">&#39;_mpi&#39;</span>
+
         <span class="k">return</span> <span class="n">program</span>
+
+    <span class="k">def</span> <span class="nf">_runProgram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">program</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Helper function to get the program name if mpi are used and</span>
+<span class="sd">        call runJob function.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getProgram</span><span class="p">(</span><span class="n">program</span><span class="p">),</span> <span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_getInputParticles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doContinue</span><span class="p">:</span>
@@ -1439,6 +1459,12 @@
 
     <span class="k">def</span> <span class="nf">_useFastSubsets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="s1">&#39;useFastSubsets&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ProtRelionBase.useGpu"><a class="viewcode-back" href="../../../api/relion/relion.protocols.protocol_base.html#relion.protocols.protocol_base.ProtRelionBase.useGpu">[docs]</a>    <span class="k">def</span> <span class="nf">useGpu</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return True if the protocol has gpu option and it has been selected.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="s1">&#39;doGpu&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_copyAlignAsPriors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mdParts</span><span class="p">,</span> <span class="n">alignType</span><span class="p">):</span>
         <span class="c1"># set priors equal to orig. values</span>

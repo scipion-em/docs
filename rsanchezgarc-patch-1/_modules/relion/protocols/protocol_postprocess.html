@@ -216,9 +216,10 @@
 <span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">Volume</span>
 
 <span class="kn">import</span> <span class="nn">relion.convert</span> <span class="k">as</span> <span class="nn">convert</span>
+<span class="kn">from</span> <span class="nn">.protocol_base</span> <span class="k">import</span> <span class="n">ProtRelionBase</span>
 
 
-<div class="viewcode-block" id="ProtRelionPostprocess"><a class="viewcode-back" href="../../../api/relion/relion.protocols.protocol_postprocess.html#relion.protocols.protocol_postprocess.ProtRelionPostprocess">[docs]</a><span class="k">class</span> <span class="nc">ProtRelionPostprocess</span><span class="p">(</span><span class="n">ProtAnalysis3D</span><span class="p">):</span>
+<div class="viewcode-block" id="ProtRelionPostprocess"><a class="viewcode-back" href="../../../api/relion/relion.protocols.protocol_postprocess.html#relion.protocols.protocol_postprocess.ProtRelionPostprocess">[docs]</a><span class="k">class</span> <span class="nc">ProtRelionPostprocess</span><span class="p">(</span><span class="n">ProtAnalysis3D</span><span class="p">,</span> <span class="n">ProtRelionBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Relion post-processing protocol for automated masking,</span>
 <span class="sd">    overfitting estimation, MTF-correction and B-factor sharpening.</span>
@@ -332,7 +333,7 @@
                            <span class="s1">&#39;at a user-provided frequency (in Angstroms). When &#39;</span>
                            <span class="s1">&#39;using a resolution that is higher than the &#39;</span>
                            <span class="s1">&#39;gold-standard FSC-reported resolution, take care &#39;</span>
-                           <span class="s1">&#39;not to interpret noise in the map for signal...&#39;</span><span class="p">)</span>
+                           <span class="s1">&#39;not to interpret noise in the map for signal.&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;filterEdgeWidth&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
                       <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Low-pass filter edge width:&#39;</span><span class="p">,</span>
@@ -345,6 +346,11 @@
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Randomize phases from the resolution where FSC &#39;</span>
                            <span class="s1">&#39;drops below this value</span><span class="se">\n</span><span class="s1">&#39;</span>
                            <span class="s1">&#39;Relion param: *--randomize_at_fsc*&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;forceMask&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Force mask?&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Use the mask even when the masked resolution &#39;</span>
+                           <span class="s1">&#39;is worse than the unmasked resolution.&#39;</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
@@ -378,12 +384,7 @@
 <div class="viewcode-block" id="ProtRelionPostprocess.postProcessStep"><a class="viewcode-back" href="../../../api/relion/relion.protocols.protocol_postprocess.html#relion.protocols.protocol_postprocess.ProtRelionPostprocess.postProcessStep">[docs]</a>    <span class="k">def</span> <span class="nf">postProcessStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paramDict</span><span class="p">):</span>
         <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">))</span>
                            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">paramDict</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
-
-        <span class="n">program</span> <span class="o">=</span> <span class="s1">&#39;relion_postprocess&#39;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="n">program</span> <span class="o">+=</span> <span class="s1">&#39;_mpi&#39;</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_runProgram</span><span class="p">(</span><span class="s1">&#39;relion_postprocess&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ProtRelionPostprocess.createOutputStep"><a class="viewcode-back" href="../../../api/relion/relion.protocols.protocol_postprocess.html#relion.protocols.protocol_postprocess.ProtRelionPostprocess.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">volume</span> <span class="o">=</span> <span class="n">Volume</span><span class="p">()</span>
@@ -452,6 +453,9 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">origPixelSize</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">!=</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">paramDict</span><span class="p">[</span><span class="s1">&#39;--mtf_angpix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">origPixelSize</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">forceMask</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">paramDict</span><span class="p">[</span><span class="s1">&#39;--force_mask&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
 
     <span class="k">def</span> <span class="nf">_getRelionMapFn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">fn</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
