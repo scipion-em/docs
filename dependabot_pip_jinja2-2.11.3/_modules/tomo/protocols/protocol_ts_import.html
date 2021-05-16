@@ -299,6 +299,10 @@
                            <span class="s2">&quot;</span><span class="si">{TS}</span><span class="s2"> as a, b, ...</span><span class="se">\n</span><span class="s2">&quot;</span>
                            <span class="s2">&quot;</span><span class="si">{TO}</span><span class="s2"> as 001, 002, 003, ...</span><span class="se">\n</span><span class="s2">&quot;</span>
                            <span class="s2">&quot;</span><span class="si">{TA}</span><span class="s2"> as 0.0, 3.0, -3.0, ...</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;exclusionWords&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">StringParam</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Exclusion words:&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;List of words separated by a space that the path should not have&quot;</span><span class="p">,</span>
+                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineAngleParam</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;importAction&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span>
                       <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">IMPORT_LINK_REL</span><span class="p">,</span>
@@ -459,9 +463,24 @@
                 <span class="c1"># Add tilt images to the tiltSeries</span>
                 <span class="k">for</span> <span class="n">f</span><span class="p">,</span> <span class="n">to</span><span class="p">,</span> <span class="n">ta</span> <span class="ow">in</span> <span class="n">tiltSeriesList</span><span class="p">:</span>
                     <span class="k">try</span><span class="p">:</span>
+                        <span class="c1"># Link/move to extra</span>
+                        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">:</span>
+                            <span class="n">imageFile</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">imageFile</span> <span class="o">=</span> <span class="n">f</span>
+
+                        <span class="n">finalDestination</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">imageFile</span><span class="p">))</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">copyOrLink</span><span class="p">(</span><span class="n">imageFile</span><span class="p">,</span> <span class="n">finalDestination</span><span class="p">)</span>
+
+                        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> <span class="o">==</span> <span class="nb">tuple</span><span class="p">:</span>
+                            <span class="n">f</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">finalDestination</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">f</span> <span class="o">=</span> <span class="n">finalDestination</span>
+
                         <span class="n">ti</span> <span class="o">=</span> <span class="n">tiClass</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">f</span><span class="p">,</span>
                                      <span class="n">acquisitionOrder</span><span class="o">=</span><span class="n">to</span><span class="p">,</span>
                                      <span class="n">tiltAngle</span><span class="o">=</span><span class="n">ta</span><span class="p">)</span>
+
                         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">MDOC_DATA_SOURCE</span><span class="p">:</span>
                             <span class="n">ti</span><span class="o">.</span><span class="n">setAcquisition</span><span class="p">(</span><span class="n">tsObj</span><span class="o">.</span><span class="n">getAcquisition</span><span class="p">())</span>
                             <span class="n">ti</span><span class="o">.</span><span class="n">getAcquisition</span><span class="p">()</span><span class="o">.</span><span class="n">setDosePerFrame</span><span class="p">(</span><span class="n">doseList</span><span class="p">[</span><span class="n">counter</span><span class="p">])</span>  <span class="c1"># Accumulated dose in current ti</span>
@@ -548,12 +567,12 @@
         <span class="k">return</span> <span class="p">[]</span>
 
     <span class="c1"># -------------------------- BASE methods to be overridden -----------------</span>
-    <span class="k">def</span> <span class="nf">_getImportChoices</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Return a list of possible choices</span>
-<span class="sd">        from which the import can be done.</span>
-<span class="sd">        (usually packages form such as: xmipp3, eman2, relion...etc.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;files&#39;</span><span class="p">]</span>
+    <span class="c1"># def _getImportChoices(self):</span>
+    <span class="c1">#     &quot;&quot;&quot; Return a list of possible choices</span>
+    <span class="c1">#     from which the import can be done.</span>
+    <span class="c1">#     (usually packages form such as: xmipp3, eman2, relion...etc.</span>
+    <span class="c1">#     &quot;&quot;&quot;</span>
+    <span class="c1">#     return [&#39;files&#39;]</span>
 
     <span class="c1"># -------------------------- UTILS functions -------------------------------</span>
     <span class="k">def</span> <span class="nf">_initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -612,7 +631,7 @@
         <span class="n">validationErrors</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">for</span> <span class="n">mdoc</span> <span class="ow">in</span> <span class="n">mdocList</span><span class="p">:</span>
-            <span class="n">mdocObj</span> <span class="o">=</span> <span class="n">MDoc</span><span class="p">(</span><span class="n">mdoc</span><span class="p">)</span>
+            <span class="n">mdocObj</span> <span class="o">=</span> <span class="n">MDoc</span><span class="p">(</span><span class="n">mdoc</span><span class="p">,</span> <span class="n">voltage</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">voltage</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">magnification</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">magnification</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">samplingRate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
             <span class="n">validationError</span> <span class="o">=</span> <span class="n">mdocObj</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">isImportingTsMovies</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_isImportingTsMovies</span><span class="p">())</span>
             <span class="k">if</span> <span class="n">validationError</span><span class="p">:</span>
                 <span class="n">validationErrors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">validationError</span><span class="p">)</span>
@@ -645,39 +664,6 @@
     <span class="k">def</span> <span class="nf">_isImportingTsMovies</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">True</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="ow">is</span> <span class="n">ProtImportTsMovies</span> <span class="k">else</span> <span class="kc">False</span>
 
-    <span class="c1"># @staticmethod</span>
-    <span class="c1"># def _getTsIdFromMdocData(baseNameList):</span>
-    <span class="c1">#     &quot;&quot;&quot;Find the most common substring in the list of subFrame base names to get the tsId&quot;&quot;&quot;</span>
-    <span class="c1">#     def _findStem(arr):</span>
-    <span class="c1">#         &quot;&quot;&quot;function to find the stem (longest common substring) from the string array&quot;&quot;&quot;</span>
-    <span class="c1">#         # Determine size of the array</span>
-    <span class="c1">#         n = len(arr)</span>
-    <span class="c1">#         # Take first word from array as reference</span>
-    <span class="c1">#         s = arr[0]</span>
-    <span class="c1">#         l = len(s)</span>
-    <span class="c1">#         res = &quot;&quot;</span>
-    <span class="c1">#         for i in range(l):</span>
-    <span class="c1">#             for j in range(i + 1, l + 1):</span>
-    <span class="c1">#                 # generating all possible substrings</span>
-    <span class="c1">#                 # of our reference string arr[0] i.e s</span>
-    <span class="c1">#                 stem = s[i:j]</span>
-    <span class="c1">#                 k = 1</span>
-    <span class="c1">#                 for k in range(1, n):</span>
-    <span class="c1">#                     # Check if the generated stem is</span>
-    <span class="c1">#                     # common to all words</span>
-    <span class="c1">#                     if stem not in arr[k]:</span>
-    <span class="c1">#                         break</span>
-    <span class="c1">#                 # If current substring is present in</span>
-    <span class="c1">#                 # all strings and its length is greater</span>
-    <span class="c1">#                 # than current result</span>
-    <span class="c1">#                 if k + 1 == n and len(res) &lt; len(stem):</span>
-    <span class="c1">#                     res = stem</span>
-    <span class="c1">#</span>
-    <span class="c1">#         return res</span>
-    <span class="c1">#</span>
-    <span class="c1">#     d = _findStem(baseNameList).replace(&#39;_0&#39;, &#39;&#39;)</span>
-    <span class="c1">#     return d</span>
-
     <span class="k">def</span> <span class="nf">_genTsAcquisitionFromMdoc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">voltage</span><span class="p">,</span> <span class="n">magnification</span><span class="p">):</span>
         <span class="n">acq</span> <span class="o">=</span> <span class="n">Acquisition</span><span class="p">()</span>
         <span class="n">acq</span><span class="o">.</span><span class="n">setVoltage</span><span class="p">(</span><span class="n">voltage</span><span class="p">)</span>
@@ -698,8 +684,29 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMatchingFilesFromRegExPattern</span><span class="p">(</span><span class="n">fileTimeOut</span><span class="o">=</span><span class="n">fileTimeOut</span><span class="p">)</span></div>
 
+    <span class="k">def</span> <span class="nf">_excludeByWords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">files</span><span class="p">):</span>
+        <span class="n">exclusionWords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">exclusionWords</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">exclusionWords</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">files</span>
+
+        <span class="n">exclusionWordList</span> <span class="o">=</span> <span class="n">exclusionWords</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+        <span class="n">allowedFiles</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">bannedWord</span> <span class="ow">in</span> <span class="n">file</span> <span class="k">for</span> <span class="n">bannedWord</span> <span class="ow">in</span> <span class="n">exclusionWordList</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> excluded. Contains any of </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">file</span><span class="p">,</span><span class="n">exclusionWords</span><span class="p">))</span>
+                <span class="k">continue</span>
+            <span class="n">allowedFiles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">allowedFiles</span>
+
     <span class="k">def</span> <span class="nf">_getMatchingFilesFromRegExPattern</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileTimeOut</span><span class="p">):</span>
         <span class="n">filePaths</span> <span class="o">=</span> <span class="n">glob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_globPattern</span><span class="p">)</span>
+
+        <span class="n">filePaths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_excludeByWords</span><span class="p">(</span><span class="n">filePaths</span><span class="p">)</span>
+
         <span class="n">filePaths</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">fn</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">fn</span><span class="p">))</span>
         <span class="n">fileTimeOut</span> <span class="o">=</span> <span class="n">fileTimeOut</span> <span class="ow">or</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
 
@@ -713,23 +720,23 @@
             <span class="n">tsId</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;TS&#39;</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">tsId</span>
 
-        <span class="k">def</span> <span class="nf">_addOne</span><span class="p">(</span><span class="n">fileList</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">_addOne</span><span class="p">(</span><span class="n">fileList</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">match</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot; Add one file matching to the list. &quot;&quot;&quot;</span>
-            <span class="n">fileList</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">f</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;TO&#39;</span><span class="p">)),</span> <span class="nb">float</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;TA&#39;</span><span class="p">))))</span>
+            <span class="n">fileList</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">file</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;TO&#39;</span><span class="p">)),</span> <span class="nb">float</span><span class="p">(</span><span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s1">&#39;TA&#39;</span><span class="p">))))</span>
 
-        <span class="k">def</span> <span class="nf">_addMany</span><span class="p">(</span><span class="n">fileList</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
+        <span class="k">def</span> <span class="nf">_addMany</span><span class="p">(</span><span class="n">fileList</span><span class="p">,</span> <span class="n">file</span><span class="p">,</span> <span class="n">match</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot; Add many &#39;files&#39; (when angles in header or mdoc) to the list. &quot;&quot;&quot;</span>
             <span class="n">anglesFrom</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getEnumText</span><span class="p">(</span><span class="s1">&#39;anglesFrom&#39;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">anglesFrom</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ANGLES_FROM_HEADER</span><span class="p">:</span>
-                <span class="n">angles</span> <span class="o">=</span> <span class="n">getAnglesFromHeader</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+                <span class="n">angles</span> <span class="o">=</span> <span class="n">getAnglesFromHeader</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">anglesFrom</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ANGLES_FROM_MDOC</span><span class="p">:</span>
-                <span class="n">mdocFn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.mdoc&#39;</span>
+                <span class="n">mdocFn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">file</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.mdoc&#39;</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">mdocFn</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Missing angles file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">mdocFn</span><span class="p">)</span>
                 <span class="n">angles</span> <span class="o">=</span> <span class="n">getAnglesFromMdoc</span><span class="p">(</span><span class="n">mdocFn</span><span class="p">)</span>
             <span class="k">elif</span> <span class="n">anglesFrom</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">ANGLES_FROM_TLT</span><span class="p">:</span>
-                <span class="n">tltFn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">f</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.tlt&#39;</span>
+                <span class="n">tltFn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">file</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.tlt&#39;</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tltFn</span><span class="p">):</span>
                     <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Missing angles file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tltFn</span><span class="p">)</span>
                 <span class="n">angles</span> <span class="o">=</span> <span class="n">getAnglesFromTlt</span><span class="p">(</span><span class="n">tltFn</span><span class="p">)</span>
@@ -739,7 +746,7 @@
                 <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Invalid angles option: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">anglesFrom</span><span class="p">)</span>
 
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">a</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">angles</span><span class="p">):</span>
-                <span class="n">fileList</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">f</span><span class="p">),</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">a</span><span class="p">))</span>
+                <span class="n">fileList</span><span class="o">.</span><span class="n">append</span><span class="p">(((</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">file</span><span class="p">),</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">a</span><span class="p">))</span>
 
         <span class="n">addFunc</span> <span class="o">=</span> <span class="n">_addOne</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_anglesInPattern</span><span class="p">()</span> <span class="k">else</span> <span class="n">_addMany</span>
 
@@ -765,13 +772,20 @@
 
         <span class="k">return</span> <span class="n">matchingFiles</span>
 
-<div class="viewcode-block" id="ProtImportTsBase.getCopyOrLink"><a class="viewcode-back" href="../../../api/tomo/tomo.protocols.protocol_ts_import.html#tomo.protocols.protocol_ts_import.ProtImportTsBase.getCopyOrLink">[docs]</a>    <span class="k">def</span> <span class="nf">getCopyOrLink</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Set a function to copyFile or createLink</span>
-        <span class="c1"># depending in the user selected option</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">copyFiles</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_getCopyOrLink</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns a function to copy or link files based on user selected option&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">importAction</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">IMPORT_COPY_FILES</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">pw</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">copyFile</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">importAction</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">IMPORT_LINK_REL</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">pw</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">createLink</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">pw</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">createAbsLink</span></div>
+            <span class="k">return</span> <span class="n">pw</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">createAbsLink</span>
+
+<div class="viewcode-block" id="ProtImportTsBase.copyOrLink"><a class="viewcode-back" href="../../../api/tomo/tomo.protocols.protocol_ts_import.html#tomo.protocols.protocol_ts_import.ProtImportTsBase.copyOrLink">[docs]</a>    <span class="k">def</span> <span class="nf">copyOrLink</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">source</span><span class="p">,</span> <span class="n">destination</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Calls the copy or link method chosen by the user in importAction option&quot;&quot;&quot;</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getCopyOrLink</span><span class="p">()</span>
+        <span class="n">func</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">destination</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ProtImportTsBase.fileModified"><a class="viewcode-back" href="../../../api/tomo/tomo.protocols.protocol_ts_import.html#tomo.protocols.protocol_ts_import.ProtImportTsBase.fileModified">[docs]</a>    <span class="k">def</span> <span class="nf">fileModified</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileName</span><span class="p">,</span> <span class="n">fileTimeout</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Check if the fileName modification time is less</span>
@@ -883,11 +897,11 @@
                                 <span class="bp">self</span><span class="o">.</span><span class="n">ANGLES_FROM_TLT</span><span class="p">],</span>
                        <span class="n">display</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="o">.</span><span class="n">DISPLAY_HLIST</span><span class="p">,</span>
                        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Import angles from&#39;</span><span class="p">,</span>
-                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select how the tilt angles will be imported. &#39;</span>
-                            <span class="s1">&#39;It can be defined by range: Min, Max, Step &#39;</span>
-                            <span class="s1">&#39;or from image header, or from complementary&#39;</span>
-                            <span class="s1">&#39;mdoc or tlt files (should have the same filename &#39;</span>
-                            <span class="s1">&#39;but with the .mdoc or .tlt extension).&#39;</span><span class="p">)</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Choose how the tilt angles will be inferred. &quot;</span>
+                            <span class="s2">&quot;It can be taken from a range: Min, Max, Step &quot;</span>
+                            <span class="s2">&quot;or from the image header, or from an&quot;</span>
+                            <span class="s2">&quot;mdoc or tlt file (should have the SAME file name &quot;</span>
+                            <span class="s2">&quot;but with the .mdoc or .tlt extension at the end).&quot;</span><span class="p">)</span>
 
         <span class="n">line</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="s1">&#39;Tilt angular range&#39;</span><span class="p">,</span>
                              <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;anglesFrom==0&#39;</span><span class="p">,</span>  <span class="c1"># ANGLES_FROM_RANGE</span>
@@ -982,17 +996,18 @@
 
 <div class="viewcode-block" id="MDoc"><a class="viewcode-back" href="../../../api/tomo/tomo.protocols.protocol_ts_import.html#tomo.protocols.protocol_ts_import.MDoc">[docs]</a><span class="k">class</span> <span class="nc">MDoc</span><span class="p">:</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileName</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileName</span><span class="p">,</span> <span class="n">voltage</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">magnification</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">samplingRate</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mdocFileName</span> <span class="o">=</span> <span class="n">fileName</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tsId</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="c1"># Acquisition general attributes</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_voltage</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_magnification</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_samplingRate</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_voltage</span> <span class="o">=</span> <span class="n">voltage</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_magnification</span> <span class="o">=</span> <span class="n">magnification</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_samplingRate</span> <span class="o">=</span> <span class="n">samplingRate</span>
         <span class="c1"># Acquisition specific attributes (per angle)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tiltsMetadata</span> <span class="o">=</span> <span class="p">[]</span>
 
-<div class="viewcode-block" id="MDoc.normalizeTSId"><a class="viewcode-back" href="../../../api/tomo/tomo.protocols.protocol_ts_import.html#tomo.protocols.protocol_ts_import.MDoc.normalizeTSId">[docs]</a>    <span class="k">def</span> <span class="nf">normalizeTSId</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rawTSId</span><span class="p">):</span>
+<div class="viewcode-block" id="MDoc.normalizeTSId"><a class="viewcode-back" href="../../../api/tomo/tomo.protocols.protocol_ts_import.html#tomo.protocols.protocol_ts_import.MDoc.normalizeTSId">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">normalizeTSId</span><span class="p">(</span><span class="n">rawTSId</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Normalizes the name of a TS to prevent sqlite errors, it ends up as a table in a set&quot;&quot;&quot;</span>
         <span class="c1"># remove paths and extension</span>
         <span class="n">normTSID</span> <span class="o">=</span> <span class="n">removeBaseExt</span><span class="p">(</span><span class="n">rawTSId</span><span class="p">)</span>
@@ -1016,7 +1031,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_tsId</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalizeTSId</span><span class="p">(</span><span class="n">mdoc</span><span class="p">)</span>
         <span class="n">parentFolder</span> <span class="o">=</span> <span class="n">getParentFolder</span><span class="p">(</span><span class="n">mdoc</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">isImportingTsMovies</span><span class="p">:</span>
-            <span class="n">tsFile</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">parentFolder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tsId</span> <span class="o">+</span> <span class="s1">&#39;.mrcs&#39;</span><span class="p">)</span>
+            <span class="c1"># Some mdoc files point to an .st file stored in the ImageFile header line</span>
+            <span class="n">tsFile</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">parentFolder</span><span class="p">,</span> <span class="n">headerDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;ImageFile&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tsFile</span><span class="p">):</span>
+                <span class="n">tsFile</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">parentFolder</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tsId</span> <span class="o">+</span> <span class="s1">&#39;.mrcs&#39;</span><span class="p">)</span>
             <span class="n">validateTSFromMdocErrMsgList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validateTSFromMdoc</span><span class="p">(</span><span class="n">mdoc</span><span class="p">,</span> <span class="n">tsFile</span><span class="p">)</span>
 
         <span class="c1"># Get acquisition specific (per angle) info</span>
@@ -1038,7 +1056,8 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parse the mdoc file and return a list with a dict key=value for each</span>
 <span class="sd">        of the [Zvalue = X] sections and a dictionary for the first lines global variables.</span>
-<span class="sd">        :return: dictionary (header), list of dictonaries (Z slices)</span>
+
+<span class="sd">        :return: dictionary (header), list of dictionaries (Z slices)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">headerDict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">headerParsed</span> <span class="o">=</span> <span class="kc">False</span>
@@ -1047,7 +1066,7 @@
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mdocFileName</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;[ZValue&#39;</span><span class="p">):</span>
-                    <span class="c1"># We have found a new Zvalue</span>
+                    <span class="c1"># We have found a new z value</span>
                     <span class="n">headerParsed</span> <span class="o">=</span> <span class="kc">True</span>
                     <span class="n">zvalue</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;]&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;=&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
                     <span class="k">if</span> <span class="n">zvalue</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">zvalueList</span><span class="p">):</span>
@@ -1071,9 +1090,9 @@
         <span class="n">VOLTAGE</span> <span class="o">=</span> <span class="s1">&#39;Voltage&#39;</span>
         <span class="n">MAGNIFICATION</span> <span class="o">=</span> <span class="s1">&#39;Magnification&#39;</span>
         <span class="n">PIXEL_SPACING</span> <span class="o">=</span> <span class="s1">&#39;PixelSpacing&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_voltage</span> <span class="o">=</span> <span class="n">firstSlice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">VOLTAGE</span><span class="p">,</span> <span class="n">headerDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">VOLTAGE</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_magnification</span> <span class="o">=</span> <span class="n">firstSlice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">MAGNIFICATION</span><span class="p">,</span> <span class="n">headerDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">MAGNIFICATION</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_samplingRate</span> <span class="o">=</span> <span class="n">firstSlice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">PIXEL_SPACING</span><span class="p">,</span> <span class="n">headerDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">PIXEL_SPACING</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_voltage</span> <span class="o">=</span> <span class="n">firstSlice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">VOLTAGE</span><span class="p">,</span> <span class="n">headerDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">VOLTAGE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_voltage</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_magnification</span> <span class="o">=</span> <span class="n">firstSlice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">MAGNIFICATION</span><span class="p">,</span> <span class="n">headerDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">MAGNIFICATION</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_magnification</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_samplingRate</span> <span class="o">=</span> <span class="n">firstSlice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">PIXEL_SPACING</span><span class="p">,</span> <span class="n">headerDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">PIXEL_SPACING</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_samplingRate</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">_getSlicesData</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">zSlices</span><span class="p">,</span> <span class="n">tsFile</span><span class="p">):</span>
         <span class="n">parentFolder</span> <span class="o">=</span> <span class="n">getParentFolder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mdocFileName</span><span class="p">)</span>
@@ -1083,7 +1102,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_tiltsMetadata</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TiltMetadata</span><span class="p">(</span>
                 <span class="n">angle</span><span class="o">=</span><span class="n">zSlice</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;TiltAngle&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
                 <span class="n">angleFile</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getAngleMovieFileName</span><span class="p">(</span><span class="n">parentFolder</span><span class="p">,</span> <span class="n">zSlice</span><span class="p">,</span> <span class="n">tsFile</span><span class="p">),</span>
-                <span class="n">acqOrder</span><span class="o">=</span><span class="n">counter</span><span class="p">,</span>
+                <span class="n">acqOrder</span><span class="o">=</span><span class="n">counter</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>
                 <span class="n">accumDose</span><span class="o">=</span><span class="n">accumulatedDose</span>
             <span class="p">))</span>
 
