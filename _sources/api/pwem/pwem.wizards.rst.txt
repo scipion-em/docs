@@ -1,6 +1,13 @@
 pwem.wizards package
 ====================
 
+Subpackages
+-----------
+
+.. toctree::
+
+    pwem.wizards.wizards_3d
+
 Submodules
 ----------
 
