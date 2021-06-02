@@ -211,13 +211,14 @@
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="k">import</span> <span class="n">abspath</span>
 
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="k">import</span> <span class="n">BETA</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="k">import</span> <span class="n">Boolean</span><span class="p">,</span> <span class="n">String</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="k">import</span> <span class="n">Boolean</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="k">import</span> <span class="n">removeBaseExt</span>
 <span class="kn">from</span> <span class="nn">tomo.protocols</span> <span class="k">import</span> <span class="n">ProtTomoPicking</span>
 <span class="kn">from</span> <span class="nn">tomo.objects</span> <span class="k">import</span> <span class="n">Coordinate3D</span>
 
-<span class="kn">from</span> <span class="nn">deepfinder</span> <span class="k">import</span> <span class="n">Plugin</span>
 <span class="kn">import</span> <span class="nn">deepfinder.convert</span> <span class="k">as</span> <span class="nn">cv</span>
+<span class="kn">from</span> <span class="nn">deepfinder.viewers.particle_annotator_tomo_viewer</span> <span class="k">import</span> <span class="n">ParticleAnnotatorDialog</span>
+<span class="kn">from</span> <span class="nn">deepfinder.viewers.particle_annotator_tree</span> <span class="k">import</span>  <span class="n">ParticleAnnotatorProvider</span>
 
 
 <div class="viewcode-block" id="DeepFinderAnnotations"><a class="viewcode-back" href="../../../api/deepfinder/deepfinder.protocols.protocol_annotation.html#deepfinder.protocols.protocol_annotation.DeepFinderAnnotations">[docs]</a><span class="k">class</span> <span class="nc">DeepFinderAnnotations</span><span class="p">(</span><span class="n">ProtTomoPicking</span><span class="p">):</span>
@@ -228,8 +229,9 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
         <span class="n">ProtTomoPicking</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_noAnnotations</span> <span class="o">=</span> <span class="n">Boolean</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">annotationSummary</span> <span class="o">=</span> <span class="n">String</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_objectsToGo</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="c1"># --------------------------- DEFINE param functions ----------------------</span>
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
@@ -237,144 +239,95 @@
 
     <span class="c1"># --------------------------- INSERT steps functions ----------------------</span>
     <span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Launch Boxing GUI</span>
-        <span class="k">for</span> <span class="n">tomo</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;launchAnnotationStep&#39;</span><span class="p">,</span> <span class="n">tomo</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;createOutputStep&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;launchAnnotationStep&#39;</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># self._insertFunctionStep(&#39;createOutputStep&#39;)</span>
 
     <span class="c1"># --------------------------- STEPS functions -----------------------------</span>
-<div class="viewcode-block" id="DeepFinderAnnotations.launchAnnotationStep"><a class="viewcode-back" href="../../../api/deepfinder/deepfinder.protocols.protocol_annotation.html#deepfinder.protocols.protocol_annotation.DeepFinderAnnotations.launchAnnotationStep">[docs]</a>    <span class="k">def</span> <span class="nf">launchAnnotationStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tomoName</span><span class="p">):</span>
-        <span class="c1"># This generates 1 objl.xml file per tomogram and stores it in EXTRA:</span>
-        <span class="c1"># Generate objl filename (output):</span>
-        <span class="n">fname_objl</span> <span class="o">=</span> <span class="s1">&#39;objl_annot_&#39;</span> <span class="o">+</span> <span class="n">removeBaseExt</span><span class="p">(</span><span class="n">tomoName</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.xml&#39;</span>
+<div class="viewcode-block" id="DeepFinderAnnotations.launchAnnotationStep"><a class="viewcode-back" href="../../../api/deepfinder/deepfinder.protocols.protocol_annotation.html#deepfinder.protocols.protocol_annotation.DeepFinderAnnotations.launchAnnotationStep">[docs]</a>    <span class="k">def</span> <span class="nf">launchAnnotationStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; This generates 1 objl.xml file per tomogram and stores it in EXTRA&quot;&quot;&quot;</span>
 
-        <span class="c1"># Launch annotation GUI passing the tomogram file name</span>
-        <span class="n">deepfinder_args</span> <span class="o">=</span> <span class="s1">&#39; -t </span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">abspath</span><span class="p">(</span><span class="n">tomoName</span><span class="p">)</span>
-        <span class="n">deepfinder_args</span> <span class="o">+=</span> <span class="s1">&#39;-o </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">fname_objl</span><span class="p">))</span>
-        <span class="n">deepfinder_args</span> <span class="o">+=</span> <span class="s1">&#39; -scipion&#39;</span> <span class="c1"># hides unnecessary buttons from DeepFinder GUI</span>
-        <span class="n">Plugin</span><span class="o">.</span><span class="n">runDeepFinder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;annotate&#39;</span><span class="p">,</span> <span class="n">deepfinder_args</span><span class="p">)</span></div>
+        <span class="c1"># There are still some objects which haven&#39;t been annotated --&gt; launch GUI</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_getAnnotationStatus</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objectsToGo</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ParticleAnnotatorDialog</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">provider</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="p">,</span> <span class="n">prot</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
 
-<div class="viewcode-block" id="DeepFinderAnnotations.createOutputStepOLD"><a class="viewcode-back" href="../../../api/deepfinder/deepfinder.protocols.protocol_annotation.html#deepfinder.protocols.protocol_annotation.DeepFinderAnnotations.createOutputStepOLD">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStepOLD</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;*.xml&#39;</span><span class="p">)):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_noAnnotations</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="c1"># All the objetcs have been annotated --&gt; create output objects</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_getAnnotationStatus</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objectsToGo</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">==&gt; Generating the outputs&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_genOutput3DCoords</span><span class="p">()</span>
 
-            <span class="c1"># Convert DeepFinder annotation output to Scipion SetOfCoordinates3D</span>
-            <span class="n">setTomograms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">()</span></div>
 
-            <span class="c1"># First, determine the classes that have been annotated (check in all object lists):</span>
-            <span class="n">objl</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">objlReadResults</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">tomo</span> <span class="ow">in</span> <span class="n">setTomograms</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
-                <span class="c1"># Get objl filename:</span>
-                <span class="n">fname_objl</span> <span class="o">=</span> <span class="s1">&#39;objl_annot_&#39;</span> <span class="o">+</span> <span class="n">removeBaseExt</span><span class="p">(</span><span class="n">tomo</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39;.xml&#39;</span>
+    <span class="k">def</span> <span class="nf">_genOutput3DCoords</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">setTomograms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">coord3DSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfCoordinates3D</span><span class="p">(</span><span class="n">setTomograms</span><span class="p">)</span>
+        <span class="n">coord3DSet</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">setTomograms</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
 
-                <span class="c1"># Read objl:</span>
-                <span class="n">objl_tomo</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_read</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">fname_objl</span><span class="p">)))</span>
-                <span class="n">objlReadResults</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">objl_tomo</span><span class="p">)</span>
-                <span class="n">objl</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">objl_tomo</span><span class="p">)</span>
+        <span class="n">coordCounter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">annotationSummary</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">tidx</span><span class="p">,</span> <span class="n">tomo</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">setTomograms</span><span class="o">.</span><span class="n">iterItems</span><span class="p">()):</span>
+            <span class="c1"># Read objl:</span>
+            <span class="n">fname_objl</span> <span class="o">=</span> <span class="s1">&#39;objl_annot_&#39;</span> <span class="o">+</span> <span class="n">removeBaseExt</span><span class="p">(</span><span class="n">tomo</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39;.xml&#39;</span>
+            <span class="n">objl_tomo</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_read</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">fname_objl</span><span class="p">)))</span>
 
-            <span class="c1"># For each class, iterate over all object lists (1 per tomo) and store coordinates</span>
-            <span class="c1"># in SetOfCoordinates3D (1 per class)</span>
-            <span class="c1"># Remark: only 1 setOfCoordinates3D can exist at a time, else:</span>
-            <span class="c1"># &quot;Protocol failed: Cannot operate on a closed database.&quot;</span>
-            <span class="n">coord3DSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfCoordinates3D</span><span class="p">(</span><span class="n">setTomograms</span><span class="p">)</span>
-            <span class="n">coord3DSet</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">setTomograms</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
-            <span class="n">coordCounter</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">lbl_list</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_get_labels</span><span class="p">(</span><span class="n">objl</span><span class="p">)</span>
-            <span class="n">nClasses</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lbl_list</span><span class="p">)</span>
-            <span class="n">annotationSummary</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%i</span><span class="s1"> classes have been annotated.&#39;</span> <span class="o">%</span> <span class="n">nClasses</span>
-
+            <span class="c1"># Generate string for protocol summary:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Tomogram &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tidx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: a total of &#39;</span> <span class="o">+</span> \
+                  <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">objl_tomo</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39; objects has been annotated.&#39;</span>
+            <span class="n">annotationSummary</span> <span class="o">+=</span> <span class="n">msg</span>
+            <span class="n">lbl_list</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_get_labels</span><span class="p">(</span><span class="n">objl_tomo</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="n">lbl_list</span><span class="p">:</span>
-                <span class="n">objl_class</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_get_class</span><span class="p">(</span><span class="n">objl</span><span class="p">,</span> <span class="n">lbl</span><span class="p">)</span>
-                <span class="n">lblStr</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">lbl</span><span class="p">)</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Class </span><span class="si">%s</span><span class="s1">: </span><span class="si">%i</span><span class="s1"> object(s)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">lblStr</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">objl_class</span><span class="p">))</span>
+                <span class="n">objl_class</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_get_class</span><span class="p">(</span><span class="n">objl_tomo</span><span class="p">,</span> <span class="n">lbl</span><span class="p">)</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Class &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">lbl</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">objl_class</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39; objects&#39;</span>
                 <span class="n">annotationSummary</span> <span class="o">+=</span> <span class="n">msg</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="n">annotationSummary</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
 
-                <span class="k">for</span> <span class="n">tomoInd</span><span class="p">,</span> <span class="n">tomo</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">setTomograms</span><span class="o">.</span><span class="n">iterItems</span><span class="p">()):</span>
-                    <span class="n">objl_class</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_get_class</span><span class="p">(</span><span class="n">objlReadResults</span><span class="p">[</span><span class="n">tomoInd</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="n">lbl</span><span class="p">)</span>
-                    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">objl_class</span><span class="p">)):</span>
-                        <span class="n">x</span> <span class="o">=</span> <span class="n">objl_class</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
-                        <span class="n">y</span> <span class="o">=</span> <span class="n">objl_class</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">]</span>
-                        <span class="n">z</span> <span class="o">=</span> <span class="n">objl_class</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;z&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">objl_tomo</span><span class="p">)):</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">objl_tomo</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">objl_tomo</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">]</span>
+                <span class="n">z</span> <span class="o">=</span> <span class="n">objl_tomo</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;z&#39;</span><span class="p">]</span>
+                <span class="n">lbl</span> <span class="o">=</span> <span class="n">objl_tomo</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
 
-                        <span class="n">coord</span> <span class="o">=</span> <span class="n">Coordinate3D</span><span class="p">()</span>
-                        <span class="n">coord</span><span class="o">.</span><span class="n">setObjId</span><span class="p">(</span><span class="n">coordCounter</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-                        <span class="n">coord</span><span class="o">.</span><span class="n">setPosition</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
-                        <span class="n">coord</span><span class="o">.</span><span class="n">setVolume</span><span class="p">(</span><span class="n">tomo</span><span class="p">)</span>
-                        <span class="n">coord</span><span class="o">.</span><span class="n">setVolId</span><span class="p">(</span><span class="n">tomoInd</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-                        <span class="n">coord</span><span class="o">.</span><span class="n">_dfLabel</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="n">lblStr</span><span class="p">)</span>
+                <span class="n">coord</span> <span class="o">=</span> <span class="n">Coordinate3D</span><span class="p">()</span>
+                <span class="n">coord</span><span class="o">.</span><span class="n">setObjId</span><span class="p">(</span><span class="n">coordCounter</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">coord</span><span class="o">.</span><span class="n">setPosition</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+                <span class="n">coord</span><span class="o">.</span><span class="n">setVolume</span><span class="p">(</span><span class="n">tomo</span><span class="p">)</span>
+                <span class="n">coord</span><span class="o">.</span><span class="n">setVolId</span><span class="p">(</span><span class="n">tidx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">coord</span><span class="o">.</span><span class="n">_dfLabel</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">lbl</span><span class="p">))</span>
 
-                        <span class="n">coord3DSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
-                        <span class="n">coordCounter</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">coord3DSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
+                <span class="n">coordCounter</span> <span class="o">+=</span> <span class="mi">1</span>
 
-                <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputCoordinates</span><span class="o">=</span><span class="n">coord3DSet</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="n">setTomograms</span><span class="p">,</span> <span class="n">coord3DSet</span><span class="p">)</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">annotationSummary</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">annotationSummary</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annotationSummary</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_noAnnotations</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="DeepFinderAnnotations.createOutputStep"><a class="viewcode-back" href="../../../api/deepfinder/deepfinder.protocols.protocol_annotation.html#deepfinder.protocols.protocol_annotation.DeepFinderAnnotations.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;*.xml&#39;</span><span class="p">)):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_noAnnotations</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
-
-            <span class="n">setTomograms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-
-            <span class="n">coord3DSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfCoordinates3D</span><span class="p">(</span><span class="n">setTomograms</span><span class="p">)</span>
-            <span class="n">coord3DSet</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">setTomograms</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
-
-            <span class="n">coordCounter</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">annotationSummary</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-            <span class="k">for</span> <span class="n">tidx</span><span class="p">,</span> <span class="n">tomo</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">setTomograms</span><span class="o">.</span><span class="n">iterItems</span><span class="p">()):</span>
-                <span class="c1"># Read objl:</span>
-                <span class="n">fname_objl</span> <span class="o">=</span> <span class="s1">&#39;objl_annot_&#39;</span> <span class="o">+</span> <span class="n">removeBaseExt</span><span class="p">(</span><span class="n">tomo</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39;.xml&#39;</span>
-                <span class="n">objl_tomo</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_read</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">fname_objl</span><span class="p">)))</span>
-
-                <span class="c1"># Generate string for protocol summary:</span>
-                <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Tomogram &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tidx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: a total of &#39;</span> <span class="o">+</span> \
-                    <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">objl_tomo</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39; objects has been annotated.&#39;</span>
-                <span class="n">annotationSummary</span> <span class="o">+=</span> <span class="n">msg</span>
-                <span class="n">lbl_list</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_get_labels</span><span class="p">(</span><span class="n">objl_tomo</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="n">lbl_list</span><span class="p">:</span>
-                    <span class="n">objl_class</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_get_class</span><span class="p">(</span><span class="n">objl_tomo</span><span class="p">,</span> <span class="n">lbl</span><span class="p">)</span>
-                    <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Class &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">lbl</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">objl_class</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39; objects&#39;</span>
-                    <span class="n">annotationSummary</span> <span class="o">+=</span> <span class="n">msg</span>
-                <span class="n">annotationSummary</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
-
-                <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">objl_tomo</span><span class="p">)):</span>
-                    <span class="n">x</span> <span class="o">=</span> <span class="n">objl_tomo</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;x&#39;</span><span class="p">]</span>
-                    <span class="n">y</span> <span class="o">=</span> <span class="n">objl_tomo</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;y&#39;</span><span class="p">]</span>
-                    <span class="n">z</span> <span class="o">=</span> <span class="n">objl_tomo</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;z&#39;</span><span class="p">]</span>
-                    <span class="n">lbl</span> <span class="o">=</span> <span class="n">objl_tomo</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;label&#39;</span><span class="p">]</span>
-
-                    <span class="n">coord</span> <span class="o">=</span> <span class="n">Coordinate3D</span><span class="p">()</span>
-                    <span class="n">coord</span><span class="o">.</span><span class="n">setObjId</span><span class="p">(</span><span class="n">coordCounter</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-                    <span class="n">coord</span><span class="o">.</span><span class="n">setPosition</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
-                    <span class="n">coord</span><span class="o">.</span><span class="n">setVolume</span><span class="p">(</span><span class="n">tomo</span><span class="p">)</span>
-                    <span class="n">coord</span><span class="o">.</span><span class="n">setVolId</span><span class="p">(</span><span class="n">tidx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-                    <span class="n">coord</span><span class="o">.</span><span class="n">_dfLabel</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">lbl</span><span class="p">))</span>
-
-                    <span class="n">coord3DSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
-                    <span class="n">coordCounter</span> <span class="o">+=</span> <span class="mi">1</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputCoordinates</span><span class="o">=</span><span class="n">coord3DSet</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="n">setTomograms</span><span class="p">,</span> <span class="n">coord3DSet</span><span class="p">)</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">annotationSummary</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">annotationSummary</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annotationSummary</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_noAnnotations</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputCoordinates</span><span class="o">=</span><span class="n">coord3DSet</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="n">setTomograms</span><span class="p">,</span> <span class="n">coord3DSet</span><span class="p">)</span>
 
     <span class="c1"># --------------------------- DEFINE info functions ----------------------</span>
     <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Summarize what the protocol has done&quot;&quot;&quot;</span>
         <span class="n">summary</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isFinished</span><span class="p">():</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotationSummary</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-                <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annotationSummary</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="n">objects2go</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objectsToGo</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">objects2go</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">objects2go</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;*</span><span class="si">%i</span><span class="s1">* remaining tomograms to be annotated.&#39;</span> <span class="o">%</span> <span class="n">objects2go</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;All tomograms have been already annotated.&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">annotationSummary</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+            <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">annotationSummary</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_noAnnotations</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-                <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;NO ANNOTATIONS WERE TAKEN.&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">summary</span>
 
-        <span class="k">return</span> <span class="n">summary</span></div>
+    <span class="c1"># --------------------------- UTIL functions -----------------------------------</span>
+
+    <span class="k">def</span> <span class="nf">_initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tomoList</span> <span class="o">=</span> <span class="p">[</span><span class="n">tomo</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span> <span class="k">for</span> <span class="n">tomo</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">iterItems</span><span class="p">()]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span> <span class="o">=</span> <span class="n">ParticleAnnotatorProvider</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tomoList</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="s1">&#39;partAnnotator&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_getAnnotationStatus</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_getAnnotationStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check if all the tomo masks have been annotated and store current status in a text file&quot;&quot;&quot;</span>
+        <span class="n">doneTomes</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">getObjectInfo</span><span class="p">(</span><span class="n">tomo</span><span class="p">)[</span><span class="s1">&#39;tags&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;done&#39;</span> <span class="k">for</span> <span class="n">tomo</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tomoList</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_objectsToGo</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tomoList</span><span class="p">)</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">doneTomes</span><span class="p">))</span></div>
 </pre></div>
 
            </div>
@@ -413,6 +366,7 @@
             <dt>Branches</dt>
             <dd><a href="../../../dependabot_pip_jinja2-2.11.3/index.html">dependabot/pip/jinja2-2.11.3</a></dd>
             <dd><a href="../../../dependabot_pip_pygments-2.7.4/index.html">dependabot/pip/pygments-2.7.4</a></dd>
+            <dd><a href="../../../dependabot_pip_urllib3-1.26.5/index.html">dependabot/pip/urllib3-1.26.5</a></dd>
             <dd><a href="../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../release-3.0.0/_modules/deepfinder/protocols/protocol_annotation.html">release-3.0.0</a></dd>

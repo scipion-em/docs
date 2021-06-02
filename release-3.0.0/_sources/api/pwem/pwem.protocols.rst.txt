@@ -28,6 +28,7 @@ Submodules
    pwem.protocols.protocol_extract_coordinates
    pwem.protocols.protocol_metadata_editor
    pwem.protocols.protocol_micrographs
+   pwem.protocols.protocol_movie_eraser
    pwem.protocols.protocol_movies
    pwem.protocols.protocol_origin_sampling_volume
    pwem.protocols.protocol_particles

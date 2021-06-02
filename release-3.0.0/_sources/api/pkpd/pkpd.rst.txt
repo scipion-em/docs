@@ -19,6 +19,7 @@ Submodules
    pkpd.bibtex
    pkpd.biopharmaceutics
    pkpd.constants
+   pkpd.inhalation
    pkpd.objects
    pkpd.pkpd_units
    pkpd.utils
