@@ -35,6 +35,7 @@ Submodules
    relion.protocols.protocol_reconstruct
    relion.protocols.protocol_refine3d
    relion.protocols.protocol_remove_views
+   relion.protocols.protocol_select_classes
    relion.protocols.protocol_subtract
    relion.protocols.protocol_symmetrize_volume
 
