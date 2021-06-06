@@ -219,11 +219,14 @@
 
 <span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="k">import</span> <span class="n">Integer</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.object</span> <span class="k">as</span> <span class="nn">pwobj</span>
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">Transform</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils.path</span> <span class="k">as</span> <span class="nn">path</span>
 <span class="kn">import</span> <span class="nn">pwem.objects.data</span> <span class="k">as</span> <span class="nn">data</span>
 <span class="kn">from</span> <span class="nn">pwem.convert.transformations</span> <span class="k">import</span> <span class="n">euler_matrix</span>
 <span class="kn">import</span> <span class="nn">pwem.emlib</span> <span class="k">as</span> <span class="nn">emlib</span>
 <span class="kn">from</span> <span class="nn">pwem.emlib.image</span> <span class="k">import</span> <span class="n">ImageHandler</span>
+
+<span class="kn">import</span> <span class="nn">tomo.constants</span> <span class="k">as</span> <span class="nn">const</span>
 
 
 <div class="viewcode-block" id="TiltImageBase"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.TiltImageBase">[docs]</a><span class="k">class</span> <span class="nc">TiltImageBase</span><span class="p">:</span>
@@ -297,6 +300,8 @@
         <span class="c1"># so, let&#39;s do no store the mapper path by default</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_mapperPath</span><span class="o">.</span><span class="n">setStore</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_origin</span> <span class="o">=</span> <span class="kc">None</span>
+
 <div class="viewcode-block" id="TiltSeriesBase.getTsId"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.TiltSeriesBase.getTsId">[docs]</a>    <span class="k">def</span> <span class="nf">getTsId</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Get unique TiltSerie ID, usually retrieved from the</span>
 <span class="sd">        file pattern provided by the user at the import time.</span>
@@ -330,15 +335,83 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_samplingRate</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">*</span> <span class="mf">1e-4</span> <span class="o">*</span> <span class="n">mag</span></div>
 
 <div class="viewcode-block" id="TiltSeriesBase.generateTltFile"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.TiltSeriesBase.generateTltFile">[docs]</a>    <span class="k">def</span> <span class="nf">generateTltFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tltFilePath</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Generates an angle file in .tlt format in the specified location. If reverse is set to true the angles in</span>
-<span class="sd">        file are sorted in the opposite order&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; Generates an angle file in .tlt format in the specified location. If reverse is set to true the angles in</span>
+<span class="sd">        file are sorted in the opposite order.</span>
+<span class="sd">        :param tltFilePath: String containing the path where the file is created.</span>
+<span class="sd">        :param reverse: Boolean indicating if the angle list must be reversed.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">angleList</span> <span class="o">=</span> <span class="p">[]</span>
+
         <span class="k">for</span> <span class="n">ti</span> <span class="ow">in</span> <span class="bp">self</span><span class="p">:</span>
             <span class="n">angleList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ti</span><span class="o">.</span><span class="n">getTiltAngle</span><span class="p">())</span>
+
         <span class="k">if</span> <span class="n">reverse</span><span class="p">:</span>
             <span class="n">angleList</span><span class="o">.</span><span class="n">reverse</span><span class="p">()</span>
+
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tltFilePath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">angle</span> <span class="k">for</span> <span class="n">angle</span> <span class="ow">in</span> <span class="n">angleList</span><span class="p">)</span></div></div>
+            <span class="n">f</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">angle</span> <span class="k">for</span> <span class="n">angle</span> <span class="ow">in</span> <span class="n">angleList</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TiltSeriesBase.hasOrigin"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.TiltSeriesBase.hasOrigin">[docs]</a>    <span class="k">def</span> <span class="nf">hasOrigin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method indicating if the TiltSeries object has a defined origin. &quot;&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_origin</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="TiltSeriesBase.setOrigin"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.TiltSeriesBase.setOrigin">[docs]</a>    <span class="k">def</span> <span class="nf">setOrigin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newOrigin</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to set the origin of the TiltSeries object.</span>
+<span class="sd">        :param newOrigin: Scipion Transform object indicating the origin to be set to the TiltSeries.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_origin</span> <span class="o">=</span> <span class="n">newOrigin</span></div>
+
+<div class="viewcode-block" id="TiltSeriesBase.getOrigin"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.TiltSeriesBase.getOrigin">[docs]</a>    <span class="k">def</span> <span class="nf">getOrigin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to get the origin associated to the TiltSeries. If there is no origin associated to the the object</span>
+<span class="sd">        it may create a default one.</span>
+<span class="sd">        :param force: Boolean indicating if the method must return a default origin in case the object has no one</span>
+<span class="sd">        associated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasOrigin</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_origin</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">force</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getDefaultOrigin</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span></div>
+
+    <span class="k">def</span> <span class="nf">_getDefaultOrigin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">sampling</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">Transform</span><span class="p">()</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getDim</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">z</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">z</span> <span class="o">=</span> <span class="n">z</span> <span class="o">/</span> <span class="o">-</span><span class="mf">2.</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="n">t</span><span class="o">.</span><span class="n">setShifts</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="o">-</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">sampling</span><span class="p">,</span> <span class="n">y</span> <span class="o">/</span> <span class="o">-</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">sampling</span><span class="p">,</span> <span class="n">z</span> <span class="o">*</span> <span class="n">sampling</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">t</span>  <span class="c1"># The identity matrix</span>
+
+<div class="viewcode-block" id="TiltSeriesBase.getShiftsFromOrigin"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.TiltSeriesBase.getShiftsFromOrigin">[docs]</a>    <span class="k">def</span> <span class="nf">getShiftsFromOrigin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to return the origin shift from the Scipion Transform object. &quot;&quot;&quot;</span>
+
+        <span class="n">origin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getOrigin</span><span class="p">(</span><span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">getShifts</span><span class="p">()</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">origin</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span></div>
+        <span class="c1"># x, y, z are floats in Angstroms</span>
+
+<div class="viewcode-block" id="TiltSeriesBase.updateOriginWithResize"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.TiltSeriesBase.updateOriginWithResize">[docs]</a>    <span class="k">def</span> <span class="nf">updateOriginWithResize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>  <span class="n">resizeFactor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method to update the origin after resizing the TiltSeries. &quot;&quot;&quot;</span>
+
+        <span class="n">origin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getOrigin</span><span class="p">()</span>
+
+        <span class="n">xOri</span><span class="p">,</span> <span class="n">yOri</span><span class="p">,</span> <span class="n">zOri</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getShiftsFromOrigin</span><span class="p">()</span>
+
+        <span class="n">origin</span><span class="o">.</span><span class="n">setShifts</span><span class="p">(</span><span class="n">xOri</span> <span class="o">*</span> <span class="n">resizeFactor</span><span class="p">,</span>
+                         <span class="n">yOri</span> <span class="o">*</span> <span class="n">resizeFactor</span><span class="p">,</span>
+                         <span class="n">zOri</span> <span class="o">*</span> <span class="n">resizeFactor</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setOrigin</span><span class="p">(</span><span class="n">origin</span><span class="p">)</span></div></div>
+        <span class="c1"># x, y, z are floats in Angstroms</span>
 
 
 <div class="viewcode-block" id="TiltSeries"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.TiltSeries">[docs]</a><span class="k">class</span> <span class="nc">TiltSeries</span><span class="p">(</span><span class="n">TiltSeriesBase</span><span class="p">):</span>
@@ -650,7 +723,7 @@
         <span class="n">data</span><span class="o">.</span><span class="n">Acquisition</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_angleMin</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;angleMin&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_angleMax</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;angleMax&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_step</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;step&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_step</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;step&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_angleAxis1</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;angleAxis1&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_angleAxis2</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">Float</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;angleAxis2&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
 
@@ -686,10 +759,16 @@
 
 
 <div class="viewcode-block" id="Tomogram"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Tomogram">[docs]</a><span class="k">class</span> <span class="nc">Tomogram</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">Volume</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Class to hold the tomogram abstraction inside Scipion. The origin (self._origin) of the volume is set as the</span>
+<span class="sd">    location of the first coordinate loaded from the binary file. The volume may be displaced by setting a different</span>
+<span class="sd">    origin using the methods implemented in the inherited class data.Image in scipion-em plugin.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">data</span><span class="o">.</span><span class="n">Volume</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_acquisition</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tsId</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;tsId&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="Tomogram.getTsId"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Tomogram.getTsId">[docs]</a>    <span class="k">def</span> <span class="nf">getTsId</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Get unique TiltSeries ID, usually retrieved from the</span>
@@ -709,7 +788,29 @@
 <div class="viewcode-block" id="Tomogram.hasAcquisition"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Tomogram.hasAcquisition">[docs]</a>    <span class="k">def</span> <span class="nf">hasAcquisition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_acquisition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
                 <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_acquisition</span><span class="o">.</span><span class="n">getAngleMin</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
-                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_acquisition</span><span class="o">.</span><span class="n">getAngleMax</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span></div></div>
+                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_acquisition</span><span class="o">.</span><span class="n">getAngleMax</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Tomogram.getDim"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Tomogram.getDim">[docs]</a>    <span class="k">def</span> <span class="nf">getDim</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return image dimensions as tuple: (Xdim, Ydim, Zdim)&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">pwem.emlib.image</span> <span class="k">import</span> <span class="n">ImageHandler</span>
+
+            <span class="n">fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fn</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;:mrc&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)):</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">ImageHandler</span><span class="p">()</span><span class="o">.</span><span class="n">getDimensions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+                <span class="c1"># Some volumes in mrc format can have the z dimension</span>
+                <span class="c1"># as n dimension, so we need to consider this case.</span>
+                <span class="k">if</span> <span class="n">z</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span> <span class="o">=</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">n</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dim</span>
+        <span class="k">return</span> <span class="kc">None</span></div></div>
+
 
 
 <div class="viewcode-block" id="SetOfTomograms"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.SetOfTomograms">[docs]</a><span class="k">class</span> <span class="nc">SetOfTomograms</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">SetOfVolumes</span><span class="p">):</span>
@@ -758,42 +859,75 @@
 
 
 <div class="viewcode-block" id="Coordinate3D"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D">[docs]</a><span class="k">class</span> <span class="nc">Coordinate3D</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">EMObject</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This class holds the (x,y) position and other information</span>
+    <span class="sd">&quot;&quot;&quot;This class holds the (x,y,z) position and other information</span>
 <span class="sd">    associated with a coordinate&quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">data</span><span class="o">.</span><span class="n">EMObject</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_volumePointer</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">Pointer</span><span class="p">(</span><span class="n">objDoStore</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_y</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;y&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_z</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">Integer</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;z&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_y</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_volId</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">Integer</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eulerMatrix</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">Transform</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_groupId</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">Integer</span><span class="p">()</span>  <span class="c1"># This may refer to a mesh, ROI, vesicle or any group of coordinates</span>
 
-<div class="viewcode-block" id="Coordinate3D.getX"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.getX">[docs]</a>    <span class="k">def</span> <span class="nf">getX</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+<div class="viewcode-block" id="Coordinate3D.getX"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.getX">[docs]</a>    <span class="k">def</span> <span class="nf">getX</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">originFunction</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; See getPosition method for a full description of how &quot;originFunction&quot;</span>
+<span class="sd">        works&#39;&#39;&#39;</span>
+        <span class="n">origin_Scipion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getVolumeOrigin</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">aux</span> <span class="o">=</span> <span class="n">originFunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getVolume</span><span class="p">()</span><span class="o">.</span><span class="n">getDim</span><span class="p">())</span>
+        <span class="n">origin</span> <span class="o">=</span> <span class="n">aux</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">aux</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="o">-</span><span class="n">origin_Scipion</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">-</span> <span class="n">origin</span> <span class="o">-</span> <span class="n">origin_Scipion</span></div>
 
-<div class="viewcode-block" id="Coordinate3D.setX"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.setX">[docs]</a>    <span class="k">def</span> <span class="nf">setX</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_x</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+<div class="viewcode-block" id="Coordinate3D.setX"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.setX">[docs]</a>    <span class="k">def</span> <span class="nf">setX</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">originFunction</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; See setPosition method for a full description of how &quot;originFunction&quot;</span>
+<span class="sd">        works&#39;&#39;&#39;</span>
+        <span class="n">origin_Scipion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getVolumeOrigin</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">aux</span> <span class="o">=</span> <span class="n">originFunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getVolume</span><span class="p">()</span><span class="o">.</span><span class="n">getDim</span><span class="p">())</span>
+        <span class="n">origin</span> <span class="o">=</span> <span class="n">aux</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">aux</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="o">-</span><span class="n">origin_Scipion</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="n">origin</span> <span class="o">+</span> <span class="n">origin_Scipion</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Coordinate3D.shiftX"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.shiftX">[docs]</a>    <span class="k">def</span> <span class="nf">shiftX</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shiftX</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_x</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">shiftX</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Coordinate3D.getY"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.getY">[docs]</a>    <span class="k">def</span> <span class="nf">getY</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+<div class="viewcode-block" id="Coordinate3D.getY"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.getY">[docs]</a>    <span class="k">def</span> <span class="nf">getY</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">originFunction</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; See getPosition method for a full description of how &quot;originFunction&quot;</span>
+<span class="sd">        works&#39;&#39;&#39;</span>
+        <span class="n">origin_Scipion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getVolumeOrigin</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">aux</span> <span class="o">=</span> <span class="n">originFunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getVolume</span><span class="p">()</span><span class="o">.</span><span class="n">getDim</span><span class="p">())</span>
+        <span class="n">origin</span> <span class="o">=</span> <span class="n">aux</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">aux</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="o">-</span><span class="n">origin_Scipion</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">-</span> <span class="n">origin</span> <span class="o">-</span> <span class="n">origin_Scipion</span></div>
 
-<div class="viewcode-block" id="Coordinate3D.setY"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.setY">[docs]</a>    <span class="k">def</span> <span class="nf">setY</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_y</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">y</span><span class="p">)</span></div>
+<div class="viewcode-block" id="Coordinate3D.setY"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.setY">[docs]</a>    <span class="k">def</span> <span class="nf">setY</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">originFunction</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; See setPosition method for a full description of how &quot;originFunction&quot;</span>
+<span class="sd">        works&#39;&#39;&#39;</span>
+        <span class="n">origin_Scipion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getVolumeOrigin</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">aux</span> <span class="o">=</span> <span class="n">originFunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getVolume</span><span class="p">()</span><span class="o">.</span><span class="n">getDim</span><span class="p">())</span>
+        <span class="n">origin</span> <span class="o">=</span> <span class="n">aux</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">aux</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="o">-</span><span class="n">origin_Scipion</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_y</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">y</span> <span class="o">+</span> <span class="n">origin</span> <span class="o">+</span> <span class="n">origin_Scipion</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Coordinate3D.shiftY"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.shiftY">[docs]</a>    <span class="k">def</span> <span class="nf">shiftY</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shiftY</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_y</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">shiftY</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Coordinate3D.getZ"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.getZ">[docs]</a>    <span class="k">def</span> <span class="nf">getZ</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+<div class="viewcode-block" id="Coordinate3D.getZ"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.getZ">[docs]</a>    <span class="k">def</span> <span class="nf">getZ</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">originFunction</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; See getPosition method for a full description of how &quot;originFunction&quot;</span>
+<span class="sd">        works&#39;&#39;&#39;</span>
+        <span class="n">origin_Scipion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getVolumeOrigin</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">aux</span> <span class="o">=</span> <span class="n">originFunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getVolume</span><span class="p">()</span><span class="o">.</span><span class="n">getDim</span><span class="p">())</span>
+        <span class="n">origin</span> <span class="o">=</span> <span class="n">aux</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="n">aux</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="o">-</span><span class="n">origin_Scipion</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">-</span> <span class="n">origin</span> <span class="o">-</span> <span class="n">origin_Scipion</span></div>
 
-<div class="viewcode-block" id="Coordinate3D.setZ"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.setZ">[docs]</a>    <span class="k">def</span> <span class="nf">setZ</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">z</span><span class="p">)</span></div>
+<div class="viewcode-block" id="Coordinate3D.setZ"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.setZ">[docs]</a>    <span class="k">def</span> <span class="nf">setZ</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">originFunction</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39; See setPosition method for a full description of how &quot;originFunction&quot;</span>
+<span class="sd">        works&#39;&#39;&#39;</span>
+        <span class="n">origin_Scipion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getVolumeOrigin</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="n">aux</span> <span class="o">=</span> <span class="n">originFunction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getVolume</span><span class="p">()</span><span class="o">.</span><span class="n">getDim</span><span class="p">())</span>
+        <span class="n">origin</span> <span class="o">=</span> <span class="n">aux</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="n">aux</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="o">-</span><span class="n">origin_Scipion</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">z</span> <span class="o">+</span> <span class="n">origin</span> <span class="o">+</span> <span class="n">origin_Scipion</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Coordinate3D.shiftZ"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.shiftZ">[docs]</a>    <span class="k">def</span> <span class="nf">shiftZ</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shiftZ</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">shiftZ</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Coordinate3D.setMatrix"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.setMatrix">[docs]</a>    <span class="k">def</span> <span class="nf">setMatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matrix</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eulerMatrix</span><span class="o">.</span><span class="n">setMatrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span></div>
@@ -830,17 +964,68 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_y</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">factor</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">factor</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Coordinate3D.getPosition"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.getPosition">[docs]</a>    <span class="k">def</span> <span class="nf">getPosition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Return the position of the coordinate as a (x, y, z) tuple.</span>
-<span class="sd">        mode: select if the position is the center of the box</span>
-<span class="sd">        or in the top left corner.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getX</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">getY</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">getZ</span><span class="p">()</span></div>
+<div class="viewcode-block" id="Coordinate3D.getPosition"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.getPosition">[docs]</a>    <span class="k">def</span> <span class="nf">getPosition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">originFunction</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Get the position a Coordinate3D refered to a given origin defined by originFunction.</span>
+<span class="sd">        The input of the method is a funtion (originFunction) which moves the coordinate</span>
+<span class="sd">        position refered to the bottom left corner to other origin (retrieved by originFunction) in the grid.</span>
 
-<div class="viewcode-block" id="Coordinate3D.setPosition"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.setPosition">[docs]</a>    <span class="k">def</span> <span class="nf">setPosition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setX</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setY</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setZ</span><span class="p">(</span><span class="n">z</span><span class="p">)</span></div>
+<span class="sd">        Parameters:</span>
+
+<span class="sd">            :param function originFunction: Function to return a Vector to refer a coordinate to the bottom left corner</span>
+<span class="sd">                                            from a given convention.</span>
+
+<span class="sd">        Example:</span>
+
+<span class="sd">            &gt;&gt;&gt; origin = originFunction((Lx, Ly, Lz))</span>
+<span class="sd">            &gt;&gt;&gt; (vx, vy, vz)  # Vector to refer (x,y,z) coordinate to an origin from the bottom left corner</span>
+
+<span class="sd">        Firstly, the Scipion origin vector stored in the Tomogram associated to the Coordinate3D</span>
+<span class="sd">        will be applied to refer the current coordinate to the bottom left coordinate of the Tomogram.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getX</span><span class="p">(</span><span class="n">originFunction</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">getY</span><span class="p">(</span><span class="n">originFunction</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">getZ</span><span class="p">(</span><span class="n">originFunction</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Coordinate3D.setPosition"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.setPosition">[docs]</a>    <span class="k">def</span> <span class="nf">setPosition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">originFunction</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set the position of the coordinate to be saved in the Coordinate3D object.</span>
+<span class="sd">        The inputs of the method are the (x,y,z) position of the coordinate and a</span>
+<span class="sd">        funtion (originFunction) which moves the current position to the bottom left</span>
+<span class="sd">        corner of the Tomogram with dimensions Lx, Ly, Lz.</span>
+
+<span class="sd">        Parameters:</span>
+
+<span class="sd">            :param int x: Position of the coordinate in the X axis</span>
+<span class="sd">            :param int y: Position of the coordinate in the Y axis</span>
+<span class="sd">            :param int z: Position of the coordinate in the Z axis</span>
+<span class="sd">            :param function originFunction: Function to return a Vector to refer a coordinate to the bottom left corner from a</span>
+<span class="sd">                                            given convention.</span>
+
+<span class="sd">        Example:</span>
+
+<span class="sd">            &gt;&gt;&gt; origin = originFunction((Lx, Ly, Lz))</span>
+<span class="sd">            &gt;&gt;&gt; (vx, vy, vz)  # Vector to refer (x,y,z) coordinate to the bottom left corner</span>
+
+<span class="sd">        In this way, it is possible to apply the Scipion origin vector stored in the</span>
+<span class="sd">        Tomogram associated to the Coordinate3D which moves the positions referred to</span>
+<span class="sd">        the bottom left corner of a grid to the center of gravity of the grid (or any</span>
+<span class="sd">        other origin specified by the user).</span>
+
+<span class="sd">        IMPORTANT NOTE: For this method to work properly, it is needed to associate the Tomogram</span>
+<span class="sd">        before doing a call to this method.</span>
+
+<span class="sd">        Example:</span>
+
+<span class="sd">            &gt;&gt;&gt; coord = Coordinate3D()</span>
+<span class="sd">            &gt;&gt;&gt; coord.setPosition(x, y, z, originFunction)</span>
+<span class="sd">            &gt;&gt;&gt; Error: Tomogram is still NoneType</span>
+<span class="sd">            &gt;&gt;&gt; coord.setVolume(Tomogram)</span>
+<span class="sd">            &gt;&gt;&gt; coord.setPosition(x, y, z, originFunction)</span>
+<span class="sd">            &gt;&gt;&gt; Exit: Everything runs normally</span>
+
+<span class="sd">        This requirement is only needed for &quot;setPostion&quot; method. The remaining attributes of the object</span>
+<span class="sd">        can be set either before or after calling &quot;setVolume&quot; method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setX</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">originFunction</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setY</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">originFunction</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setZ</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">originFunction</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Coordinate3D.getVolume"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.getVolume">[docs]</a>    <span class="k">def</span> <span class="nf">getVolume</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return the micrograph object to which</span>
@@ -855,7 +1040,7 @@
 
 <div class="viewcode-block" id="Coordinate3D.copyInfo"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.copyInfo">[docs]</a>    <span class="k">def</span> <span class="nf">copyInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coord</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Copy information from other coordinate. &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setPosition</span><span class="p">(</span><span class="o">*</span><span class="n">coord</span><span class="o">.</span><span class="n">getPosition</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setPosition</span><span class="p">(</span><span class="o">*</span><span class="n">coord</span><span class="o">.</span><span class="n">getPosition</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">CENTER_GRAVITY</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setObjId</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setBoxSize</span><span class="p">(</span><span class="n">coord</span><span class="o">.</span><span class="n">getBoxSize</span><span class="p">())</span></div>
 
@@ -875,7 +1060,7 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">getVolume</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">dims</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getVolume</span><span class="p">()</span><span class="o">.</span><span class="n">getDim</span><span class="p">()</span>
             <span class="n">height</span> <span class="o">=</span> <span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">setY</span><span class="p">(</span><span class="n">height</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">getY</span><span class="p">())</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setY</span><span class="p">(</span><span class="n">height</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">getY</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">SCIPION</span><span class="p">),</span> <span class="n">const</span><span class="o">.</span><span class="n">SCIPION</span><span class="p">)</span></div>
         <span class="c1"># else: error TODO</span>
 
 <div class="viewcode-block" id="Coordinate3D.getVolName"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.getVolName">[docs]</a>    <span class="k">def</span> <span class="nf">getVolName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -888,7 +1073,20 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_groupId</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">groupId</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Coordinate3D.hasGroupId"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.hasGroupId">[docs]</a>    <span class="k">def</span> <span class="nf">hasGroupId</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_groupId</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_groupId</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Coordinate3D.getVolumeOrigin"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.getVolumeOrigin">[docs]</a>    <span class="k">def</span> <span class="nf">getVolumeOrigin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">angstrom</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return the a vector that can be used to move the position of the Coordinate3D</span>
+<span class="sd">        (referred to the center of the Tomogram or other origin specified by the user)</span>
+<span class="sd">        to the bottom left corner of the Tomogram</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">angstrom</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getVolume</span><span class="p">()</span><span class="o">.</span><span class="n">getShiftsFromOrigin</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">vol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getVolume</span><span class="p">()</span>
+            <span class="n">sr</span> <span class="o">=</span> <span class="n">vol</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
+            <span class="n">origin</span> <span class="o">=</span> <span class="n">vol</span><span class="o">.</span><span class="n">getShiftsFromOrigin</span><span class="p">()</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">sr</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">sr</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">sr</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="SetOfCoordinates3D"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.SetOfCoordinates3D">[docs]</a><span class="k">class</span> <span class="nc">SetOfCoordinates3D</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">EMSet</span><span class="p">):</span>
@@ -934,8 +1132,25 @@
 
 <div class="viewcode-block" id="SetOfCoordinates3D.iterCoordinates"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.SetOfCoordinates3D.iterCoordinates">[docs]</a>    <span class="k">def</span> <span class="nf">iterCoordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">orderBy</span><span class="o">=</span><span class="s1">&#39;id&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Iterate over the coordinates associated with a tomogram.</span>
-<span class="sd">        If tomogram=None, the iteration is performed over the whole</span>
+<span class="sd">        If volume=None, the iteration is performed over the whole</span>
 <span class="sd">        set of coordinates.</span>
+
+<span class="sd">        IMPORTANT NOTE: During the storing process in the database, Coordinates3D will lose their</span>
+<span class="sd">        pointer to ther associated Tomogram. This method overcomes this problem by retrieving and</span>
+<span class="sd">        relinking the Tomogram as if nothing would ever happened.</span>
+
+<span class="sd">        It is recommended to use this method when working with Coordinates3D, being the common</span>
+<span class="sd">        &quot;iterItems&quot; deprecated for this set.</span>
+
+<span class="sd">        Example:</span>
+
+<span class="sd">            &gt;&gt;&gt; for coord in coordSet.iterItems()</span>
+<span class="sd">            &gt;&gt;&gt;     print(coord.getVolName())</span>
+<span class="sd">            &gt;&gt;&gt;     Error: Tomogram associated to Coordinate3D is NoneType (pointer lost)</span>
+<span class="sd">            &gt;&gt;&gt; for coord in coordSet.iterCoordinates()</span>
+<span class="sd">            &gt;&gt;&gt;     print(coord.getVolName())</span>
+<span class="sd">            &gt;&gt;&gt;     &#39;/path/to/Tomo.file&#39; retrieved correctly</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">volume</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">volId</span> <span class="o">=</span> <span class="kc">None</span>
@@ -944,11 +1159,11 @@
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">volume</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">Volume</span><span class="p">):</span>
             <span class="n">volId</span> <span class="o">=</span> <span class="n">volume</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Invalid input micrograph of type </span><span class="si">%s</span><span class="s1">&#39;</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;Invalid input tomogram of type </span><span class="si">%s</span><span class="s1">&#39;</span>
                             <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">volume</span><span class="p">))</span>
 
-        <span class="c1"># Iterate over all coordinates if micId is None,</span>
-        <span class="c1"># otherwise use micId to filter the where selection</span>
+        <span class="c1"># Iterate over all coordinates if tomoId is None,</span>
+        <span class="c1"># otherwise use tomoId to filter the where selection</span>
         <span class="n">coordWhere</span> <span class="o">=</span> <span class="s1">&#39;1&#39;</span> <span class="k">if</span> <span class="n">volId</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="s1">&#39;_volId=</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">int</span><span class="p">(</span><span class="n">volId</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterItems</span><span class="p">(</span><span class="n">where</span><span class="o">=</span><span class="n">coordWhere</span><span class="p">,</span> <span class="n">orderBy</span><span class="o">=</span><span class="n">orderBy</span><span class="p">):</span>
@@ -1032,7 +1247,15 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_coordinate</span> <span class="o">=</span> <span class="n">coordinate</span></div>
 
 <div class="viewcode-block" id="SubTomogram.getCoordinate3D"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.SubTomogram.getCoordinate3D">[docs]</a>    <span class="k">def</span> <span class="nf">getCoordinate3D</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coordinate</span></div>
+        <span class="sd">&#39;&#39;&#39;Since the object Coordinate3D needs a volume, use the information stored in the</span>
+<span class="sd">        SubTomogram to reconstruct the corresponding Tomogram associated to its Coordinate3D&#39;&#39;&#39;</span>
+        <span class="n">tomo</span> <span class="o">=</span> <span class="n">Tomogram</span><span class="p">()</span>
+        <span class="n">tomo</span><span class="o">.</span><span class="n">setOrigin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getOrigin</span><span class="p">())</span>
+        <span class="n">tomo</span><span class="o">.</span><span class="n">setLocation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getVolName</span><span class="p">())</span>
+        <span class="n">tomo</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
+        <span class="n">coord</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coordinate</span>
+        <span class="n">coord</span><span class="o">.</span><span class="n">setVolume</span><span class="p">(</span><span class="n">tomo</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">coord</span></div>
 
 <div class="viewcode-block" id="SubTomogram.getAcquisition"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.SubTomogram.getAcquisition">[docs]</a>    <span class="k">def</span> <span class="nf">getAcquisition</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_acquisition</span></div>
@@ -1065,12 +1288,24 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volName</span><span class="o">.</span><span class="n">hasValue</span><span class="p">():</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volName</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasCoordinate3D</span><span class="p">():</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getCoordinate3D</span><span class="p">()</span><span class="o">.</span><span class="n">getVolName</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_volName</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">getVolume</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getVolume</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="SubTomogram.setVolName"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.SubTomogram.setVolName">[docs]</a>    <span class="k">def</span> <span class="nf">setVolName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volName</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_volName</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">volName</span><span class="p">)</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_volName</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">volName</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SubTomogram.getVolumeOrigin"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.SubTomogram.getVolumeOrigin">[docs]</a>    <span class="k">def</span> <span class="nf">getVolumeOrigin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">angstrom</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return the a vector that can be used to move the position of the Coordinate3D</span>
+<span class="sd">        associated to the SubTomogram (referred to the center of the Tomogram or other</span>
+<span class="sd">        origin specified by the user) to the bottom left corner of the Tomogram</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">angstrom</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getShiftsFromOrigin</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
+            <span class="n">origin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getShiftsFromOrigin</span><span class="p">()</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">sr</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">sr</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">sr</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="SetOfSubTomograms"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.SetOfSubTomograms">[docs]</a><span class="k">class</span> <span class="nc">SetOfSubTomograms</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">SetOfVolumes</span><span class="p">):</span>
@@ -1100,6 +1335,7 @@
 <div class="viewcode-block" id="AverageSubTomogram"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.AverageSubTomogram">[docs]</a><span class="k">class</span> <span class="nc">AverageSubTomogram</span><span class="p">(</span><span class="n">SubTomogram</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Represents a Average SubTomogram.</span>
 <span class="sd">        It is a SubTomogram but it is useful to differentiate outputs.&quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">SubTomogram</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
@@ -1219,6 +1455,7 @@
 <span class="sd">    the triangulation of a volume.</span>
 <span class="sd">    A Mesh object can be consider as a point cloud in 3D containing the coordinates needed to divide a given region of</span>
 <span class="sd">    space into planar triangles interconnected that will result in a closed surface.&quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">Coordinate3D</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_volumeName</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>
@@ -1257,6 +1494,7 @@
 
 <div class="viewcode-block" id="Ellipsoid"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Ellipsoid">[docs]</a><span class="k">class</span> <span class="nc">Ellipsoid</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">EMObject</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This class represent an ellipsoid. This is an instance class of description attribute of object MeshPoint&quot;&quot;&quot;</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">data</span><span class="o">.</span><span class="n">EMObject</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_center</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">String</span><span class="p">()</span>

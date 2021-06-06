@@ -204,29 +204,18 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">pwem.emlib.image</span> <span class="k">import</span> <span class="n">ImageHandler</span>
-<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">FSC</span>
-<span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="k">import</span> <span class="n">ProtAnalysis3D</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="k">import</span> <span class="n">VERSION_2_0</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="k">import</span> <span class="n">STEPS_PARALLEL</span>
-<span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
-<span class="kn">import</span> <span class="nn">pwem.emlib.metadata</span> <span class="k">as</span> <span class="nn">md</span>
-
-<span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="k">import</span> <span class="n">locationToXmipp</span><span class="p">,</span> <span class="n">writeSetOfParticles</span>
-
-<span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">import</span> <span class="p">(</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span>
-                                        <span class="n">LEVEL_ADVANCED</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="k">import</span> <span class="n">Float</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="k">import</span> <span class="n">getExt</span>
-<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">Volume</span><span class="p">,</span> <span class="n">SetOfParticles</span>
-
-
+<span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">import</span> <span class="p">(</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span>
+                                        <span class="n">LEVEL_ADVANCED</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="k">import</span> <span class="n">Volume</span>
+<span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="k">import</span> <span class="n">ProtAnalysis3D</span>
 
 <span class="n">OUTPUT_3DFSC</span> <span class="o">=</span> <span class="s1">&#39;3dFSC.mrc&#39;</span>
-<span class="n">OUTPUT_SPHERE</span> <span class="o">=</span> <span class="s1">&#39;fsc/sphere.mrc&#39;</span>
-<span class="n">OUTPUT_DIRECTIONAL_FILTER</span> <span class="o">=</span> <span class="s1">&#39;fsc/filteredMap.mrc&#39;</span>
+<span class="n">OUTPUT_DIRECTIONAL_FILTER</span> <span class="o">=</span> <span class="s1">&#39;filteredMap.mrc&#39;</span>
+<span class="n">OUTPUT_DIRECTIONAL_DISTRIBUTION</span> <span class="o">=</span> <span class="s1">&#39;Resolution_Distribution.xmd&#39;</span>
 
 
 <div class="viewcode-block" id="XmippProtFSO"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_resolution_fso.html#xmipp3.protocols.protocol_resolution_fso.XmippProtFSO">[docs]</a><span class="k">class</span> <span class="nc">XmippProtFSO</span><span class="p">(</span><span class="n">ProtAnalysis3D</span><span class="p">):</span>
@@ -238,17 +227,33 @@
     
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
         <span class="n">ProtAnalysis3D</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_res_init</span> <span class="o">=</span> <span class="n">Float</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_res_init</span> <span class="o">=</span> <span class="n">Float</span><span class="p">()</span>
     
     <span class="c1"># --------------------------- DEFINE param functions ----------------------</span>
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Input&#39;</span><span class="p">)</span>
 
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;halfVolumesFile&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Are the half volumes stored with the input volume?&quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Usually, the half volumes are stored as properties of &#39;</span>
+                      <span class="s1">&#39;the input volume. If this is not the case, set this to &#39;</span>
+                      <span class="s1">&#39;False and specify the two halves you want to use.&#39;</span><span class="p">)</span>
+
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputHalves&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;Volume&#39;</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Input Half Maps&quot;</span><span class="p">,</span>
+                      <span class="n">condition</span> <span class="o">=</span> <span class="s1">&#39;halfVolumesFile&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select a half maps for determining its &#39;</span>
+                      <span class="s1">&#39; resolution anisotropy and resolution.&#39;</span><span class="p">)</span>
+
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;half1&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;Volume&#39;</span><span class="p">,</span>
+                      <span class="n">condition</span> <span class="o">=</span> <span class="s2">&quot;not halfVolumesFile&quot;</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Half Map 1&quot;</span><span class="p">,</span> <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select one map for determining the &#39;</span>
 		      <span class="s1">&#39;directional FSC resolution.&#39;</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;half2&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;Volume&#39;</span><span class="p">,</span>
+                      <span class="n">condition</span> <span class="o">=</span> <span class="s2">&quot;not halfVolumesFile&quot;</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Half Map 2&quot;</span><span class="p">,</span> <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select the second map for determining the &#39;</span>
                       <span class="s1">&#39;directional FSC resolution.&#39;</span><span class="p">)</span>
@@ -259,17 +264,24 @@
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The mask determines which points are specimen&#39;</span>
                       <span class="s1">&#39; and which are not&#39;</span><span class="p">)</span>
 
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;bestAngle&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
-                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Find Best Cone angle&quot;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The algorithm will try to determine by cross validation&#39;</span>
-			   <span class="s1">&#39;the best cone angle to then determine the directional FSC&#39;</span>
-			   <span class="s1">&#39;Note that the cone angle is the angle between the axis &#39;</span>
-			   <span class="s1">&#39;of the cone and the generatrix&#39;</span><span class="p">)</span>
-
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;coneAngle&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">20.0</span><span class="p">,</span> 
-		      <span class="n">condition</span> <span class="o">=</span> <span class="s1">&#39;not bestAngle &#39;</span><span class="p">,</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;coneAngle&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">17.0</span><span class="p">,</span>
+                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span> 
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Cone Angle&quot;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Angle between the axis of the cone and the generatrix&#39;</span><span class="p">)</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Angle between the axis of the cone and the generatrix. &#39;</span>
+                           <span class="s1">&#39;An angle of 17 degrees is the best angle (see publication&#39;</span>
+                           <span class="s1">&#39;Vilas 2021) to measuare directional FSCs&#39;</span><span class="p">)</span>
+        
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;estimate3DFSC&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Estimate 3DFSC and directional filtered map&quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Set to estimate the 3DFSCD map, and applyting the &#39;</span>
+                           <span class="s1">&#39; 3DFSC as anisotropic filter to obtain a directional&#39;</span>
+                           <span class="s1">&#39;filtered map.&#39;</span><span class="p">)</span>
+
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;threshold&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span> 
+                      <span class="n">default</span><span class="o">=</span><span class="mf">0.143</span><span class="p">,</span> 
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;FSC Threshold&quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Threshold for the fsc. By default the standard 0.143. &#39;</span>
+                           <span class="s1">&#39;Other common thresholds are 0.5 and 0.3.&#39;</span><span class="p">)</span>
         
         <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">mpi</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
 
@@ -278,9 +290,8 @@
     <span class="k">def</span> <span class="nf">_createFilenameTemplates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Centralize how files are called &quot;&quot;&quot;</span>
         <span class="n">myDict</span> <span class="o">=</span> <span class="p">{</span><span class="n">OUTPUT_3DFSC</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;3dFSC.mrc&quot;</span><span class="p">),</span>
-                 <span class="n">OUTPUT_SPHERE</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;fsc/sphere.mrc&quot;</span><span class="p">),</span>
-		 <span class="n">OUTPUT_DIRECTIONAL_FILTER</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;fsc/filteredMap.mrc&quot;</span><span class="p">),</span>
-                 <span class="p">}</span>
+                  <span class="n">OUTPUT_DIRECTIONAL_FILTER</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;filteredMap.mrc&quot;</span><span class="p">),</span>
+                  <span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_updateFilenamesDict</span><span class="p">(</span><span class="n">myDict</span><span class="p">)</span>
 
 
@@ -288,50 +299,60 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_createFilenameTemplates</span><span class="p">()</span> 
         <span class="c1"># Convert input into xmipp Metadata format</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;convertInputStep&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;resolutionDirectionalFSCStep&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;FSOestimationStep&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;createOutputStep&#39;</span><span class="p">)</span>
 
 <div class="viewcode-block" id="XmippProtFSO.mrc_convert"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_resolution_fso.html#xmipp3.protocols.protocol_resolution_fso.XmippProtFSO.mrc_convert">[docs]</a>    <span class="k">def</span> <span class="nf">mrc_convert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileName</span><span class="p">,</span> <span class="n">outputFileName</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Check if the extension is .mrc, if not then uses xmipp to convert it</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ext</span> <span class="o">=</span> <span class="n">getExt</span><span class="p">(</span><span class="n">fileName</span><span class="p">)</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">ext</span> <span class="o">!=</span><span class="s1">&#39;.mrc&#39;</span><span class="p">):</span>
-            <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39; -i </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">fileName</span>
-            <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; -o </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">outputFileName</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">ext</span> <span class="o">!=</span> <span class="s1">&#39;.mrc&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">ext</span> <span class="o">!=</span> <span class="s1">&#39;.map&#39;</span><span class="p">):</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39; -i &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">fileName</span>
+            <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; -o &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">outputFileName</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_image_convert&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-            <span class="c1">#outputFileName = outputFileName # +&#39;:mrc&#39;</span>
             <span class="k">return</span> <span class="n">outputFileName</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">fileName</span></div>
+            <span class="k">return</span> <span class="n">fileName</span><span class="o">+</span><span class="s1">&#39;:mrc&#39;</span></div>
 
 <div class="viewcode-block" id="XmippProtFSO.convertInputStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_resolution_fso.html#xmipp3.protocols.protocol_resolution_fso.XmippProtFSO.convertInputStep">[docs]</a>    <span class="k">def</span> <span class="nf">convertInputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Read the input volume.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">vol1Fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mrc_convert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">halfVolumesFile</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vol1Fn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vol2Fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputHalves</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getHalfMaps</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vol1Fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mrc_convert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span>
                                   <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s1">&#39;half1.mrc&#39;</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">vol2Fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mrc_convert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half2</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vol2Fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mrc_convert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half2</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span> 
                                   <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s1">&#39;half2.mrc&#39;</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">maskFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mrc_convert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">hasValue</span><span class="p">()):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">maskFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mrc_convert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span> 
                                   <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;mask.mrc&#39;</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="XmippProtFSO.resolutionDirectionalFSCStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_resolution_fso.html#xmipp3.protocols.protocol_resolution_fso.XmippProtFSO.resolutionDirectionalFSCStep">[docs]</a>    <span class="k">def</span> <span class="nf">resolutionDirectionalFSCStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="XmippProtFSO.FSOestimationStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_resolution_fso.html#xmipp3.protocols.protocol_resolution_fso.XmippProtFSO.FSOestimationStep">[docs]</a>    <span class="k">def</span> <span class="nf">FSOestimationStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">os</span>
         <span class="n">fndir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;fsc&quot;</span><span class="p">)</span> 
 
         <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">fndir</span><span class="p">)</span> 	
 
-        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39; --half1 </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">vol1Fn</span>
-        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --half2 </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">vol2Fn</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39; --half1 &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">vol1Fn</span>
+        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --half2 &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">vol2Fn</span>
+        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; -o </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">halfVolumesFile</span><span class="p">):</span>
+            <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --sampling </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputHalves</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --sampling </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">half1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask</span><span class="o">.</span><span class="n">hasValue</span><span class="p">():</span>
-            <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --mask </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">maskFn</span>
+            <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --mask &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">maskFn</span>
 
-        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --sampling </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">half1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bestAngle</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
-            <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --anglecone </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">coneAngle</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --threedfsc </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;3dFSC.mrc&quot;</span><span class="p">)</span>
-        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --fscfolder </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">fndir</span><span class="o">+</span><span class="s1">&#39;/&#39;</span><span class="p">)</span>
-        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --anisotropy </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;fso.xmd&quot;</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --anglecone </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">coneAngle</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate3DFSC</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+            <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --threedfsc_filter&#39;</span>
+        
+        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --threshold </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --threads </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfThreads</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         
         <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_resolution_fso&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
       
@@ -342,8 +363,13 @@
 
         <span class="n">volume</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">fsc3D</span><span class="o">=</span><span class="n">volume</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1</span><span class="p">,</span> <span class="n">volume</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1</span><span class="p">,</span> <span class="n">volume</span><span class="p">)</span>
 
+        <span class="n">volume</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;filteredMap.mrc&quot;</span><span class="p">))</span>
+
+        <span class="n">volume</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">directionalFilteredMap</span><span class="o">=</span><span class="n">volume</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1</span><span class="p">,</span> <span class="n">volume</span><span class="p">)</span></div>
 
 
     <span class="c1"># --------------------------- INFO functions ------------------------------</span>
@@ -361,7 +387,7 @@
         <span class="k">return</span> <span class="n">summary</span>
 
     <span class="k">def</span> <span class="nf">_citations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;Vilas2020&#39;</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;Vilas2021&#39;</span><span class="p">]</span></div>
 </pre></div>
 
            </div>

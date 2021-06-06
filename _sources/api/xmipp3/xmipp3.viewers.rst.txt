@@ -28,6 +28,7 @@ Submodules
    xmipp3.viewers.viewer_ransac
    xmipp3.viewers.viewer_reconstruct_highres
    xmipp3.viewers.viewer_resolution3d
+   xmipp3.viewers.viewer_resolution_bfactor
    xmipp3.viewers.viewer_resolution_deepres
    xmipp3.viewers.viewer_resolution_directional
    xmipp3.viewers.viewer_resolution_fso
