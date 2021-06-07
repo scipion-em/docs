@@ -36,6 +36,19 @@ This command above prints a lot of information. Especially, at the end, it print
 take the text enclosed between horizontal lines and copy it in a file placed at ``<SCIPION_HOME>/scipion3`` and
 run ``chmod +x $SCIPION_HOME/scipion3`` to make it executable. That's your launcher.
 
+Updating the installer
+======================
+Updating the installer may fix several installation issues. It's always a good practice to update it in case you find any issue.
+
+If you've tried to install scipion3 sometime ago, you may have an old installer. To update it run the following commands:
+
+::
+
+    python -m pip uninstall scipion-installer
+    python -m pip install scipion-installer
+
+This should bring you the latest published version as show here: https://pypi.org/project/scipion-installer/ 
+
 General error while installing/compiling Xmipp (non-development installations)
 ==============================================================================
 Scipion installation also includes the Xmipp compilation and installation, by default.
