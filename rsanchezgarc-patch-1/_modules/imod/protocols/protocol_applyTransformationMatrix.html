@@ -179,7 +179,7 @@
   <h1>Source code for imod.protocols.protocol_applyTransformationMatrix</h1><div class="highlight"><pre>
 <span></span><span class="c1"># **************************************************************************</span>
 <span class="c1"># *</span>
-<span class="c1"># * Authors:     Federico P. de Isidro Gomez (fp.deisidro@cnb.csi.es) [1]</span>
+<span class="c1"># * Authors:     Federico P. de Isidro Gomez (fp.deisidro@cnb.csic.es) [1]</span>
 <span class="c1"># *</span>
 <span class="c1"># * [1] Centro Nacional de Biotecnologia, CSIC, Spain</span>
 <span class="c1"># *</span>
@@ -204,10 +204,12 @@
 <span class="c1"># **************************************************************************</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">imod.utils</span> <span class="k">as</span> <span class="nn">utils</span>
+<span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="k">import</span> <span class="n">BETA</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils.path</span> <span class="k">as</span> <span class="nn">path</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="k">import</span> <span class="n">Set</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="k">import</span> <span class="n">EMProtocol</span>
 <span class="kn">import</span> <span class="nn">tomo.objects</span> <span class="k">as</span> <span class="nn">tomoObj</span>
 <span class="kn">from</span> <span class="nn">tomo.protocols</span> <span class="k">import</span> <span class="n">ProtTomoBase</span>
@@ -223,6 +225,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;apply transformation&#39;</span>
+    <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">BETA</span>
 
     <span class="c1"># -------------------------- DEFINE param functions -----------------------</span>
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
@@ -244,6 +247,7 @@
         <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSetOfTiltSeries</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;generateTransformFileStep&#39;</span><span class="p">,</span> <span class="n">ts</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;generateOutputStackStep&#39;</span><span class="p">,</span> <span class="n">ts</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;closeOutputSetsStep&#39;</span><span class="p">)</span>
 
     <span class="c1"># --------------------------- STEPS functions ----------------------------</span>
 <div class="viewcode-block" id="ProtImodApplyTransformationMatrix.generateTransformFileStep"><a class="viewcode-back" href="../../../api/imod/imod.protocols.protocol_applyTransformationMatrix.html#imod.protocols.protocol_applyTransformationMatrix.ProtImodApplyTransformationMatrix.generateTransformFileStep">[docs]</a>    <span class="k">def</span> <span class="nf">generateTransformFileStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tsObjId</span><span class="p">):</span>
@@ -261,18 +265,32 @@
 
         <span class="n">extraPrefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">tsId</span><span class="p">)</span>
 
+        <span class="n">firstItem</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span>
+
         <span class="n">paramsAlignment</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;input&#39;</span><span class="p">:</span> <span class="n">ts</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span>
-            <span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">extraPrefix</span><span class="p">,</span> <span class="n">ts</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span><span class="o">.</span><span class="n">parseFileName</span><span class="p">()),</span>
-            <span class="s1">&#39;xform&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">extraPrefix</span><span class="p">,</span> <span class="n">ts</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span><span class="o">.</span><span class="n">parseFileName</span><span class="p">(</span><span class="n">extension</span><span class="o">=</span><span class="s2">&quot;.prexg&quot;</span><span class="p">)),</span>
+            <span class="s1">&#39;input&#39;</span><span class="p">:</span> <span class="n">firstItem</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span>
+            <span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">extraPrefix</span><span class="p">,</span> <span class="n">firstItem</span><span class="o">.</span><span class="n">parseFileName</span><span class="p">()),</span>
+            <span class="s1">&#39;xform&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">extraPrefix</span><span class="p">,</span> <span class="n">firstItem</span><span class="o">.</span><span class="n">parseFileName</span><span class="p">(</span><span class="n">extension</span><span class="o">=</span><span class="s2">&quot;.prexg&quot;</span><span class="p">)),</span>
             <span class="s1">&#39;bin&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">binning</span><span class="o">.</span><span class="n">get</span><span class="p">()),</span>
             <span class="s1">&#39;imagebinned&#39;</span><span class="p">:</span> <span class="mf">1.0</span>
         <span class="p">}</span>
+
         <span class="n">argsAlignment</span> <span class="o">=</span> <span class="s2">&quot;-input </span><span class="si">%(input)s</span><span class="s2"> &quot;</span> \
                         <span class="s2">&quot;-output </span><span class="si">%(output)s</span><span class="s2"> &quot;</span> \
                         <span class="s2">&quot;-xform </span><span class="si">%(xform)s</span><span class="s2"> &quot;</span> \
                         <span class="s2">&quot;-bin </span><span class="si">%(bin)d</span><span class="s2"> &quot;</span> \
-                        <span class="s2">&quot;-imagebinned </span><span class="si">%(imagebinned)s</span><span class="s2">&quot;</span>
+                        <span class="s2">&quot;-imagebinned </span><span class="si">%(imagebinned)s</span><span class="s2"> &quot;</span>
+
+        <span class="n">rotationAngleAvg</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">calculateRotationAngleFromTM</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span>
+
+        <span class="c1"># Check if rotation angle is greater than 45º. If so, swap x and y dimensions to adapt output image sizes to</span>
+        <span class="c1"># the final sample disposition.</span>
+        <span class="k">if</span> <span class="n">rotationAngleAvg</span> <span class="o">&gt;</span> <span class="mi">45</span> <span class="ow">or</span> <span class="n">rotationAngleAvg</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">45</span><span class="p">:</span>
+            <span class="n">paramsAlignment</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                <span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">,</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">firstItem</span><span class="o">.</span><span class="n">getYDim</span><span class="p">(),</span> <span class="n">firstItem</span><span class="o">.</span><span class="n">getXDim</span><span class="p">())</span>
+            <span class="p">})</span>
+
+            <span class="n">argsAlignment</span> <span class="o">+=</span> <span class="s2">&quot;-size </span><span class="si">%(size)s</span><span class="s2"> &quot;</span>
 
         <span class="n">Plugin</span><span class="o">.</span><span class="n">runImod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;newstack&#39;</span><span class="p">,</span> <span class="n">argsAlignment</span> <span class="o">%</span> <span class="n">paramsAlignment</span><span class="p">)</span>
 
@@ -294,11 +312,17 @@
         <span class="n">ih</span> <span class="o">=</span> <span class="n">ImageHandler</span><span class="p">()</span>
         <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ih</span><span class="o">.</span><span class="n">getDimensions</span><span class="p">(</span><span class="n">newTs</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
         <span class="n">newTs</span><span class="o">.</span><span class="n">setDim</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">))</span>
+
         <span class="n">newTs</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">properties</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
         <span class="n">outputInterpolatedSetOfTiltSeries</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">newTs</span><span class="p">)</span>
         <span class="n">outputInterpolatedSetOfTiltSeries</span><span class="o">.</span><span class="n">updateDim</span><span class="p">()</span>
         <span class="n">outputInterpolatedSetOfTiltSeries</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ProtImodApplyTransformationMatrix.closeOutputSetsStep"><a class="viewcode-back" href="../../../api/imod/imod.protocols.protocol_applyTransformationMatrix.html#imod.protocols.protocol_applyTransformationMatrix.ProtImodApplyTransformationMatrix.closeOutputSetsStep">[docs]</a>    <span class="k">def</span> <span class="nf">closeOutputSetsStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getOutputInterpolatedSetOfTiltSeries</span><span class="p">()</span><span class="o">.</span><span class="n">setStreamState</span><span class="p">(</span><span class="n">Set</span><span class="o">.</span><span class="n">STREAM_CLOSED</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">()</span></div>
 
     <span class="c1"># --------------------------- UTILS functions ----------------------------</span>
@@ -311,6 +335,7 @@
                 <span class="n">samplingRate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSetOfTiltSeries</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
                 <span class="n">samplingRate</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">binning</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
                 <span class="n">outputInterpolatedSetOfTiltSeries</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">samplingRate</span><span class="p">)</span>
+            <span class="n">outputInterpolatedSetOfTiltSeries</span><span class="o">.</span><span class="n">setStreamState</span><span class="p">(</span><span class="n">Set</span><span class="o">.</span><span class="n">STREAM_OPEN</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputInterpolatedSetOfTiltSeries</span><span class="o">=</span><span class="n">outputInterpolatedSetOfTiltSeries</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputSetOfTiltSeries</span><span class="p">,</span> <span class="n">outputInterpolatedSetOfTiltSeries</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputInterpolatedSetOfTiltSeries</span></div>
