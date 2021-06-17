@@ -6,6 +6,7 @@ Submodules
 
 .. toctree::
 
+   pyseg.protocols.protocol_2d_classification
    pyseg.protocols.protocol_fils
    pyseg.protocols.protocol_graphs
    pyseg.protocols.protocol_import_starfile

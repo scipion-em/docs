@@ -15,6 +15,7 @@ Submodules
 .. toctree::
 
    xmipptomo.bibtex
+   xmipptomo.utils
    xmipptomo.wizards
 
 Module contents

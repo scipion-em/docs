@@ -207,12 +207,13 @@
 <span class="c1"># *  e-mail address &#39;scipion@cnb.csic.es&#39;</span>
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
-
+<span class="kn">import</span> <span class="nn">threading</span>
 <span class="kn">import</span> <span class="nn">tkinter</span>
 <span class="kn">from</span> <span class="nn">tkinter</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">matplotlib.figure</span> <span class="k">import</span> <span class="n">Figure</span>
 <span class="kn">from</span> <span class="nn">matplotlib.backends.backend_tkagg</span> <span class="k">import</span> <span class="n">FigureCanvasTkAgg</span>
 
+<span class="kn">from</span> <span class="nn">imod.protocols</span> <span class="k">import</span> <span class="n">ProtImodEtomo</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.gui</span> <span class="k">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.gui.tree</span> <span class="k">import</span> <span class="n">TreeProvider</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.gui.dialog</span> <span class="k">import</span> <span class="n">ListDialog</span><span class="p">,</span> <span class="n">showInfo</span>
@@ -621,11 +622,19 @@
 <span class="sd">        Tomogram, SetOfTomograms, SetOfTiltSeries and  prepare the</span>
 <span class="sd">        columns/rows models required by the TreeDialog GUI.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">COL_TS</span> <span class="o">=</span> <span class="s1">&#39;Tilt Series&#39;</span>
+    <span class="n">COL_TS</span> <span class="o">=</span> <span class="s1">&#39;Tilt series&#39;</span>
     <span class="n">COL_INFO</span> <span class="o">=</span> <span class="s1">&#39;Info&#39;</span>
+    <span class="n">COL_STATUS</span> <span class="o">=</span> <span class="s1">&#39;Status&#39;</span>
+    <span class="n">COL_PREALIGNED</span> <span class="o">=</span> <span class="s1">&#39;Prealigned&#39;</span>
+    <span class="n">COL_ALIGNED</span> <span class="o">=</span> <span class="s1">&#39;Aligned&#39;</span>
+    <span class="n">COL_COOR3D</span> <span class="o">=</span> <span class="s1">&#39;Coordinates 3D&#39;</span>
+    <span class="n">COL_LANDMODEL_NO_GAPS</span> <span class="o">=</span> <span class="s1">&#39;Landmark models no gaps&#39;</span>
+    <span class="n">COL_RECONST_TOMOGRAM</span> <span class="o">=</span> <span class="s1">&#39;Full tomograms&#39;</span>
+    <span class="n">COL_PREPROCESS_RECONST_TOMOGRAM</span> <span class="o">=</span> <span class="s1">&#39;Postprocess tomograms&#39;</span>
+
     <span class="n">ORDER_DICT</span> <span class="o">=</span> <span class="p">{</span><span class="n">COL_TS</span><span class="p">:</span> <span class="s1">&#39;id&#39;</span><span class="p">}</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">objs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">objs</span><span class="p">,</span> <span class="n">isInteractive</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;TiltSeries display&#39;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">objs</span><span class="p">,</span> <span class="n">tomo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">SetOfTomograms</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">COL_TS</span> <span class="o">=</span> <span class="s1">&#39;Tomograms&#39;</span>
@@ -635,6 +644,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s1">&#39;LandmarkModels display&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="n">protocol</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">objs</span> <span class="o">=</span> <span class="n">objs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isInteractive</span> <span class="o">=</span> <span class="n">isInteractive</span>
         <span class="n">TreeProvider</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sortingColumnName</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">COL_TS</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">selectedDict</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">mapper</span>
@@ -666,8 +676,15 @@
 
 <div class="viewcode-block" id="ImodGenericTreeProvider.getColumns"><a class="viewcode-back" href="../../../api/imod/imod.viewers.views_tkinter_tree.html#imod.viewers.views_tkinter_tree.ImodGenericTreeProvider.getColumns">[docs]</a>    <span class="k">def</span> <span class="nf">getColumns</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COL_TS</span><span class="p">,</span> <span class="mi">200</span><span class="p">),</span>
-            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COL_INFO</span><span class="p">,</span> <span class="mi">500</span><span class="p">)]</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COL_TS</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">COL_INFO</span><span class="p">,</span> <span class="mi">350</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isInteractive</span><span class="p">:</span>
+            <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">COL_PREALIGNED</span><span class="p">,</span> <span class="mi">80</span><span class="p">))</span>
+            <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">COL_ALIGNED</span><span class="p">,</span> <span class="mi">70</span><span class="p">))</span>
+            <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">COL_COOR3D</span><span class="p">,</span> <span class="mi">110</span><span class="p">))</span>
+            <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">COL_LANDMODEL_NO_GAPS</span><span class="p">,</span> <span class="mi">190</span><span class="p">))</span>
+            <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">COL_RECONST_TOMOGRAM</span><span class="p">,</span> <span class="mi">120</span><span class="p">))</span>
+            <span class="n">cols</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">COL_PREPROCESS_RECONST_TOMOGRAM</span><span class="p">,</span> <span class="mi">180</span><span class="p">))</span>
 
         <span class="k">return</span> <span class="n">cols</span></div>
 
@@ -687,36 +704,104 @@
         <span class="n">key</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
         <span class="n">text</span> <span class="o">=</span> <span class="n">itemId</span>
         <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">)]</span>
+        <span class="n">tags</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isInteractive</span><span class="p">:</span>
+            <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getObjStatus</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
+            <span class="n">tags</span> <span class="o">=</span> <span class="p">(</span><span class="n">status</span><span class="p">,)</span>
+
         <span class="n">opened</span> <span class="o">=</span> <span class="kc">True</span>
 
-        <span class="k">return</span> <span class="p">{</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;key&#39;</span><span class="p">:</span> <span class="n">key</span><span class="p">,</span> <span class="s1">&#39;text&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">,</span>
             <span class="s1">&#39;values&#39;</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">values</span><span class="p">),</span>
             <span class="s1">&#39;open&#39;</span><span class="p">:</span> <span class="n">opened</span><span class="p">,</span>
             <span class="s1">&#39;selected&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-            <span class="s1">&#39;parent&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">_parentObject</span>
-        <span class="p">}</span></div>
+            <span class="s1">&#39;parent&#39;</span><span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">_parentObject</span><span class="p">,</span>
+            <span class="s1">&#39;tags&#39;</span><span class="p">:</span> <span class="n">tags</span>
+        <span class="p">}</span>
+        <span class="k">return</span> <span class="n">item</span></div>
+
+<div class="viewcode-block" id="ImodGenericTreeProvider.getObjStatus"><a class="viewcode-back" href="../../../api/imod/imod.viewers.views_tkinter_tree.html#imod.viewers.views_tkinter_tree.ImodGenericTreeProvider.getObjStatus">[docs]</a>    <span class="k">def</span> <span class="nf">getObjStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;pending&#39;</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">inputSetOfTiltSeries</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">getTsId</span><span class="p">()</span> <span class="o">==</span> <span class="n">obj</span><span class="o">.</span><span class="n">getTsId</span><span class="p">():</span>
+                <span class="sd">&quot;&quot;&quot;Prealigned tilt-series&quot;&quot;&quot;</span>
+                <span class="n">prealiFilePath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">getFilePath</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="s2">&quot;.preali&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">prealiFilePath</span><span class="p">):</span>
+                    <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Yes&#39;</span><span class="p">)</span>
+                    <span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;done&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;No&#39;</span><span class="p">)</span>
+
+                <span class="sd">&quot;&quot;&quot;Aligned tilt-series&quot;&quot;&quot;</span>
+                <span class="n">aligFilePath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">getFilePath</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="s2">&quot;.ali&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">aligFilePath</span><span class="p">):</span>
+                    <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Yes&#39;</span><span class="p">)</span>
+                    <span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;done&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;No&#39;</span><span class="p">)</span>
+
+                <span class="n">coordFilePath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">getFilePath</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;fid&#39;</span><span class="p">,</span>
+                                                          <span class="n">extension</span><span class="o">=</span><span class="s2">&quot;.xyz&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">coordFilePath</span><span class="p">):</span>
+                    <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Yes&#39;</span><span class="p">)</span>
+                    <span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;done&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;No&#39;</span><span class="p">)</span>
+
+                <span class="sd">&quot;&quot;&quot;Landmark models with no gaps&quot;&quot;&quot;</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">getFilePath</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;_nogaps&quot;</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="s2">&quot;.fid&quot;</span><span class="p">))</span> <span class="ow">and</span>
+                        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">getFilePath</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="s2">&quot;.resid&quot;</span><span class="p">))):</span>
+                    <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Yes&#39;</span><span class="p">)</span>
+                    <span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;done&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;No&#39;</span><span class="p">)</span>
+
+                <span class="sd">&quot;&quot;&quot;Full reconstructed tomogram&quot;&quot;&quot;</span>
+                <span class="n">reconstructTomoFilePath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">getFilePath</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s2">&quot;_full&quot;</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="s2">&quot;.rec&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">reconstructTomoFilePath</span><span class="p">):</span>
+                    <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Yes&#39;</span><span class="p">)</span>
+                    <span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;done&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;No&#39;</span><span class="p">)</span>
+
+                <span class="sd">&quot;&quot;&quot;Post-processed reconstructed tomogram&quot;&quot;&quot;</span>
+                <span class="n">posprocessedRecTomoFilePath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">getFilePath</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="s2">&quot;.rec&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">posprocessedRecTomoFilePath</span><span class="p">):</span>
+                    <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Yes&#39;</span><span class="p">)</span>
+                    <span class="n">status</span> <span class="o">=</span> <span class="s1">&#39;done&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;No&#39;</span><span class="p">)</span>
+                <span class="k">break</span>
+        <span class="k">return</span> <span class="n">status</span></div>
 
 <div class="viewcode-block" id="ImodGenericTreeProvider.getObjectActions"><a class="viewcode-back" href="../../../api/imod/imod.viewers.views_tkinter_tree.html#imod.viewers.views_tkinter_tree.ImodGenericTreeProvider.getObjectActions">[docs]</a>    <span class="k">def</span> <span class="nf">getObjectActions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="n">actions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isInteractive</span><span class="p">:</span>
+            <span class="n">viewers</span> <span class="o">=</span> <span class="n">Domain</span><span class="o">.</span><span class="n">findViewers</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">getClassName</span><span class="p">(),</span>
+                                         <span class="n">pwviewer</span><span class="o">.</span><span class="n">DESKTOP_TKINTER</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">viewerClass</span> <span class="ow">in</span> <span class="n">viewers</span><span class="p">:</span>
+                <span class="k">def</span> <span class="nf">createViewer</span><span class="p">(</span><span class="n">viewerClass</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+                    <span class="n">proj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">getProject</span><span class="p">()</span>
+                    <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objs</span><span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()]</span>  <span class="c1"># to load mapper</span>
+                    <span class="k">return</span> <span class="k">lambda</span> <span class="p">:</span> <span class="n">viewerClass</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="n">proj</span><span class="p">)</span><span class="o">.</span><span class="n">visualize</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+                <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s1">&#39;Open with </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">viewerClass</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
+                                <span class="n">createViewer</span><span class="p">(</span><span class="n">viewerClass</span><span class="p">,</span> <span class="n">obj</span><span class="p">)))</span>
+        <span class="k">return</span> <span class="n">actions</span></div>
 
-        <span class="n">viewers</span> <span class="o">=</span> <span class="n">Domain</span><span class="o">.</span><span class="n">findViewers</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">getClassName</span><span class="p">(),</span>
-                                     <span class="n">pwviewer</span><span class="o">.</span><span class="n">DESKTOP_TKINTER</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">viewerClass</span> <span class="ow">in</span> <span class="n">viewers</span><span class="p">:</span>
-            <span class="k">def</span> <span class="nf">createViewer</span><span class="p">(</span><span class="n">viewerClass</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
-                <span class="n">proj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">getProject</span><span class="p">()</span>
-                <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">objs</span><span class="p">[</span><span class="n">obj</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()]</span>  <span class="c1"># to load mapper</span>
-                <span class="k">return</span> <span class="k">lambda</span> <span class="p">:</span> <span class="n">viewerClass</span><span class="p">(</span><span class="n">project</span><span class="o">=</span><span class="n">proj</span><span class="p">)</span><span class="o">.</span><span class="n">visualize</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-            <span class="n">actions</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s1">&#39;Open with </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">viewerClass</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span>
-                            <span class="n">createViewer</span><span class="p">(</span><span class="n">viewerClass</span><span class="p">,</span> <span class="n">obj</span><span class="p">)))</span>
-
-        <span class="k">return</span> <span class="n">actions</span></div></div>
+<div class="viewcode-block" id="ImodGenericTreeProvider.configureTags"><a class="viewcode-back" href="../../../api/imod/imod.viewers.views_tkinter_tree.html#imod.viewers.views_tkinter_tree.ImodGenericTreeProvider.configureTags">[docs]</a>    <span class="k">def</span> <span class="nf">configureTags</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tree</span><span class="p">):</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">tag_configure</span><span class="p">(</span><span class="s2">&quot;pending&quot;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+        <span class="n">tree</span><span class="o">.</span><span class="n">tag_configure</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="ImodListDialog"><a class="viewcode-back" href="../../../api/imod/imod.viewers.views_tkinter_tree.html#imod.viewers.views_tkinter_tree.ImodListDialog">[docs]</a><span class="k">class</span> <span class="nc">ImodListDialog</span><span class="p">(</span><span class="n">ListDialog</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span> <span class="n">displayAllButton</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">itemDoubleClick</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">displayAllButton</span> <span class="o">=</span> <span class="n">displayAllButton</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_itemDoubleClick</span> <span class="o">=</span> <span class="n">itemDoubleClick</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">provider</span> <span class="o">=</span> <span class="n">provider</span>
         <span class="n">ListDialog</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                            <span class="n">allowSelect</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                            <span class="n">allowSelect</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="n">cancelButton</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ImodListDialog.body"><a class="viewcode-back" href="../../../api/imod/imod.viewers.views_tkinter_tree.html#imod.viewers.views_tkinter_tree.ImodListDialog.body">[docs]</a>    <span class="k">def</span> <span class="nf">body</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bodyFrame</span><span class="p">):</span>
         <span class="n">bodyFrame</span><span class="o">.</span><span class="n">config</span><span class="p">()</span>
@@ -727,14 +812,17 @@
         <span class="n">gui</span><span class="o">.</span><span class="n">configureWeigths</span><span class="p">(</span><span class="n">dialogFrame</span><span class="p">,</span> <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_createFilterBox</span><span class="p">(</span><span class="n">dialogFrame</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_col</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">displayAll</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_addButton</span><span class="p">(</span><span class="n">dialogFrame</span><span class="p">,</span>
-                                                    <span class="s1">&#39;Display all at once&#39;</span><span class="p">,</span>
-                                                    <span class="n">pwutils</span><span class="o">.</span><span class="n">Icon</span><span class="o">.</span><span class="n">ACTION_VISUALIZE</span><span class="p">,</span>
-                                                    <span class="bp">self</span><span class="o">.</span><span class="n">_displayAll</span><span class="p">,</span>
-                                                    <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;ne&#39;</span><span class="p">,</span>
-                                                    <span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">displayAllButton</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">displayAll</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_addButton</span><span class="p">(</span><span class="n">dialogFrame</span><span class="p">,</span>
+                                                        <span class="s1">&#39;Display all at once&#39;</span><span class="p">,</span>
+                                                        <span class="n">pwutils</span><span class="o">.</span><span class="n">Icon</span><span class="o">.</span><span class="n">ACTION_VISUALIZE</span><span class="p">,</span>
+                                                        <span class="bp">self</span><span class="o">.</span><span class="n">_displayAll</span><span class="p">,</span>
+                                                        <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;ne&#39;</span><span class="p">,</span>
+                                                        <span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_createTree</span><span class="p">(</span><span class="n">dialogFrame</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">initial_focus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_focus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_itemDoubleClick</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">itemDoubleClick</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">doubleClickOnItem</span></div>
 
     <span class="k">def</span> <span class="nf">_addButton</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">command</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s1">&#39;news&#39;</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">):</span>
         <span class="n">btn</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">text</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getImage</span><span class="p">(</span><span class="n">image</span><span class="p">),</span>
@@ -752,7 +840,21 @@
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">set</span><span class="p">,</span> <span class="n">tomo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">SetOfLandmarkModels</span><span class="p">):</span>
             <span class="n">ImodSetOfLandmarkModelsView</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">set</span><span class="p">,</span> <span class="n">tomo</span><span class="o">.</span><span class="n">objects</span><span class="o">.</span><span class="n">SetOfTomograms</span><span class="p">):</span>
-            <span class="n">ImodSetOfTomogramsView</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span></div>
+            <span class="n">ImodSetOfTomogramsView</span><span class="p">(</span><span class="nb">set</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ImodListDialog.doubleClickOnItem"><a class="viewcode-back" href="../../../api/imod/imod.viewers.views_tkinter_tree.html#imod.viewers.views_tkinter_tree.ImodListDialog.doubleClickOnItem">[docs]</a>    <span class="k">def</span> <span class="nf">doubleClickOnItem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">ts</span> <span class="o">=</span> <span class="n">e</span>
+        <span class="n">protocol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">provider</span><span class="o">.</span><span class="n">protocol</span>
+        <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="n">ProtImodEtomo</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">proc</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">protocol</span><span class="o">.</span><span class="n">runAllSteps</span><span class="p">,</span>
+                                         <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">ts</span><span class="p">,))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">proc</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">refresh_gui</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ImodListDialog.refresh_gui"><a class="viewcode-back" href="../../../api/imod/imod.viewers.views_tkinter_tree.html#imod.viewers.views_tkinter_tree.ImodListDialog.refresh_gui">[docs]</a>    <span class="k">def</span> <span class="nf">refresh_gui</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">proc</span><span class="o">.</span><span class="n">isAlive</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">refresh_gui</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="ImodSetView"><a class="viewcode-back" href="../../../api/imod/imod.viewers.views_tkinter_tree.html#imod.viewers.views_tkinter_tree.ImodSetView">[docs]</a><span class="k">class</span> <span class="nc">ImodSetView</span><span class="p">(</span><span class="n">pwviewer</span><span class="o">.</span><span class="n">CommandView</span><span class="p">):</span>
@@ -800,7 +902,8 @@
     <span class="sd">&quot;&quot;&quot; This class implements a view using Tkinter ListDialog</span>
 <span class="sd">    and the ImodTreeProvider.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">objs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">objs</span><span class="p">,</span> <span class="n">displayAllButton</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                 <span class="n">isInteractive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">itemDoubleClick</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">         Params:</span>
 <span class="sd">            parent: Tkinter parent widget</span>
@@ -818,11 +921,16 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tkParent</span> <span class="o">=</span> <span class="n">parent</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_protocol</span> <span class="o">=</span> <span class="n">protocol</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span> <span class="o">=</span> <span class="n">ImodGenericTreeProvider</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">objs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span> <span class="o">=</span> <span class="n">ImodGenericTreeProvider</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">objs</span><span class="p">,</span> <span class="n">isInteractive</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="o">.</span><span class="n">title</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">displayAllButton</span> <span class="o">=</span> <span class="n">displayAllButton</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">itemDoubleClick</span> <span class="o">=</span> <span class="n">itemDoubleClick</span>
 
 <div class="viewcode-block" id="ImodGenericViewer.show"><a class="viewcode-back" href="../../../api/imod/imod.viewers.views_tkinter_tree.html#imod.viewers.views_tkinter_tree.ImodGenericViewer.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">ImodListDialog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tkParent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="p">)</span></div></div>
+        <span class="n">ImodListDialog</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tkParent</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">title</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_provider</span><span class="p">,</span>
+                       <span class="n">displayAllButton</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">displayAllButton</span><span class="p">,</span>
+                       <span class="n">itemDoubleClick</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">itemDoubleClick</span><span class="p">)</span></div></div>
+
 
 </pre></div>
 
