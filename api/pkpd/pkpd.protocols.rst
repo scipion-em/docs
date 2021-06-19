@@ -18,6 +18,7 @@ Submodules
    pkpd.protocols.protocol_pkpd_change_units
    pkpd.protocols.protocol_pkpd_change_via
    pkpd.protocols.protocol_pkpd_compare_experiments
+   pkpd.protocols.protocol_pkpd_create_experiment
    pkpd.protocols.protocol_pkpd_create_label
    pkpd.protocols.protocol_pkpd_create_label_2exps
    pkpd.protocols.protocol_pkpd_cumulated_dose
@@ -53,6 +54,10 @@ Submodules
    pkpd.protocols.protocol_pkpd_import_from_csv
    pkpd.protocols.protocol_pkpd_import_from_table
    pkpd.protocols.protocol_pkpd_import_from_winnonlin
+   pkpd.protocols.protocol_pkpd_inhalation_import_deposition
+   pkpd.protocols.protocol_pkpd_inhalation_lung_physiology
+   pkpd.protocols.protocol_pkpd_inhalation_simulate
+   pkpd.protocols.protocol_pkpd_inhalation_substance_properties
    pkpd.protocols.protocol_pkpd_iv_two_compartments
    pkpd.protocols.protocol_pkpd_join_samples
    pkpd.protocols.protocol_pkpd_merge_labels

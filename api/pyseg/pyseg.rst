@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
 
     pyseg.protocols
+    pyseg.viewers
 
 Submodules
 ----------

@@ -15,8 +15,10 @@ Submodules
 
 .. toctree::
 
+   tomo.constants
    tomo.objects
    tomo.utils
+   tomo.wizards
 
 Module contents
 ---------------

@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
 
     imod.protocols
+    imod.viewers
 
 Submodules
 ----------
@@ -16,7 +17,6 @@ Submodules
    imod.bibtex
    imod.constants
    imod.utils
-   imod.viewers
 
 Module contents
 ---------------

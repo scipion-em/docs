@@ -85,6 +85,7 @@ Submodules
    xmipp3.protocols.protocol_reconstruct_significant
    xmipp3.protocols.protocol_reconstruct_swarm
    xmipp3.protocols.protocol_resolution3d
+   xmipp3.protocols.protocol_resolution_bfactor
    xmipp3.protocols.protocol_resolution_deepres
    xmipp3.protocols.protocol_resolution_directional
    xmipp3.protocols.protocol_resolution_fso
@@ -94,6 +95,7 @@ Submodules
    xmipp3.protocols.protocol_screen_deepConsensus
    xmipp3.protocols.protocol_screen_deeplearning
    xmipp3.protocols.protocol_screen_particles
+   xmipp3.protocols.protocol_shift_particles
    xmipp3.protocols.protocol_simulate_ctf
    xmipp3.protocols.protocol_solid_angles
    xmipp3.protocols.protocol_split_volume

@@ -20,6 +20,7 @@ Submodules
    xmipptomo.protocols.protocol_resizeTS
    xmipptomo.protocols.protocol_resolution_local_monotomo
    xmipptomo.protocols.protocol_roiIJ
+   xmipptomo.protocols.protocol_rotate_astigmatism
    xmipptomo.protocols.protocol_score_coordinates
    xmipptomo.protocols.protocol_score_transform
    xmipptomo.protocols.protocol_splitTS
