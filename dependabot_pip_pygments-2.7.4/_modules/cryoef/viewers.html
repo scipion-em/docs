@@ -252,6 +252,13 @@
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Display angular distribution&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Display angular distribution as &#39;</span>
                            <span class="s1">&#39;interactive 2D in matplotlib.&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;showMollweidePlot&#39;</span><span class="p">,</span> <span class="n">LabelParam</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Mollweide projection plot of orientation distribution&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The orientation distributions of the particles are &#39;</span>
+                           <span class="s1">&#39;plotted on an equal-area Mollweide projection, with &#39;</span>
+                           <span class="s1">&#39;the color scale representing the local Gaussian kernel &#39;</span>
+                           <span class="s1">&#39;density (probability distribution function &#39;</span>
+                           <span class="s1">&#39;[PDF]) of the distribution at every sampled orientation.&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;spheresScale&#39;</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
                       <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Spheres size&#39;</span><span class="p">)</span>
@@ -264,6 +271,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_initialize</span><span class="p">()</span>  <span class="c1"># Load filename templates</span>
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;doShowOutVol&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_showVolumes</span><span class="p">,</span>
                 <span class="s1">&#39;displayAngDist&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_showAngularDistribution</span><span class="p">,</span>
+                <span class="s1">&#39;showMollweidePlot&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_showMollweide</span><span class="p">,</span>
                 <span class="s1">&#39;doShowHistogram&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_showHistogram</span><span class="p">,</span>
                 <span class="s1">&#39;doShowLog&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_showLogFile</span>
                 <span class="p">}</span>
@@ -315,6 +323,58 @@
         <span class="n">plotter</span><span class="o">.</span><span class="n">plotAngularDistributionFromMd</span><span class="p">(</span><span class="n">sqliteFn</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">plotter</span>
+
+    <span class="k">def</span> <span class="nf">_showMollweide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; This plot script is based on two scripts by their respective authors:</span>
+<span class="sd">            - PlotOD.py from cryoEF package</span>
+<span class="sd">            - https://github.com/PirateFernandez/python3_rln_scripts/blob/main/rln_star_2_mollweide_any_star.py</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+        <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">spines</span>
+        <span class="kn">from</span> <span class="nn">scipy.stats</span> <span class="k">import</span> <span class="n">gaussian_kde</span>
+
+        <span class="n">views</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">xplotter</span> <span class="o">=</span> <span class="n">EmPlotter</span><span class="p">(</span><span class="n">windowTitle</span><span class="o">=</span><span class="s2">&quot;Mollweide projection plot of orientation distribution&quot;</span><span class="p">)</span>
+        <span class="n">fn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;anglesFn&#39;</span><span class="p">),</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="n">fn</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">fn</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Convert degrees to radians and obey angular range conventions</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">phi</span> <span class="o">/</span> <span class="mi">180</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>  <span class="c1"># x is the phi angle (longitude)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">theta</span> <span class="o">/</span> <span class="mi">180</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>  <span class="c1"># y is the theta angle (latitude)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span>  <span class="c1"># The convention in RELION is [0, 180] for theta,</span>
+        <span class="c1"># whereas for the projection function it is [90, -90], so this conversion is required.</span>
+        <span class="n">vertical_rad</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">vstack</span><span class="p">([</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">])</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">gaussian_kde</span><span class="p">(</span><span class="n">vertical_rad</span><span class="p">)(</span><span class="n">vertical_rad</span><span class="p">)</span>
+
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">xplotter</span><span class="o">.</span><span class="n">createSubPlot</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;phi&#39;</span><span class="p">,</span> <span class="s1">&#39;theta&#39;</span><span class="p">,</span>
+                                    <span class="n">projection</span><span class="o">=</span><span class="s2">&quot;mollweide&quot;</span><span class="p">)</span>
+        <span class="c1"># Plot your points on the projection</span>
+        <span class="c1">#ax.plot(x, y, &#39;,&#39;, alpha=0.5, color=&#39;#64B5F6&#39;)  # alpha - transparency (from 0 to 1), color - specify hex code</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;plasma&#39;</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">m</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+        <span class="c1"># Draw the horizontal and the vertical grid lines. Can add more grid lines if required.</span>
+        <span class="n">major_ticks_x</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">]</span>
+        <span class="n">major_ticks_y</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">4</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">/</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">major_ticks_x</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="n">major_ticks_y</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">([</span><span class="s1">&#39;-180$^\circ$&#39;</span><span class="p">,</span><span class="s1">&#39;-90$^\circ$&#39;</span><span class="p">,</span><span class="s1">&#39;0$^\circ$&#39;</span><span class="p">,</span><span class="s1">&#39;90$^\circ$&#39;</span><span class="p">,</span><span class="s1">&#39;180$^\circ$&#39;</span><span class="p">],</span>
+                           <span class="n">color</span><span class="o">=</span><span class="s1">&#39;grey&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">([</span><span class="s1">&#39;-90$^\circ$&#39;</span><span class="p">,</span><span class="s1">&#39;-45$^\circ$&#39;</span><span class="p">,</span><span class="s1">&#39;0$^\circ$&#39;</span><span class="p">,</span><span class="s1">&#39;45$^\circ$&#39;</span><span class="p">,</span><span class="s1">&#39;90$^\circ$&#39;</span><span class="p">],</span>
+                           <span class="n">color</span><span class="o">=</span><span class="s1">&#39;grey&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Set the color and the thickness of the grid lines</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="s1">&#39;both&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#555F61&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Set the color and the thickness of the outlines</span>
+        <span class="k">for</span> <span class="n">child</span> <span class="ow">in</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_children</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">child</span><span class="p">,</span> <span class="n">spines</span><span class="o">.</span><span class="n">Spine</span><span class="p">):</span>
+                <span class="n">child</span><span class="o">.</span><span class="n">set_color</span><span class="p">(</span><span class="s1">&#39;#555F61&#39;</span><span class="p">)</span>
+
+        <span class="n">xplotter</span><span class="o">.</span><span class="n">getColorBar</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        <span class="n">xplotter</span><span class="o">.</span><span class="n">tightLayout</span><span class="p">()</span>
+        <span class="n">xplotter</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">views</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">xplotter</span><span class="p">)</span>
 
 <span class="c1"># =============================================================================</span>
 
@@ -380,6 +440,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
+            <dd><a href="../../../az-install/index.html">az-install</a></dd>
             <dd><a href="../../../dependabot_pip_jinja2-2.11.3/index.html">dependabot/pip/jinja2-2.11.3</a></dd>
             <dd><a href="viewers.html">dependabot/pip/pygments-2.7.4</a></dd>
             <dd><a href="../../../dependabot_pip_urllib3-1.26.5/index.html">dependabot/pip/urllib3-1.26.5</a></dd>

@@ -211,12 +211,15 @@
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">glob</span>
+<span class="c1"># import numpy as np</span>
 
 <span class="kn">import</span> <span class="nn">emantomo</span>
 
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="k">import</span> <span class="n">BETA</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol</span> <span class="k">import</span> <span class="n">params</span>
+<span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 
+<span class="c1"># from pwem.emlib.image import ImageHandler</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="k">import</span> <span class="n">EMProtocol</span>
 
 <span class="kn">from</span> <span class="nn">tomo.protocols</span> <span class="k">import</span> <span class="n">ProtTomoBase</span>
@@ -319,6 +322,13 @@
                            <span class="s1">&#39;Only works in bytile reconstruction. &#39;</span>
                            <span class="s1">&#39;Useful for non square cameras.&#39;</span><span class="p">)</span>
 
+        <span class="c1"># form.addParam(&#39;fit&#39;, params.BooleanParam,</span>
+        <span class="c1">#               default=False,</span>
+        <span class="c1">#               label=&quot;Fit to tilt series size?&quot;,</span>
+        <span class="c1">#               help=&quot;By default, Eman increases the dimensions of the output tomograms by a small &quot;</span>
+        <span class="c1">#                    &quot;factor compared to the tilt series. Use this parameter to rescale the Tomograms so &quot;</span>
+        <span class="c1">#                    &quot;they completely fit in the tilt series size.&quot;)</span>
+
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;load&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span>
                       <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Load existing parameters&#39;</span><span class="p">,</span>
@@ -389,19 +399,14 @@
             <span class="s1">&#39;threads&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfThreads</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="p">}</span>
 
-        <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getInputPaths</span><span class="p">())</span>
-
-        <span class="n">args</span> <span class="o">+=</span> <span class="p">(</span><span class="s1">&#39; --notmp --npk=</span><span class="si">%(npk)d</span><span class="s1"> --tltkeep=</span><span class="si">%(tltkeep)f</span><span class="s1"> --outsize=</span><span class="si">%(outsize)s</span><span class="s1">&#39;</span>
-                 <span class="s1">&#39; --bxsz=</span><span class="si">%(bxsz)d</span><span class="s1"> --niter=</span><span class="si">%(niter)s</span><span class="s1"> --clipz=</span><span class="si">%(clipz)d</span><span class="s1">&#39;</span>
-                 <span class="s1">&#39; --pk_mindist=</span><span class="si">%(pk_mindist)f</span><span class="s1"> --pkkeep=</span><span class="si">%(pkkeep)f</span><span class="s1">&#39;</span>
-                 <span class="s1">&#39; --filterto=</span><span class="si">%(filterto)f</span><span class="s1"> --rmbeadthr=</span><span class="si">%(rmbeadthr)f</span><span class="s1">&#39;</span>
-                 <span class="p">)</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39; --notmp --npk=</span><span class="si">%(npk)d</span><span class="s1"> --tltkeep=</span><span class="si">%(tltkeep)f</span><span class="s1"> --outsize=</span><span class="si">%(outsize)s</span><span class="s1">&#39;</span>
+                <span class="s1">&#39; --bxsz=</span><span class="si">%(bxsz)d</span><span class="s1"> --niter=</span><span class="si">%(niter)s</span><span class="s1"> --clipz=</span><span class="si">%(clipz)d</span><span class="s1">&#39;</span>
+                <span class="s1">&#39; --pk_mindist=</span><span class="si">%(pk_mindist)f</span><span class="s1"> --pkkeep=</span><span class="si">%(pkkeep)f</span><span class="s1">&#39;</span>
+                <span class="s1">&#39; --filterto=</span><span class="si">%(filterto)f</span><span class="s1"> --rmbeadthr=</span><span class="si">%(rmbeadthr)f</span><span class="s1">&#39;</span>
+                <span class="p">)</span>
 
         <span class="k">if</span> <span class="n">command_params</span><span class="p">[</span><span class="s2">&quot;rawtlt&quot;</span><span class="p">]:</span>
-            <span class="n">rawtlt_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getRawTiltAngles</span><span class="p">()</span>
-            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --rawtlt=</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">rawtlt_file</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --tltstep=</span><span class="si">%(tiltStep)f</span><span class="s1"> --zeroid=</span><span class="si">%(zeroid)d</span><span class="s1">&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_getRawTiltAngles</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">command_params</span><span class="p">[</span><span class="s2">&quot;tltax&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --tltax=</span><span class="si">%(tltax)f</span><span class="s1">&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bytile</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
@@ -419,10 +424,34 @@
 
         <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --threads=</span><span class="si">%(threads)d</span><span class="s1">&#39;</span>
 
-        <span class="n">program</span> <span class="o">=</span> <span class="n">emantomo</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getProgram</span><span class="p">(</span><span class="s2">&quot;e2tomogram.py&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Launching: &#39;</span> <span class="o">+</span> <span class="n">program</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">args</span> <span class="o">%</span> <span class="n">command_params</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">args</span> <span class="o">%</span> <span class="n">command_params</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span>
-                    <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">numberOfThreads</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getInputPaths</span><span class="p">():</span>
+
+            <span class="n">tlt_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;.txt&quot;</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">tlt_file</span><span class="p">):</span>
+                <span class="n">args_file</span> <span class="o">=</span> <span class="s1">&#39;--rawtlt=</span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">tlt_file</span> <span class="o">+</span> <span class="n">args</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">args_file</span> <span class="o">=</span> <span class="s1">&#39;--tltstep=</span><span class="si">%(tiltStep)f</span><span class="s1"> --zeroid=</span><span class="si">%(zeroid)d</span><span class="s1"> &#39;</span> <span class="o">+</span> <span class="n">args</span>
+
+            <span class="n">args_file</span> <span class="o">=</span> <span class="n">path</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">args_file</span>
+
+            <span class="n">program</span> <span class="o">=</span> <span class="n">emantomo</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getProgram</span><span class="p">(</span><span class="s2">&quot;e2tomogram.py&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Launching: &#39;</span> <span class="o">+</span> <span class="n">program</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">args_file</span> <span class="o">%</span> <span class="n">command_params</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">args_file</span> <span class="o">%</span> <span class="n">command_params</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span>
+                        <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">numberOfThreads</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
+            <span class="c1"># if self.fit.get():</span>
+            <span class="c1">#     program = emantomo.Plugin.getProgram(&#39;e2proc3d.py&#39;)</span>
+            <span class="c1">#     ih = ImageHandler()</span>
+            <span class="c1">#     tomograms_paths = self._getOutputTomograms()</span>
+            <span class="c1">#     size_tomos = ih.read(tomograms_paths[0]).getDimensions()</span>
+            <span class="c1">#     size_ts = np.asarray(self.tiltSeries.get().getDimensions())</span>
+            <span class="c1">#     factor = size_ts[:-1] / size_tomos[:-2]</span>
+            <span class="c1">#     size_ts = size_ts[:-1] / np.round(factor).astype(int)</span>
+            <span class="c1">#     args = &quot; &quot;.join(tomograms_paths) + &quot; &quot; + &quot; &quot;.join(tomograms_paths)</span>
+            <span class="c1">#     args += &quot; --fftclip=%d,%d,%d&quot; % (size_ts[0], size_ts[1], size_tomos[2])</span>
+            <span class="c1">#     self.runJob(program, args, cwd=self._getExtraPath(),</span>
+            <span class="c1">#                 numberOfMpi=1, numberOfThreads=1)</span>
 
 <div class="viewcode-block" id="EmanProtTomoReconstruction.createOutputStep"><a class="viewcode-back" href="../../../api/emantomo/emantomo.protocols.protocol_tomo_reconstruction.html#emantomo.protocols.protocol_tomo_reconstruction.EmanProtTomoReconstruction.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">tilt_series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tiltSeries</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
@@ -452,16 +481,16 @@
 
     <span class="k">def</span> <span class="nf">_getInputPaths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">tilt_series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tiltSeries</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="k">return</span> <span class="p">[</span><span class="n">path</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">tilt_series</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">getFiles</span><span class="p">()]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">tilt_series</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">getFiles</span><span class="p">()]</span>
 
     <span class="k">def</span> <span class="nf">_getRawTiltAngles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">tilt_series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tiltSeries</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="n">tilt_angles</span> <span class="o">=</span> <span class="p">[</span><span class="n">tilt</span><span class="o">.</span><span class="n">aggregate</span><span class="p">([</span><span class="s2">&quot;MAX&quot;</span><span class="p">],</span> <span class="s2">&quot;_tiltAngle&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;_tiltAngle&quot;</span><span class="p">])</span> <span class="k">for</span> <span class="n">tilt</span> <span class="ow">in</span> <span class="n">tilt_series</span><span class="o">.</span><span class="n">iterItems</span><span class="p">()]</span>
-        <span class="n">tilt_angles</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;_tiltAngle&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">dictionary</span> <span class="ow">in</span> <span class="n">tilt_angles</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="p">]</span>
-        <span class="n">file_tilt_angles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;tilt_angles.txt&quot;</span><span class="p">)</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_tilt_angles</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
-            <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tilt_angles</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">file_tilt_angles</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tilt</span> <span class="ow">in</span> <span class="n">tilt_series</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
+            <span class="n">tilt_angles_dict</span> <span class="o">=</span> <span class="n">tilt</span><span class="o">.</span><span class="n">aggregate</span><span class="p">([</span><span class="s2">&quot;MAX&quot;</span><span class="p">],</span> <span class="s2">&quot;_tiltAngle&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;_tiltAngle&quot;</span><span class="p">])</span>
+            <span class="n">tilt_angles</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;</span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">d</span><span class="p">[</span><span class="s1">&#39;_tiltAngle&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">tilt_angles_dict</span><span class="p">]</span>
+            <span class="n">file_tilt_angles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">tilt</span><span class="o">.</span><span class="n">getTsId</span><span class="p">())</span> <span class="o">+</span> <span class="s2">&quot;.txt&quot;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_tilt_angles</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+                <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tilt_angles</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">_getOutputTomograms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">pattern</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;tomograms&quot;</span><span class="p">),</span> <span class="s1">&#39;*.hdf&#39;</span><span class="p">)</span>
@@ -517,6 +546,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
+            <dd><a href="../../../../az-install/index.html">az-install</a></dd>
             <dd><a href="../../../../dependabot_pip_jinja2-2.11.3/index.html">dependabot/pip/jinja2-2.11.3</a></dd>
             <dd><a href="../../../../dependabot_pip_pygments-2.7.4/index.html">dependabot/pip/pygments-2.7.4</a></dd>
             <dd><a href="../../../../dependabot_pip_urllib3-1.26.5/index.html">dependabot/pip/urllib3-1.26.5</a></dd>
