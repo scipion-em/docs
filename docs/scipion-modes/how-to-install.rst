@@ -38,27 +38,27 @@ Installation
     wget https://repo.anaconda.com/miniconda/Miniconda3-py39_4.9.2-Linux-x86_64.sh
     bash Miniconda3-py39_4.9.2-Linux-x86_64.sh -b -p /path/for/miniconda
 
-2. Make sure you are running `bash` shell (run ``echo $SHELL`` in your console):
+2. Make sure you are running **bash** shell (run ``echo $SHELL`` in your console), then initialize conda:
 
 ::
 
     source /path/for/miniconda/etc/profile.d/conda.sh
 
-3. Activate **base** conda environment and install Scipion installer program using **pip3** provided with **conda**. It will be installed in `~/.local/bin/`
+3. Activate **base** conda environment and install Scipion installer with **pip3** provided by **conda**.
 
 ::
 
     conda activate
     pip3 install --user scipion-installer
 
-4. Install Scipion core plugins and generate default config files
+4. Install Scipion core and generate default config files
 
 ::
 
     python3 -m scipioninstaller -conda -noXmipp -noAsk /path/for/scipion
     /path/for/scipion/scipion3 config --overwrite
 
-5. Open **/path/for/scipion/config/scipion.conf** file and append the following variables that should point to correct locations for CUDA, OpenMPI and other software necessary for Xmipp:
+5. Open **/path/for/scipion/config/scipion.conf** file and append the variables below to the end of the file. Make sure they point to correct locations for CUDA, OpenMPI and other software necessary for Xmipp:
 
 ::
 
@@ -94,14 +94,12 @@ If any of the steps above fails, check `install.log` file for errors and refer t
 Installing other plugins
 ========================
 
-To list available plugins you can use the plugin manager
-(recommended) or, alternatively, use the `command line tool <install-plugins-command-line>`_.
+To list available plugins you can use the plugin manager (recommended) or, alternatively, use the `command line tool <install-plugins-command-line>`_.
 
 To open the plugin manager, start Scipion (run **scipion3**) and choose **Others** > **Plugin manager** on the top bar. There, any plugin can be
 easily installed.
 
-Please, refer to the :ref:`Plugin manager guide <Plugin-Manager>` to get
-more details about plugin installation options.
+Please, refer to the :ref:`Plugin manager guide <Plugin-Manager>` to get more details about plugin installation options.
 
 If you have binaries installed for some of the plugins you can have a look at :ref:`Linking existing software <linking-existing-software>` page.
 
@@ -113,6 +111,5 @@ To configure Scipion for a cluster you will need to edit the :ref:`host file <ho
 Test the installation
 =====================
 
--  Test your installation by running at least the *Small* and *Medium*
-   tests mentioned in the :ref:`Verify installation page <Verify-Installation>`.
+-  Test your installation by running at least the *Small* and *Medium* tests mentioned in the :ref:`Verify installation page <Verify-Installation>`.
 -  Complete some of the :ref:`Scipion Tutorials <User-Documentation>`.
