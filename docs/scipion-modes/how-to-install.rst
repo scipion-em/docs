@@ -75,7 +75,7 @@ Installation
     JNI_CPPPATH = %(JAVA_HOME)s/include:%(JAVA_HOME)s/include/linux
     OPENCV = False
 
-See `Configuration guide <scipion-configuration#gpu-variables>`_ for more details about these variables.
+See `Configuration guide <scipion-configuration>`_ for more details about these variables.
 
 6. Install Xmipp plugin (example below is using 12 threads)
 
