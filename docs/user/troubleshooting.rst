@@ -68,7 +68,7 @@ Xmipp can be installed separately using the plugin manager or by
 
 ::
 
-    scipion3 installp scipion-em-xmipp -j 4
+    scipion3 installp -p scipion-em-xmipp -j 4
 
 
 If you are getting an error during the Xmipp compilation, consider to check the
@@ -98,7 +98,7 @@ If ``ERROR: Could not find target xmippSrc`` is gotten, try to run
 
 ::
 
-    scipion3 installp scipion-em-xmipp -j 4
+    scipion3 installp -p scipion-em-xmipp -j 4
 
 
 If the problem persist, don't hesitate to :ref:`contact us <contact-us>`.
