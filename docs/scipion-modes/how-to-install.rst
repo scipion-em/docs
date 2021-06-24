@@ -12,7 +12,7 @@ Prerequisites
 =============
 
 Scipion software requires GCC (GCC8 recommended) and OpenMPI already installed. CUDA (10.1 recommended) is optional but highly recommended.
-Scipion uses conda package manager for installation.
+Scipion uses conda package manager for installation. Before starting, make sure you do not have other cryo-EM software in your PATH / LD_LIBRARY_PATH as it might conflict with Scipion installation.
 
 For Ubuntu:
 
