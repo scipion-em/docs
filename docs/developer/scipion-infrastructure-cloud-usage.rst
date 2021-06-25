@@ -34,4 +34,6 @@ The infrastructure setup has a limited time but in case you need more time you c
 
 In any case you will have some time to download project and results.
 
-And please do not forget to acknowledge the use of this infrastructure by adding the following paragraph to your publication.
+And please do not forget to acknowledge the use of this infrastructure by adding the following paragraph to your publication:
+
+“This work used the EGI infrastructure with the dedicated support of CSIC, IISAS, CESNET-MCC and EGI Foundation”
