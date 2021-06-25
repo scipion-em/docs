@@ -1,3 +1,7 @@
+====================================
+Scipion infrastructure in the EOSC
+====================================
+
 The infrastructure is accesible from a web browser at the URL provided by the I2PC team, where you should enter the password that was given to you.
 
 Once you login you will see a remote desktop like this:
