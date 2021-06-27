@@ -68,14 +68,9 @@ Installation
     MPI_BINDIR = /usr/lib64/mpi/gcc/openmpi/bin
     MPI_LIBDIR = /usr/lib64/mpi/gcc/openmpi/lib
     MPI_INCLUDE = /usr/lib64/mpi/gcc/openmpi/include
-    JAVA_HOME = /usr/lib/jvm/java-1.8.0-openjdk-1.8.0.292.b10-1.el7_9.x86_64
-    JAVA_BINDIR = %(JAVA_HOME)s/bin
-    JAR = %(JAVA_BINDIR)s/jar
-    JAVAC = %(JAVA_BINDIR)s/javac
-    JNI_CPPPATH = %(JAVA_HOME)s/include:%(JAVA_HOME)s/include/linux
     OPENCV = False
 
-See `Configuration guide <scipion-configuration>`_ for more details about these variables.
+See `Configuration guide <scipion-configuration>`_ for more details about these and other possible variables.
 
 6. Install Xmipp plugin (example below is using 12 threads)
 
