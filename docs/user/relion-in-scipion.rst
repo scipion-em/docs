@@ -70,8 +70,8 @@ You do not need to deal with star files or awk directly. From any output SetOfIm
 3D refinement
 =============
 
-How can I make a plot of the orientational distribution of my particles?
-------------------------------------------------------------------------
+How can I make a plot of the orientations distribution of my particles?
+-----------------------------------------------------------------------
 Different kind of plots are provided in the Analyze Results of Relion protocols
 (FSC, SSNR, Angular distribution)
 

@@ -54,7 +54,7 @@ EM packages
   * Gctf 1.06
   * Gautomatch 0.53
   * Eman 2.12
-  * Frealing 9.07
+  * Frealign 9.07
   * Motioncor2 1.0.2
   * Motioncorr 2.1
   * Relion 2.0

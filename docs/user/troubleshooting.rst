@@ -36,6 +36,29 @@ This command above prints a lot of information. Especially, at the end, it print
 take the text enclosed between horizontal lines and copy it in a file placed at ``<SCIPION_HOME>/scipion3`` and
 run ``chmod +x $SCIPION_HOME/scipion3`` to make it executable. That's your launcher.
 
+Fixing fonts in a conda installation
+====================================
+This will fix the ugly fonts issue when using conda installation
+
+::
+
+    scipion3 run conda remove tk --force
+    wget https://anaconda.org/scipion/tk/8.6.10/download/linux-64/tk-8.6.10-h14c3975_1005.tar.bz2
+    scipion3 run conda install tk-8.6.10-h14c3975_1005.tar.bz2
+
+Updating the installer
+======================
+Updating the installer may fix several installation issues. It's always a good practice to update it in case you find any issue.
+
+If you've tried to install scipion3 sometime ago, you may have an old installer. To update it run the following commands:
+
+::
+
+    python -m pip uninstall scipion-installer
+    python -m pip install scipion-installer
+
+This should bring you the latest published version as show here: https://pypi.org/project/scipion-installer/ 
+
 General error while installing/compiling Xmipp (non-development installations)
 ==============================================================================
 Scipion installation also includes the Xmipp compilation and installation, by default.
@@ -45,7 +68,7 @@ Xmipp can be installed separately using the plugin manager or by
 
 ::
 
-    scipion3 installp scipion-em-xmipp -j 4
+    scipion3 installp -p scipion-em-xmipp -j 4
 
 
 If you are getting an error during the Xmipp compilation, consider to check the
@@ -65,7 +88,7 @@ To retry the Xmipp compilation during the Scipion's installation, run
 
     python -m scipioninstaller /path/where/you/want/scipion [-venv] -j 4
 
-Alternativelly, if scipion3 is already installed you can go with the plugin manager or by running
+Alternatively, if scipion3 is already installed you can go with the plugin manager or by running
 
 ::
 
@@ -75,7 +98,7 @@ If ``ERROR: Could not find target xmippSrc`` is gotten, try to run
 
 ::
 
-    scipion3 installp scipion-em-xmipp -j 4
+    scipion3 installp -p scipion-em-xmipp -j 4
 
 
 If the problem persist, don't hesitate to :ref:`contact us <contact-us>`.
@@ -109,7 +132,7 @@ To retry the Xmipp compilation during the Scipion's installation, run
 
     python -m scipioninstaller /path/where/you/want/scipion [-venv] -j 4 -dev
 
-Alternativelly, if scipion3 is already installed you can go with
+Alternatively, if scipion3 is already installed you can go with
 
 ::
 

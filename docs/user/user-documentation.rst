@@ -74,7 +74,6 @@ Beta-galactosidase data. \
 You may download a fully solved project of this tutorial from
 `here <http://scipion.cnb.csic.es/downloads/scipion/data/FEICourse.tgz>`__.
 
-
 Full processing video tutorial
 ------------------------------
     4 video tutorials in a
@@ -93,12 +92,14 @@ Mouse apoferritin image processing in Scipion 3.0.0
    :alt: Cover_apoferritin.png
 This tutorial presents a complete
 workflow of Cryo-EM single particles inside Scipion 3. It
-demonstrates the combination of different EM-packages with high focus on Xmipp higres. \
+demonstrates the combination of different EM-packages with high focus on Xmipp highres. \
 
 *Guide*:
 
 `apoferritin image processing tutorial in scipion3 <https://github.com/scipion-em/docs/raw/release-3.0.0/docs/pdfs/tutotial_scipion3_apoferritin.pdf>`__
 
+You may download a fully solved compressed project (Example_10248_Scipion3.tgz) of this tutorial from
+`here <http://scipion.cnb.csic.es/downloads/documentation>`__.
 
 Model Building
 --------------
@@ -115,7 +116,7 @@ models from cryo-EM data by using scipion software
 framework..
 
 *Guide*:
-`scipion\_tutorial\_modelBuilding.pdf <https://github.com/I2PC/scipion/wiki/tutorials/tutorial_model_building_basic.pdf>`__\ 
+`scipion\_tutorial\_modelBuilding.pdf <https://github.com/scipion-em/docs/raw/release-3.0.0/docs/pdfs/tutorial_model_building_basic.pdf>`__\ 
 
 *Workflow*:
 `download <http://workflows.scipion.i2pc.es/workflow_detail/36/atom-struct-modeling-demo/>`__\ 

@@ -80,7 +80,7 @@ There are a number of operations that require this functionality:
   to register picker coordinates. It invokes picker protocol method
   "registerCoords" in order to convert its coordinates into the Scipion format.
 * executing object commands: In ShowJ the developer can specify a set of
-  commmands to be linked with the object menu (popup menu displayed when the user
+  commands to be linked with the object menu (popup menu displayed when the user
   does right click). Eg: Display CTF Fitting, Plot Distance Profile
   (Normal Modes), etc.  Python code related to these actions is executed using
   sockets. The socket handler and the functions related to these actions are

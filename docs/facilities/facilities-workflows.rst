@@ -48,7 +48,7 @@ As any Scipion project, the project directory is stored at
 
 (where ``$SCIPION_USER_DATA`` is ``~/ScipionUserData`` by default and
 ``myAcquisitionProject`` is the project name in this case).
-The Scipion projects are self contained directores.
+The Scipion projects are self contained directories.
 Thus, one can export/import a project which has started in
 the facility computer to his/her own computer, just by coping the
 project-directory to his/her own ``$SCIPION_USER_DATA/projects``.
@@ -123,7 +123,7 @@ from the command line as follow
 
 .. code-block:: bash
 
-    scipion3 python -m pyworkflow.project.scripts.create name="myAcquisition" workflow="/path/to/your/workflow.json"
+    scipion3 python -m pyworkflow.project.scripts.create "myAcquisition" "/path/to/your/workflow.json"
     scipion3 python -m pyworkflow.project.scripts.schedule myAcquisition
     scipion3 project myAcquisition
 
@@ -150,7 +150,7 @@ To see a demo of this, just run
 
     scipion3 template
 
-(``scipon3 demo`` makes exactly the same than the command above)
+(``scipion3 demo`` makes exactly the same than the command above)
 
 This will pop up a small wizard like the one below
 
@@ -175,14 +175,14 @@ Also, the *Monitor summary* should be monitoring the progress and generating an
 To run the demo as it is, you need to
 `install the following plugins </docs/scipion-modes/how-to-install.html#installing-other-em-plugins>`_
 
-* scipion-em-facilites
+* scipion-em-facilities
 * scipion-em-motioncorr
 * scipion-em-cistem
 * scipion-em-eman2
 
 .. code-block:: bash
 
-    scipion installp -p scipion-em-facilites -p scipion-em-motioncorr -p scipion-em-cistem -p scipion-em-eman2
+    scipion installp -p scipion-em-facilities -p scipion-em-motioncorr -p scipion-em-cistem -p scipion-em-eman2
 
 *Notice that motioncor2 needs GPU acceleration.*
 
@@ -273,7 +273,7 @@ consider and, then you can launch it with
 
 .. code-block:: bash
 
-    scipion3 tamplate /path/to/myDynamicTpl.json.template
+    scipion3 template /path/to/myDynamicTpl.json.template
 
 However, if dynamic templates are saved in such a way like
 
@@ -295,7 +295,7 @@ When more than one dynamic template are found in the
 
     scipion template
 
-opens an additional menu to aloow choosing the dynamic template to use.
+opens an additional menu to allow choosing the dynamic template to use.
 
 .. figure:: /docs/images/multiple-choice-scipion-demo.png
    :align: center
@@ -328,7 +328,7 @@ then the workflow is automatically triggered. Instead, if some
 parameters remains unset, a wizard similar to that described
 in the previous section asks for them is launched.
 
-The `facilities tutorial <faclities-tutorial>`_ describe more in deep
+The `facilities tutorial <facilities-tutorial>`_ describe more in deep
 how to launch dynamic templates from a single command line.
 
 Using Scipion's API

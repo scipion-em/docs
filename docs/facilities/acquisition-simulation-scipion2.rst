@@ -197,7 +197,7 @@ For instance:
 
 For the **GPU usage** section, note that all the protocols in the workflow will
 be running in parallel at the same time, then only one GPU id can be attached
-to one single protocol to prevent GPU concurrence crashings.
+to one single protocol to prevent GPU concurrence crashes.
 
 Now, we are able to start the processing over the simulation acquisition
 by clicking on **Create New Session**.
@@ -223,7 +223,7 @@ However, in this tutorial we have choose to develop a Python script using the
 Scipion's API to create the project and to add all the protocols according to
 the wizard described in the previous section.
 
-See `how to create workfows with the API <facilities-API-demo>`_ to continue.
+See `how to create workflows with the API <facilities-API-demo>`_ to continue.
 
 
 4. Launch and open projects

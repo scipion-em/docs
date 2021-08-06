@@ -19,7 +19,7 @@ Matplotlib
 
 Matplotlib also needs write permission (by default, to ``~/.matplotlib``)
 
-Matplotlib also needs to deafult to Agg backend:
+Matplotlib also needs to default to Agg backend:
 
 from scipion folder:
 

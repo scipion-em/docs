@@ -51,7 +51,7 @@ Spider MDA Workflow
 +-----------+--------------------------------------------------------+
 | Command   | ``scipion tests spider.tests.test_workflow_spiderMDA`` |
 +-----------+--------------------------------------------------------+
-|  Input    | Fake dataset of Worm Hemogoblin with 76 images         |
+|  Input    | Fake dataset of Worm Hemoglobin with 76 images         |
 +-----------+--------------------------------------------------------+
 |  Time     | ~50 sec                                                |
 +-----------+--------------------------------------------------------+
