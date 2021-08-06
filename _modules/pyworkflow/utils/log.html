@@ -82,7 +82,7 @@
             
               <p class="caption"><span class="caption-text">Set up</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../docs/scipion-modes/how-to-install.html">Installing Scipion v3.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../docs/scipion-modes/how-to-install.html">Installing Scipion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../docs/scipion-modes/scipion-configuration.html">Scipion configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../docs/scipion-modes/host-configuration.html">Host configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../docs/user/troubleshooting.html">Troubleshooting</a></li>
@@ -205,117 +205,189 @@
 <span class="c1"># *  e-mail address &#39;scipion@cnb.csic.es&#39;</span>
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module to handle default logging configuration and custom one. Default logging configuration</span>
+<span class="sd">is defined here but optionally, it can be configured with an external json file</span>
+<span class="sd">containing a standard python logging configuration content as documented here:</span>
+<span class="sd">https://docs.python.org/3/howto/logging-cookbook.html#an-example-dictionary-based-configuration</span>
+<span class="sd">To specify a custom logging config file use SCIPION_LOG_CONFIG variable to a json logging configuration file</span>
+<span class="sd">If you just want to change the logger devel use SCIPION_LOG_LEVEL variable (defaults to INFO)</span>
+<span class="sd">See https://docs.python.org/3/howto/logging.html#logging-levels for available levels. Use the literal! not de value.</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">logging.config</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">logging</span> <span class="kn">import</span> <span class="n">FileHandler</span>
+
+<span class="kn">from</span> <span class="nn">pyworkflow.constants</span> <span class="kn">import</span> <span class="n">PROJECT_SETTINGS</span><span class="p">,</span> <span class="n">PROJECT_DBNAME</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">Config</span>
+
+<span class="n">SCIPION_PROT_ID</span> <span class="o">=</span> <span class="s2">&quot;SCIPION_PROT_ID&quot;</span>
+<span class="n">SCIPION_PROJ_ID</span> <span class="o">=</span> <span class="s2">&quot;SCIPION_PROJ_ID&quot;</span>
 
 
-<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="k">import</span> <span class="n">makeFilePath</span>
+<span class="c1"># Constant for extra logging data</span>
+<div class="viewcode-block" id="STATUS"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.STATUS">[docs]</a><span class="k">class</span> <span class="nc">STATUS</span><span class="p">:</span>
+    <span class="n">START</span> <span class="o">=</span> <span class="s2">&quot;START&quot;</span>
+    <span class="n">STOP</span> <span class="o">=</span> <span class="s2">&quot;STOP&quot;</span>
+    <span class="n">INTERVAL</span> <span class="o">=</span> <span class="s2">&quot;INTERVAL&quot;</span>
+    <span class="n">EVENT</span> <span class="o">=</span> <span class="s2">&quot;EVENT&quot;</span></div>
 
 
-<div class="viewcode-block" id="getLogConfiguration"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.getLogConfiguration">[docs]</a><span class="k">def</span> <span class="nf">getLogConfiguration</span><span class="p">():</span>
-    <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="k">import</span> <span class="n">Config</span>
-    <span class="c1"># Log configuration</span>
-    <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
-        <span class="s1">&#39;disable_existing_loggers&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-        <span class="s1">&#39;formatters&#39;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s1">&#39;standard&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(levelname)s</span><span class="s1">:  </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
-                <span class="c1"># TODO: use formattime to show the time less verbose</span>
+<div class="viewcode-block" id="LoggingConfigurator"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.LoggingConfigurator">[docs]</a><span class="k">class</span> <span class="nc">LoggingConfigurator</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Class to configure logging scenarios:</span>
+
+<span class="sd">    1.- GUI logging</span>
+
+<span class="sd">    2.- Protocol run logging&quot;&quot;&quot;</span>
+
+    <span class="n">customLoggingActive</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Holds if a custom logging configuration has taken place.</span>
+
+<div class="viewcode-block" id="LoggingConfigurator.setupLogging"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.LoggingConfigurator.setupLogging">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">setupLogging</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">cls</span><span class="o">.</span><span class="n">loadCustomLoggingConfig</span><span class="p">():</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">setupDefaultLogging</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="LoggingConfigurator.loadCustomLoggingConfig"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.LoggingConfigurator.loadCustomLoggingConfig">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">loadCustomLoggingConfig</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Loads the custom logging configuration file&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">Config</span>
+
+        <span class="k">if</span> <span class="n">Config</span><span class="o">.</span><span class="n">SCIPION_LOG_CONFIG</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">SCIPION_LOG_CONFIG</span><span class="p">):</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">SCIPION_LOG_CONFIG</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">stream</span><span class="p">:</span>
+                    <span class="n">config</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+
+                <span class="n">logging</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dictConfig</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="n">customLoggingActive</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">return</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SCIPION_LOG_CONFIG variable points to a non existing file: </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">Config</span><span class="o">.</span><span class="n">SCIPION_LOG_CONFIG</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="LoggingConfigurator.setupDefaultLogging"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.LoggingConfigurator.setupDefaultLogging">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">setupDefaultLogging</span><span class="p">():</span>
+        <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">Config</span>
+        <span class="c1"># Log configuration</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="s1">&#39;disable_existing_loggers&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+            <span class="s1">&#39;formatters&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;standard&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(name)s</span><span class="s1"> </span><span class="si">%(levelname)s</span><span class="s1">:  </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
+                    <span class="c1"># TODO: use formattime to show the time less verbose</span>
+                <span class="p">}</span>
             <span class="p">},</span>
-            <span class="s1">&#39;fileFormat&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;format&#39;</span><span class="p">:</span> <span class="s1">&#39;</span><span class="si">%(asctime)s</span><span class="s1"> </span><span class="si">%(levelname)s</span><span class="s1">:  </span><span class="si">%(message)s</span><span class="s1">&#39;</span>
+            <span class="s1">&#39;handlers&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;fileHandler&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s1">&#39;level&#39;</span><span class="p">:</span> <span class="n">Config</span><span class="o">.</span><span class="n">SCIPION_LOG_LEVEL</span><span class="p">,</span>
+                    <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;logging.handlers.RotatingFileHandler&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;formatter&#39;</span><span class="p">:</span> <span class="s1">&#39;standard&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="n">Config</span><span class="o">.</span><span class="n">SCIPION_LOG</span><span class="p">,</span>
+                    <span class="s1">&#39;maxBytes&#39;</span><span class="p">:</span> <span class="mi">100000</span><span class="p">,</span>
+                <span class="p">},</span>
+                <span class="s1">&#39;consoleHandler&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s1">&#39;level&#39;</span><span class="p">:</span> <span class="n">Config</span><span class="o">.</span><span class="n">SCIPION_LOG_LEVEL</span><span class="p">,</span>
+                    <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;logging.StreamHandler&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;formatter&#39;</span><span class="p">:</span> <span class="s1">&#39;standard&#39;</span><span class="p">,</span>
+                <span class="p">},</span>
             <span class="p">},</span>
-        <span class="p">},</span>
-        <span class="s1">&#39;handlers&#39;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s1">&#39;fileHandler&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;level&#39;</span><span class="p">:</span> <span class="s1">&#39;NOTSET&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;logging.handlers.RotatingFileHandler&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;formatter&#39;</span><span class="p">:</span> <span class="s1">&#39;standard&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="n">Config</span><span class="o">.</span><span class="n">SCIPION_LOG</span><span class="p">,</span>
-                <span class="s1">&#39;maxBytes&#39;</span><span class="p">:</span> <span class="mi">100000</span><span class="p">,</span>
-            <span class="p">},</span>
-            <span class="s1">&#39;consoleHandler&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;level&#39;</span><span class="p">:</span> <span class="s1">&#39;NOTSET&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;logging.StreamHandler&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;formatter&#39;</span><span class="p">:</span> <span class="s1">&#39;standard&#39;</span><span class="p">,</span>
-            <span class="p">},</span>
-        <span class="p">},</span>
-        <span class="s1">&#39;loggers&#39;</span><span class="p">:</span> <span class="p">{</span>
-            <span class="s1">&#39;&#39;</span><span class="p">:</span> <span class="p">{</span>
-                <span class="s1">&#39;handlers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;consoleHandler&#39;</span><span class="p">,</span> <span class="s1">&#39;fileHandler&#39;</span><span class="p">],</span>
-                <span class="s1">&#39;level&#39;</span><span class="p">:</span> <span class="s1">&#39;INFO&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;propagate&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
-                <span class="s1">&#39;qualname&#39;</span><span class="p">:</span> <span class="s1">&#39;pyworkflow&#39;</span><span class="p">,</span>
-            <span class="p">},</span>
+            <span class="s1">&#39;loggers&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;&#39;</span><span class="p">:</span> <span class="p">{</span>
+                    <span class="s1">&#39;handlers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;consoleHandler&#39;</span><span class="p">,</span> <span class="s1">&#39;fileHandler&#39;</span><span class="p">],</span>
+                    <span class="s1">&#39;level&#39;</span><span class="p">:</span> <span class="n">Config</span><span class="o">.</span><span class="n">SCIPION_LOG_LEVEL</span><span class="p">,</span>
+                    <span class="s1">&#39;propagate&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+                    <span class="s1">&#39;qualname&#39;</span><span class="p">:</span> <span class="s1">&#39;pyworkflow&#39;</span><span class="p">,</span>
+                <span class="p">},</span>
+            <span class="p">}</span>
         <span class="p">}</span>
-    <span class="p">}</span>
 
-    <span class="c1"># Create the log folder</span>
-    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">SCIPION_LOGS</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1"># Create the log folder</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">SCIPION_LOGS</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-    <span class="n">logging</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dictConfig</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dictConfig</span><span class="p">(</span><span class="n">config</span><span class="p">)</span></div>
 
-    <span class="k">return</span> <span class="n">config</span></div>
+<div class="viewcode-block" id="LoggingConfigurator.setUpGUILogging"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.LoggingConfigurator.setUpGUILogging">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">setUpGUILogging</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets up the logging library for the GUI processes: By default all goes to SCIPION_LOG file and console.&quot;&quot;&quot;</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">setupLogging</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="LoggingConfigurator.setUpProtocolRunLogging"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.LoggingConfigurator.setUpProtocolRunLogging">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">setUpProtocolRunLogging</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">stdoutLogFile</span><span class="p">,</span> <span class="n">stderrLogFile</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sets up the logging library for the protocols run processes, loads the custom configuration plus</span>
+<span class="sd">        2 FileHandlers for stdout and stderr&quot;&quot;&quot;</span>
+
+        <span class="n">stdoutHandler</span> <span class="o">=</span> <span class="n">FileHandler</span><span class="p">(</span><span class="n">stdoutLogFile</span><span class="p">)</span>
+        <span class="n">stderrHandler</span> <span class="o">=</span> <span class="n">FileHandler</span><span class="p">(</span><span class="n">stderrLogFile</span><span class="p">)</span>
+        <span class="n">stderrHandler</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+
+        <span class="c1"># Get the roo logger</span>
+        <span class="n">rootLogger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
+
+        <span class="c1"># If there wasn&#39;t any custom logging</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">cls</span><span class="o">.</span><span class="n">customLoggingActive</span><span class="p">:</span>
+            <span class="c1"># Remove the default handler that goes to the terminal</span>
+            <span class="n">rootLogger</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="c1"># Add the 2 handlers, remove the</span>
+        <span class="n">rootLogger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">stderrHandler</span><span class="p">)</span>
+        <span class="n">rootLogger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">stdoutHandler</span><span class="p">)</span>
+        <span class="n">rootLogger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="n">Config</span><span class="o">.</span><span class="n">SCIPION_LOG_LEVEL</span><span class="p">)</span>
+
+        <span class="c1"># Capture std out and std err and send it to the file handlers</span>
+        <span class="n">rootLogger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Logging configured. STDOUT --&gt; </span><span class="si">%s</span><span class="s2"> , STDERR --&gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">stdoutLogFile</span><span class="p">,</span> <span class="n">stderrLogFile</span><span class="p">))</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span> <span class="o">=</span> <span class="n">stderrHandler</span><span class="o">.</span><span class="n">stream</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">stdoutHandler</span><span class="o">.</span><span class="n">stream</span>
+
+        <span class="k">return</span> <span class="n">rootLogger</span></div></div>
 
 
-<div class="viewcode-block" id="ScipionLogger"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.ScipionLogger">[docs]</a><span class="k">class</span> <span class="nc">ScipionLogger</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filePath</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; If filePath is empty string, the general logger is used. &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_filePath</span> <span class="o">=</span> <span class="n">filePath</span>
-        <span class="n">makeFilePath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filePath</span><span class="p">)</span>
+<div class="viewcode-block" id="restoreStdoutAndErr"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.restoreStdoutAndErr">[docs]</a><span class="k">def</span> <span class="nf">restoreStdoutAndErr</span><span class="p">():</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">__stdout__</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">__stderr__</span></div>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">getLogConfiguration</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filePath</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;loggers&#39;</span><span class="p">]:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;handlers&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_filePath</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s1">&#39;level&#39;</span><span class="p">:</span> <span class="s1">&#39;NOTSET&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;class&#39;</span><span class="p">:</span> <span class="s1">&#39;logging.handlers.RotatingFileHandler&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;formatter&#39;</span><span class="p">:</span> <span class="s1">&#39;fileFormat&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;filename&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filePath</span><span class="p">,</span>
-                <span class="s1">&#39;maxBytes&#39;</span><span class="p">:</span> <span class="mi">100000</span><span class="p">}</span>
+<span class="c1"># ******** Extra code to send some log lines to an external performance analysis tool ***********</span>
+<div class="viewcode-block" id="setDefaultLoggingContext"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.setDefaultLoggingContext">[docs]</a><span class="k">def</span> <span class="nf">setDefaultLoggingContext</span><span class="p">(</span><span class="n">protId</span><span class="p">,</span> <span class="n">projId</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">SCIPION_PROT_ID</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">protId</span><span class="p">)</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="n">SCIPION_PROJ_ID</span><span class="p">]</span> <span class="o">=</span> <span class="n">projId</span></div>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;loggers&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_filePath</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-                <span class="s1">&#39;handlers&#39;</span><span class="p">:</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_filePath</span><span class="p">],</span>
-                <span class="s1">&#39;level&#39;</span><span class="p">:</span> <span class="s1">&#39;NOTSET&#39;</span><span class="p">,</span>
-                <span class="s1">&#39;propagate&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">}</span>
-            <span class="c1"># Note: if we want to see in the console what we also have in</span>
-            <span class="c1"># run.log, add &#39;consoleHandler&#39; to the list of &#39;handlers&#39;.</span>
 
-            <span class="n">logging</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">dictConfig</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
-            
-        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filePath</span><span class="p">)</span> 
-        
-<div class="viewcode-block" id="ScipionLogger.getLog"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.ScipionLogger.getLog">[docs]</a>    <span class="k">def</span> <span class="nf">getLog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log</span>  </div>
-    
-<div class="viewcode-block" id="ScipionLogger.getLogString"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.ScipionLogger.getLogString">[docs]</a>    <span class="k">def</span> <span class="nf">getLogString</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filePath</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>  </div>
-        
-<div class="viewcode-block" id="ScipionLogger.info"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.ScipionLogger.info">[docs]</a>    <span class="k">def</span> <span class="nf">info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">redirectStandard</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">redirectStandard</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+<div class="viewcode-block" id="getFinalProtId"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.getFinalProtId">[docs]</a><span class="k">def</span> <span class="nf">getFinalProtId</span><span class="p">(</span><span class="n">protId</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">protId</span> <span class="k">if</span> <span class="n">protId</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SCIPION_PROT_ID</span><span class="p">,</span> <span class="s2">&quot;-1&quot;</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="ScipionLogger.warning"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.ScipionLogger.warning">[docs]</a>    <span class="k">def</span> <span class="nf">warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">redirectStandard</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">redirectStandard</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">message</span><span class="p">)</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
-        
-<div class="viewcode-block" id="ScipionLogger.error"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.ScipionLogger.error">[docs]</a>    <span class="k">def</span> <span class="nf">error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span> <span class="n">redirectStandard</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">redirectStandard</span><span class="p">:</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">message</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>    </div>
-        
-<div class="viewcode-block" id="ScipionLogger.close"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.ScipionLogger.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filePath</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;loggers&#39;</span><span class="p">]:</span>
-            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;handlers&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_filePath</span><span class="p">]</span>
-            <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;loggers&#39;</span><span class="p">][</span><span class="bp">self</span><span class="o">.</span><span class="n">_filePath</span><span class="p">]</span></div></div>
+
+<div class="viewcode-block" id="getFinalProjId"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.getFinalProjId">[docs]</a><span class="k">def</span> <span class="nf">getFinalProjId</span><span class="p">(</span><span class="n">projId</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">projId</span> <span class="k">if</span> <span class="n">projId</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SCIPION_PROJ_ID</span><span class="p">,</span> <span class="s2">&quot;unknown&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="getExtraLogInfo"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.log.html#pyworkflow.utils.log.getExtraLogInfo">[docs]</a><span class="k">def</span> <span class="nf">getExtraLogInfo</span><span class="p">(</span><span class="n">measurement</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">project_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prot_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prot_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">step_id</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">duration</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">dbfilename</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Add TS!! optionally</span>
+        <span class="k">if</span> <span class="n">dbfilename</span><span class="p">:</span>
+            <span class="n">splitDb</span> <span class="o">=</span> <span class="n">dbfilename</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+            <span class="n">dbName</span> <span class="o">=</span> <span class="n">splitDb</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">runName</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+            <span class="c1"># project.sqlite and settings.sqlite may not have elements</span>
+            <span class="k">if</span> <span class="n">dbName</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="n">PROJECT_SETTINGS</span><span class="p">,</span> <span class="n">PROJECT_DBNAME</span><span class="p">]:</span>
+                <span class="n">runName</span> <span class="o">=</span> <span class="n">splitDb</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">dbfilename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">runName</span><span class="p">,</span> <span class="n">dbName</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;measurement&quot;</span><span class="p">:</span> <span class="n">measurement</span><span class="p">,</span>
+                <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">status</span><span class="p">,</span>
+                <span class="s2">&quot;project_name&quot;</span><span class="p">:</span> <span class="n">getFinalProjId</span><span class="p">(</span><span class="n">project_name</span><span class="p">),</span>
+                <span class="s2">&quot;prot_id&quot;</span><span class="p">:</span> <span class="n">getFinalProtId</span><span class="p">(</span><span class="n">prot_id</span><span class="p">),</span>
+                <span class="s2">&quot;prot_name&quot;</span><span class="p">:</span> <span class="n">prot_name</span><span class="p">,</span>
+                <span class="s2">&quot;step_id&quot;</span><span class="p">:</span> <span class="n">step_id</span><span class="p">,</span>
+                <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="n">duration</span><span class="p">,</span>
+                <span class="s2">&quot;dbfilename&quot;</span><span class="p">:</span> <span class="n">dbfilename</span>
+                <span class="p">}</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;getExtraLogInfo failed: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -352,10 +424,6 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../../az-install/index.html">az-install</a></dd>
-            <dd><a href="../../../dependabot_pip_jinja2-2.11.3/index.html">dependabot/pip/jinja2-2.11.3</a></dd>
-            <dd><a href="../../../dependabot_pip_pygments-2.7.4/index.html">dependabot/pip/pygments-2.7.4</a></dd>
-            <dd><a href="../../../dependabot_pip_urllib3-1.26.5/index.html">dependabot/pip/urllib3-1.26.5</a></dd>
             <dd><a href="../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../release-3.0.0/_modules/pyworkflow/utils/log.html">release-3.0.0</a></dd>

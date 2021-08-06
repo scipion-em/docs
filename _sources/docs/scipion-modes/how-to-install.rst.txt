@@ -4,244 +4,107 @@
 
 .. _how-to-install:
 
-=======================
-Installing Scipion v3.0
-=======================
+==================
+Installing Scipion
+==================
 
-Prepare installation
-====================
+Prerequisites
+=============
 
-Conda (optional, recommended if you are not admin)
---------------------------------------------------
-Although conda is not a requirement, it provides most of the dependencies Scipion and Xmipp
-needs and can be installed without being admin/root.
+Scipion software requires GCC (GCC8 recommended) and OpenMPI already installed. CUDA (10.1 recommended) is optional but highly recommended.
+Scipion uses conda package manager for installation. Before starting, make sure you do not have other cryo-EM software in your PATH / LD_LIBRARY_PATH as it might conflict with Scipion installation.
 
-`Miniconda <https://docs.conda.io/en/latest/miniconda.html#linux-installers>`__ would be enough.
-
-pip
----
-You need to have python2 or 3 already and pip or pip3. There are several ways to test if pip
-is installed. Pip comes out of the box with conda, e.g.
-
-::
-
-    conda activate
-
-will bring you pip.
-
-To test if you have pip available type:
-
-::
-
-    python -m pip -V
-
-Other alternatives would be:
-
-::
-
-    python3 -m pip -V
-    pip -V
-    pip3 -V
-
-If any of these commands works, you have pip. If you don't have it please, check
-https://pip.pypa.io/en/stable/installing/ or use your package manager (yum, apt-get,...)
-to install pip or pip3.
-
-CUDA (optional, highly recommended)
-------------------------------------
-Many of the software that Scipion integrates use CUDA. You can have different CUDA versions
-installed and choose which CUDA to use for any particular software. Nevertheless, CUDA 10.1
-seems to be compatible with the majority of them. We recommend to have CUDA 10.1 installed
-and being linked at ``/usr/local/cuda``.  By default scipion will use ``/usr/local/cuda`` and xmipp
-installation is done against this path.
-
-Check the `config guide <scipion-configuration#gpu-variables>`_ for more detailed information.
-
-Scipion installation
-====================
-We have prepared some recipes to install Scipion and its companion Xmipp in the most simplified way.
-Below you can find some installation hints that could help you to troubleshoot your case. Scipion
-can be installed using conda or virtualenv. Conda installation has one drawback: conda will not identify
-properly the fonts in your system and you will end up with a font we didn't intend but readable and
-workable. Don't worry there is a `fix for this bellow <install-from-sources#fixing-fonts-in-a-conda-installation>`_.
-
-If you have problems during the Scipion's installation, please, check our
-:ref:`Troubleshooting <troubleshooting>` page.
-
-To install Scipion in development mode, just add the ``-dev`` flag in the last command of each recipe below
-(git is needed in the development mode).
-
-In addition, you can replace the last command of each recipe below by
-``python -m scipioninstaller --help`` in order to figure out more options regarding the Scipion's installation.
-
-Ubuntu with conda
------------------
+For Ubuntu:
 
 ::
 
     sudo apt-get install gcc-8 g++-8 libopenmpi-dev make
-    conda activate
-    export CXX_CUDA=g++-8
-    export PATH=$PATH:/usr/local/cuda/bin
-    pip install --user scipion-installer
-    python -m scipioninstaller /path/where/you/want/scipion -j 4
 
-Ubuntu with virtualenv
-----------------------
-
-::
-
-    sudo apt-get install gcc g++ make libopenmpi-dev python3-tk libfftw3-dev libhdf5-dev libtiff-dev libjpeg-dev libsqlite3-dev openjdk-8-jdk
-    export PATH=$PATH:/usr/local/cuda/bin
-    python -m pip install --user scipion-installer
-    python -m scipioninstaller /path/where/you/want/scipion -venv -j 4
-
-CentOS with conda
------------------
+For CentOS:
 
 ::
 
     sudo yum -y install epel-release
     sudo yum-config-manager --enable epel
     sudo yum -y install libzstd-devel hdf5-devel gcc gcc-c++ openmpi-devel
-    export PATH=$PATH:/usr/lib64/openmpi/bin/:/usr/local/cuda/bin
+
+Installation
+============
+
+1. If you do not have **conda** already installed (run ``which conda`` in your console), install `Miniconda <https://docs.conda.io/en/latest/miniconda.html#linux-installers>`__ as in example below. Alternatively, proceed to step 3.
+
+::
+
+    wget https://repo.anaconda.com/miniconda/Miniconda3-py39_4.9.2-Linux-x86_64.sh
+    bash Miniconda3-py39_4.9.2-Linux-x86_64.sh -b -p /path/for/miniconda
+
+2. Make sure you are running **bash** shell (run ``echo $SHELL`` in your console), then initialize conda:
+
+::
+
+    source /path/for/miniconda/etc/profile.d/conda.sh
+
+3. Activate **base** conda environment and install Scipion installer with **pip3** provided by **conda**.
+
+::
+
     conda activate
-    pip install --user scipion-installer
-    python3 -m scipioninstaller /path/where/you/want/scipion -j 4
+    pip3 install --user scipion-installer
 
-CentOS with virtualenv
-----------------------
-
-CentOS 7
-........
+4. Install Scipion core and generate default config files
 
 ::
 
-    sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-    sudo yum install dnf
-    sudo dnf -y install libaec-devel
-    sudo yum install gcc gcc-c++ make openmpi-devel python3-devel python3-tkinter wget fftw-devel hdf5-devel libtiff-devel libjpeg-devel sqlite-devel.x86_64 java-1.8.0-openjdk-devel
-    export PATH=$PATH:/usr/lib64/openmpi/bin/:/usr/local/cuda/bin
-    python3 -m pip install --user scipion-installer
-    python3 -m scipioninstaller /path/where/you/want/scipion -venv -j 4
+    python3 -m scipioninstaller -conda -noXmipp -noAsk /path/for/scipion
+    /path/for/scipion/scipion3 config --overwrite
 
-CentOS 8
-........
+5. Open **/path/for/scipion/config/scipion.conf** file and append the variables below to the end of the file. Make sure they point to correct locations for CUDA, OpenMPI and other software necessary for Xmipp:
 
 ::
 
-    sudo yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm
-    sudo yum install dnf
-    sudo dnf -y --enablerepo=PowerTools install libaec-devel
-    sudo yum install gcc gcc-c++ make openmpi-devel python3-devel python3-tkinter wget fftw-devel hdf5-devel libtiff-devel libjpeg-devel sqlite-devel.x86_64 java-1.8.0-openjdk-devel
-    export PATH=$PATH:/usr/lib64/openmpi/bin/:/usr/local/cuda/bin
-    python3 -m pip install --user scipion-installer
-    python3 -m scipioninstaller /path/where/you/want/scipion -venv -j 4
+    CUDA = True
+    CUDA_BIN = /usr/local/cuda-10.1/bin
+    CUDA_LIB = /usr/local/cuda-10.1/lib64
+    MPI_BINDIR = /usr/lib64/mpi/gcc/openmpi/bin
+    MPI_LIBDIR = /usr/lib64/mpi/gcc/openmpi/lib
+    MPI_INCLUDE = /usr/lib64/mpi/gcc/openmpi/include
+    OPENCV = False
 
+See `Configuration guide <scipion-configuration>`_ for more details about these and other possible variables.
 
-Launching scipion3
-------------------
-Installation should have created a launching file at ``<SCIPION_HOME>/scipion3``.
-For convenience, create an **alias** in the ``.bashrc`` file located
-in ``/home/<user>/.bashrc`` that allows you to launch Scipion from any
-location on your computer.
+6. Install Xmipp plugin (example below is using 12 threads)
 
 ::
 
-   alias scipion3='<SCIPION_HOME>/scipion3'
+    /path/for/scipion/scipion3 installp -p scipion-em-xmipp -j 12 | tee -a install.log
 
-You can always launch it like ``<SCIPION_HOME>/scipion3`` or ``./scipion3`` (if you are already in
-scipion's installation folder)
-
-Installing other EM Plugins
-===========================
-Scipion3 can use many EM plugins.
-
-If you intend to develop a plugin, check the
-**For developers** section below. However, if you only want to use the
-plugin, just follow the **For users** section below.
-
-For users
----------
-Scipion installation includes also the Xmipp installation, by default.
-
-To list and install more plugins you can use the plugin manager
-(recommended) or, alternatively, use the `command line tool <install-plugins-command-line>`_.
-
-To open the plugin manager, please run Scipion
+7. Create an alias for Scipion launcher in your ``.bashrc`` file:
 
 ::
 
-    scipion3
+   alias scipion3="/path/for/scipion/scipion3"
 
-and choose **Others** > **Plugin manager** on the top bar. There, any plugin can be
+If any of the steps above fails, check `install.log` file for errors and refer to the :ref:`Troubleshooting <troubleshooting>` guide.
+
+Installing other plugins
+========================
+
+To list available plugins you can use the plugin manager (recommended) or, alternatively, use the `command line tool <install-plugins-command-line>`_.
+
+To open the plugin manager, start Scipion (run **scipion3**) and choose **Others** > **Plugin manager** on the top bar. There, any plugin can be
 easily installed.
 
-Please, refer to the :ref:`Plugin manager guide <Plugin-Manager>` to get
-more details about plugin installation options.
+Please, refer to the :ref:`Plugin manager guide <Plugin-Manager>` to get more details about plugin installation options.
 
-For developers
---------------
+If you have binaries installed for some of the plugins you can have a look at :ref:`Linking existing software <linking-existing-software>` page.
 
-If you are a developer, the installer can do most of the setup for you. Please go to the `installer README page <https://github.com/scipion-em/scipion-installer>`_
+Clusters configuration
+======================
 
-Scipion installation also includes the Xmipp installation, by default. If you have installed Scipion in devel mode,
-Xmipp should be also installed in devel mode at ``<SCIPION_HOME>/xmipp-bundle``.
-See the `Xmipp structure guide <https://github.com/I2PC/xmipp/wiki/Xmipp-structure>`_ for more information regarding Xmipp.
+To configure Scipion for a cluster you will need to edit the :ref:`host file <host-configuration>`
 
-You might also want to check how to :ref:`install plugins from the command line <install-plugins-command-line>`
-in order to also install some other plugins in development mode.
-Notice that some plugins can be installed in production mode (see section above) while others can be in devel mode.
-To learn specific instructions regarding a devel installation of a given plugin, please, check the 'Readme' file in
-its github repository (usually at `scipion-em github account <https://github.com/scipion-em>`_ under its plugin's name).
+Test the installation
+=====================
 
-Optional steps
-==============
-
-Fixing fonts in a conda installation
-------------------------------------
-This will fix the fonts issue when using conda installation
-
-::
-
-    scipion3 run conda remove tk --force
-    wget https://anaconda.org/scipion/tk/8.6.10/download/linux-64/tk-8.6.10-h14c3975_1005.tar.bz2
-    scipion3 run conda install tk-8.6.10-h14c3975_1005.tar.bz2
-    
-    
-Configure
----------
-In Scipion3, configuration step is optional. Without a configuration file, Scipion and the plugins
-will run with default values and what is available in the system (usually what is exposed with PATH
-and LD_LIBRARY_PATH).
-
-Please, check :ref:`Scipion's configuration page <scipion-configuration>` for more details.
-
-Linking existing software
--------------------------
-If you have an existing installation you want Scipion to use instead of the one that scipion installs.
-Please, check :ref:`Linking existing software <linking-existing-software>` for more details.
-
-Test the installation and learn how to use Scipion
---------------------------------------------------
--  Test your installation by running at least the *Small* and *Medium*
-   tests mentioned in :ref:`verify installation page <Verify-Installation>`.
+-  Test your installation by running at least the *Small* and *Medium* tests mentioned in the :ref:`Verify installation page <Verify-Installation>`.
 -  Complete some of the :ref:`Scipion Tutorials <User-Documentation>`.
-
-Cleaning up
------------
-After Scipion is installed and properly working (see how to run tests in
-the previous section) one could clean some temporary files to free some disk
-space after installation.
-
-Remove the files under ``software/tmp`` folder (if exists):
-
-::
-
-    rm -rf software/tmp/*
-
-The downloaded .tgz files of the EM packages can also be removed:
-
-::
-
-    rm -rf software/em/*.tgz

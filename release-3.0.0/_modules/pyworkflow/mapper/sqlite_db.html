@@ -82,7 +82,7 @@
             
               <p class="caption"><span class="caption-text">Set up</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../docs/scipion-modes/how-to-install.html">Installing Scipion v3.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../docs/scipion-modes/how-to-install.html">Installing Scipion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../docs/scipion-modes/scipion-configuration.html">Scipion configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../docs/scipion-modes/host-configuration.html">Host configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../docs/user/troubleshooting.html">Troubleshooting</a></li>
@@ -210,11 +210,11 @@
 <span class="sd">This module contains some sqlite basic tools to handle Databases.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">sqlite3</span> <span class="k">import</span> <span class="n">dbapi2</span> <span class="k">as</span> <span class="n">sqlite</span>
-<span class="kn">from</span> <span class="nn">sqlite3</span> <span class="k">import</span> <span class="n">OperationalError</span> <span class="k">as</span> <span class="n">OperationalError</span> 
-
-<span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="k">import</span> <span class="n">SCIPION_DEBUG_SQLITE</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="k">import</span> <span class="n">envVarOn</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">sqlite3</span> <span class="kn">import</span> <span class="n">dbapi2</span> <span class="k">as</span> <span class="n">sqlite</span>
+<span class="kn">from</span> <span class="nn">sqlite3</span> <span class="kn">import</span> <span class="n">OperationalError</span> <span class="k">as</span> <span class="n">OperationalError</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">STATUS</span><span class="p">,</span> <span class="n">getExtraLogInfo</span><span class="p">,</span> <span class="n">Config</span>
 
 
 <div class="viewcode-block" id="SqliteDb"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.mapper.sqlite_db.html#pyworkflow.mapper.sqlite_db.SqliteDb">[docs]</a><span class="k">class</span> <span class="nc">SqliteDb</span><span class="p">:</span>
@@ -222,10 +222,10 @@
 <span class="sd">    It will create connection, execute queries and commands.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">OPEN_CONNECTIONS</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Store all connections made</span>
-    
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_reuseConnections</span> <span class="o">=</span> <span class="kc">False</span>
-        
+
     <span class="k">def</span> <span class="nf">_createConnection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbName</span><span class="p">,</span> <span class="n">timeout</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Establish db connection&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dbName</span> <span class="o">=</span> <span class="n">dbName</span>
@@ -236,10 +236,14 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="n">sqlite</span><span class="o">.</span><span class="n">Connection</span><span class="p">(</span><span class="n">dbName</span><span class="p">,</span> <span class="n">timeout</span><span class="p">,</span> <span class="n">check_same_thread</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">row_factory</span> <span class="o">=</span> <span class="n">sqlite</span><span class="o">.</span><span class="n">Row</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">OPEN_CONNECTIONS</span><span class="p">[</span><span class="n">dbName</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span>
-            
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Connection open for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dbName</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="n">getExtraLogInfo</span><span class="p">(</span>
+                <span class="s2">&quot;CONNECTIONS&quot;</span><span class="p">,</span>
+                <span class="n">STATUS</span><span class="o">.</span><span class="n">START</span><span class="p">,</span>
+                <span class="n">dbfilename</span><span class="o">=</span><span class="n">dbName</span><span class="p">))</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
         <span class="c1"># Define some shortcuts functions</span>
-        <span class="k">if</span> <span class="n">envVarOn</span><span class="p">(</span><span class="n">SCIPION_DEBUG_SQLITE</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">Config</span><span class="o">.</span><span class="n">debugSQLOn</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">executeCommand</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_debugExecute</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">executeCommand</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span>
@@ -250,20 +254,29 @@
         <span class="k">if</span> <span class="n">dbName</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">OPEN_CONNECTIONS</span><span class="p">:</span>
             <span class="n">connection</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">OPEN_CONNECTIONS</span><span class="p">[</span><span class="n">dbName</span><span class="p">]</span>
             <span class="k">del</span> <span class="bp">cls</span><span class="o">.</span><span class="n">OPEN_CONNECTIONS</span><span class="p">[</span><span class="n">dbName</span><span class="p">]</span>
-            <span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
-        
+            <span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Connection closed for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">dbName</span><span class="p">,</span>
+                         <span class="n">extra</span><span class="o">=</span><span class="n">getExtraLogInfo</span><span class="p">(</span><span class="s1">&#39;CONNECTIONS&#39;</span><span class="p">,</span> <span class="n">STATUS</span><span class="o">.</span><span class="n">STOP</span><span class="p">,</span> <span class="n">dbfilename</span><span class="o">=</span><span class="n">dbName</span><span class="p">))</span></div>
+
 <div class="viewcode-block" id="SqliteDb.getDbName"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.mapper.sqlite_db.html#pyworkflow.mapper.sqlite_db.SqliteDb.getDbName">[docs]</a>    <span class="k">def</span> <span class="nf">getDbName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dbName</span></div>
     
 <div class="viewcode-block" id="SqliteDb.close"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.mapper.sqlite_db.html#pyworkflow.mapper.sqlite_db.SqliteDb.close">[docs]</a>    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Connection closed for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dbName</span><span class="p">,</span>
+                     <span class="n">extra</span><span class="o">=</span><span class="n">getExtraLogInfo</span><span class="p">(</span>
+                                        <span class="s2">&quot;CONNECTIONS&quot;</span><span class="p">,</span>
+                                        <span class="n">STATUS</span><span class="o">.</span><span class="n">STOP</span><span class="p">,</span>
+                                        <span class="n">dbfilename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dbName</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dbName</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">OPEN_CONNECTIONS</span><span class="p">:</span>
             <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">OPEN_CONNECTIONS</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_dbName</span><span class="p">]</span></div>
         
     <span class="k">def</span> <span class="nf">_debugExecute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;COMMAND: &quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dbName</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ARGUMENTS: &quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;COMMAND: </span><span class="si">%s</span><span class="s2">; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dbName</span><span class="p">),</span>
+                <span class="n">extra</span><span class="o">=</span><span class="n">getExtraLogInfo</span><span class="p">(</span><span class="s2">&quot;QUERY&quot;</span><span class="p">,</span> <span class="n">STATUS</span><span class="o">.</span><span class="n">EVENT</span><span class="p">,</span> <span class="n">dbfilename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dbName</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;ARGUMENTS: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&gt;&gt;&gt;&gt; FAILED cursor.execute on db: &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dbName</span><span class="p">)</span>
@@ -347,10 +360,6 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../../../az-install/index.html">az-install</a></dd>
-            <dd><a href="../../../../dependabot_pip_jinja2-2.11.3/index.html">dependabot/pip/jinja2-2.11.3</a></dd>
-            <dd><a href="../../../../dependabot_pip_pygments-2.7.4/index.html">dependabot/pip/pygments-2.7.4</a></dd>
-            <dd><a href="../../../../dependabot_pip_urllib3-1.26.5/index.html">dependabot/pip/urllib3-1.26.5</a></dd>
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="sqlite_db.html">release-3.0.0</a></dd>

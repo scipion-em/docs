@@ -82,7 +82,7 @@
             
               <p class="caption"><span class="caption-text">Set up</span></p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="../../../docs/scipion-modes/how-to-install.html">Installing Scipion v3.0</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../docs/scipion-modes/how-to-install.html">Installing Scipion</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../docs/scipion-modes/scipion-configuration.html">Scipion configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../docs/scipion-modes/host-configuration.html">Host configuration</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../docs/user/troubleshooting.html">Troubleshooting</a></li>
@@ -181,17 +181,24 @@
            <div itemprop="articleBody">
             
   <h1>Source code for cryocare.protocols.protocol_load_model</h1><div class="highlight"><pre>
-<span></span>
-<span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="k">import</span> <span class="n">EMProtocol</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.protocol</span> <span class="k">import</span> <span class="n">PathParam</span><span class="p">,</span> <span class="n">FileParam</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="k">import</span> <span class="n">Message</span>
-<span class="kn">from</span> <span class="nn">cryocare.objects</span> <span class="k">import</span> <span class="n">CryocareModel</span>
+<span></span><span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span>
+
+<span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">EMProtocol</span>
+<span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">BETA</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.protocol</span> <span class="kn">import</span> <span class="n">PathParam</span><span class="p">,</span> <span class="n">FileParam</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">Message</span><span class="p">,</span> <span class="n">createLink</span>
+
+<span class="kn">from</span> <span class="nn">cryocare.constants</span> <span class="kn">import</span> <span class="n">TRAIN_DATA_FN</span><span class="p">,</span> <span class="n">VALIDATION_DATA_FN</span><span class="p">,</span> <span class="n">CRYOCARE_MODEL</span>
+<span class="kn">from</span> <span class="nn">cryocare.objects</span> <span class="kn">import</span> <span class="n">CryocareModel</span>
+<span class="kn">from</span> <span class="nn">cryocare.utils</span> <span class="kn">import</span> <span class="n">makeDatasetSymLinks</span>
 
 
 <div class="viewcode-block" id="ProtCryoCARELoadModel"><a class="viewcode-back" href="../../../api/cryocare/cryocare.protocols.protocol_load_model.html#cryocare.protocols.protocol_load_model.ProtCryoCARELoadModel">[docs]</a><span class="k">class</span> <span class="nc">ProtCryoCARELoadModel</span><span class="p">(</span><span class="n">EMProtocol</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Use two data-independent reconstructed tomograms to train a 3D cryo-CARE network.&quot;&quot;&quot;</span>
 
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;CryoCARE Load Model&#39;</span>
+    <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">BETA</span>
 
     <span class="c1"># -------------------------- DEFINE param functions ----------------------</span>
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
@@ -202,32 +209,56 @@
         <span class="c1"># You need a params to belong to a section:</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">Message</span><span class="o">.</span><span class="n">LABEL_INPUT</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;basedir&#39;</span><span class="p">,</span> <span class="n">PathParam</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Basedir&#39;</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Base directory of the trained cryoCARE model&#39;</span><span class="p">,</span>
                       <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                       <span class="n">allowsNull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Base directory of the trained cryoCARE model.&#39;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;meanStd&#39;</span><span class="p">,</span> <span class="n">FileParam</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Normalization file (mean_std)&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;It must contain a model in .h5 format.&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;trainDataDir&#39;</span><span class="p">,</span> <span class="n">FileParam</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Directory of the prepared data for training&#39;</span><span class="p">,</span>
                       <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                       <span class="n">allowsNull</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;mean_std.npz file generated when preparing the training data.&#39;</span><span class="p">)</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;It must contain two files: train_data.npz and val_data.npz, generated when &#39;</span>
+                           <span class="s1">&#39;preparing the training data.&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;createOutputStep&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initialize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">createOutputStep</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># The prediction is expecting the training and validation datasets to be in the same place as the training</span>
+        <span class="c1"># model, but they are located in the training data generation extra directory. Hence, a symbolic link will</span>
+        <span class="c1"># be created</span>
+        <span class="n">makeDatasetSymLinks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">trainDataDir</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="n">createLink</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="s1">&#39;..&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">basedir</span><span class="o">.</span><span class="n">get</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">CRYOCARE_MODEL</span><span class="p">))</span>
 
 <div class="viewcode-block" id="ProtCryoCARELoadModel.createOutputStep"><a class="viewcode-back" href="../../../api/cryocare/cryocare.protocols.protocol_load_model.html#cryocare.protocols.protocol_load_model.ProtCryoCARELoadModel.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">model</span> <span class="o">=</span> <span class="n">CryocareModel</span><span class="p">(</span><span class="n">basedir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">basedir</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">mean_std</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">meanStd</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="n">model</span> <span class="o">=</span> <span class="n">CryocareModel</span><span class="p">(</span><span class="n">basedir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">train_data_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">)</span></div>
 
     <span class="c1"># --------------------------- INFO functions -----------------------------------</span>
+    <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basedir</span><span class="o">.</span><span class="n">get</span><span class="p">()):</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Training model base directory does not exists.&#39;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basedir</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="s1">&#39;*.h5&#39;</span><span class="p">)):</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;No model files were found in the introduced training model base directory.&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trainDataDir</span><span class="o">.</span><span class="n">get</span><span class="p">()):</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Directory of the prepared data for training does not exists.&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trainDataDir</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">TRAIN_DATA_FN</span><span class="p">)):</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;No </span><span class="si">%s</span><span class="s1"> file was found in the introduced training model base directory.&#39;</span> 
+                              <span class="o">%</span> <span class="n">TRAIN_DATA_FN</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trainDataDir</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">VALIDATION_DATA_FN</span><span class="p">)):</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;No </span><span class="si">%s</span><span class="s1"> file was found in the introduced training model base directory.&#39;</span>
+                              <span class="o">%</span> <span class="n">VALIDATION_DATA_FN</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">errors</span>
+
     <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">summary</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isFinished</span><span class="p">():</span>
-            <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Loaded training model info:</span><span class="se">\n</span><span class="s2">&quot;</span>
-                           <span class="s2">&quot;model_dir = *</span><span class="si">{}</span><span class="s2">*</span><span class="se">\n</span><span class="s2">&quot;</span>
-                           <span class="s2">&quot;normalization_file = *</span><span class="si">{}</span><span class="s2">*&quot;</span><span class="o">.</span><span class="n">format</span>
-                           <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">basedir</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanStd</span><span class="o">.</span><span class="n">get</span><span class="p">()))</span>
+            <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Loaded training model_dir = *</span><span class="si">%s</span><span class="s2">*&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">basedir</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
         <span class="k">return</span> <span class="n">summary</span></div>
 </pre></div>
 
@@ -265,10 +296,6 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
-            <dd><a href="../../../az-install/index.html">az-install</a></dd>
-            <dd><a href="../../../dependabot_pip_jinja2-2.11.3/index.html">dependabot/pip/jinja2-2.11.3</a></dd>
-            <dd><a href="../../../dependabot_pip_pygments-2.7.4/index.html">dependabot/pip/pygments-2.7.4</a></dd>
-            <dd><a href="../../../dependabot_pip_urllib3-1.26.5/index.html">dependabot/pip/urllib3-1.26.5</a></dd>
             <dd><a href="../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../release-3.0.0/_modules/cryocare/protocols/protocol_load_model.html">release-3.0.0</a></dd>
