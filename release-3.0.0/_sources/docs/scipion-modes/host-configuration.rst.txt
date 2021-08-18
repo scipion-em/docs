@@ -162,7 +162,7 @@ you can find a very simple tutorial about installing Slurm in Ubuntu.
         #SBATCH --export=ALL    
         ### Job name
         #SBATCH -J %_(JOB_NAME)s
-        ### Outputs (we need to escape the job id as %_j)
+        ### Outputs
         #SBATCH -o %_(JOB_LOGS)s.out
         #SBATCH -e %_(JOB_LOGS)s.err
         ### Partition (queue) name
