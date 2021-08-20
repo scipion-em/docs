@@ -225,6 +225,7 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">Popen</span><span class="p">,</span> <span class="n">PIPE</span>
 <span class="kn">import</span> <span class="nn">pyworkflow</span> <span class="k">as</span> <span class="nn">pw</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.exceptions</span> <span class="kn">import</span> <span class="n">PyworkflowException</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="p">(</span><span class="n">redStr</span><span class="p">,</span> <span class="n">greenStr</span><span class="p">,</span> <span class="n">makeFilePath</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">process</span><span class="p">,</span>
                               <span class="n">getHostFullName</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="kn">import</span> <span class="n">UNKNOWN_JOBID</span>
@@ -382,12 +383,47 @@
         <span class="n">rpath</span><span class="o">.</span><span class="n">putFile</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">remoteFile</span><span class="p">)</span>
 
 
+<div class="viewcode-block" id="analyzeFormattingTypeError"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.launch.html#pyworkflow.protocol.launch.analyzeFormattingTypeError">[docs]</a><span class="k">def</span> <span class="nf">analyzeFormattingTypeError</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">dictionary</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; receives a string with %(VARS) to be replaced with a dictionary</span>
+<span class="sd">     it splits te string by \n and test the formatting per line. Raises an exception if any line fails</span>
+<span class="sd">     with all problems found&quot;&quot;&quot;</span>
+
+    <span class="c1"># Do the replace line by line</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">problematicLines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">%</span> <span class="n">dictionary</span>
+        <span class="k">except</span> <span class="ne">KeyError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">problematicLines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span> <span class="o">+</span> <span class="s2">&quot; --&gt; variable not present in this context.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">problematicLines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span> <span class="o">+</span> <span class="s2">&quot; --&gt; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">problematicLines</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">PyworkflowException</span><span class="p">(</span><span class="s1">&#39;Following lines in </span><span class="si">%s</span><span class="s1"> seems to be problematic. &#39;</span>
+                                   <span class="s1">&#39;Please review its format or content.</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pw</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">SCIPION_HOSTS</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">problematicLines</span><span class="p">)),</span>
+                                   <span class="n">url</span><span class="o">=</span><span class="n">pw</span><span class="o">.</span><span class="n">DOCSITEURLS</span><span class="o">.</span><span class="n">HOST_CONFIG</span><span class="p">)</span></div>
+
 <span class="k">def</span> <span class="nf">_submit</span><span class="p">(</span><span class="n">hostConfig</span><span class="p">,</span> <span class="n">submitDict</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Submit a protocol to a queue system. Return its job id.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Create first the submission script to be launched</span>
     <span class="c1"># formatting using the template</span>
-    <span class="n">template</span> <span class="o">=</span> <span class="n">hostConfig</span><span class="o">.</span><span class="n">getSubmitTemplate</span><span class="p">()</span> <span class="o">%</span> <span class="n">submitDict</span>
+    <span class="n">template</span> <span class="o">=</span> <span class="n">hostConfig</span><span class="o">.</span><span class="n">getSubmitTemplate</span><span class="p">()</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">template</span> <span class="o">=</span> <span class="n">template</span> <span class="o">%</span> <span class="n">submitDict</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="c1"># Capture parsing errors</span>
+        <span class="n">exception</span> <span class="o">=</span> <span class="n">analyzeFormattingTypeError</span><span class="p">(</span><span class="n">template</span><span class="p">,</span> <span class="n">submitDict</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">exception</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">exception</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If there is no exception, then raise actual one</span>
+            <span class="k">raise</span> <span class="n">e</span>
+
     <span class="c1"># FIXME: CREATE THE PATH FIRST</span>
     <span class="n">scripPath</span> <span class="o">=</span> <span class="n">submitDict</span><span class="p">[</span><span class="s1">&#39;JOB_SCRIPT&#39;</span><span class="p">]</span>
     <span class="n">f</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">scripPath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
