@@ -10,7 +10,6 @@ Submodules
    relion.viewers.viewer_ctfrefine
    relion.viewers.viewer_locres
    relion.viewers.viewer_motioncor
-   relion.viewers.viewer_multibody
    relion.viewers.viewer_polishing
    relion.viewers.viewer_postprocess
 
