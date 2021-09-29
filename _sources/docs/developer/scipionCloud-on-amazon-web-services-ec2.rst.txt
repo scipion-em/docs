@@ -12,7 +12,7 @@ Creating an instance (virtual machine)
 ======================================
 
 Depending on your computing needs, you can start ScipionCloud on a single node
-("instance", in Amazon terminology), or using an elastic HPC cluster.
+("instance", in Amazon terminology).
 
 Amazon EC2 offers a wide range of instance types, that can be check
 on `AWS instance types <https://aws.amazon.com/ec2/instance-types/>`_.
@@ -22,7 +22,8 @@ on `AWS instance types <https://aws.amazon.com/ec2/instance-types/>`_.
 * Launch a ScipionCloud instance: Enter "Instances" panel, then click "Launch instance". Follow the wizard filling in the required information:
 
   * Choose the ScipionCloud AMI: in *"Community AMIs"* section, search for "scipion" and find the latest release. The ScipionCloud AMI is currently available only in Ireland region but if you would like to use it in a different region contact us and we will make a copy there.
-  * Choose the instance type, according to how much resources (CPU, RAM, GPU, disk) you want to use. Regarding disk, you can use an integrated SSD disk, or attach an EBS Volume. Press "Next: Configure instance details"
+  * Choose the instance type, according to how much resources (CPU, RAM, GPU, disk) you want to use. This AMI has been tested on g4dn types, other GPUs instances types might cause problems.
+  Regarding disk, you can use an integrated SSD disk, or attach an EBS Volume. Press "Next: Configure instance details"
   * Configure instance:
 
     * Number of instances: 1
@@ -30,7 +31,7 @@ on `AWS instance types <https://aws.amazon.com/ec2/instance-types/>`_.
 
   * Add storage: specify the disk size of the system disk (that you can use also for data). Here you can also create a new volume of arbitrary size.
   * Tag instance: Add tag 'Name' and give a descriptive name.
-  * Configure security group: by default, SSH is enabled. To use the remote desktop (web based), you need to open ports 443 (HTTPS) and 22 (SSH):
+  * Configure security group: To use the remote desktop (web based), you need to open ports 80 (HTTP) and 22 (SSH):
   * Click "Review and Launch", then "Launch"
 * In the "Select an existing key pair" panel, select "Create new key pair", type the key pair name and click "Download" key pair. Finally, click "Launch instances" and then "View instances"
 
@@ -51,7 +52,7 @@ First, connect with SSH to your instance:
 There is a performance problem the first time an instance is used
 (explanation `[here] <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-initialize.html>`_). If you want to avoid it you could follow instructions there.
 
-Access the remote desktop from a browser with the URL and password provided.
+Access the remote desktop from a browser with the URL and password provided in the console.
 
 If you see a "Your connection is not secure" warning, click on "Advanced", "Add exception" and "Confirm Security Exception".
 
@@ -61,13 +62,6 @@ This is how the remote desktop will look like:
    :align: center
    :width: 800
    :alt: noVNC-desktop
-
-To resize screen clicks on the Settings icon and choose ``Remote resizing`` as ``Scaling mode``:
-
-.. figure:: /docs/images/cloud/noVNC-resize.png
-   :align: center
-   :width: 250
-   :alt: noVNC-resize
 
 To disconnect from the session click on the little arrow that appears on the left (see menu below) and click on the last option:
 
@@ -83,8 +77,8 @@ There is a shortcut for Scipion on the desktop.
 
 The following software is installed on the machine:
 
-* Ubuntu 16
-* Scipion on /usr/local/scipion (alias scipion): git installation branch release-2.0 with the following EM plugins:
+* Ubuntu 20.04
+* Scipion on /usr/local/scipion3 (alias scipion3): git installation branch release-3.0 with the following EM plugins:
 
   * Ctffind4 4.1.10
   * Gctf 1.06
