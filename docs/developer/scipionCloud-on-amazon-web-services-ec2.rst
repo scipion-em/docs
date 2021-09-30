@@ -74,24 +74,21 @@ The following software is installed on the machine:
 * Ubuntu 20.04
 * Scipion on /usr/local/scipion3 (alias scipion3): git installation branch release-3.0 with the following EM plugins:
 
-  * Ctffind4 4.1.10
-  * Gctf 1.06
-  * Gautomatch 0.53
-  * Eman 2.21
-  * Frealign 9.07
-  * Motioncor2 1.2.1
-  * Relion 3.0
-  * resmap   1.1.5s2
-  * Spider 21.13
-  * Summovie 1.0.2
-  * Unblur 1.0.2
-  * Xmipp 3.19.04
-  * chimera 1.13.1
+  * Gctf 1.18
+  * Gautomatch 0.56
+  * Eman 2.91
+  * Motioncor2 1.4.2
+  * Relion 3.1.2
+  * Spider 26.06
+  * Xmipp 3.21.06.1
+  * chimeraX 1.2.5
+  * cryolo 1.7.6
+  * cryosparc2 3.2.0
 
-* Nvidia driver version 384
-* CUDA 8.0
-* TurboVNC 2.1.1 on
-* VirtualGL 2.5.2
+* Nvidia driver version 460
+* CUDA 10.1
+* TurboVNC 2.2.6 on
+* anaconda3 
 * noVNC
 
 Managing instances
@@ -100,16 +97,16 @@ Managing instances
 * Login to `AWS console <https://aws.amazon.com/>`_
 * Go to EC2 services
 * Select Instances on the left side menu
-* Select the instance and either click on ‘Actions’ or Right-click on the instance and select Instance State and the action required.
+* Select the instance, click on ‘Instance state’ and the action required.
 
   * Stop: the instance is turned off, but everything related to it is kept (IP address change unless you use Elastic IPs). You can power it on again with the Start command. While an instance is off, you are only charged for disk use.
   * Terminate: the instance is deleted, and all non-permanent storage disappear. You should make sure all your data is safe before terminating an instance.
-  * Change instance type: This can be useful when running EM workflows since one could start with a small machine for the preprocessing steps, or even with a GPU machine if needed, and then switch to a more powerful machine with higher memory for the classification and refinement steps. In order to change the type the VM needs to be stopped first, then click on "Options" and select "Instance settings / Change instance type".
+  * Change instance type: This can be useful when running EM workflows since one could start with a small machine for the preprocessing steps, or even with a GPU machine if needed, and then switch to a more powerful machine with higher memory for the classification and refinement steps. In order to change the type the VM needs to be stopped first, then click on "Actions" and select "Instance settings / Change instance type".
 
 Using external EBS volumes
 ==========================
 
-ScipionCloud image has a default disk of 30 Gb, which is clearly insufficient for storing real processing EM data.
+Latest ScipionCloud image has a default disk of 75 Gb, which is clearly insufficient for storing real processing EM data.
 When creating a Virtual Machine through the EC2 console, it is possible to specify a bigger disk for the VM, but you have to take into account that this disk cannot be resized and will disappear when the VM is terminated.
 To avoid this problem it is a good practise to work with external EBS volumes attached to the VM, which can be used to store data and/or Scipion projects.
 
@@ -125,7 +122,7 @@ Then log in the machine and follow these instructions:
 
 * Mount the EBS disk
 
-There is a /data folder where you could mount the disk but it is up to you to decide the mounting point.
+Create the folder where you would like to mount the disk (for instance /data).
 
 .. code-block:: bash
 
@@ -139,53 +136,23 @@ Then we can proceed with the same instructions as explained above.
 
 Costs on AWS
 ============
-
-The following prices are valid on April 2018 on the AWS Ireland region and are tax free. 
-Updated prices can be found `here <https://aws.amazon.com/ec2/pricing/on-demand/>`_.
-
 Using ScipionCloud on AWS will have the following costs:
 
 Computing (instances)
 ----------------------
-Current processing is normally done using GPUs so we present here prices for GPU instance types on AWS.
-
-AWS have different families of GPU instance types (P2, P3 and G3) which features and prices are shown below:
-
-.. figure:: /docs/images/cloud/AWS-P2-prices.jpg
-   :align: center
-   :width: 500
-   :alt: AWS - P2 types
-
-.. figure:: /docs/images/cloud/AWS-G3-prices.jpg
-   :align: center
-   :width: 500
-   :alt: AWS - G3 types
-
-ScipionCloud has been extensively tested on P2 instances. G3 instances are
-optimized for graphics but its features and compute capability allow them also
-to be used to process with Scipion.
-
-AWS EC2 allows to change type of an existing instance (it should be stopped first).
-This can be used to choose the best type for each step of the processing
-workflow although it should be carefully evaluated if the time waisted doing
-this compensate the performance gained on the step. For instance, if a GPU
-type is needed for ``movie alignment`` and then for ``classification``,
-``CTF estimation`` and ``automatic picking`` could be done on a non GPU machine to
-save some money, but it might not be worth the trouble to do it. However,
-``manual picking`` which could be a tedious and long task could be done on a less
-powerful (and cheaper) machine, or even locally.
+AWS instance types prices can be found `here <https://aws.amazon.com/ec2/pricing/on-demand/>`_. This is charged by minute only when the instance is running.
 
 Storage
 -------
 As described above on the `Using external EBS volumes` section, it is recommended
 to attach an EBS volume big enough to store raw data and project.
 
-EBS storage costs 0.11$ per GB which makes around 113$ per TB per month.
+EBS storage costs 0.11$ per GB (2021) which makes around 113$ per TB per month.
 
 If the amount of movies to be processed require many TBs there are some
 strategies to reduce the bill:
 
-* Process movies locally and transfer only micrographs to the cloud
+* Process movies locally and transfer only micrographs to the cloud.
 * Transfer movies to a big EBS but as soon as they are aligned use a smaller EBS disk to continue processing (you could even have two disks, one for raw data and one for project and discard the first one when movies are aligned). You then should be certain that movies will not be required afterwards or you will have to transfer them again (it could compensate anyway if they are needed only at the end of processing). Another possibility will be to move movies from EBS to S3 or Glacier (another cheaper storage on AWS) while you do not need them and retrieve them if needed again.
 * Process on streaming: use Scipion streaming mode to process movies as they are transferred. You should take care of removing movies from disk as they are processed since Scipion will not do it.
 
@@ -194,11 +161,12 @@ Transfer data
 AWS does not charge for uploading data into the cloud but it does for downloading
 data from it.
 First GB per month is free but then it costs 0.09$ per GB (up to 10 TB,
-then price slowly decrease).
+then price slowly decrease). (2021)
 
 For a more detailed evaluation of costs and performance you could have a look at
-paper [ScipionCloud: An integrative and interactive gateway for large scale
-cryo electron microscopy image processing on commercial and academic clouds.](https://doi.org/10.1016/j.jsb.2017.06.004)
+paper `ScipionCloud: An integrative and interactive gateway for large scale
+cryo electron microscopy image processing on commercial and academic clouds <https://doi.org/10.1016/j.jsb.2017.06.004>`_.
 
-`[HPC clusters] <https://github.com/I2PC/scipion/wiki/Scipion-HPC-clusters-on-AWS>`_
+Also, AWS has the following `tool <https://calculator.s3.amazonaws.com/index.html>`_ to estimate your costs beforehand.
+
 -------------------------------------------------------------------------------------
