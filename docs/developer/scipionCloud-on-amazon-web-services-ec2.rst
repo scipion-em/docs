@@ -22,20 +22,17 @@ on `AWS instance types <https://aws.amazon.com/ec2/instance-types/>`_.
 * Launch a ScipionCloud instance: Enter "Instances" panel, then click "Launch instance". Follow the wizard filling in the required information:
 
   * Choose the ScipionCloud AMI: in *"Community AMIs"* section, search for "scipion" and find the latest release. The ScipionCloud AMI is currently available only in Ireland region but if you would like to use it in a different region contact us and we will make a copy there.
-  * Choose the instance type, according to how much resources (CPU, RAM, GPU, disk) you want to use. This AMI has been tested on g4dn types, other GPUs instances types might cause problems.
-  Regarding disk, you can use an integrated SSD disk, or attach an EBS Volume. Press "Next: Configure instance details"
-  * Configure instance:
-
-    * Number of instances: 1
-    * Shutdown behavior: stop
-
+  * Choose the instance type, according to how much resources (CPU, RAM, GPU, disk) you want to use. This AMI has been tested on g4dn types, other GPUs instances types might not work straight away. Contact us if you need advise on this.
+  Regarding disk, you can use an integrated SSD disk, or attach an EBS Volume. Press "Next: Configure instance details". 
+  
+  * Configure instance: leave everything as default unless you know what you are doing.
   * Add storage: specify the disk size of the system disk (that you can use also for data). Here you can also create a new volume of arbitrary size.
   * Tag instance: Add tag 'Name' and give a descriptive name.
   * Configure security group: To use the remote desktop (web based), you need to open ports 80 (HTTP) and 22 (SSH):
   * Click "Review and Launch", then "Launch"
-* In the "Select an existing key pair" panel, select "Create new key pair", type the key pair name and click "Download" key pair. Finally, click "Launch instances" and then "View instances"
+* In the "Select an existing key pair or create a new key pair" panel, select "Create new key pair" (unless you have your own), type the key pair name and click "Download" key pair. Finally, click "Launch instances" and then "View instances"
 
-Select your instance within the list of instances, and copy its public IP address. You will need this address to connect to the instance, whether via ssh or Remote Desktop.
+Select your instance within the list of instances, and copy its public IP address. You will need this address to connect to the instance, whether via ssh or Remote Desktop (VNC).
 
 Wait until the instance is initialized.
 
@@ -49,12 +46,9 @@ First, connect with SSH to your instance:
     chmod 600 path/to/key.pem
     ssh -i path/to/key.pem ubuntu@12.34.56.78 #(use your IP)
 
-There is a performance problem the first time an instance is used
-(explanation `[here] <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-initialize.html>`_). If you want to avoid it you could follow instructions there.
+Instances created from AMIs need some time to 'warm up' so performance might be poor at the begining (explanation `[here] <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-initialize.html>`_). If you want to avoid it you could follow instructions there.
 
 Access the remote desktop from a browser with the URL and password provided in the console.
-
-If you see a "Your connection is not secure" warning, click on "Advanced", "Add exception" and "Confirm Security Exception".
 
 This is how the remote desktop will look like:
 
