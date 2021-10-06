@@ -209,30 +209,40 @@
 <span class="c1"># **************************************************************************</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">os</span>
 
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">VERSION_2_0</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">getExt</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Float</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span>
                                         <span class="n">LEVEL_ADVANCED</span><span class="p">)</span>
+
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">ProtAnalysis3D</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="n">Float</span>
 <span class="kn">from</span> <span class="nn">pwem.emlib.image</span> <span class="kn">import</span> <span class="n">ImageHandler</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">getExt</span>
-<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">Volume</span>
-<span class="kn">from</span> <span class="nn">tomo.objects</span> <span class="kn">import</span> <span class="n">Tomogram</span>
 <span class="kn">import</span> <span class="nn">pwem.emlib.metadata</span> <span class="k">as</span> <span class="nn">md</span>
+<span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">EMProtocol</span>
+
+<span class="kn">from</span> <span class="nn">tomo.protocols</span> <span class="kn">import</span> <span class="n">ProtTomoBase</span>
+<span class="kn">from</span> <span class="nn">tomo.objects</span> <span class="kn">import</span> <span class="n">Tomogram</span>
 
 <span class="n">MONOTOMO_METHOD_URL</span> <span class="o">=</span> <span class="s1">&#39;http://github.com/I2PC/scipion/wiki/XmippProtMonoTomo&#39;</span>
-<span class="n">OUTPUT_RESOLUTION_FILE</span> <span class="o">=</span> <span class="s1">&#39;resolutionMap&#39;</span>
-<span class="n">FN_MEAN_VOL</span> <span class="o">=</span> <span class="s1">&#39;meanvol&#39;</span>
-<span class="n">METADATA_MASK_FILE</span> <span class="o">=</span> <span class="s1">&#39;metadataresolutions&#39;</span>
-<span class="n">FN_METADATA_HISTOGRAM</span> <span class="o">=</span> <span class="s1">&#39;mdhist&#39;</span>
+<span class="n">TOMOGRAM_RESOLUTION_FILE</span> <span class="o">=</span> <span class="s1">&#39;localResolutionTomogram_&#39;</span>
+<span class="n">FULL_TOMOGRAM_FILE</span> <span class="o">=</span> <span class="s1">&#39;fullTomogram_&#39;</span>
+<span class="n">TOMOGRAMFOLDER</span> <span class="o">=</span> <span class="s1">&#39;tomo_&#39;</span>
+<span class="n">HISTOGRAM_RESOLUTION_FILE</span> <span class="o">=</span> <span class="s1">&#39;histogram_resolution_&#39;</span>
 <span class="n">BINARY_MASK</span> <span class="o">=</span> <span class="s1">&#39;binarymask&#39;</span>
-<span class="n">FN_GAUSSIAN_MAP</span> <span class="o">=</span> <span class="s1">&#39;gaussianfilter&#39;</span>
+<span class="n">MRCEXT</span> <span class="o">=</span> <span class="s1">&#39;.mrc&#39;</span>
+<span class="n">XMDEXT</span> <span class="o">=</span> <span class="s1">&#39;.xmd&#39;</span>
 
 
-<div class="viewcode-block" id="XmippProtMonoTomo"><a class="viewcode-back" href="../../../api/xmipptomo/xmipptomo.protocols.protocol_resolution_local_monotomo.html#xmipptomo.protocols.protocol_resolution_local_monotomo.XmippProtMonoTomo">[docs]</a><span class="k">class</span> <span class="nc">XmippProtMonoTomo</span><span class="p">(</span><span class="n">ProtAnalysis3D</span><span class="p">):</span>
+<div class="viewcode-block" id="XmippProtMonoTomo"><a class="viewcode-back" href="../../../api/xmipptomo/xmipptomo.protocols.protocol_resolution_local_monotomo.html#xmipptomo.protocols.protocol_resolution_local_monotomo.XmippProtMonoTomo">[docs]</a><span class="k">class</span> <span class="nc">XmippProtMonoTomo</span><span class="p">(</span><span class="n">EMProtocol</span><span class="p">,</span> <span class="n">ProtTomoBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Given a tomogram the protocol assigns local resolutions to each voxel of the tomogram.</span>
+<span class="sd">    To do that, thje protocol makes use of two half tomograms, called odd and even.</span>
+<span class="sd">    These tomograms are reconstructed with the same alignment parameter but using the</span>
+<span class="sd">    half of the data. For instance, the odd/even-images of the tilt series, or much</span>
+<span class="sd">    better usign the odd/even frames of the movies (recommended). The result is a</span>
+<span class="sd">    tomogram with the values of local resolution.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;local Resolution MonoTomo&#39;</span>
     <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_2_0</span>
@@ -246,15 +256,15 @@
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Input&#39;</span><span class="p">)</span>
 
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;half1&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;Tomogram&#39;</span><span class="p">,</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;oddTomograms&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;SetOfTomograms&#39;</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Odd tomogram&quot;</span><span class="p">,</span> <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select a volume for determining its &#39;</span>
-                           <span class="s1">&#39;local resolution.&#39;</span><span class="p">)</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select the odd tomogram for determining the &#39;</span>
+                           <span class="s1">&#39;local resolution tomogram.&#39;</span><span class="p">)</span>
 
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;half2&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;Tomogram&#39;</span><span class="p">,</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;evenTomograms&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;SetOfTomograms&#39;</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Even Tomogram&quot;</span><span class="p">,</span> <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select a second volume for determining a &#39;</span>
-                           <span class="s1">&#39;local resolution.&#39;</span><span class="p">)</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select the even tomogram for determining the  &#39;</span>
+                           <span class="s1">&#39;local resolution tomogram.&#39;</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;useMask&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Use mask?&quot;</span><span class="p">,</span>
@@ -270,180 +280,168 @@
         <span class="n">group</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">addGroup</span><span class="p">(</span><span class="s1">&#39;Extra parameters&#39;</span><span class="p">)</span>
         <span class="n">line</span> <span class="o">=</span> <span class="n">group</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="s1">&#39;Resolution Range (Å)&#39;</span><span class="p">,</span>
                              <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Resolution range (and step in expert mode) &quot;</span>
-                                  <span class="s2">&quot;to evaluate the local resolution.&quot;</span><span class="p">)</span>
+                                  <span class="s2">&quot;to analyze the local resolution.&quot;</span><span class="p">)</span>
 
         <span class="n">group</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;significance&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
                        <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
                        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Significance&quot;</span><span class="p">,</span>
-                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Relution is computed using hipothesis tests, &#39;</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Relution is computed using hypothesis tests, &#39;</span>
                             <span class="s1">&#39;this value determines the significance of that test&#39;</span><span class="p">)</span>
 
         <span class="n">line</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;minRes&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;High&#39;</span><span class="p">)</span>
         <span class="n">line</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;maxRes&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Low&#39;</span><span class="p">)</span>
-        <span class="n">line</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;stepSize&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;stepSize&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
                       <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Step&#39;</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
     <span class="c1"># --------------------------- INSERT steps functions --------------------------------------------</span>
 
-    <span class="k">def</span> <span class="nf">_createFilenameTemplates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Centralize how files are called &quot;&quot;&quot;</span>
-        <span class="n">myDict</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="n">FN_MEAN_VOL</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;mean_Tomogram.mrc&#39;</span><span class="p">),</span>
-            <span class="n">OUTPUT_RESOLUTION_FILE</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;TomogramLocalResolution.mrc&#39;</span><span class="p">),</span>
-            <span class="n">METADATA_MASK_FILE</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;mask_data.xmd&#39;</span><span class="p">),</span>
-            <span class="n">FN_METADATA_HISTOGRAM</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;hist.xmd&#39;</span><span class="p">),</span>
-            <span class="n">BINARY_MASK</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;binarized_mask.mrc&#39;</span><span class="p">),</span>
-            <span class="n">FN_GAUSSIAN_MAP</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;gaussianfilted.mrc&#39;</span><span class="p">),</span>
-        <span class="p">}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_updateFilenamesDict</span><span class="p">(</span><span class="n">myDict</span><span class="p">)</span>
-
     <span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Convert input into xmipp Metadata format</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_createFilenameTemplates</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;convertInputStep&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;resolutionMonoTomoStep&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_res_init</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">minRes</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_res_init</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">maxRes</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">tom_odd</span><span class="p">,</span> <span class="n">tom_even</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oddTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">evenTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="n">tom_odd</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span> <span class="o">==</span> <span class="n">tom_even</span><span class="o">.</span><span class="n">getObjId</span><span class="p">():</span>
+                <span class="n">tomId</span> <span class="o">=</span> <span class="n">tom_odd</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
+                <span class="c1">#self._insertFunctionStep(&#39;convertInputStep&#39;)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;resolutionMonoTomoStep&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">oddTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">evenTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">tomId</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s2">&quot;createHistrogram&quot;</span><span class="p">,</span> <span class="n">tomId</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;createOutputStep&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s2">&quot;createHistrogram&quot;</span><span class="p">)</span>
+
 
 <div class="viewcode-block" id="XmippProtMonoTomo.convertInputStep"><a class="viewcode-back" href="../../../api/xmipptomo/xmipptomo.protocols.protocol_resolution_local_monotomo.html#xmipptomo.protocols.protocol_resolution_local_monotomo.XmippProtMonoTomo.convertInputStep">[docs]</a>    <span class="k">def</span> <span class="nf">convertInputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Read the input volume.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This function takes the input tomograms and if their extension is not mrc,</span>
+<span class="sd">         then the function convert them into mrc format.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">vol1Fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">half1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">vol2Fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">half2</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
         <span class="n">extVol1</span> <span class="o">=</span> <span class="n">getExt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vol1Fn</span><span class="p">)</span>
         <span class="n">extVol2</span> <span class="o">=</span> <span class="n">getExt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vol2Fn</span><span class="p">)</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">extVol1</span> <span class="o">==</span> <span class="s1">&#39;.mrc&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">extVol1</span> <span class="o">==</span> <span class="s1">&#39;.map&#39;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">vol1Fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vol1Fn</span> <span class="o">+</span> <span class="s1">&#39;:mrc&#39;</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">extVol2</span> <span class="o">==</span> <span class="s1">&#39;.mrc&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">extVol2</span> <span class="o">==</span> <span class="s1">&#39;.map&#39;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">vol2Fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vol2Fn</span> <span class="o">+</span> <span class="s1">&#39;:mrc&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">vol2Fn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vol2Fn</span> <span class="o">+</span> <span class="s1">&#39;:mrc&#39;</span></div>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">useMask</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-            <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">Mask</span><span class="o">.</span><span class="n">hasValue</span><span class="p">()):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">ifNomask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vol1Fn</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">maskFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Mask</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
 
-            <span class="n">extMask</span> <span class="o">=</span> <span class="n">getExt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">maskFn</span><span class="p">)</span>
+<div class="viewcode-block" id="XmippProtMonoTomo.resolutionMonoTomoStep"><a class="viewcode-back" href="../../../api/xmipptomo/xmipptomo.protocols.protocol_resolution_local_monotomo.html#xmipptomo.protocols.protocol_resolution_local_monotomo.XmippProtMonoTomo.resolutionMonoTomoStep">[docs]</a>    <span class="k">def</span> <span class="nf">resolutionMonoTomoStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">oddTomos</span><span class="p">,</span> <span class="n">evenTomos</span><span class="p">,</span> <span class="n">tomId</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        This function estimates the local resolution from the oddTomo and the evenTomo.</span>
+<span class="sd">        The output is generated in pseudo streaming. It is not a full streaming due to</span>
+<span class="sd">        the input is not updated during the execution.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vol1Fn</span> <span class="o">=</span> <span class="n">oddTomos</span><span class="p">[</span><span class="n">tomId</span><span class="p">]</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vol2Fn</span> <span class="o">=</span> <span class="n">evenTomos</span><span class="p">[</span><span class="n">tomId</span><span class="p">]</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
 
-            <span class="k">if</span> <span class="p">(</span><span class="n">extMask</span> <span class="o">==</span> <span class="s1">&#39;.mrc&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">extMask</span> <span class="o">==</span> <span class="s1">&#39;.map&#39;</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">maskFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maskFn</span> <span class="o">+</span> <span class="s1">&#39;:mrc&#39;</span>
+        <span class="c1">#Defining the output folder</span>
+        <span class="n">tomoPath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">TOMOGRAMFOLDER</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tomId</span><span class="p">))</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">tomoPath</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Mask</span><span class="o">.</span><span class="n">hasValue</span><span class="p">():</span>
-                <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39; -i </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">maskFn</span>
-                <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; -o </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">BINARY_MASK</span><span class="p">)</span>
-                <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --select below </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="mf">0.5</span>  <span class="c1"># Mask threshold = 0.5 self.maskthreshold.get()</span>
-                <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --substitute binarize&#39;</span>
+        <span class="c1">#Defining outfiles</span>
+        <span class="n">outputlocalResTomoFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createOutputPath</span><span class="p">(</span><span class="n">TOMOGRAM_RESOLUTION_FILE</span><span class="p">,</span> <span class="n">tomId</span><span class="p">,</span> <span class="n">MRCEXT</span><span class="p">)</span>
+        <span class="n">fullTomogramName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createOutputPath</span><span class="p">(</span><span class="n">FULL_TOMOGRAM_FILE</span><span class="p">,</span> <span class="n">tomId</span><span class="p">,</span> <span class="n">MRCEXT</span><span class="p">)</span>
 
-                <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_threshold&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="XmippProtMonoTomo.ifNomask"><a class="viewcode-back" href="../../../api/xmipptomo/xmipptomo.protocols.protocol_resolution_local_monotomo.html#xmipptomo.protocols.protocol_resolution_local_monotomo.XmippProtMonoTomo.ifNomask">[docs]</a>    <span class="k">def</span> <span class="nf">ifNomask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fnVol</span><span class="p">):</span>
-        <span class="n">xdim</span><span class="p">,</span> <span class="n">_ydim</span><span class="p">,</span> <span class="n">_zdim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">half1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getDim</span><span class="p">()</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39; -i </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">fnVol</span>
-        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; -o </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">FN_GAUSSIAN_MAP</span><span class="p">)</span>
-        <span class="n">setsize</span> <span class="o">=</span> <span class="mf">0.02</span> <span class="o">*</span> <span class="n">xdim</span>
-        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --fourier real_gaussian </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">setsize</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_filter&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-        <span class="n">img</span> <span class="o">=</span> <span class="n">ImageHandler</span><span class="p">()</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">FN_GAUSSIAN_MAP</span><span class="p">))</span>
-        <span class="n">imgData</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span>
-        <span class="n">max_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">imgData</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.05</span>
-
-        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39; -i </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">FN_GAUSSIAN_MAP</span><span class="p">)</span>
-        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --select below </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">max_val</span>
-        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --substitute binarize&#39;</span>
-        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; -o </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">BINARY_MASK</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_threshold&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">maskFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">BINARY_MASK</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="XmippProtMonoTomo.maskRadius"><a class="viewcode-back" href="../../../api/xmipptomo/xmipptomo.protocols.protocol_resolution_local_monotomo.html#xmipptomo.protocols.protocol_resolution_local_monotomo.XmippProtMonoTomo.maskRadius">[docs]</a>    <span class="k">def</span> <span class="nf">maskRadius</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-
-        <span class="n">xdim</span><span class="p">,</span> <span class="n">_ydim</span><span class="p">,</span> <span class="n">_zdim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">half1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getDim</span><span class="p">()</span>
-        <span class="n">xdim</span> <span class="o">=</span> <span class="n">xdim</span> <span class="o">*</span> <span class="mf">0.5</span>
-
-        <span class="k">return</span> <span class="n">xdim</span></div>
-
-<div class="viewcode-block" id="XmippProtMonoTomo.resolutionMonoTomoStep"><a class="viewcode-back" href="../../../api/xmipptomo/xmipptomo.protocols.protocol_resolution_local_monotomo.html#xmipptomo.protocols.protocol_resolution_local_monotomo.XmippProtMonoTomo.resolutionMonoTomoStep">[docs]</a>    <span class="k">def</span> <span class="nf">resolutionMonoTomoStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Number of frequencies</span>
-        <span class="n">max_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxRes</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stepSize</span><span class="o">.</span><span class="n">hasValue</span><span class="p">():</span>
             <span class="n">freq_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stepSize</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">freq_step</span> <span class="o">=</span> <span class="mf">0.25</span>
-
-        <span class="n">xdim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maskRadius</span><span class="p">()</span>
+            <span class="n">freq_step</span> <span class="o">=</span> <span class="mf">0.5</span>
 
         <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39; --vol </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">vol1Fn</span>
         <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --vol2 </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">vol2Fn</span>
-        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --meanVol </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">FN_MEAN_VOL</span><span class="p">)</span>
 
+        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --meanVol </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">fullTomogramName</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">useMask</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
             <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --mask </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">BINARY_MASK</span><span class="p">)</span>
-
-        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --sampling_rate </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">half1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
+        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --sampling_rate </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">oddTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
         <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --minRes </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">minRes</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --maxRes </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">max_</span>
+        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --maxRes </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxRes</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --step </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">freq_step</span>
-        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; -o </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">OUTPUT_RESOLUTION_FILE</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; -o </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">outputlocalResTomoFn</span>
         <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --significance </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">significance</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_resolution_monotomo&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_resolution_monotomo&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
 
-<div class="viewcode-block" id="XmippProtMonoTomo.createHistrogram"><a class="viewcode-back" href="../../../api/xmipptomo/xmipptomo.protocols.protocol_resolution_local_monotomo.html#xmipptomo.protocols.protocol_resolution_local_monotomo.XmippProtMonoTomo.createHistrogram">[docs]</a>    <span class="k">def</span> <span class="nf">createHistrogram</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">outputLocalResolutionSetOfTomograms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getOutputLocalResolutionSetOfTomograms</span><span class="p">()</span>
+
+        <span class="n">newTomogram</span> <span class="o">=</span> <span class="n">Tomogram</span><span class="p">()</span>
+        <span class="n">tomo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oddTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">()[</span><span class="n">tomId</span><span class="p">]</span>
+        <span class="n">newTomogram</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="n">tomo</span><span class="p">)</span>
+        <span class="n">newTomogram</span><span class="o">.</span><span class="n">copyAttributes</span><span class="p">(</span><span class="n">tomo</span><span class="p">,</span> <span class="s1">&#39;_origin&#39;</span><span class="p">)</span>
+
+        <span class="n">newTomogram</span><span class="o">.</span><span class="n">setLocation</span><span class="p">(</span><span class="n">outputlocalResTomoFn</span><span class="p">)</span>
+
+        <span class="n">newTomogram</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">tomo</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
+        <span class="n">outputLocalResolutionSetOfTomograms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newTomogram</span><span class="p">)</span>
+        <span class="n">outputLocalResolutionSetOfTomograms</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">newTomogram</span><span class="p">)</span>
+        <span class="n">outputLocalResolutionSetOfTomograms</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="XmippProtMonoTomo.createOutputPath"><a class="viewcode-back" href="../../../api/xmipptomo/xmipptomo.protocols.protocol_resolution_local_monotomo.html#xmipptomo.protocols.protocol_resolution_local_monotomo.XmippProtMonoTomo.createOutputPath">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">tomId</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        This function takes a filename as basis, and add the id as suffix and completes</span>
+<span class="sd">        the path with an extension. Exmaple: filename = &#39;tomogram_&#39; id = 5, ext = &#39;.mrc&#39;</span>
+<span class="sd">        the output will be tomogram_5.mrc</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">tomoPath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">TOMOGRAMFOLDER</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tomId</span><span class="p">))</span>
+        <span class="n">fnPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tomoPath</span><span class="p">,</span> <span class="n">filename</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">tomId</span><span class="p">)</span><span class="o">+</span><span class="n">ext</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">fnPath</span></div>
+
+<div class="viewcode-block" id="XmippProtMonoTomo.createHistrogram"><a class="viewcode-back" href="../../../api/xmipptomo/xmipptomo.protocols.protocol_resolution_local_monotomo.html#xmipptomo.protocols.protocol_resolution_local_monotomo.XmippProtMonoTomo.createHistrogram">[docs]</a>    <span class="k">def</span> <span class="nf">createHistrogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tomId</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        The histogram of local resolution values of the output tomogram is computed</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">tomId</span><span class="p">)</span>
+        <span class="n">fnLocRes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createOutputPath</span><span class="p">(</span><span class="n">TOMOGRAM_RESOLUTION_FILE</span><span class="p">,</span> <span class="n">tomId</span><span class="p">,</span> <span class="n">MRCEXT</span><span class="p">)</span>
+        <span class="n">fnHist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createOutputPath</span><span class="p">(</span><span class="n">HISTOGRAM_RESOLUTION_FILE</span><span class="p">,</span> <span class="n">tomId</span><span class="p">,</span> <span class="n">XMDEXT</span><span class="p">)</span>
+        <span class="n">m</span><span class="p">,</span> <span class="n">M</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMinMax</span><span class="p">(</span><span class="n">fnLocRes</span><span class="p">)</span>
 
         <span class="n">freq_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stepSize</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stepSize</span><span class="o">.</span><span class="n">hasValue</span><span class="p">()</span> <span class="k">else</span> <span class="mi">10</span>
 
-        <span class="n">M</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_res_init</span><span class="p">)</span>
-        <span class="n">m</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_res_init</span><span class="p">)</span>
         <span class="n">range_res</span> <span class="o">=</span> <span class="nb">round</span><span class="p">((</span><span class="n">M</span> <span class="o">-</span> <span class="n">m</span><span class="p">)</span> <span class="o">/</span> <span class="n">freq_step</span><span class="p">)</span>
 
-        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39; -i </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">OUTPUT_RESOLUTION_FILE</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39; -i </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">fnLocRes</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">useMask</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
             <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --mask binary_file </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">BINARY_MASK</span><span class="p">)</span>
 
         <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --steps </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">range_res</span>
-        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --range </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_res_init</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-                                      <span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_res_init</span><span class="o">.</span><span class="n">get</span><span class="p">())</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">freq_step</span><span class="p">)))</span>
-        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; -o </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">FN_METADATA_HISTOGRAM</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --range </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">M</span><span class="o">-</span><span class="n">freq_step</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; -o </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">fnHist</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_image_histogram&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="XmippProtMonoTomo.readMetaDataOutput"><a class="viewcode-back" href="../../../api/xmipptomo/xmipptomo.protocols.protocol_resolution_local_monotomo.html#xmipptomo.protocols.protocol_resolution_local_monotomo.XmippProtMonoTomo.readMetaDataOutput">[docs]</a>    <span class="k">def</span> <span class="nf">readMetaDataOutput</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">mData</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">METADATA_MASK_FILE</span><span class="p">))</span>
-        <span class="n">NvoxelsOriginalMask</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mData</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_COUNT</span><span class="p">,</span> <span class="n">mData</span><span class="o">.</span><span class="n">firstObject</span><span class="p">()))</span>
-        <span class="n">NvoxelsOutputMask</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mData</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_COUNT2</span><span class="p">,</span> <span class="n">mData</span><span class="o">.</span><span class="n">firstObject</span><span class="p">()))</span>
-        <span class="n">nvox</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span>
-            <span class="p">((</span><span class="n">NvoxelsOriginalMask</span> <span class="o">-</span> <span class="n">NvoxelsOutputMask</span><span class="p">)</span> <span class="o">/</span> <span class="n">NvoxelsOriginalMask</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">nvox</span></div>
-
 <div class="viewcode-block" id="XmippProtMonoTomo.getMinMax"><a class="viewcode-back" href="../../../api/xmipptomo/xmipptomo.protocols.protocol_resolution_local_monotomo.html#xmipptomo.protocols.protocol_resolution_local_monotomo.XmippProtMonoTomo.getMinMax">[docs]</a>    <span class="k">def</span> <span class="nf">getMinMax</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">imageFile</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        This function computes the maximum and minimum values of a tomogram given by an</span>
+<span class="sd">        imageFile</span>
+<span class="sd">        &#39;&#39;&#39;</span>
         <span class="n">img</span> <span class="o">=</span> <span class="n">ImageHandler</span><span class="p">()</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">imageFile</span><span class="p">)</span>
         <span class="n">imgData</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span>
         <span class="n">min_res</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">amin</span><span class="p">(</span><span class="n">imgData</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span>
         <span class="n">max_res</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">imgData</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span>
         <span class="k">return</span> <span class="n">min_res</span><span class="p">,</span> <span class="n">max_res</span></div>
 
+<div class="viewcode-block" id="XmippProtMonoTomo.getOutputLocalResolutionSetOfTomograms"><a class="viewcode-back" href="../../../api/xmipptomo/xmipptomo.protocols.protocol_resolution_local_monotomo.html#xmipptomo.protocols.protocol_resolution_local_monotomo.XmippProtMonoTomo.getOutputLocalResolutionSetOfTomograms">[docs]</a>    <span class="k">def</span> <span class="nf">getOutputLocalResolutionSetOfTomograms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        This function degines the output of the protocol</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;outputLocalResolutionSetOfTomograms&quot;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outputLocalResolutionSetOfTomograms</span><span class="o">.</span><span class="n">enableAppend</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outputLocalResolutionSetOfTomograms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfTomograms</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;LocalResolution&#39;</span><span class="p">)</span>
+            <span class="n">outputLocalResolutionSetOfTomograms</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oddTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+            <span class="n">samplingRate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">oddTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
+            <span class="n">outputLocalResolutionSetOfTomograms</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">samplingRate</span><span class="p">)</span>
+            <span class="n">outputLocalResolutionSetOfTomograms</span><span class="o">.</span><span class="n">setStreamState</span><span class="p">(</span><span class="n">Set</span><span class="o">.</span><span class="n">STREAM_OPEN</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputLocalResolutionSetOfTomograms</span><span class="o">=</span><span class="n">outputLocalResolutionSetOfTomograms</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">oddTomograms</span><span class="p">,</span> <span class="n">outputLocalResolutionSetOfTomograms</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputLocalResolutionSetOfTomograms</span></div>
+
 <div class="viewcode-block" id="XmippProtMonoTomo.createOutputStep"><a class="viewcode-back" href="../../../api/xmipptomo/xmipptomo.protocols.protocol_resolution_local_monotomo.html#xmipptomo.protocols.protocol_resolution_local_monotomo.XmippProtMonoTomo.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">volume</span> <span class="o">=</span> <span class="n">Tomogram</span><span class="p">()</span>
-        <span class="n">volume</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">OUTPUT_RESOLUTION_FILE</span><span class="p">))</span>
-
-        <span class="n">volume</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">resolution_Volume</span><span class="o">=</span><span class="n">volume</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1</span><span class="p">,</span> <span class="n">volume</span><span class="p">)</span>
-
-        <span class="c1"># Setting the min max for the summary</span>
-        <span class="n">imageFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">OUTPUT_RESOLUTION_FILE</span><span class="p">)</span>
-        <span class="n">min_</span><span class="p">,</span> <span class="n">max_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMinMax</span><span class="p">(</span><span class="n">imageFile</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">min_res_init</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">min_</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">max_res_init</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">max_</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_res_init</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_res_init</span><span class="p">)</span></div>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        This function closes the generated output of the protocol</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getOutputLocalResolutionSetOfTomograms</span><span class="p">()</span><span class="o">.</span><span class="n">setStreamState</span><span class="p">(</span><span class="n">Set</span><span class="o">.</span><span class="n">STREAM_CLOSED</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">()</span></div>
 
     <span class="c1"># --------------------------- INFO functions ------------------------------</span>
 
@@ -456,9 +454,10 @@
 
     <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">summary</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Highest resolution </span><span class="si">%.2f</span><span class="s2"> Å,   &quot;</span>
-                       <span class="s2">&quot;Lowest resolution </span><span class="si">%.2f</span><span class="s2"> Å. </span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_res_init</span><span class="p">,</span>
-                                                         <span class="bp">self</span><span class="o">.</span><span class="n">max_res_init</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;min_res_init&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;max_res_init&#39;</span><span class="p">):</span>
+            <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Highest resolution </span><span class="si">%.2f</span><span class="s2"> Å,   &quot;</span>
+                           <span class="s2">&quot;Lowest resolution </span><span class="si">%.2f</span><span class="s2"> Å. </span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">min_res_init</span><span class="p">,</span>
+                                                             <span class="bp">self</span><span class="o">.</span><span class="n">max_res_init</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">summary</span>
 
     <span class="k">def</span> <span class="nf">_citations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
