@@ -207,11 +207,12 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 
+<span class="kn">from</span> <span class="nn">tifffile</span> <span class="kn">import</span> <span class="n">TiffFile</span>
+<span class="kn">import</span> <span class="nn">xml.etree.ElementTree</span> <span class="k">as</span> <span class="nn">ET</span>
+
 
 <div class="viewcode-block" id="parseMovieAlignment2"><a class="viewcode-back" href="../../api/motioncorr/motioncorr.convert.html#motioncorr.convert.parseMovieAlignment2">[docs]</a><span class="k">def</span> <span class="nf">parseMovieAlignment2</span><span class="p">(</span><span class="n">logFile</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Get global frame shifts relative to the first frame</span>
-<span class="sd">    (for the plots)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Get global frame shifts relative to the first frame. &quot;&quot;&quot;</span>
     <span class="n">first</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">xshifts</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">yshifts</span> <span class="o">=</span> <span class="p">[]</span>
@@ -225,6 +226,10 @@
                 <span class="c1"># take the shifts from the last two columns of the line</span>
                 <span class="n">xshifts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
                 <span class="n">yshifts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+
+    <span class="n">xoff</span><span class="p">,</span> <span class="n">yoff</span> <span class="o">=</span> <span class="o">-</span><span class="n">xshifts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="o">-</span><span class="n">yshifts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">xshifts</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="o">+</span> <span class="n">xoff</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">xshifts</span><span class="p">]</span>
+    <span class="n">yshifts</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span> <span class="o">+</span> <span class="n">yoff</span> <span class="k">for</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">yshifts</span><span class="p">]</span>
 
     <span class="k">return</span> <span class="n">xshifts</span><span class="p">,</span> <span class="n">yshifts</span></div>
 
@@ -241,6 +246,47 @@
         <span class="n">fn</span> <span class="o">+=</span> <span class="s1">&#39;:ems&#39;</span>
 
     <span class="k">return</span> <span class="n">fn</span></div>
+
+
+<div class="viewcode-block" id="parseEERDefects"><a class="viewcode-back" href="../../api/motioncorr/motioncorr.convert.html#motioncorr.convert.parseEERDefects">[docs]</a><span class="k">def</span> <span class="nf">parseEERDefects</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Extract defects coords from XML metadata inside EER *.gain file. &quot;&quot;&quot;</span>
+    <span class="n">defects</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># x y w h</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">fn</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.gain&quot;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">defects</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Parsing defects from EER gain file..&quot;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">TiffFile</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span> <span class="k">as</span> <span class="n">tif</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">page</span> <span class="ow">in</span> <span class="n">tif</span><span class="o">.</span><span class="n">pages</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">tag</span> <span class="ow">in</span> <span class="n">page</span><span class="o">.</span><span class="n">tags</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">tag</span><span class="o">.</span><span class="n">code</span> <span class="o">==</span> <span class="mi">65100</span><span class="p">:</span>  <span class="c1"># TFS EER gain Metadata</span>
+                    <span class="n">gainStr</span> <span class="o">=</span> <span class="n">tag</span><span class="o">.</span><span class="n">value</span>
+                    <span class="k">break</span>
+            <span class="k">break</span>
+
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">ET</span><span class="o">.</span><span class="n">fromstring</span><span class="p">(</span><span class="n">gainStr</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)):</span>
+        <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s2">&quot;point&quot;</span><span class="p">:</span>
+            <span class="n">point</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+            <span class="n">defects</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">point</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">point</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s2">&quot;area&quot;</span><span class="p">:</span>
+            <span class="n">area</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">)</span>
+            <span class="n">defects</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">area</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                            <span class="n">area</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                            <span class="nb">int</span><span class="p">(</span><span class="n">area</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">area</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>
+                            <span class="nb">int</span><span class="p">(</span><span class="n">area</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span><span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">area</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s2">&quot;col&quot;</span><span class="p">:</span>
+            <span class="n">area</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+            <span class="n">defects</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">area</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                            <span class="mi">0</span><span class="p">,</span>
+                            <span class="nb">int</span><span class="p">(</span><span class="n">area</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">area</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span>
+                            <span class="mi">4096</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">tag</span> <span class="o">==</span> <span class="s2">&quot;row&quot;</span><span class="p">:</span>
+            <span class="n">area</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">)</span>
+            <span class="n">defects</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">area</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4096</span><span class="p">,</span>
+                            <span class="nb">int</span><span class="p">(</span><span class="n">area</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">-</span><span class="nb">int</span><span class="p">(</span><span class="n">area</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">defects</span></div>
 </pre></div>
 
            </div>
