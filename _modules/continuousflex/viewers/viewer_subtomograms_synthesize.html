@@ -219,6 +219,8 @@
 <span class="kn">import</span> <span class="nn">xmipp3</span>
 <span class="kn">import</span> <span class="nn">pwem.emlib.metadata</span> <span class="k">as</span> <span class="nn">md</span>
 <span class="kn">from</span> <span class="nn">pwem.viewers</span> <span class="kn">import</span> <span class="n">ObjectView</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">continuousflex.protocols.protocol_subtomogrmas_synthesize</span> <span class="kn">import</span> <span class="n">NMA_YES</span>
 
 <div class="viewcode-block" id="FlexProtSynthesizeSubtomoViewer"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.viewers.viewer_subtomograms_synthesize.html#continuousflex.viewers.viewer_subtomograms_synthesize.FlexProtSynthesizeSubtomoViewer">[docs]</a><span class="k">class</span> <span class="nc">FlexProtSynthesizeSubtomoViewer</span><span class="p">(</span><span class="n">ProtocolViewer</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Visualization of results from synthesized subtomogrmas</span>
@@ -239,18 +241,23 @@
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Visualization&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;displayRawDeformation&#39;</span><span class="p">,</span> <span class="n">StringParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;7 8&#39;</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">confVar</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="n">NMA_YES</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Display the computed normal-mode amplitudes&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Type 7 to see the histogram of amplitudes along mode 7; </span><span class="se">\n</span><span class="s1">&#39;</span>
                            <span class="s1">&#39;type 8 to see the histogram of amplitudes along mode 8, etc.</span><span class="se">\n</span><span class="s1">&#39;</span>
                            <span class="s1">&#39;Type 7 8 to see the 2D plot of amplitudes along modes 7 and 8.</span><span class="se">\n</span><span class="s1">&#39;</span>
                            <span class="s1">&#39;Type 7 8 9 to see the 3D plot of amplitudes along modes 7, 8 and 9; etc.&#39;</span>
                            <span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;displayHists&#39;</span><span class="p">,</span> <span class="n">LabelParam</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Display shift and angle histograms&quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Display shift and angle histograms&quot;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;displayVolumes&#39;</span><span class="p">,</span> <span class="n">LabelParam</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Display volumes&quot;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Display the volumes that are generated&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_getVisualizeDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;displayRawDeformation&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_viewRawDeformation</span><span class="p">,</span>
+                <span class="s1">&#39;displayHists&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_viewHists</span><span class="p">,</span>
                 <span class="s1">&#39;displayVolumes&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_viewVolumes</span><span class="p">,</span>
                 <span class="p">}</span> 
                         
@@ -258,6 +265,38 @@
         <span class="n">volumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">outputVolumes</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">ObjectView</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_project</span><span class="p">,</span> <span class="n">volumes</span><span class="o">.</span><span class="n">strId</span><span class="p">(),</span> <span class="n">volumes</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())]</span>
 
+    <span class="k">def</span> <span class="nf">_viewHists</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paramName</span><span class="p">):</span>
+        <span class="n">mdVolumes</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;GroundTruth.xmd&#39;</span><span class="p">))</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">Z</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">Rot</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">Tilt</span><span class="o">=</span> <span class="p">[]</span>
+        <span class="n">Psi</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">objId</span> <span class="ow">in</span> <span class="n">mdVolumes</span><span class="p">:</span>
+            <span class="n">X</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mdVolumes</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_X</span><span class="p">,</span><span class="n">objId</span><span class="p">))</span>
+            <span class="n">Y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mdVolumes</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">))</span>
+            <span class="n">Z</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mdVolumes</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">objId</span><span class="p">))</span>
+            <span class="n">Rot</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mdVolumes</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_ROT</span><span class="p">,</span> <span class="n">objId</span><span class="p">))</span>
+            <span class="n">Tilt</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mdVolumes</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_TILT</span><span class="p">,</span> <span class="n">objId</span><span class="p">))</span>
+            <span class="n">Psi</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mdVolumes</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_PSI</span><span class="p">,</span> <span class="n">objId</span><span class="p">))</span>
+
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+        <span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">&#39;Histogram of generated rigid-body paramerers&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Shift X&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">Y</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Shift Y&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">Z</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Shift Z&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">Rot</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Rot&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">Tilt</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Tilt&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">Psi</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+        <span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Psi&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_viewRawDeformation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paramName</span><span class="p">):</span>
         <span class="n">components</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">displayRawDeformation</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
@@ -359,6 +398,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
+            <dd><a href="../../../dependabot_pip_babel-2.9.1/index.html">dependabot/pip/babel-2.9.1</a></dd>
             <dd><a href="../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../release-3.0.0/_modules/continuousflex/viewers/viewer_subtomograms_synthesize.html">release-3.0.0</a></dd>

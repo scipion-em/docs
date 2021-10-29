@@ -208,13 +208,17 @@
 <span class="c1"># **************************************************************************</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
+
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">EMProtocol</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="n">Set</span><span class="p">,</span> <span class="n">CsvList</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Pointer</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">path</span>
+
 <span class="kn">from</span> <span class="nn">tomo.protocols</span> <span class="kn">import</span> <span class="n">ProtTomoBase</span>
 <span class="kn">from</span> <span class="nn">tomo.protocols.protocol_base</span> <span class="kn">import</span> <span class="n">ProtTomoImportFiles</span>
 <span class="kn">from</span> <span class="nn">tomo.objects</span> <span class="kn">import</span> <span class="n">SetOfTiltSeries</span><span class="p">,</span> <span class="n">SetOfTomograms</span><span class="p">,</span> <span class="n">SetOfCTFTomoSeries</span><span class="p">,</span> <span class="n">CTFTomoSeries</span><span class="p">,</span> <span class="n">CTFTomo</span>
+
 <span class="kn">from</span> <span class="nn">imod</span> <span class="kn">import</span> <span class="n">utils</span>
+<span class="kn">from</span> <span class="nn">imod</span> <span class="kn">import</span> <span class="n">Plugin</span>
 
 
 <div class="viewcode-block" id="ProtImodBase"><a class="viewcode-back" href="../../../api/imod/imod.protocols.protocol_base.html#imod.protocols.protocol_base.ProtImodBase">[docs]</a><span class="k">class</span> <span class="nc">ProtImodBase</span><span class="p">(</span><span class="n">ProtTomoImportFiles</span><span class="p">,</span> <span class="n">EMProtocol</span><span class="p">,</span> <span class="n">ProtTomoBase</span><span class="p">):</span>
@@ -233,9 +237,8 @@
         <span class="sd">&quot;&quot;&quot; Method to define import params in protocol form &quot;&quot;&quot;</span>
         <span class="n">ProtTomoImportFiles</span><span class="o">.</span><span class="n">_defineImportParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">)</span>
 
-
     <span class="c1"># --------------------------- CACULUS functions ---------------------------</span>
-<div class="viewcode-block" id="ProtImodBase.convertInputStep"><a class="viewcode-back" href="../../../api/imod/imod.protocols.protocol_base.html#imod.protocols.protocol_base.ProtImodBase.convertInputStep">[docs]</a>    <span class="k">def</span> <span class="nf">convertInputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tsObjId</span><span class="p">,</span> <span class="n">generateAngleFile</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">generateExtraLink</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="ProtImodBase.convertInputStep"><a class="viewcode-back" href="../../../api/imod/imod.protocols.protocol_base.html#imod.protocols.protocol_base.ProtImodBase.convertInputStep">[docs]</a>    <span class="k">def</span> <span class="nf">convertInputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tsObjId</span><span class="p">,</span> <span class="n">generateAngleFile</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">generateExtraLink</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">imodInterpolation</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputSetOfTiltSeries</span><span class="p">,</span> <span class="n">SetOfTiltSeries</span><span class="p">):</span>
             <span class="n">ts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSetOfTiltSeries</span><span class="p">[</span><span class="n">tsObjId</span><span class="p">]</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputSetOfTiltSeries</span><span class="p">,</span> <span class="n">Pointer</span><span class="p">):</span>
@@ -251,9 +254,47 @@
 
         <span class="n">firstItem</span> <span class="o">=</span> <span class="n">ts</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span>
 
-        <span class="sd">&quot;&quot;&quot;Apply the transformation form the input tilt-series&quot;&quot;&quot;</span>
         <span class="n">outputTsFileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpPrefix</span><span class="p">,</span> <span class="n">firstItem</span><span class="o">.</span><span class="n">parseFileName</span><span class="p">())</span>
-        <span class="n">ts</span><span class="o">.</span><span class="n">applyTransform</span><span class="p">(</span><span class="n">outputTsFileName</span><span class="p">)</span>
+
+        <span class="sd">&quot;&quot;&quot;Apply the transformation form the input tilt-series&quot;&quot;&quot;</span>
+        <span class="c1"># Use IMOD newstack interpolation</span>
+        <span class="k">if</span> <span class="n">imodInterpolation</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">firstItem</span><span class="o">.</span><span class="n">hasTransform</span><span class="p">():</span>
+                <span class="c1"># Generate transformation matrices file</span>
+                <span class="n">outputTmFileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpPrefix</span><span class="p">,</span> <span class="n">firstItem</span><span class="o">.</span><span class="n">parseFileName</span><span class="p">(</span><span class="n">extension</span><span class="o">=</span><span class="s2">&quot;.xf&quot;</span><span class="p">))</span>
+                <span class="n">utils</span><span class="o">.</span><span class="n">formatTransformFile</span><span class="p">(</span><span class="n">ts</span><span class="p">,</span> <span class="n">outputTmFileName</span><span class="p">)</span>
+
+                <span class="c1"># Apply interpolation</span>
+                <span class="n">paramsAlignment</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s1">&#39;input&#39;</span><span class="p">:</span> <span class="n">firstItem</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span>
+                    <span class="s1">&#39;output&#39;</span><span class="p">:</span> <span class="n">outputTsFileName</span><span class="p">,</span>
+                    <span class="s1">&#39;xform&#39;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpPrefix</span><span class="p">,</span> <span class="n">firstItem</span><span class="o">.</span><span class="n">parseFileName</span><span class="p">(</span><span class="n">extension</span><span class="o">=</span><span class="s2">&quot;.xf&quot;</span><span class="p">)),</span>
+                <span class="p">}</span>
+
+                <span class="n">argsAlignment</span> <span class="o">=</span> <span class="s2">&quot;-input </span><span class="si">%(input)s</span><span class="s2"> &quot;</span> \
+                                <span class="s2">&quot;-output </span><span class="si">%(output)s</span><span class="s2"> &quot;</span> \
+                                <span class="s2">&quot;-xform </span><span class="si">%(xform)s</span><span class="s2"> &quot;</span> \
+
+                <span class="n">rotationAngleAvg</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">calculateRotationAngleFromTM</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span>
+
+                <span class="c1"># Check if rotation angle is greater than 45º. If so, swap x and y dimensions to adapt output image sizes to</span>
+                <span class="c1"># the final sample disposition.</span>
+                <span class="k">if</span> <span class="n">rotationAngleAvg</span> <span class="o">&gt;</span> <span class="mi">45</span> <span class="ow">or</span> <span class="n">rotationAngleAvg</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">45</span><span class="p">:</span>
+                    <span class="n">paramsAlignment</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+                        <span class="s1">&#39;size&#39;</span><span class="p">:</span> <span class="s2">&quot;</span><span class="si">%d</span><span class="s2">,</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">firstItem</span><span class="o">.</span><span class="n">getYDim</span><span class="p">(),</span> <span class="n">firstItem</span><span class="o">.</span><span class="n">getXDim</span><span class="p">())</span>
+                    <span class="p">})</span>
+
+                    <span class="n">argsAlignment</span> <span class="o">+=</span> <span class="s2">&quot;-size </span><span class="si">%(size)s</span><span class="s2"> &quot;</span>
+
+                <span class="n">Plugin</span><span class="o">.</span><span class="n">runImod</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;newstack&#39;</span><span class="p">,</span> <span class="n">argsAlignment</span> <span class="o">%</span> <span class="n">paramsAlignment</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">path</span><span class="o">.</span><span class="n">createLink</span><span class="p">(</span><span class="n">firstItem</span><span class="o">.</span><span class="n">getLocation</span><span class="p">()[</span><span class="mi">1</span><span class="p">],</span> <span class="n">outputTsFileName</span><span class="p">)</span>
+
+        <span class="c1"># Use Xmipp interpolation via Scipion</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">outputTsFileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmpPrefix</span><span class="p">,</span> <span class="n">firstItem</span><span class="o">.</span><span class="n">parseFileName</span><span class="p">())</span>
+            <span class="n">ts</span><span class="o">.</span><span class="n">applyTransform</span><span class="p">(</span><span class="n">outputTsFileName</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">generateAngleFile</span><span class="p">:</span>
             <span class="sd">&quot;&quot;&quot;Generate angle file&quot;&quot;&quot;</span>
@@ -270,9 +311,8 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">path</span><span class="o">.</span><span class="n">createLink</span><span class="p">(</span><span class="n">firstItem</span><span class="o">.</span><span class="n">getLocation</span><span class="p">()[</span><span class="mi">1</span><span class="p">],</span> <span class="n">inputTS</span><span class="p">)</span></div>
 
-
     <span class="c1"># --------------------------- OUTPUT functions ----------------------------</span>
-<div class="viewcode-block" id="ProtImodBase.getOutputSetOfTiltSeries"><a class="viewcode-back" href="../../../api/imod/imod.protocols.protocol_base.html#imod.protocols.protocol_base.ProtImodBase.getOutputSetOfTiltSeries">[docs]</a>    <span class="k">def</span> <span class="nf">getOutputSetOfTiltSeries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputSet</span><span class="p">,</span> <span class="n">binning</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="ProtImodBase.getOutputSetOfTiltSeries"><a class="viewcode-back" href="../../../api/imod/imod.protocols.protocol_base.html#imod.protocols.protocol_base.ProtImodBase.getOutputSetOfTiltSeries">[docs]</a>    <span class="k">def</span> <span class="nf">getOutputSetOfTiltSeries</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputSet</span><span class="p">,</span> <span class="n">binning</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Method to generate output classes of set of tilt-series&quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;outputSetOfTiltSeries&quot;</span><span class="p">):</span>
@@ -403,7 +443,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfCoordinates3D</span></div>
 
-<div class="viewcode-block" id="ProtImodBase.getOutputSetOfTomograms"><a class="viewcode-back" href="../../../api/imod/imod.protocols.protocol_base.html#imod.protocols.protocol_base.ProtImodBase.getOutputSetOfTomograms">[docs]</a>    <span class="k">def</span> <span class="nf">getOutputSetOfTomograms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputSet</span><span class="p">,</span> <span class="n">binning</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="ProtImodBase.getOutputSetOfTomograms"><a class="viewcode-back" href="../../../api/imod/imod.protocols.protocol_base.html#imod.protocols.protocol_base.ProtImodBase.getOutputSetOfTomograms">[docs]</a>    <span class="k">def</span> <span class="nf">getOutputSetOfTomograms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputSet</span><span class="p">,</span> <span class="n">binning</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;outputSetOfTomograms&quot;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfTomograms</span><span class="o">.</span><span class="n">enableAppend</span><span class="p">()</span>
 
@@ -436,7 +476,7 @@
                 <span class="n">outputSetOfCTFTomoSeries</span><span class="o">.</span><span class="n">enableAppend</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">outputSetOfCTFTomoSeries</span> <span class="o">=</span> <span class="n">SetOfCTFTomoSeries</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPath</span><span class="p">(),</span>
-                                                                         <span class="n">template</span><span class="o">=</span><span class="s1">&#39;CTFmodels</span><span class="si">%s</span><span class="s1">.sqlite&#39;</span><span class="p">)</span>
+                                                                 <span class="n">template</span><span class="o">=</span><span class="s1">&#39;CTFmodels</span><span class="si">%s</span><span class="s1">.sqlite&#39;</span><span class="p">)</span>
             <span class="n">outputSetOfCTFTomoSeries</span><span class="o">.</span><span class="n">setSetOfTiltSeries</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getSetOfTiltSeries</span><span class="p">(</span><span class="n">pointer</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
             <span class="n">outputSetOfCTFTomoSeries</span><span class="o">.</span><span class="n">setStreamState</span><span class="p">(</span><span class="n">Set</span><span class="o">.</span><span class="n">STREAM_OPEN</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">outputSetName</span><span class="p">:</span> <span class="n">outputSetOfCTFTomoSeries</span><span class="p">})</span></div>
@@ -504,7 +544,8 @@
             <span class="n">newCTFTomo</span><span class="o">.</span><span class="n">setIndex</span><span class="p">(</span><span class="n">Integer</span><span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
 
             <span class="k">if</span> <span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">defocusUDict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;ERROR IN TILT-SERIES </span><span class="si">%s</span><span class="s2">: NO CTF ESTIMATED FOR VIEW </span><span class="si">%d</span><span class="s2">, TILT ANGLE </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">tsId</span><span class="p">,</span> <span class="p">(</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">),</span> <span class="n">inputTs</span><span class="p">[</span><span class="n">index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">getTiltAngle</span><span class="p">()))</span>
+                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;ERROR IN TILT-SERIES </span><span class="si">%s</span><span class="s2">: NO CTF ESTIMATED FOR VIEW </span><span class="si">%d</span><span class="s2">, TILT ANGLE </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">tsId</span><span class="p">,</span> <span class="p">(</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">inputTs</span><span class="p">[</span><span class="n">index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">getTiltAngle</span><span class="p">()))</span>
 
             <span class="k">if</span> <span class="n">defocusFileFlag</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="s2">&quot; Plain estimation &quot;</span>
@@ -585,7 +626,6 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">()</span></div>
 
-
     <span class="c1"># --------------------------- UTILS functions ----------------------------</span>
 <div class="viewcode-block" id="ProtImodBase.iterFiles"><a class="viewcode-back" href="../../../api/imod/imod.protocols.protocol_base.html#imod.protocols.protocol_base.ProtImodBase.iterFiles">[docs]</a>    <span class="k">def</span> <span class="nf">iterFiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Iterate through the files matched with the pattern.</span>
@@ -664,6 +704,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
+            <dd><a href="../../../../dependabot_pip_babel-2.9.1/index.html">dependabot/pip/babel-2.9.1</a></dd>
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="protocol_base.html">release-3.0.0</a></dd>

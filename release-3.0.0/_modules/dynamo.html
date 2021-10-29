@@ -181,9 +181,9 @@
   <h1>Source code for dynamo</h1><div class="highlight"><pre>
 <span></span><span class="c1"># **************************************************************************</span>
 <span class="c1"># *</span>
-<span class="c1"># * Authors:     you (you@yourinstitution.email)</span>
+<span class="c1"># * Authors:     David Herreros Calero (dherreros@cnb.csic.es)</span>
 <span class="c1"># *</span>
-<span class="c1"># * your institution</span>
+<span class="c1"># * Unidad de  Bioinformatica of Centro Nacional de Biotecnologia , CSIC</span>
 <span class="c1"># *</span>
 <span class="c1"># * This program is free software; you can redistribute it and/or modify</span>
 <span class="c1"># * it under the terms of the GNU General Public License as published by</span>
@@ -206,6 +206,7 @@
 <span class="c1"># **************************************************************************</span>
 
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
+<span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">pwem</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 <span class="kn">from</span> <span class="nn">.constants</span> <span class="kn">import</span> <span class="o">*</span>
@@ -228,10 +229,11 @@
         <span class="sd">&quot;&quot;&quot; Create the needed environment for Dynamo programs. &quot;&quot;&quot;</span>
         <span class="n">environ</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">Environ</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">)</span>
         <span class="n">dyn_home</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getHome</span><span class="p">()</span>
+        <span class="c1"># For GPU, we need to add to LD_LIBRARY_PATH the path to Cuda/lib</span>
         <span class="n">environ</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
             <span class="s1">&#39;PATH&#39;</span><span class="p">:</span> <span class="n">dyn_home</span> <span class="o">+</span> <span class="s1">&#39;/matlab/bin:&#39;</span> <span class="o">+</span> <span class="n">dyn_home</span> <span class="o">+</span> <span class="s1">&#39;/matlab/src:&#39;</span> <span class="o">+</span> <span class="n">dyn_home</span> <span class="o">+</span> <span class="s1">&#39;/cuda/bin:&#39;</span> <span class="o">+</span> <span class="n">dyn_home</span> <span class="o">+</span> <span class="s1">&#39;/mpi&#39;</span><span class="p">,</span>
             <span class="s1">&#39;LD_LIBRARY_PATH&#39;</span><span class="p">:</span> <span class="n">dyn_home</span> <span class="o">+</span> <span class="s1">&#39;/MCRLinux/runtime/glnxa64:&#39;</span> <span class="o">+</span> <span class="n">dyn_home</span> <span class="o">+</span> <span class="s1">&#39;/MCRLinux/bin/glnxa64:&#39;</span> <span class="o">+</span>
-                               <span class="n">dyn_home</span> <span class="o">+</span> <span class="s1">&#39;/MCRLinux/sys/os/glnxa64&#39;</span><span class="p">,</span>
+                               <span class="n">dyn_home</span> <span class="o">+</span> <span class="s1">&#39;/MCRLinux/sys/os/glnxa64:&#39;</span> <span class="o">+</span> <span class="n">pwem</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">CUDA_LIB</span><span class="p">,</span>
             <span class="s1">&#39;DYNAMO_ROOT&#39;</span><span class="p">:</span> <span class="n">dyn_home</span>
         <span class="p">},</span> <span class="n">position</span><span class="o">=</span><span class="n">pwutils</span><span class="o">.</span><span class="n">Environ</span><span class="o">.</span><span class="n">BEGIN</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">environ</span></div>
@@ -249,10 +251,50 @@
 
 <div class="viewcode-block" id="Plugin.defineBinaries"><a class="viewcode-back" href="../api/dynamo/dynamo.html#dynamo.Plugin.defineBinaries">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">defineBinaries</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
+        <span class="c1"># For GPU, we need to compile the CUDA binaries to ensure full compatibility</span>
+        <span class="c1"># First, we check if CUDA is installed in the system</span>
+        <span class="n">preMsgs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">cudaMsgs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">nvidiaDriverVer</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;CUDA&#39;</span><span class="p">,</span> <span class="s1">&#39;True&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;True&#39;</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">nvidiaDriverVer</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">([</span><span class="s2">&quot;nvidia-smi&quot;</span><span class="p">,</span>
+                                                    <span class="s2">&quot;--query-gpu=driver_version&quot;</span><span class="p">,</span>
+                                                    <span class="s2">&quot;--format=csv,noheader&quot;</span><span class="p">],</span>
+                                                   <span class="n">env</span><span class="o">=</span><span class="bp">cls</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">(),</span>
+                                                   <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span>
+                                                   <span class="p">)</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">preMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">nvidiaDriverVer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">preMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;CUDA support find. Driver version: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">nvidiaDriverVer</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Dynamo installed with CUDA SUPPORT.&quot;</span>
+            <span class="n">cudaMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="n">useGpu</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">preMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;CUDA will NOT be USED. (not found)&quot;</span><span class="p">)</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;Dynamo installed without GPU. Just CPU computations &quot;</span>
+                   <span class="s2">&quot;enabled (slow computations). To enable CUDA, &quot;</span>
+                   <span class="s2">&quot;set CUDA=True in &#39;scipion.conf&#39; file&quot;</span><span class="p">)</span>
+            <span class="n">cudaMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="n">useGpu</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">SW_EM</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">getEmFolder</span><span class="p">()</span>
+        <span class="n">dyn_folder</span> <span class="o">=</span> <span class="s1">&#39;dynamo-</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">DYNAMO_VERSION</span>
+
+        <span class="n">compile_cuda</span> <span class="o">=</span> <span class="s2">&quot;echo &#39; &gt; </span><span class="si">%s</span><span class="s2">&#39; &amp;&amp; &quot;</span> <span class="o">%</span> <span class="n">preMsgs</span>
+        <span class="k">if</span> <span class="n">useGpu</span><span class="p">:</span>
+            <span class="n">compile_cuda</span> <span class="o">+=</span> <span class="s2">&quot;cd </span><span class="si">%s</span><span class="s2">/</span><span class="si">%s</span><span class="s2">/cuda &amp;&amp; make clean &amp;&amp; ./config.sh &amp;&amp; &quot;</span> \
+                            <span class="s2">&quot;make all &amp;&amp; &quot;</span> \
+                            <span class="s2">&quot;touch cuda_compiled &amp;&amp; &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">SW_EM</span><span class="p">,</span> <span class="n">dyn_folder</span><span class="p">)</span>
+        <span class="n">compile_cuda</span> <span class="o">+=</span> <span class="s2">&quot;echo &#39; &gt; </span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">cudaMsgs</span>
+        <span class="n">commands</span> <span class="o">=</span> <span class="p">[(</span><span class="n">compile_cuda</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">/</span><span class="si">%s</span><span class="s1">/cuda/cuda_compiled&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">SW_EM</span><span class="p">,</span> <span class="n">dyn_folder</span><span class="p">))]</span>
+
         <span class="n">env</span><span class="o">.</span><span class="n">addPackage</span><span class="p">(</span><span class="s1">&#39;dynamo&#39;</span><span class="p">,</span>
                        <span class="n">version</span><span class="o">=</span><span class="s1">&#39;1.146&#39;</span><span class="p">,</span>
                        <span class="n">tar</span><span class="o">=</span><span class="s1">&#39;dynamo-1.146.tar.gz&#39;</span><span class="p">,</span>
-                       <span class="n">commands</span><span class="o">=</span><span class="p">[],</span>
+                       <span class="n">commands</span><span class="o">=</span><span class="n">commands</span><span class="p">,</span>
                        <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div></div>
 
 </pre></div>
@@ -291,6 +333,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
+            <dd><a href="../../dependabot_pip_babel-2.9.1/index.html">dependabot/pip/babel-2.9.1</a></dd>
             <dd><a href="../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="dynamo.html">release-3.0.0</a></dd>

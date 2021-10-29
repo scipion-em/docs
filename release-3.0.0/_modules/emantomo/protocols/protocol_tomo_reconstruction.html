@@ -224,7 +224,7 @@
 <span class="kn">from</span> <span class="nn">tomo.protocols</span> <span class="kn">import</span> <span class="n">ProtTomoBase</span>
 <span class="kn">from</span> <span class="nn">tomo.objects</span> <span class="kn">import</span> <span class="n">Tomogram</span><span class="p">,</span> <span class="n">SetOfTomograms</span>
 
-<span class="kn">from</span> <span class="nn">emantomo.convert</span> <span class="kn">import</span> <span class="n">writeJson</span>
+<span class="kn">from</span> <span class="nn">emantomo.convert</span> <span class="kn">import</span> <span class="n">writeJson</span><span class="p">,</span> <span class="n">jsonFilesFromSet</span><span class="p">,</span> <span class="n">tltParams2Json</span>
 
 
 <div class="viewcode-block" id="EmanProtTomoReconstruction"><a class="viewcode-back" href="../../../api/emantomo/emantomo.protocols.protocol_tomo_reconstruction.html#emantomo.protocols.protocol_tomo_reconstruction.EmanProtTomoReconstruction">[docs]</a><span class="k">class</span> <span class="nc">EmanProtTomoReconstruction</span><span class="p">(</span><span class="n">EMProtocol</span><span class="p">,</span> <span class="n">ProtTomoBase</span><span class="p">):</span>
@@ -343,9 +343,10 @@
             <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --extrapad&#39;</span>
 
         <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --threads=</span><span class="si">%(threads)d</span><span class="s1">&#39;</span>
-
-        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_processInput</span><span class="p">():</span>
-            <span class="n">args_file</span> <span class="o">=</span> <span class="n">path</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">args</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_processInput</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tlt_files</span><span class="p">:</span>
+            <span class="n">args_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">path</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">args</span>
 
             <span class="n">program</span> <span class="o">=</span> <span class="n">emantomo</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getProgram</span><span class="p">(</span><span class="s2">&quot;e2tomogram.py&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Launching: &#39;</span> <span class="o">+</span> <span class="n">program</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">args_file</span> <span class="o">%</span> <span class="n">command_params</span><span class="p">)</span>
@@ -379,30 +380,10 @@
 
     <span class="k">def</span> <span class="nf">_processInput</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">tilt_series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tiltSeries</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="n">paths</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">info_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;info&#39;</span><span class="p">)</span>
         <span class="n">pwutils</span><span class="o">.</span><span class="n">makePath</span><span class="p">(</span><span class="n">info_path</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">tilt_serie</span> <span class="ow">in</span> <span class="n">tilt_series</span><span class="o">.</span><span class="n">iterItems</span><span class="p">(</span><span class="n">iterate</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-            <span class="n">tlt_params</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="n">json_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">info_path</span><span class="p">,</span>
-                                     <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">tilt_serie</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()))</span> <span class="o">+</span>
-                                     <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="n">tilt_serie</span><span class="o">.</span><span class="n">getTsId</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;_info.json&#39;</span><span class="p">)</span>
-            <span class="n">tlt_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;ali_loss&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="n">tilt_serie</span><span class="o">.</span><span class="n">getSize</span><span class="p">(),</span>
-                        <span class="s2">&quot;apix_unbin&quot;</span><span class="p">:</span> <span class="n">tilt_serie</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">(),</span>
-                        <span class="s2">&quot;tlt_file&quot;</span><span class="p">:</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">tilt_serie</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()),</span>
-                        <span class="s2">&quot;tlt_params&quot;</span><span class="p">:</span> <span class="p">[]</span>
-                        <span class="p">}</span>
-            <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">tiltImage</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">tilt_serie</span><span class="o">.</span><span class="n">iterItems</span><span class="p">()):</span>
-                <span class="n">paths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">tiltImage</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()))</span>
-                <span class="n">tr_matrix</span> <span class="o">=</span> <span class="n">tiltImage</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">()</span> <span class="k">if</span> <span class="n">tiltImage</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
-                <span class="n">a1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arccos</span><span class="p">(</span><span class="n">tr_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]))</span>
-                <span class="n">a2</span> <span class="o">=</span> <span class="n">tiltImage</span><span class="o">.</span><span class="n">getTiltAngle</span><span class="p">()</span>
-                <span class="n">a3</span> <span class="o">=</span> <span class="n">tiltImage</span><span class="o">.</span><span class="n">tiltAngleAxis</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">tiltImage</span><span class="p">,</span> <span class="s1">&#39;tiltAngleAxis&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span>
-                <span class="n">s1</span><span class="p">,</span> <span class="n">s2</span> <span class="o">=</span> <span class="n">tr_matrix</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="n">tr_matrix</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
-                <span class="n">tlt_params</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">a1</span><span class="p">,</span> <span class="n">a2</span><span class="p">,</span> <span class="n">a3</span><span class="p">])</span>
-            <span class="n">tlt_dict</span><span class="p">[</span><span class="s2">&quot;tlt_params&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tlt_params</span>
-            <span class="n">writeJson</span><span class="p">(</span><span class="n">tlt_dict</span><span class="p">,</span> <span class="n">json_file</span><span class="p">)</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">paths</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">json_files</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tlt_files</span> <span class="o">=</span> <span class="n">jsonFilesFromSet</span><span class="p">(</span><span class="n">tilt_series</span><span class="p">,</span> <span class="n">info_path</span><span class="p">)</span>
+        <span class="n">_</span> <span class="o">=</span> <span class="n">tltParams2Json</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">json_files</span><span class="p">,</span> <span class="n">tilt_series</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_getRawTiltAngles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">tilt_series</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tiltSeries</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
@@ -466,6 +447,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
+            <dd><a href="../../../../dependabot_pip_babel-2.9.1/index.html">dependabot/pip/babel-2.9.1</a></dd>
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="protocol_tomo_reconstruction.html">release-3.0.0</a></dd>

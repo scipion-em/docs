@@ -208,11 +208,11 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">time</span>
 
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">EMProtocol</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">BETA</span>
+<span class="kn">from</span> <span class="nn">tomo.objects</span> <span class="kn">import</span> <span class="n">SetOfCTFTomoSeries</span>
 
 
 <div class="viewcode-block" id="ProtCTFTomoSeriesValidate"><a class="viewcode-back" href="../../../api/tomo/tomo.protocols.protocol_ctf_validate.html#tomo.protocols.protocol_ctf_validate.ProtCTFTomoSeriesValidate">[docs]</a><span class="k">class</span> <span class="nc">ProtCTFTomoSeriesValidate</span><span class="p">(</span><span class="n">EMProtocol</span><span class="p">):</span>
@@ -233,6 +233,9 @@
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;criteria&#39;</span><span class="p">,</span>  <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span>
                       <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;defocus tolerance&quot;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Criteria&quot;</span><span class="p">,</span>
                       <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Criteria to validate&quot;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;tolerance&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Tolerance percent&#39;</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;criteria==0&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Percent Tolerance&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ctfValidateStep</span><span class="p">)</span>
@@ -244,46 +247,66 @@
 <span class="sd">        following the selected criteria)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ctfSeries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputCtfTomoSeries</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">goodCTFName</span> <span class="o">=</span> <span class="s1">&#39;goodSetOfCTFTomoSeries&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">badCTFName</span> <span class="o">=</span> <span class="s1">&#39;badSetOfCTFTomoSeries&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">goodCtfName</span> <span class="o">=</span> <span class="s1">&#39;goodSetOfCTFTomoSeries&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">badCtfName</span> <span class="o">=</span> <span class="s1">&#39;badSetOfCTFTomoSeries&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputCtfName</span> <span class="o">=</span> <span class="s1">&#39;outputSetOfCTFTomoSeries&#39;</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfgoodCTFTomoSeries</span> <span class="o">=</span> <span class="n">ctfSeries</span><span class="o">.</span><span class="n">createCopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span>
-                                                                 <span class="n">prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">goodCTFName</span><span class="p">,</span>
-                                                                 <span class="n">copyInfo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfbadCTFTomoSeries</span> <span class="o">=</span> <span class="n">ctfSeries</span><span class="o">.</span><span class="n">createCopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span>
-                                                                <span class="n">prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">badCTFName</span><span class="p">,</span>
-                                                                <span class="n">copyInfo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfCtfTomoSeries</span> <span class="o">=</span> <span class="n">SetOfCTFTomoSeries</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPath</span><span class="p">(),</span>
+                                                                  <span class="n">template</span><span class="o">=</span><span class="s1">&#39;CTFmodels</span><span class="si">%s</span><span class="s1">.sqlite&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfCtfTomoSeries</span><span class="o">.</span><span class="n">setSetOfTiltSeries</span><span class="p">(</span><span class="n">ctfSeries</span><span class="o">.</span><span class="n">getSetOfTiltSeries</span><span class="p">(</span><span class="n">pointer</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">criteria</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>  <span class="c1"># Defocus angles case</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_validateCtfDefocusDeviation</span><span class="p">(</span><span class="n">ctfSeries</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_validateCtfDefocusDeviation</span><span class="p">(</span><span class="n">ctfSeries</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tolerance</span><span class="o">.</span><span class="n">get</span><span class="p">())</span></div>
 
-    <span class="k">def</span> <span class="nf">_validateCtfDefocusDeviation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctfSeries</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_validateCtfDefocusDeviation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ctfSeries</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Validate the set of ctf tomo series taking into account de defocus angle</span>
 <span class="sd">        deviation</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
+        <span class="c1"># Creating a new copy of ctf tomo series and recalculate the defocus</span>
+        <span class="c1"># deviation</span>
         <span class="k">for</span> <span class="n">ctfSerie</span> <span class="ow">in</span> <span class="n">ctfSeries</span><span class="p">:</span>
+            <span class="n">newCTFTomoSeries</span> <span class="o">=</span> <span class="n">ctfSerie</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+            <span class="n">newCTFTomoSeries</span><span class="o">.</span><span class="n">_isDefocusUDeviationInRange</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">newCTFTomoSeries</span><span class="o">.</span><span class="n">_isDefocusVDeviationInRange</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfCtfTomoSeries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newCTFTomoSeries</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">ctfSerie</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
+                <span class="n">ctfEstItem</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+                <span class="n">newCTFTomoSeries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ctfEstItem</span><span class="p">)</span>
+            <span class="n">newCTFTomoSeries</span><span class="o">.</span><span class="n">calculateDefocusUDeviation</span><span class="p">(</span><span class="n">defocusUTolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">)</span>
+            <span class="n">newCTFTomoSeries</span><span class="o">.</span><span class="n">calculateDefocusVDeviation</span><span class="p">(</span><span class="n">defocusVTolerance</span><span class="o">=</span><span class="n">tolerance</span><span class="p">)</span>
+            <span class="n">newCTFTomoSeries</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfCtfTomoSeries</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">newCTFTomoSeries</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfgoodCtfTomoSeries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfCtfTomoSeries</span><span class="o">.</span><span class="n">createCopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span>
+                                                                                     <span class="n">prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">goodCtfName</span><span class="p">,</span>
+                                                                                     <span class="n">copyInfo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfbadCtfTomoSeries</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfCtfTomoSeries</span><span class="o">.</span><span class="n">createCopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span>
+                                                                                    <span class="n">prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">badCtfName</span><span class="p">,</span>
+                                                                                    <span class="n">copyInfo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">ctfSerie</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfCtfTomoSeries</span><span class="p">:</span>
             <span class="n">ctfSerieClon</span> <span class="o">=</span> <span class="n">ctfSerie</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
             <span class="c1"># Store good and bad ctf series</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">ctfSerie</span><span class="o">.</span><span class="n">getIsDefocusVDeviationInRange</span><span class="p">()</span> <span class="ow">and</span>
-                    <span class="n">ctfSerie</span><span class="o">.</span><span class="n">getIsDefocusUDeviationInRange</span><span class="p">()):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfgoodCTFTomoSeries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ctfSerieClon</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ctfSerie</span><span class="o">.</span><span class="n">getIsDefocusUDeviationInRange</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfgoodCtfTomoSeries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ctfSerieClon</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfbadCTFTomoSeries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ctfSerieClon</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfbadCtfTomoSeries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ctfSerieClon</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">ctfSerie</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
                 <span class="n">ctfEstItem</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
                 <span class="n">ctfSerieClon</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ctfEstItem</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ProtCTFTomoSeriesValidate.createOutputStep"><a class="viewcode-back" href="../../../api/tomo/tomo.protocols.protocol_ctf_validate.html#tomo.protocols.protocol_ctf_validate.ProtCTFTomoSeriesValidate.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfgoodCTFTomoSeries</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">goodCTFName</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfgoodCTFTomoSeries</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">outputCtfName</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfCtfTomoSeries</span><span class="p">})</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfgoodCtfTomoSeries</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">goodCtfName</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfgoodCtfTomoSeries</span><span class="p">})</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">goodCTFName</span><span class="o">+</span><span class="s1">&#39;..sqlite&#39;</span><span class="p">))</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">goodCtfName</span><span class="o">+</span><span class="s1">&#39;..sqlite&#39;</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfbadCTFTomoSeries</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">badCTFName</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfbadCTFTomoSeries</span><span class="p">})</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfbadCtfTomoSeries</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">badCtfName</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputSetOfbadCtfTomoSeries</span><span class="p">})</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">badCTFName</span> <span class="o">+</span> <span class="s1">&#39;..sqlite&#39;</span><span class="p">))</span></div>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">badCtfName</span> <span class="o">+</span> <span class="s1">&#39;..sqlite&#39;</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="ProtCTFTomoSeriesValidate.allowsDelete"><a class="viewcode-back" href="../../../api/tomo/tomo.protocols.protocol_ctf_validate.html#tomo.protocols.protocol_ctf_validate.ProtCTFTomoSeriesValidate.allowsDelete">[docs]</a>    <span class="k">def</span> <span class="nf">allowsDelete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
         <span class="k">return</span> <span class="kc">True</span></div>
@@ -335,6 +358,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
+            <dd><a href="../../../../dependabot_pip_babel-2.9.1/index.html">dependabot/pip/babel-2.9.1</a></dd>
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="protocol_ctf_validate.html">release-3.0.0</a></dd>

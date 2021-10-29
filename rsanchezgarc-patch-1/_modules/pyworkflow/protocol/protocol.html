@@ -517,6 +517,13 @@
 <span class="sd">    When defining outputs you can, optionally, use this enum like:</span>
 <span class="sd">    self._defineOutputs(**{MyOutput.outputMicrographs.name, setOfMics})</span>
 <span class="sd">    It will help to keep output names consistently</span>
+<span class="sd">    </span>
+<span class="sd">    Alternative an inline dictionary will work:</span>
+<span class="sd">    _possibleOutputs = {&quot;outputMicrographs&quot; : SetOfMicrographs}</span>
+<span class="sd">    </span>
+<span class="sd">    For a more fine detailed/dynamic output based on parameters, you can overwrite the getter:</span>
+<span class="sd">    getPossibleOutputs() in your protocol.</span>
+<span class="sd">    </span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_possibleOutputs</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -638,8 +645,7 @@
         <span class="sd">&quot;&quot;&quot;Close all output set&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">outputName</span><span class="p">,</span> <span class="n">output</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterOutputAttributes</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">Set</span><span class="p">)</span> <span class="ow">and</span> <span class="n">output</span><span class="o">.</span><span class="n">isStreamOpen</span><span class="p">():</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="n">outputName</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span>
-                                      <span class="n">state</span><span class="o">=</span><span class="n">Set</span><span class="o">.</span><span class="n">STREAM_CLOSED</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__tryUpdateOutputSet</span><span class="p">(</span><span class="n">outputName</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">Set</span><span class="o">.</span><span class="n">STREAM_CLOSED</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_updateOutputSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputName</span><span class="p">,</span> <span class="n">outputSet</span><span class="p">,</span>
                          <span class="n">state</span><span class="o">=</span><span class="n">Set</span><span class="o">.</span><span class="n">STREAM_OPEN</span><span class="p">):</span>
@@ -940,17 +946,25 @@
 
         <span class="n">iterator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterOutputsNew</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_useOutputList</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterOutputsOld</span>
 
+        <span class="n">hasOutput</span><span class="o">=</span><span class="kc">False</span>
+
         <span class="c1"># Iterate through actual outputs</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">iterator</span><span class="p">():</span>
             <span class="k">if</span> <span class="n">outputClass</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">outputClass</span><span class="p">):</span>
+                <span class="n">hasOutput</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">yield</span> <span class="n">key</span><span class="p">,</span> <span class="n">attr</span>
 
         <span class="c1"># NOTE: This will only happen in case there is no actual output.</span>
         <span class="c1"># There is no need to avoid duplication of actual output and possible output.</span>
-        <span class="k">if</span> <span class="n">includePossible</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_possibleOutputs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">possibleOutput</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_possibleOutputs</span><span class="p">:</span>
-                <span class="k">yield</span> <span class="n">possibleOutput</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">possibleOutput</span><span class="o">.</span><span class="n">value</span></div>
+        <span class="k">if</span> <span class="n">includePossible</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">hasOutput</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPossibleOutputs</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">possibleOutput</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPossibleOutputs</span><span class="p">():</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">possibleOutput</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="k">yield</span> <span class="n">possibleOutput</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_possibleOutputs</span><span class="p">[</span><span class="n">possibleOutput</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">yield</span> <span class="n">possibleOutput</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">possibleOutput</span><span class="o">.</span><span class="n">value</span></div>
 
+<div class="viewcode-block" id="Protocol.getPossibleOutputs"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getPossibleOutputs">[docs]</a>    <span class="k">def</span> <span class="nf">getPossibleOutputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_possibleOutputs</span></div>
 
     <span class="k">def</span> <span class="nf">_iterOutputsNew</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; This methods iterates through a list where outputs have been</span>
@@ -2598,6 +2612,7 @@
     <div class="rst-other-versions">
         <dl>
             <dt>Branches</dt>
+            <dd><a href="../../../../dependabot_pip_babel-2.9.1/index.html">dependabot/pip/babel-2.9.1</a></dd>
             <dd><a href="../../../../gh-pages/index.html">gh-pages</a></dd>
             <dd><a href="../../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../../release-3.0.0/index.html">release-3.0.0</a></dd>
