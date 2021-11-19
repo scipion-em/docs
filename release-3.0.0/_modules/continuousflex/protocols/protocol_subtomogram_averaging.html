@@ -245,7 +245,7 @@
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select volumes&#39;</span><span class="p">)</span>
         <span class="n">group</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;StA_choice&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span>
                       <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Perform StA using Fast Rotational Matching (FRM)&#39;</span><span class="p">,</span>
-                               <span class="s1">&#39;Import a previously performed StA parameters&#39;</span><span class="p">],</span>
+                               <span class="s1">&#39;Import parameters of a previously performed StA&#39;</span><span class="p">],</span>
                       <span class="n">default</span><span class="o">=</span><span class="n">PERFORM_STA</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Choose what processes you want to perform:&#39;</span><span class="p">,</span> <span class="n">display</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="o">.</span><span class="n">DISPLAY_COMBO</span><span class="p">,</span>
                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;If you choose to &quot;Perform StA&quot; using FRM you have to set the parameters in the last tab.&#39;</span>
@@ -351,8 +351,7 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">StA_choice</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="n">COPY_STA</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">import_choice</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="n">IMPORT_TOMBOX_MTV</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;adaptTomboxStep&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">tomBoxTable</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># TODO: add the import of scipion metadata</span>
-            <span class="k">pass</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;adaptXmippStep&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmippMD</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;createOutputStep&#39;</span><span class="p">)</span>
 
     <span class="c1"># --------------------------- STEPS functions --------------------------------------------</span>
@@ -594,6 +593,58 @@
 
             <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --inverse --rotate_volume euler </span><span class="si">%(rot)s</span><span class="s1"> </span><span class="si">%(tilt)s</span><span class="s1"> </span><span class="si">%(psi)s</span><span class="s1">&#39;</span> \
                      <span class="s1">&#39; --shift </span><span class="si">%(x_shift)s</span><span class="s1"> </span><span class="si">%(y_shift)s</span><span class="s1"> </span><span class="si">%(z_shift)s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
+
+            <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">counter</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;cp </span><span class="si">%(tempVol)s</span><span class="s2"> </span><span class="si">%(volume_out)s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(tempVol)s</span><span class="s1"> --plus </span><span class="si">%(volume_out)s</span><span class="s1"> -o </span><span class="si">%(volume_out)s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
+                <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_image_operate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(volume_out)s</span><span class="s1"> --divide </span><span class="si">%(counter)s</span><span class="s1"> -o </span><span class="si">%(volume_out)s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
+        <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_image_operate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;rm -f </span><span class="si">%(tempVol)s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span>
+         <span class="c1"># Averaging is done</span>
+        <span class="k">pass</span></div>
+
+<div class="viewcode-block" id="FlexProtSubtomogramAveraging.adaptXmippStep"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_subtomogram_averaging.html#continuousflex.protocols.protocol_subtomogram_averaging.FlexProtSubtomogramAveraging.adaptXmippStep">[docs]</a>    <span class="k">def</span> <span class="nf">adaptXmippStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Table</span><span class="p">):</span>
+        <span class="n">volumes_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">imgsFn</span>
+        <span class="n">volume_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputVolume</span>
+        <span class="n">md_out</span> <span class="o">=</span> <span class="n">Table</span>
+
+        <span class="c1"># Averaging based on the metadata:</span>
+        <span class="n">mdImgs</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="n">md_out</span><span class="p">)</span>
+        <span class="n">mdImgs</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;final_md.xmd&#39;</span><span class="p">))</span>
+        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">objId</span> <span class="ow">in</span> <span class="n">mdImgs</span><span class="p">:</span>
+            <span class="n">counter</span> <span class="o">=</span> <span class="n">counter</span> <span class="o">+</span> <span class="mi">1</span>
+
+            <span class="n">imgPath</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_IMAGE</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+            <span class="n">rot</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_ROT</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+            <span class="n">tilt</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_TILT</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+            <span class="n">psi</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_PSI</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+
+            <span class="n">x_shift</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_X</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+            <span class="n">y_shift</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+            <span class="n">z_shift</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+
+            <span class="n">flip</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+            <span class="n">tempVol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;temp.mrc&#39;</span><span class="p">)</span>
+            <span class="n">extra</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">flip</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">flip</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --inverse --rotate_volume euler </span><span class="si">%(rot)s</span><span class="s1"> </span><span class="si">%(tilt)s</span><span class="s1"> </span><span class="si">%(psi)s</span><span class="s1">&#39;</span> \
+                     <span class="s1">&#39; --shift </span><span class="si">%(x_shift)s</span><span class="s1"> </span><span class="si">%(y_shift)s</span><span class="s1"> </span><span class="si">%(z_shift)s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># First got to rotate each volume 90 degrees about the y axis, align it, then sum it</span>
+                <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --rotate_volume euler 0 90 0&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
+                <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+                <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(tempVol)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --rotate_volume euler </span><span class="si">%(rot)s</span><span class="s1"> </span><span class="si">%(tilt)s</span><span class="s1"> </span><span class="si">%(psi)s</span><span class="s1">&#39;</span> \
+                         <span class="s1">&#39; --shift </span><span class="si">%(x_shift)s</span><span class="s1"> </span><span class="si">%(y_shift)s</span><span class="s1"> </span><span class="si">%(z_shift)s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
+
 
             <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
 

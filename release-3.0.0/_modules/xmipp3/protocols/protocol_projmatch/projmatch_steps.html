@@ -221,7 +221,7 @@
 <span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">getMemoryAvailable</span><span class="p">,</span> <span class="n">removeExt</span><span class="p">,</span> <span class="n">cleanPath</span><span class="p">,</span> <span class="n">makePath</span><span class="p">,</span> <span class="n">copyFile</span>
 
 <span class="kn">from</span> <span class="nn">pwem</span> <span class="kn">import</span> <span class="n">emlib</span>
-<span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="kn">import</span> <span class="n">createClassesFromImages</span>
+<span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="kn">import</span> <span class="n">createClassesFromImages</span><span class="p">,</span> <span class="n">convertToMrc</span>
 <span class="kn">from</span> <span class="nn">xmipp3.base</span> <span class="kn">import</span> <span class="n">isMdEmpty</span>
 
 
@@ -897,12 +897,12 @@
                   <span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_transform_filter&quot;</span><span class="p">,</span> <span class="n">args</span> <span class="o">%</span> <span class="n">params</span><span class="p">)</span></div>
 
-
 <div class="viewcode-block" id="runCreateOutputStep"><a class="viewcode-back" href="../../../../api/xmipp3/xmipp3.protocols.protocol_projmatch.projmatch_steps.html#xmipp3.protocols.protocol_projmatch.projmatch_steps.runCreateOutputStep">[docs]</a><span class="k">def</span> <span class="nf">runCreateOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&#39;&#39;&#39; Create standard output results_images, result_classes&#39;&#39;&#39;</span>
     <span class="c1">#creating results files</span>
     <span class="n">imgSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputParticles</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
     <span class="n">lastIter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfIterations</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+    <span class="n">Ts</span> <span class="o">=</span> <span class="n">imgSet</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfReferences</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">inDocfile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;docfileInputAnglesIters&#39;</span><span class="p">,</span> <span class="nb">iter</span><span class="o">=</span><span class="n">lastIter</span><span class="p">)</span>
         <span class="n">ClassFnTemplate</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">%(rootDir)s</span><span class="s1">/reconstruction_Ref3D_</span><span class="si">%(ref)03d</span><span class="s1">.vol&#39;</span>
@@ -921,10 +921,11 @@
         <span class="n">classes</span><span class="o">.</span><span class="n">appendFromClasses</span><span class="p">(</span><span class="n">clsSet</span><span class="p">)</span>
         
         <span class="n">volumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfVolumes</span><span class="p">()</span>
-        <span class="n">volumes</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">imgSet</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
+        <span class="n">volumes</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">Ts</span><span class="p">)</span>
         
         <span class="k">for</span> <span class="n">refN</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">allRefs</span><span class="p">():</span>
             <span class="n">volFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;reconstructedFileNamesIters&#39;</span><span class="p">,</span> <span class="nb">iter</span><span class="o">=</span><span class="n">lastIter</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="n">refN</span><span class="p">)</span>
+            <span class="n">volFn</span> <span class="o">=</span> <span class="n">convertToMrc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volFn</span><span class="p">,</span> <span class="n">Ts</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
             <span class="n">vol</span> <span class="o">=</span> <span class="n">Volume</span><span class="p">()</span>
             <span class="n">vol</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">volFn</span><span class="p">)</span>
             <span class="n">volumes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vol</span><span class="p">)</span>
@@ -943,9 +944,13 @@
         <span class="n">halfMap2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s1">&#39;reconstructedFileNamesItersSplit2&#39;</span><span class="p">,</span>
                                      <span class="nb">iter</span><span class="o">=</span><span class="n">lastIter</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
+        <span class="n">volFn</span> <span class="o">=</span> <span class="n">convertToMrc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volFn</span><span class="p">,</span> <span class="n">Ts</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">halfMap1</span> <span class="o">=</span> <span class="n">convertToMrc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">halfMap1</span><span class="p">,</span> <span class="n">Ts</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">halfMap2</span> <span class="o">=</span> <span class="n">convertToMrc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">halfMap2</span><span class="p">,</span> <span class="n">Ts</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
         <span class="n">vol</span> <span class="o">=</span> <span class="n">Volume</span><span class="p">()</span>
         <span class="n">vol</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">volFn</span><span class="p">)</span>
-        <span class="n">vol</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">imgSet</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
+        <span class="n">vol</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">Ts</span><span class="p">)</span>
         <span class="n">vol</span><span class="o">.</span><span class="n">setHalfMaps</span><span class="p">([</span><span class="n">halfMap1</span><span class="p">,</span> <span class="n">halfMap2</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputVolume</span><span class="o">=</span><span class="n">vol</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputParticles</span><span class="p">,</span> <span class="n">vol</span><span class="p">)</span>

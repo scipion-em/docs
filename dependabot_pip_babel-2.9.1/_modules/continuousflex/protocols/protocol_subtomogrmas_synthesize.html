@@ -228,6 +228,10 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">pwem.utils</span> <span class="kn">import</span> <span class="n">runProgram</span>
 <span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">from</span> <span class="nn">joblib</span> <span class="kn">import</span> <span class="n">dump</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">cos</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">pi</span>
+
 
 <span class="n">NMA_ALIGNMENT_WAV</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">NMA_ALIGNMENT_PROJ</span> <span class="o">=</span> <span class="mi">1</span>
@@ -240,6 +244,9 @@
 
 <span class="n">MISSINGWEDGE_YES</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">MISSINGWEDGE_NO</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="n">LOWPASS_YES</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">LOWPASS_NO</span> <span class="o">=</span> <span class="mi">1</span>
 
 <span class="n">ROTATION_SHIFT_YES</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">ROTATION_SHIFT_NO</span> <span class="o">=</span> <span class="mi">1</span>
@@ -275,12 +282,22 @@
         <span class="n">group1</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;refVolume&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">PointerParam</span> <span class="p">,</span><span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;Volume&#39;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;EM volume&#39;</span><span class="p">)</span>
 
         <span class="n">group2</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">addGroup</span><span class="p">(</span><span class="s1">&#39;conformational variability&#39;</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;confVar==</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">NMA_YES</span><span class="p">)</span>
+        <span class="n">group2</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;importPdbs&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                        <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Do you want to improt a set of heterogenous PDBs?&#39;</span><span class="p">,</span>
+                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;if you keep this as No, you can use a set of normal modes to generate conformational &#39;</span>
+                             <span class="s1">&#39;heterogeneity. Otherwise, set as Yes if you have a set of different PDBs that you want &#39;</span>
+                             <span class="s1">&#39;to use to simulate subtomograms (for example a trajectory from molecular &#39;</span>
+                             <span class="s1">&#39;dynamics simulation)&#39;</span><span class="p">)</span>
+        <span class="n">group2</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;pdbs_path&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">PathParam</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;importPdbs&#39;</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;List of PDBs&quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Use the file pattern as file location with /*.pdb&#39;</span><span class="p">)</span>
         <span class="n">group2</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputModes&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;SetOfNormalModes&#39;</span><span class="p">,</span>
-                      <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;importPdbs==False&#39;</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Normal modes&quot;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Set of modes computed by normal mode analysis.&#39;</span><span class="p">)</span>
         <span class="n">group2</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;modeList&#39;</span><span class="p">,</span> <span class="n">NumericRangeParam</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Modes selection&quot;</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Modes selection&quot;</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;importPdbs==False&#39;</span><span class="p">,</span>
                       <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                       <span class="n">default</span><span class="o">=</span><span class="s1">&#39;7-8&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select the normal modes that will be used for image synthesis. </span><span class="se">\n</span><span class="s1">&#39;</span>
@@ -291,7 +308,7 @@
                            <span class="s1">&#39; &quot;8, 10, 12&quot; -&gt; [8,10,12]</span><span class="se">\n</span><span class="s1">&#39;</span>
                            <span class="s1">&#39; &quot;8 9, 10-12&quot; -&gt; [8,9,10,11,12])</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
         <span class="n">group2</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;modeRelationChoice&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">MODE_RELATION_LINEAR</span><span class="p">,</span>
-                      <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;importPdbs==False&#39;</span><span class="p">,</span>
                       <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Linear relationship&#39;</span><span class="p">,</span> <span class="s1">&#39;3 Clusters&#39;</span><span class="p">,</span> <span class="s1">&#39;Grid&#39;</span><span class="p">,</span> <span class="s1">&#39;Random&#39;</span><span class="p">,</span> <span class="s1">&#39;Upper half circle&#39;</span><span class="p">],</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Relationship between the modes&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;linear relationship: all the selected modes will have equal amplitudes. </span><span class="se">\n</span><span class="s1">&#39;</span>
@@ -301,7 +318,7 @@
                            <span class="s1">&#39;Parabolic: The relationship between two modes will be upper half circle.&#39;</span><span class="p">)</span>
         <span class="n">group2</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;centerPoint&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
                       <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;modeRelationChoice==</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">MODE_RELATION_3CLUSTERS</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;importPdbs==False and modeRelationChoice==</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">MODE_RELATION_3CLUSTERS</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Center point&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;This number will be used to determine the distance between the clusters&#39;</span>
                            <span class="s1">&#39;center1 = (-center_point, 0)&#39;</span>
@@ -309,19 +326,19 @@
                            <span class="s1">&#39;center3 = (0, center_point)&#39;</span><span class="p">)</span>
         <span class="n">group2</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;modesAmplitudeRange&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
                         <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                        <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;modeRelationChoice==</span><span class="si">%d</span><span class="s1"> or modeRelationChoice==</span><span class="si">%d</span><span class="s1"> or modeRelationChoice==</span><span class="si">%d</span><span class="s1">&#39;</span>
+                        <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;importPdbs==False and modeRelationChoice==</span><span class="si">%d</span><span class="s1"> or modeRelationChoice==</span><span class="si">%d</span><span class="s1"> or modeRelationChoice==</span><span class="si">%d</span><span class="s1">&#39;</span>
                                   <span class="s1">&#39; or modeRelationChoice==</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">MODE_RELATION_LINEAR</span><span class="p">,</span> <span class="n">MODE_RELATION_MESH</span><span class="p">,</span>
                                                                   <span class="n">MODE_RELATION_RANDOM</span><span class="p">,</span> <span class="n">MODE_RELATION_PARABOLA</span><span class="p">),</span>
                         <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Amplitude range N --&gt; [-N, N]&#39;</span><span class="p">,</span>
                         <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Choose the number N for which the generated normal mode amplitudes are in the range of [-N, N]&#39;</span><span class="p">)</span>
         <span class="n">group2</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;meshRowPoints&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
                       <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;modeRelationChoice==</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">MODE_RELATION_MESH</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;importPdbs==False and modeRelationChoice==</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">MODE_RELATION_MESH</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Grid number of steps&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;This number will be the number of points in the row and the column (grid shape will be size*size)&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;numberOfVolumes&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">36</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Number of volumes&#39;</span><span class="p">,</span>
-                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;modeRelationChoice!=</span><span class="si">%d</span><span class="s1">&#39;</span><span class="o">%</span> <span class="n">MODE_RELATION_MESH</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;importPdbs==False and modeRelationChoice!=</span><span class="si">%d</span><span class="s1">&#39;</span><span class="o">%</span> <span class="n">MODE_RELATION_MESH</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Number of volumes that will be generated&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;samplingRate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">2.2</span><span class="p">,</span>
                       <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;confVar==</span><span class="si">%d</span><span class="s1"> or refAtomic!=None&#39;</span> <span class="o">%</span> <span class="n">NMA_YES</span><span class="p">,</span>
@@ -391,6 +408,24 @@
                       <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;noiseCTFChoice==</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">NOISE_CTF_YES</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;CTF Q0&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Microscope attribute&#39;</span><span class="p">)</span>
+
+        <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Low pass filtering&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;lowPassChoice&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">LOWPASS_NO</span><span class="p">,</span>
+                      <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Add extra dose accumulation&#39;</span><span class="p">,</span> <span class="s1">&#39;Stay with only CTF&#39;</span><span class="p">],</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Use low pass filtering&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The generated volumes will be low pass filtered before projection into a tilt series.&#39;</span>
+                           <span class="s1">&#39; This simulates extra distortions similar to dose accumulation.&#39;</span>
+                           <span class="s1">&#39; However, CTF will already have such an effect.&#39;</span><span class="p">)</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span><span class="s1">&#39;Frequency (normalized)&#39;</span><span class="p">,</span>
+                            <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;lowPassChoice==</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">LOWPASS_YES</span><span class="p">,</span>
+                            <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The cufoff frequency and raised coside width of the low pass filter.&#39;</span>
+                                 <span class="s1">&#39; For details: see &quot;xmipp_transform_filter --fourier low_pass&quot;&#39;</span><span class="p">)</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;w1&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;lowPassChoice==</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">LOWPASS_YES</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Cutoff frequency (0 -&gt; 0.5)&#39;</span><span class="p">)</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;raisedw&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.02</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;lowPassChoice==</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">LOWPASS_YES</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Raised cosine width&#39;</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="s1">&#39;Reconstruction&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;reconstructionChoice&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">ROTATION_SHIFT_YES</span><span class="p">,</span>
@@ -560,7 +595,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">confVar</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">==</span><span class="n">NMA_YES</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s2">&quot;generate_deformations&quot;</span><span class="p">)</span>
+            <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">importPdbs</span><span class="o">.</span><span class="n">get</span><span class="p">()):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s2">&quot;copy_deformations&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s2">&quot;generate_deformations&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s2">&quot;generate_volume_from_pdb&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s2">&quot;generate_copies_of_volume&quot;</span><span class="p">)</span>
@@ -606,10 +644,11 @@
         <span class="n">mode8_samples</span> <span class="o">=</span> <span class="n">YY</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="c1"># iterate over the number of outputs (if mesh this has to be calculated)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeRelationChoice</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="n">MODE_RELATION_MESH</span><span class="p">:</span>
-            <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meshRowPoints</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">meshRowPoints</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfVolumes</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_volumes</span><span class="p">()</span>
+        <span class="c1"># if self.modeRelationChoice.get() is MODE_RELATION_MESH:</span>
+        <span class="c1">#     numberOfVolumes = self.meshRowPoints.get()*self.meshRowPoints.get()</span>
+        <span class="c1"># else:</span>
+        <span class="c1">#     numberOfVolumes = self.numberOfVolumes.get()</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numberOfVolumes</span><span class="p">):</span>
             <span class="n">deformations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">numberOfModes</span><span class="p">)</span>
 
@@ -640,6 +679,11 @@
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeRelationChoice</span> <span class="o">==</span> <span class="n">MODE_RELATION_MESH</span><span class="p">:</span>
                 <span class="n">new_point</span><span class="o">=</span><span class="p">(</span><span class="n">mode7_samples</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">mode8_samples</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
                 <span class="n">deformations</span><span class="p">[</span><span class="n">modeSelection</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_point</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeRelationChoice</span> <span class="o">==</span> <span class="n">MODE_RELATION_PARABOLA</span><span class="p">:</span>
+                <span class="n">amplitude</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">modesAmplitudeRange</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+                <span class="n">rv</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">point</span> <span class="o">=</span> <span class="p">(</span><span class="n">amplitude</span><span class="o">*</span><span class="n">cos</span><span class="p">(</span><span class="n">rv</span><span class="o">*</span><span class="n">pi</span><span class="p">),</span> <span class="n">amplitude</span><span class="o">*</span><span class="n">sin</span><span class="p">(</span><span class="n">rv</span><span class="o">*</span><span class="n">pi</span><span class="p">))</span>
+                <span class="n">deformations</span><span class="p">[</span><span class="n">modeSelection</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">point</span>
 
             <span class="c1"># we won&#39;t keep the first 6 modes</span>
             <span class="n">deformations</span> <span class="o">=</span> <span class="n">deformations</span><span class="p">[</span><span class="mi">6</span><span class="p">:]</span>
@@ -656,24 +700,43 @@
         <span class="n">subtomogramMD</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">deformationFile</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="FlexProtSynthesizeSubtomo.copy_deformations"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_subtomogrmas_synthesize.html#continuousflex.protocols.protocol_subtomogrmas_synthesize.FlexProtSynthesizeSubtomo.copy_deformations">[docs]</a>    <span class="k">def</span> <span class="nf">copy_deformations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">pdbs_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdbs_path</span><span class="o">.</span><span class="n">get</span><span class="p">())]</span>
+        <span class="c1"># print(pdbs_list)</span>
+        <span class="c1"># saving the list</span>
+        <span class="n">dump</span><span class="p">(</span><span class="n">pdbs_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;pdb_list.pkl&#39;</span><span class="p">))</span>
+        <span class="n">subtomogramMD</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_volumes</span><span class="p">())</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">pdbfn</span> <span class="ow">in</span> <span class="n">pdbs_list</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">createLink</span><span class="p">(</span><span class="n">pdbfn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_df.pdb&#39;</span><span class="p">))</span>
+            <span class="n">subtomogramMD</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_IMAGE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;_subtomogram&#39;</span><span class="o">+</span><span class="s1">&#39;.vol&#39;</span><span class="p">),</span>
+                                   <span class="n">subtomogramMD</span><span class="o">.</span><span class="n">addObject</span><span class="p">())</span>
+        <span class="n">subtomogramMD</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;GroundTruth.xmd&#39;</span><span class="p">))</span></div>
+
+
 <div class="viewcode-block" id="FlexProtSynthesizeSubtomo.generate_volume_from_pdb"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_subtomogrmas_synthesize.html#continuousflex.protocols.protocol_subtomogrmas_synthesize.FlexProtSynthesizeSubtomo.generate_volume_from_pdb">[docs]</a>    <span class="k">def</span> <span class="nf">generate_volume_from_pdb</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeRelationChoice</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="n">MODE_RELATION_MESH</span><span class="p">:</span>
-            <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meshRowPoints</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">meshRowPoints</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfVolumes</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_volumes</span><span class="p">()</span>
+
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numberOfVolumes</span><span class="p">):</span>
             <span class="n">params</span> <span class="o">=</span> <span class="s2">&quot; -i &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_df.pdb&#39;</span><span class="p">)</span>
             <span class="n">params</span> <span class="o">+=</span> <span class="s2">&quot; --sampling &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
             <span class="n">params</span> <span class="o">+=</span> <span class="s2">&quot; --size &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">volumeSize</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
             <span class="n">params</span> <span class="o">+=</span> <span class="s2">&quot; -v 0 --centerPDB &quot;</span>
-            <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_volume_from_pdb&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
+            <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_volume_from_pdb&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lowPassChoice</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="n">LOWPASS_YES</span><span class="p">:</span>
+            <span class="n">cutoff</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w1</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="n">raisedw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raisedw</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numberOfVolumes</span><span class="p">):</span>
+                <span class="n">params</span> <span class="o">=</span> <span class="s2">&quot; -i &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_df.vol&#39;</span><span class="p">)</span>
+                <span class="n">params</span> <span class="o">+=</span> <span class="s2">&quot; --fourier low_pass &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">cutoff</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">raisedw</span><span class="p">)</span>
+                <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_filter&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="FlexProtSynthesizeSubtomo.generate_rotation_and_shift"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_subtomogrmas_synthesize.html#continuousflex.protocols.protocol_subtomogrmas_synthesize.FlexProtSynthesizeSubtomo.generate_rotation_and_shift">[docs]</a>    <span class="k">def</span> <span class="nf">generate_rotation_and_shift</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">subtomogramMD</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;GroundTruth.xmd&#39;</span><span class="p">))</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeRelationChoice</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="n">MODE_RELATION_MESH</span><span class="p">:</span>
-            <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meshRowPoints</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">meshRowPoints</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfVolumes</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_volumes</span><span class="p">()</span>
 
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numberOfVolumes</span><span class="p">):</span>
             <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shiftx</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">==</span><span class="n">ROTATION_UNIFORM</span><span class="p">):</span>
@@ -761,11 +824,7 @@
         <span class="c1"># The number of particles per tomogram is the integer division of the number of volumes</span>
         <span class="c1">#  and the number of tomograms</span>
         <span class="n">numberOfTomograms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeRelationChoice</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="n">MODE_RELATION_MESH</span><span class="p">:</span>
-            <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meshRowPoints</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">meshRowPoints</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfVolumes</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">numberOfVolumes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_volumes</span><span class="p">()</span>
 
         <span class="n">particlesPerTomogram</span> <span class="o">=</span> <span class="n">numberOfVolumes</span><span class="o">//</span><span class="n">numberOfTomograms</span>
 
@@ -803,10 +862,7 @@
             <span class="c1"># else, the deformed volumes are projected</span>
             <span class="n">sizeX</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">volumeSize</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
             <span class="n">sizeY</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">volumeSize</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeRelationChoice</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="n">MODE_RELATION_MESH</span><span class="p">:</span>
-                <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meshRowPoints</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">meshRowPoints</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfVolumes</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_volumes</span><span class="p">()</span>
 
             <span class="n">volumeName</span> <span class="o">=</span> <span class="s2">&quot;_df.vol&quot;</span>
 
@@ -853,10 +909,7 @@
             <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeRelationChoice</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="n">MODE_RELATION_MESH</span><span class="p">:</span>
-                <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meshRowPoints</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">meshRowPoints</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfVolumes</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_volumes</span><span class="p">()</span>
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;ctf.param&#39;</span><span class="p">),</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
             <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
@@ -886,11 +939,7 @@
                 <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_ctf_phase_flip&#39;</span><span class="p">,</span> <span class="n">params_j</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="FlexProtSynthesizeSubtomo.reconstruct"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_subtomogrmas_synthesize.html#continuousflex.protocols.protocol_subtomogrmas_synthesize.FlexProtSynthesizeSubtomo.reconstruct">[docs]</a>    <span class="k">def</span> <span class="nf">reconstruct</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeRelationChoice</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="n">MODE_RELATION_MESH</span><span class="p">:</span>
-            <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meshRowPoints</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">meshRowPoints</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfVolumes</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-
+        <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_volumes</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numberOfVolumes</span><span class="p">):</span>
             <span class="n">params</span> <span class="o">=</span> <span class="s2">&quot; -i &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_projected.sel&#39;</span><span class="p">)</span>
             <span class="n">params</span> <span class="o">+=</span> <span class="s2">&quot; -o &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_subtomogram.vol&#39;</span><span class="p">)</span>
@@ -920,12 +969,7 @@
             <span class="n">params</span> <span class="o">+=</span> <span class="s2">&quot; -o &quot;</span> <span class="o">+</span> <span class="n">fn_volume</span> <span class="o">+</span> <span class="s2">&quot;.vol --type vol&quot;</span>
             <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_image_convert&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
             <span class="c1"># print(self.refVolume.get().getFileName())</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeRelationChoice</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="n">MODE_RELATION_MESH</span><span class="p">:</span>
-            <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meshRowPoints</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">meshRowPoints</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfVolumes</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-
+        <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_number_of_volumes</span><span class="p">()</span>
         <span class="n">deformationFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;GroundTruth.xmd&#39;</span><span class="p">)</span>
         <span class="n">imagesMD</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">numberOfVolumes</span><span class="p">):</span>
@@ -964,6 +1008,14 @@
     <span class="k">def</span> <span class="nf">_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
 
+<div class="viewcode-block" id="FlexProtSynthesizeSubtomo.get_number_of_volumes"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_subtomogrmas_synthesize.html#continuousflex.protocols.protocol_subtomogrmas_synthesize.FlexProtSynthesizeSubtomo.get_number_of_volumes">[docs]</a>    <span class="k">def</span> <span class="nf">get_number_of_volumes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">importPdbs</span><span class="o">.</span><span class="n">get</span><span class="p">()):</span>
+            <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdbs_path</span><span class="o">.</span><span class="n">get</span><span class="p">()))</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeRelationChoice</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="n">MODE_RELATION_MESH</span><span class="p">:</span>
+            <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">meshRowPoints</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">meshRowPoints</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">numberOfVolumes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfVolumes</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">numberOfVolumes</span></div>
     <span class="c1"># --------------------------- UTILS functions --------------------------------------------</span>
     <span class="k">def</span> <span class="nf">_printWarnings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">lines</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Print some warning lines to &#39;warnings.xmd&#39;, </span>
