@@ -121,15 +121,15 @@ Now you should see Dynamo's `dtmslice` interface for the double-clicked tomogram
 
 The steps to be followed to select your user points are the following:
 
-#. Create a new Dynamo model: `Model Pool` |rarr| `Create new model in pool (choose type)`. Inside this menu, you can choose any Dynamo model. However, remember that Scipion will rewrite your `Model` to the type you chose in the form. Thus, we recommend choosing the same type here. For this tutorial, create a General model
+#. Create a new Dynamo model: `Model Pool` ➤ `Create new model in pool (choose type)`. Inside this menu, you can choose any Dynamo model. However, remember that Scipion will rewrite your `Model` to the type you chose in the form. Thus, we recommend choosing the same type here. For this tutorial, create a General model
 #. Basic `dtmslice` controls:
-    * Mouse wheel |rarr| Change tomogram slice
-    * X, Y, or Z keys |rarr| Alternate between X, Y, or Z slices in the viewer
-    * C key |rarr| Pick an "user point" in the current mouse location (**Note**: Sometimes the picked particle might appear displaced with respect to the location of your mouse. This is a known MatLab issue, which is usually solved by minimizing/maximizing the `dtmslice` window)
-    * Delete key |rarr| Remove last picked coordinate (**Note**: You can delete a specific coordinate by right-clicking on it and selecting `Delete point: X` in the prompted menu)
-    * Mouse wheel + Ctrl key |rarr| Zoom the view in our out
-    * Mouse left click + C key |rarr| Rotate the view in any direction
-    * Mouse left click + Shift key |rarr| Pan the view in any direction
+    * Mouse wheel ➤ Change tomogram slice
+    * X, Y, or Z keys ➤ Alternate between X, Y, or Z slices in the viewer
+    * C key ➤ Pick an "user point" in the current mouse location (**Note**: Sometimes the picked particle might appear displaced with respect to the location of your mouse. This is a known MatLab issue, which is usually solved by minimizing/maximizing the `dtmslice` window)
+    * Delete key ➤ Remove last picked coordinate (**Note**: You can delete a specific coordinate by right-clicking on it and selecting `Delete point: X` in the prompted menu)
+    * Mouse wheel + Ctrl key ➤ Zoom the view in our out
+    * Mouse left click + C key ➤ Rotate the view in any direction
+    * Mouse left click + Shift key ➤ Pan the view in any direction
     * Other useful actions are available `here <https://wiki.dynamo.biozentrum.unibas.ch/w/index.php/Dtmslice#:~:text=2%20%2Dc%20myCatalogue-,Viewing%20controls,-Scene%20perspective>`_.
 #. Select your user points in the 3D view: For this tutorial, we will select the positions where you see the "neck" of a vesicle (what we call "crowns") in contact with the outer mitochondrial membrane
 
@@ -160,7 +160,7 @@ Open the `dtmslice` window following the procedure described before. Remember to
 
 One possible way to proceed would be to select different points along the membrane for other Z slices in the 3D view. However, Dynamo has a handy tool to define membranes much easier: the montage view.
 
-Let us create a new montage view to define our membrane. First, you will need to click in `Montage` |rarr| `Create Montage of full depicted scene`. The other option in the `Montage` menu will allow you to customize the settings of this view, such as the number of slices displayed.
+Let us create a new montage view to define our membrane. First, you will need to click in `Montage` ➤ `Create Montage of full depicted scene`. The other option in the `Montage` menu will allow you to customize the settings of this view, such as the number of slices displayed.
 
 .. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Montage_view.png
    :align: center
@@ -407,7 +407,7 @@ You need to pick at least five positive and five negative references to train th
 
 After picking enough positive and negative references, you can click on the `Train` button found in the **e2spt_boxer_convent.py** window. If no nets were created/loaded before, Eman will create a new net automatically.
 
-You can check the training status inside Scipion. To do so, go to `Output Log` |rarr| `run.stdout`. There you can check the current training iteration and loss. If the training process works properly, the loss should follow a decreasing trend.
+You can check the training status inside Scipion. To do so, go to `Output Log` ➤ `run.stdout`. There you can check the current training iteration and loss. If the training process works properly, the loss should follow a decreasing trend.
 
 .. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Scipion_status.png
    :align: center
