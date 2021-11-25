@@ -171,7 +171,7 @@ Inside the montage view, you can still create models as you did in the 3D viewer
 
 The following steps describe how to pick in the montage view:
 
-1. Click on the `Toggle icon |icon|
+1. Click on the `Toggle icon` |icon|
 2. Left click in the desired region of a given slice to place a new "user point"
 
 Selections in this view can be deleted by following the procedure described for the 3D view.
