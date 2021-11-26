@@ -210,6 +210,7 @@
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">abspath</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">BETA</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.protocol</span> <span class="kn">import</span> <span class="n">IntParam</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">removeBaseExt</span>
 <span class="kn">from</span> <span class="nn">tomo.constants</span> <span class="kn">import</span> <span class="n">BOTTOM_LEFT_CORNER</span>
 <span class="kn">from</span> <span class="nn">tomo.protocols</span> <span class="kn">import</span> <span class="n">ProtTomoPicking</span>
@@ -235,6 +236,9 @@
     <span class="c1"># --------------------------- DEFINE param functions ----------------------</span>
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
         <span class="n">ProtTomoPicking</span><span class="o">.</span><span class="n">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">pyworkflow.protocol</span> <span class="kn">import</span> <span class="n">LEVEL_ADVANCED</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;boxSize&#39;</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Box size&quot;</span><span class="p">,</span> <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Defualt box size for the output.&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
 
     <span class="c1"># --------------------------- INSERT steps functions ----------------------</span>
     <span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -263,16 +267,17 @@
         <span class="n">setTomograms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputTomograms</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="n">coord3DSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfCoordinates3D</span><span class="p">(</span><span class="n">setTomograms</span><span class="p">)</span>
         <span class="n">coord3DSet</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">setTomograms</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
+        <span class="n">coord3DSet</span><span class="o">.</span><span class="n">setBoxSize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boxSize</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
         <span class="n">coordCounter</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">annotationSummary</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-        <span class="k">for</span> <span class="n">tidx</span><span class="p">,</span> <span class="n">tomo</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">setTomograms</span><span class="o">.</span><span class="n">iterItems</span><span class="p">()):</span>
+        <span class="k">for</span> <span class="n">tomo</span> <span class="ow">in</span> <span class="n">setTomograms</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
             <span class="c1"># Read objl:</span>
             <span class="n">fname_objl</span> <span class="o">=</span> <span class="s1">&#39;objl_annot_&#39;</span> <span class="o">+</span> <span class="n">removeBaseExt</span><span class="p">(</span><span class="n">tomo</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39;.xml&#39;</span>
             <span class="n">objl_tomo</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_read</span><span class="p">(</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">fname_objl</span><span class="p">)))</span>
 
             <span class="c1"># Generate string for protocol summary:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Tomogram &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tidx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: a total of &#39;</span> <span class="o">+</span> \
+            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;Tomogram &#39;</span> <span class="o">+</span> <span class="n">tomo</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;: a total of &#39;</span> <span class="o">+</span> \
                   <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">objl_tomo</span><span class="p">))</span> <span class="o">+</span> <span class="s1">&#39; objects has been annotated.&#39;</span>
             <span class="n">annotationSummary</span> <span class="o">+=</span> <span class="n">msg</span>
             <span class="n">lbl_list</span> <span class="o">=</span> <span class="n">cv</span><span class="o">.</span><span class="n">objl_get_labels</span><span class="p">(</span><span class="n">objl_tomo</span><span class="p">)</span>
@@ -292,8 +297,9 @@
                 <span class="n">coord</span><span class="o">.</span><span class="n">setObjId</span><span class="p">(</span><span class="n">coordCounter</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
                 <span class="n">coord</span><span class="o">.</span><span class="n">setVolume</span><span class="p">(</span><span class="n">tomo</span><span class="p">)</span>
                 <span class="n">coord</span><span class="o">.</span><span class="n">setPosition</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">BOTTOM_LEFT_CORNER</span><span class="p">)</span>
-                <span class="n">coord</span><span class="o">.</span><span class="n">setVolId</span><span class="p">(</span><span class="n">tidx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">coord</span><span class="o">.</span><span class="n">setVolId</span><span class="p">(</span><span class="n">tomo</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
                 <span class="n">coord</span><span class="o">.</span><span class="n">_dfLabel</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">lbl</span><span class="p">))</span>
+                <span class="n">coord</span><span class="o">.</span><span class="n">setBoxSize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boxSize</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
                 <span class="n">coord3DSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
                 <span class="n">coordCounter</span> <span class="o">+=</span> <span class="mi">1</span>
@@ -368,6 +374,7 @@
             <dd><a href="../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../release-3.0.0/_modules/deepfinder/protocols/protocol_annotation.html">release-3.0.0</a></dd>
             <dd><a href="../../../rsanchezgarc-patch-1/index.html">rsanchezgarc-patch-1</a></dd>
+            <dd><a href="../../../tomo_picking_tutorial/index.html">tomo_picking_tutorial</a></dd>
         </dl>
     </div>
 </div>
