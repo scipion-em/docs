@@ -131,7 +131,7 @@ The steps to be followed to select your user points are the following:
     * **Mouse left click + C key** ➤ Rotate the view in any direction
     * **Mouse left click + Shift key** ➤ Pan the view in any direction
     * Other useful actions are available `here <https://wiki.dynamo.biozentrum.unibas.ch/w/index.php/Dtmslice#:~:text=2%20%2Dc%20myCatalogue-,Viewing%20controls,-Scene%20perspective>`_.
-#. Select your user points in the 3D view: For this tutorial, we will select the positions where you see the "neck" of a vesicle (what we call "crowns") in contact with the outer mitochondrial membrane
+#. Select your user points in the 3D view: For this tutorial, we will select the positions where you see the "neck" of a vesicle (what we call "crowns") in contact with the outer mitochondrial membrane. In total, there should be around 10 to 14 different crowns available in the tomogram
 
 .. figure:: /docs/user/tutorials/tomo/Picking_tutorial/dtmslice_picked.png
    :align: center
@@ -192,7 +192,7 @@ Once you define the membrane on several slices, you can close the montage view w
    :alt: dtmslice membrane
    :width: 400
 
-If you are happy with your results, you can close the `dtmslice` window, wait until the Scipion tomo dialog is updated with the information of your picking, and register the output in Scipion.
+If you are happy with your results, you can close the `dtmslice` window, wait until the Scipion tomo dialog is updated with the information of your picking, and register the output in Scipion. As a reference, we picked around 60 different locations along different slices in the montage view with default settings to define the membrane.
 
 We now have all the information we need to extract your initially picked "user points" based on the orientation described by the geometry of the membrane we have just defined. To that end, we will combine the output of both picking protocols with the **dynamo - model workflow** protocol.
 
