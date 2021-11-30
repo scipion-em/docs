@@ -156,7 +156,7 @@ Step 2: Defining a membrane geometry with Dynamo
 
 We can copy the **dynamo - vectorial picking** protocol we have just created to select our membrane. Before running it, change the model type in the form to `Surface`. The remaining parameters can be left unchanged.
 
-Open the `dtmslice` window following the procedure described before. Remember to create a new model inside the `dtmslice` window of the `Membrane` type.
+Open the `dtmslice` window following the procedure described before. Remember to create a new model inside the `dtmslice` window of the `Surface` type.
 
 One possible way to proceed would be to select different points along the membrane for other Z slices in the 3D view. However, Dynamo has a handy tool to define membranes much easier: the montage view.
 
