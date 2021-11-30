@@ -123,13 +123,13 @@ The steps to be followed to select your user points are the following:
 
 #. Create a new Dynamo model: `Model Pool` ➤ `Create new model in pool (choose type)`. Inside this menu, you can choose any Dynamo model. However, remember that Scipion will rewrite your `Model` to the type you chose in the form. Thus, we recommend choosing the same type here. For this tutorial, create a General model
 #. Basic `dtmslice` controls:
-    * Mouse wheel ➤ Change tomogram slice
-    * X, Y, or Z keys ➤ Alternate between X, Y, or Z slices in the viewer
-    * C key ➤ Pick an "user point" in the current mouse location (**Note**: Sometimes the picked particle might appear displaced with respect to the location of your mouse. This is a known MatLab issue, which is usually solved by minimizing/maximizing the `dtmslice` window)
-    * Delete key ➤ Remove last picked coordinate (**Note**: You can delete a specific coordinate by right-clicking on it and selecting `Delete point: X` in the prompted menu)
-    * Mouse wheel + Ctrl key ➤ Zoom the view in our out
-    * Mouse left click + C key ➤ Rotate the view in any direction
-    * Mouse left click + Shift key ➤ Pan the view in any direction
+    * **Mouse wheel** ➤ Change tomogram slice
+    * **X, Y, or Z keys** ➤ Alternate between X, Y, or Z slices in the viewer
+    * **C key** ➤ Pick an "user point" in the current mouse location (**Note**: Sometimes the picked particle might appear displaced with respect to the location of your mouse. This is a known MatLab issue, which is usually solved by minimizing/maximizing the `dtmslice` window)
+    * **Delete key** ➤ Remove last picked coordinate (**Note**: You can delete a specific coordinate by right-clicking on it and selecting `Delete point: X` in the prompted menu)
+    * **Mouse wheel + Ctrl key** ➤ Zoom the view in our out
+    * **Mouse left click + C key** ➤ Rotate the view in any direction
+    * **Mouse left click + Shift key** ➤ Pan the view in any direction
     * Other useful actions are available `here <https://wiki.dynamo.biozentrum.unibas.ch/w/index.php/Dtmslice#:~:text=2%20%2Dc%20myCatalogue-,Viewing%20controls,-Scene%20perspective>`_.
 #. Select your user points in the 3D view: For this tutorial, we will select the positions where you see the "neck" of a vesicle (what we call "crowns") in contact with the outer mitochondrial membrane
 
@@ -176,9 +176,9 @@ The following steps describe how to pick in the montage view:
 
 Selections in this view can be deleted by following the procedure described for the 3D view.
 
-Another attractive property of the montage view is the possibility of automatically "tracking" the membrane after several slices have been picked. To do so, activate the next slice (i.e., click it so that its frame becomes red), and press the O key.
+Another attractive property of the montage view is the possibility of automatically "tracking" the membrane after several slices have been picked. To do so, activate the next slice (i.e., click it so that its frame becomes red), and press the **O key**.
 
-Before exiting the montage view, we need to define an extra point so Dynamo can orient the particles properly. This new marker will tell Dynamo which side of the membrane is the interior and exterior. You can use the Shift key + C key in the desired region to place this marker. **Note**: Orientations are defined pointing towards the outer part of the membrane (i.e., the opposite side of the membrane with respect to the area where we place the previous marker).
+Before exiting the montage view, we need to define an extra point so Dynamo can orient the particles properly. This new marker will tell Dynamo which side of the membrane is the interior and exterior. You can use the **Shift key + C key** in the desired region to place this marker. **Note**: Orientations are defined pointing towards the outer part of the membrane (i.e., the opposite side of the membrane with respect to the area where we place the previous marker).
 
 .. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Montage_view_picked.png
    :align: center
