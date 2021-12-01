@@ -60,6 +60,19 @@ First of all, open a terminal and execute the command scipion3 to run Scipion. A
 Note: the protocols can be located on the left panel of the project interface or directly search via ctrl + f and typing
 the keywords that may represent what it is desired to be found, like a plugin name, a protocol name, an action, etc.
 
+Importing the tomogram
+======================
+Let's begin importing the tomogram. This is the entry point to Scipion, in which external data files are represented as
+Scipion objects, which is a common representation of the data used to make all the different packages speak to each
+other. To do that, simply look for a protocol named "import tomograms" and click on it. On tab "Import", introduce the
+directory in which the tomogram file is located, then the full name or a pattern in the second field and finally the
+sampling rate, which is, as mentioned before, 13.68 Å/voxel. Leave the other two tabs with the default values and click
+on "Execute" button.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/01_IMportTomo.png
+   :width: 500
+   :alt: Import tomogram
+
 
 .. _Scipion: http://scipion.i2pc.es/
 .. _scipion-em-tomo: https://github.com/scipion-em/scipion-em-tomo
