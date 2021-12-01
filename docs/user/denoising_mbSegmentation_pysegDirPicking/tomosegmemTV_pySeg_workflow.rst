@@ -54,11 +54,11 @@ First of all, open a terminal and execute the command scipion3 to run Scipion. A
 3. Click on button "Create".
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/00_createProject.png
-   :width: 522
+   :width: 400
    :alt: Create Project
 
-Note: protocols can be located on the left panel of the project interface or directly search via ctrl + f and typing
-they keywords that may represent what it is desired to be found, like a plugin name, a protocol name, an action, etc.
+Note: the protocols can be located on the left panel of the project interface or directly search via ctrl + f and typing
+the keywords that may represent what it is desired to be found, like a plugin name, a protocol name, an action, etc.
 
 
 .. _Scipion: http://scipion.i2pc.es/
