@@ -121,12 +121,12 @@ oldest by default). Leave the rest of parameters with the default values and cli
    :width: 650
    :alt: Denoise tomogram
 
-The denoised tomogram can be displayed proceeding the same as explain in :ref:`Import Tomogram`. It can be observed
+The denoised tomogram can be displayed proceeding the same as explain in section `Import Tomogram`. It can be observed
 how the contrast has been considerably increased, being the figure on the left the tomogram before the denoising and
 the one on the right after the denoising.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/03_res_DenoiseTomo.png
-   :width: 800
+   :width: 1000
    :alt: Denoise tomogram result
 
 .. _Scipion: http://scipion.i2pc.es/
