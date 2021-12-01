@@ -69,7 +69,7 @@ directory in which the tomogram file is located, then the full name or a pattern
 sampling rate, which is, as mentioned before, 13.68 Å/voxel. Leave the other two tabs with the default values and click
 on "Execute" button.
 
-.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/01_IMportTomo.png
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/01_ImportTomo.png
    :width: 500
    :alt: Import tomogram
 
