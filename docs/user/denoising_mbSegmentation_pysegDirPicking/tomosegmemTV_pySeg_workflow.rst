@@ -73,6 +73,29 @@ on "Execute" button.
    :width: 500
    :alt: Import tomogram
 
+Tomogram normalization
+=======================
+In this step, we are going to divide by two the size of the tomogram in order to make the denoising, segmentation and
+annotation steps faster and, in the case of the membranes segmentation and annotation, making it easier to the
+algorithm to detect them, because of the enhanced contrast as the binning gets higher. To do that, we are going to use
+the protocol called "tomo normalization" from plugin scipion-em-imod. Once the protocol form is on the screen, follow
+the steps listed below:
+
+1. To get the pointer to the tomogram previously imported, click on the magnifier icon. This action will open an
+auxiliary window which will lists the existing objects of the same type as expected.
+
+2. At this point of the wokflow, we only have the tomogram imported before. Hence, select it.
+
+3. Click on "Select" button.
+
+4. Introduce vale 2 in "Binning" field, to indicate that the resulting tomogram must be half of the size of the input
+tomogram. Consequently, the sampling rate of the output tomogram will be the double, as can be observed in the summary
+panel at the bottom of the project interface.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/03_NormalizeTomo.png
+   :width: 650
+   :alt: Normalize tomogram
+
 
 .. _Scipion: http://scipion.i2pc.es/
 .. _scipion-em-tomo: https://github.com/scipion-em/scipion-em-tomo
