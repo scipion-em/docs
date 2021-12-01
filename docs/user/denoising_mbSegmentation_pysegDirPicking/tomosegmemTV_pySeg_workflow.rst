@@ -60,6 +60,9 @@ First of all, open a terminal and execute the command scipion3 to run Scipion. A
 Note: the protocols can be located on the left panel of the project interface or directly search via ctrl + f and typing
 the keywords that may represent what it is desired to be found, like a plugin name, a protocol name, an action, etc.
 
+
+.. _importTomoSection:
+
 Importing the tomogram
 ======================
 Let's begin importing the tomogram. This is the entry point to Scipion, in which external data files are represented as
@@ -73,8 +76,8 @@ on "Execute" button.
    :width: 500
    :alt: Import tomogram
 
-The imported data can be now visualized by clinking on button "Analyze", on the top right corner of the bottom panel.
-This will generate an auxiliary window which will lists the tomograms contained in the set imported. In our case,
+The imported data can be now visualized by clinking on button "Analyze", located on the top right corner of the bottom
+panel. This will generate an auxiliary window which will lists the tomograms contained in the set imported. In our case,
 there is only one tomogram. To open it with IMOD's viewer 3dmod (integrated as part of plugin scipion-em-imod), simply
 double click on it.
 
@@ -108,7 +111,22 @@ panel at the bottom of the project interface.
 Tomogram denoising
 ==================
 
+This step is recommended to be carried out before the membrane segmentation, considering that the higher contrast our
+data has, the better the membranes will be segmented. To do that, open the protocol "denoise tomogram" from plugin
+scipion-em-jjsoft. Once there, click on the magnifier icon and select, on the pop-up window the pointer to the
+normalized tomogram (it should be the first on the list, because the objects generated are sorted from newest to
+oldest by default). Leave the rest of parameters with the default values and click execute the protocol.
 
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/03_DenoiseTomo.png
+   :width: 650
+   :alt: Denoise tomogram
+
+The denoised tomogram can be displayed proceeding the same as explain in :ref:`importTomoSection`. It can be observed
+how the contrast has been considerably increased.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/03_res_DenoiseTomo.png
+   :width: 650
+   :alt: Denoise tomogram result
 
 .. _Scipion: http://scipion.i2pc.es/
 .. _scipion-em-tomo: https://github.com/scipion-em/scipion-em-tomo
