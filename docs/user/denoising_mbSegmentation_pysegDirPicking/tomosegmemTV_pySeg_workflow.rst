@@ -92,7 +92,7 @@ auxiliary window which will lists the existing objects of the same type as expec
 tomogram. Consequently, the sampling rate of the output tomogram will be the double, as can be observed in the summary
 panel at the bottom of the project interface.
 
-.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/03_NormalizeTomo.png
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/02_NormalizeTomo.png
    :width: 650
    :alt: Normalize tomogram
 
