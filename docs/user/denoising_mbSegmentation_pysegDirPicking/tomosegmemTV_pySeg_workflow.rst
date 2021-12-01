@@ -73,6 +73,15 @@ on "Execute" button.
    :width: 500
    :alt: Import tomogram
 
+The imported data can be now visualized by clinking on button "Analyze", on the top right corner of the bottom panel.
+This will generate an auxiliary window which will lists the tomograms contained in the set imported. In our case,
+there is only one tomogram. To open it with IMOD's viewer 3dmod (integrated as part of plugin scipion-em-imod), simply
+double click on it.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/01_res_ImportTomo.png
+   :width: 500
+   :alt: Import tomogram result
+
 Tomogram normalization
 =======================
 In this step, we are going to divide by two the size of the tomogram in order to make the denoising, segmentation and
@@ -95,6 +104,10 @@ panel at the bottom of the project interface.
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/02_NormalizeTomo.png
    :width: 650
    :alt: Normalize tomogram
+
+Tomogram denoising
+==================
+
 
 
 .. _Scipion: http://scipion.i2pc.es/
