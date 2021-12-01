@@ -1,0 +1,73 @@
+.. figure:: /docs/images/scipion_logo.gif
+   :width: 250
+   :alt: scipion logo
+
+.. _Tutorial-Denoising-Membrane-Segmentation-and-Annotation-and-Directional-Picking:
+
+==================================================================================
+Tutorial - Denoising, Membrane Segmentation and Annotation and Directional Picking
+==================================================================================
+
+This tutorial covers a part of the full data processing pipeline in cryo electron tomography, concretely from the
+tomogram to the initial model generation after having picked the particles. All the data processing has been carried
+out in Scipion_, using the plugins listed below for each step:
+
+1. Import tomograms - scipion-em-tomo_
+
+2. Tomogram normalization - scipion-em-imod_
+
+3. Tomogram denoising - scipion-em-jjsoft_
+
+4. Tomogram segmentation, annotation and tomomask (segmemtation) resizing - scipion-em-tomosegmemtv_
+
+5. Assign tomomasks to tomograms - scipion-em-tomo_
+
+6. Directional picking (preseg, graphs, filaments and picking) - scipion-em-pyseg_
+
+7. Remove duplicates (filter picked particles by distance) - scipion-em-tomo3d_
+
+8. Extract particles - scipion-em-emantomo_
+
+9. 2D classification and rot angle randomization - scipion-em-pyseg_
+
+10. Generate an initial model - scipion-em-reliontomo_
+
+Thus, 8 different plugins will be used in this tutorial, highlighting the power of Scipion in terms of interoperability.
+
+
+.. contents:: Table of Contents
+
+The dataset
+===========
+
+The dataset reference used in this tutorial is EMD-10439_, which consists of an in situ tomogram of intact P19 cells
+acquired with phase-plate, with a sampling rate of 13.68 Å/voxel and dimensions (X, Y, Z) = (928, 928, 500) pixels.
+
+Preparing the project
+=====================
+First of all, open a terminal and execute the command scipion3 to run Scipion. After that:
+
+1. Click on button "Create Project".
+
+2. Write a name for it. We'll name it tomo_workshop_2021_tomosegmemTV_pyseg.
+
+3. Click on button "Create".
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/00_createProject.png
+   :width: 750
+   :alt: Create Project
+
+Note: protocols can be located on the left panel of the project interface or directly search via ctrl + f and typing
+they keywords that may represent what it is desired to be found, like a plugin name, a protocol name, an action, etc.
+
+
+.. _Scipion: http://scipion.i2pc.es/
+.. _scipion-em-tomo: https://github.com/scipion-em/scipion-em-tomo
+.. _scipion-em-imod: https://github.com/scipion-em/scipion-em-imod
+.. _scipion-em-jjsoft:: https://github.com/scipion-em/scipion-em-jjsoft
+.. _scipion-em-tomosegmemtv: https://github.com/scipion-em/scipion-em-tomosegmemtv
+.. _scipion-em-pyseg: https://github.com/scipion-em/scipion-em-pyseg
+.. _scipion-em-tomo3d: https://github.com/scipion-em/scipion-em-tomo3d
+.. _scipion-em-emantomo: https://github.com/scipion-em/scipion-em-emantomo
+.. _scipion-em-reliontomo: https://github.com/scipion-em/scipion-em-reliontomo
+.. _EMD-10439: https://www.ebi.ac.uk/emdb/EMD-10439?tab=overview
