@@ -118,10 +118,10 @@ normalized tomogram (it should be the first on the list, because the objects gen
 oldest by default). Leave the rest of parameters with the default values and click execute the protocol.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/03_DenoiseTomo.png
-   :width: 650
+   :width: 500
    :alt: Denoise tomogram
 
-The denoised tomogram can be displayed proceeding the same as explain in section `Import Tomogram`. It can be observed
+The denoised tomogram can be displayed proceeding the same as explain in section :ref:`Import Tomogram`. It can be observed
 how the contrast has been considerably increased, being the figure on the left the tomogram before the denoising and
 the one on the right after the denoising.
 
