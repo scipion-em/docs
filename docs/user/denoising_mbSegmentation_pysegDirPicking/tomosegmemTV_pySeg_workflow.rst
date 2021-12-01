@@ -61,7 +61,7 @@ Note: the protocols can be located on the left panel of the project interface or
 the keywords that may represent what it is desired to be found, like a plugin name, a protocol name, an action, etc.
 
 
-.. _importTomoSection:
+.. _Import Tomogram:
 
 Importing the tomogram
 ======================
@@ -121,11 +121,12 @@ oldest by default). Leave the rest of parameters with the default values and cli
    :width: 650
    :alt: Denoise tomogram
 
-The denoised tomogram can be displayed proceeding the same as explain in :ref:`importTomoSection`. It can be observed
-how the contrast has been considerably increased.
+The denoised tomogram can be displayed proceeding the same as explain in :ref:`Import Tomogram`. It can be observed
+how the contrast has been considerably increased, being the figure on the left the tomogram before the denoising and
+the one on the right after the denoising.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/03_res_DenoiseTomo.png
-   :width: 650
+   :width: 800
    :alt: Denoise tomogram result
 
 .. _Scipion: http://scipion.i2pc.es/
