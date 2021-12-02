@@ -141,7 +141,7 @@ used to show them.
 
 2. Select the denoised tomogram pointer in field "Input tomograms".
 
-3. Set the "Membrane thickness" parameter to 1 voxel. This is a good and recommended strategy to get the membranes closer
+3. Set the "Membrane thickness" parameter to *1* voxel. This is a good and recommended strategy to get the membranes closer
 to an over-detection scenario than the opposite, which would be the resulting scenario with higher values. In our case,
 this is the best way to proceed, due to the fact that we're going to annotate the membranes in the next step with the
 Membrane Annotator tool, which provides residual structures cleaning tools. Hence, with a low value of this parameter,
@@ -149,19 +149,24 @@ we'll obtain less discontinuities in the membranes, but more false positives. Th
 annotation step in one or two steps per vesicle instead of having to annotate part by part in case of many
 discontinuities. On the other side, the false positives can be easily removed with the annotation tool.
 
-4. Set the parameter "Membrane scale factor" to 8 voxels. This parameter is used to define the effective neighbourhood
+4. Set the parameter "Membrane scale factor" to *8* voxels. This parameter is used to define the effective neighbourhood
 of the membranes considered in the calculations (voting process). Hence, this value is recommended to be low for thin
 membranes and high for thick membranes, and considering the sampling rate of the tomograms whose vesicles are going to
 be segmented.
 
-5. Set the parameter "Membrane strength threshold" to 0.01. This parameter is used to tune the amount of output
+5. Set the parameter "Membrane strength threshold" to *0.01*. This parameter is used to tune the amount of output
 membrane points and remove false positives. Lower values will provide more membrane points, at the risk of generating
 false positives. Thus, this is a critical value when an annotation step is going to be carried out, because a very low
 value will make most of the structures found in the tomogram to be connected, so it won't be possible to annotate them
 separately. On the other hand, higher values will provide a higher probability of the structures to be disconnected,
 but if the value is too high more discontinuities may be present in the structures detected.
 
-6. Set the parameter "Keep all the generated files" to Yes to save all the intermediate results obtained in the
+6. Set the parameter "Sigma for the initial gaussian processing" to *0.5*. The input tomogram is subjected to an
+initial Gaussian filtering aiming at reducing the noise so as to determine the derivatives more robustly. By default,
+a standard deviation of 1.0 voxel is considered. If the membranes are very thin or are very close to each other,
+use lower values (e.g. 0.5).
+
+7. Set the parameter "Keep all the generated files" to *Yes* to save all the intermediate results obtained in the
 different steps carried out internally by tomosegmemTV.
 
 
@@ -265,8 +270,49 @@ to be carried out once all the desired vesicles have been annotated.
 
 11. Data visualization panel.
 
-Thresholding the segmented tomogram
------------------------------------
+Target vesicles
+---------------
+It can be observed that three of the vesicles (squared in the figure below) contain most of the membrane ribosomes.
+These are the ones we're going to annotate.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_targets.png
+   :width: 650
+   :alt: Membrane Annotator targets
+
+Density thresholding
+--------------------
+First of all, let's set the density threshold value [2] to *0.05*. This value offers a clean and continuous view of the
+different structures present in the loaded tomogram.
+
+Hint: to get an intuition of how the variations in the density threshold value affects the data, it's very recommendable
+to test different values until a promising visualization is obtained.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_thresholding.png
+   :width: 650
+   :alt: Membrane Annotator thresholding
+
+To check the results, click on button "Update Labels" [6]. The result of this operation should look like as the figure
+below. It can be observed that the segmentation and density thresholding values were correctly determined because all
+the target structures present different colors, which means different sizes. In some cases, like in target 1, there are
+two or more different colors (sizes) for the same vesicle, but this is more than normal in the case of our data (in
+situ tomogram). This can be solved annotating the different parts with the same label.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_thresholding.png
+   :width: 650
+   :alt: Membrane Annotator thresholding
+
+On the other hand, it's recommendable to check that both parts of target 2 are of the same size. It can be easily done
+with the button "Display Cursor" from panel "Size Thresholding" [6]. The result is that in this case both parts are of
+the same size, which means that most of the whole changing shape through the slices was very well segmented.
+
+Manual annotation of the targets
+--------------------------------
+
+
+
+
+
+
 
 .. _Scipion: http://scipion.i2pc.es/
 .. _scipion-em-tomo: https://github.com/scipion-em/scipion-em-tomo
