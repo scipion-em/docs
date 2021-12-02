@@ -186,9 +186,87 @@ The result obtained should look like the figure below.
 Hint: the recommended procedure is to work with one or two tomograms of the set to tune the parameters and then use
 that configuration with all the set.
 
+Membrane annotation
+===================
 
+Once the membranes have been successfully segmented, they need to be annotated, which means to manually add a numerical
+label to each to indicate the software that they represent different entities. This step will be carried out with the
+protocol "annotate segmented membranes" from plugin scipion-em-tomosegmemTV. This is an interactive protocol which
+generate an auxiliary window that lists the tomograms to be annotated and allow the user to execute the membrane
+annotator tool by double clicking on it. It also indicates which of them have been annotated and which are still
+pending to be processed. The only parameter present in this protocol is the pointer to the tomomasks (segmentations).
 
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotation.png
+   :width: 1000
+   :alt: Vesicles annotation
 
+Membrane Annotator overview
+---------------------------
+
+The following subsections will describe how to use the membrane annotation tool. But before that, let's have a quick
+look at its interface and components:
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_overview.png
+   :width: 650
+   :alt: Membrane Annotator overview
+
+Here is a brief explanation of each of the component enumerated in the figure above:
+
+1. Tools shortcuts: it offers useful functionalities to work with the structures found in the loaded tomogram, like the
+zoom in/out or the click and drag.
+
+2. Density thresholding tools: the thresholding is the starting point of every labelling procedure. It's value can be
+updated using the slider or introducing a value in the corresponding textbox.
+
+3. Z slice navigation tools: another textbox and another slider are provided to navigate through the Z slices of the
+tomogram and locate all vesicles desired to be annotated.
+
+4. View panel: it allows to visualize different representations of the loaded data:
+
+    4.1 Original - current tomogram data
+
+    4.2 Filter - input of the density thresholding operations.
+
+    4.3 Threshold - output of the density thresholding operations.
+
+    4.4 Label - Result of "Update Labels" operation (assign to each structure a label which is its size in voxels.
+
+    4.5 Material - Result of the manual labelling. It shows the annotated membranes with the assigned value.
+
+5. Crop panel: it can be used to crop the tomogram oroviding the X, Y and Z ranges and clicking in button "Update".
+
+6. Size Threshold panel: it can be used to perform three different operations:
+
+    6.1 Update Labels: automatic labelling of the structures found depending in the density threshold value. It assigns,
+        by default, the size of each structure as label. It will update the view to the view "Label".
+
+    6.2 Display Cursor: it's used to check the size of each structure. One click on it will activate the cursor mode,
+        which will display the value of the pixel selected. To finish this cursor mode, click again on the previous
+        button, whose name will be now "Stop Cursor". This functionality is very useful to determine if, for example,
+        the different parts of a discontinuous structure have been detected as parts of the same structure of not and
+        manually annotate them coherently.
+
+    6.3 Size Thresholding: it can be used to remove undesired sizes of structures, like the ones which are too small.
+        To do that, simply introduce a size value in the textbox and click on the button "S. Th.".
+
+7. Set Material panel: it works like the "Display Cursor" functionality explained in 6.2, but to annotate the desired
+structures. To do that, click on button "Display Cursor" to activate the cursor mode. Then select a structure by
+clicking on it (until here it's the same as before) and finally introduce a value in the corresponding textbox before
+clicking again on the cursor button (renamed again) to stop it and automatically execute the labelling of the selected
+structure, shown in view "Material".
+
+8. Results panel: it has two buttons, one to save the automatic size labels calculated when clicking on button "Update
+Labels" and the other to save the manually annotated structures. IMPORTANT: working from Scipion, this step is required
+to be carried out once all the desired vesicles have been annotated.
+
+9. Log panel: it registers the main actions that have been carried out by the user.
+
+10. Tomogram file name: informative.
+
+11. Data visualization panel.
+
+Thresholding the segmented tomogram
+-----------------------------------
 
 .. _Scipion: http://scipion.i2pc.es/
 .. _scipion-em-tomo: https://github.com/scipion-em/scipion-em-tomo
