@@ -61,7 +61,7 @@ Note: the protocols can be located on the left panel of the project interface or
 the keywords that may represent what it is desired to be found, like a plugin name, a protocol name, an action, etc.
 
 
-.. _ImportTomogram:
+.. _Importing the Tomogram:
 
 Importing the tomogram
 ======================
@@ -121,7 +121,7 @@ oldest by default). Leave the rest of parameters with the default values and cli
    :width: 500
    :alt: Denoise tomogram
 
-The denoised tomogram can be displayed proceeding the same as explain in section :ref:`ImportTomogram`. It can be observed
+The denoised tomogram can be displayed proceeding the same as explain in section `Importing the Tomogram`_. It can be observed
 how the contrast has been considerably increased, being the figure on the left the tomogram before the denoising and
 the one on the right after the denoising.
 
