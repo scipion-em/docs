@@ -297,9 +297,9 @@ the target structures present different colors, which means different sizes. In 
 two or more different colors (sizes) for the same vesicle, but this is more than normal in the case of our data (in
 situ tomogram). This can be solved annotating the different parts with the same label.
 
-.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_thresholding.png
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_autoLabel.png
    :width: 650
-   :alt: Membrane Annotator thresholding
+   :alt: Membrane Annotator update labels
 
 On the other hand, it's recommendable to check that both parts of target 2 are of the same size. It can be easily done
 with the button "Display Cursor" from panel "Size Thresholding" [6]. The result is that in this case both parts are of
