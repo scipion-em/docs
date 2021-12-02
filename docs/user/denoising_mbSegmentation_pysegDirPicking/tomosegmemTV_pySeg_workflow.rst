@@ -82,7 +82,7 @@ there is only one tomogram. To open it with IMOD's viewer 3dmod (integrated as p
 double click on it.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/01_res_ImportTomo.png
-   :width: 500
+   :width: 700
    :alt: Import tomogram result
 
 Tomogram normalization
