@@ -129,6 +129,67 @@ the one on the right after the denoising.
    :width: 1000
    :alt: Denoise tomogram result
 
+Membrane segmentation
+=====================
+
+Membrane segmentation and annotation constitute the pre-processing steps for the membrane particles picking with PySeg.
+The first step will be carried out with protocol "tomogram segmentation" from plugin scipion-em-tomosegmemtv. Open the
+protocol mentioned and follow the steps listed and illustrated below:
+
+1. Click on Advanced radio button. This action is present in all the protocols that offer advanced parameters and its
+used to show them.
+
+2. Select the denoised tomogram pointer in field "Input tomograms".
+
+3. Set the "Membrane thickness" parameter to 1 voxel. This is a good and recommended strategy to get the membranes closer
+to an over-detection scenario than the opposite, which would be the resulting scenario with higher values. In our case,
+this is the best way to proceed, due to the fact that we're going to annotate the membranes in the next step with the
+Membrane Annotator tool, which provides residual structures cleaning tools. Hence, with a low value of this parameter,
+we'll obtain less discontinuities in the membranes, but more false positives. The first condition takes to a simpler
+annotation step in one or two steps per vesicle instead of having to annotate part by part in case of many
+discontinuities. On the other side, the false positives can be easily removed with the annotation tool.
+
+4. Set the parameter "Membrane scale factor" to 8 voxels. This parameter is used to define the effective neighbourhood
+of the membranes considered in the calculations (voting process). Hence, this value is recommended to be low for thin
+membranes and high for thick membranes, and considering the sampling rate of the tomograms whose vesicles are going to
+be segmented.
+
+5. Set the parameter "Membrane strength threshold" to 0.01. This parameter is used to tune the amount of output
+membrane points and remove false positives. Lower values will provide more membrane points, at the risk of generating
+false positives. Thus, this is a critical value when an annotation step is going to be carried out, because a very low
+value will make most of the structures found in the tomogram to be connected, so it won't be possible to annotate them
+separately. On the other hand, higher values will provide a higher probability of the structures to be disconnected,
+but if the value is too high more discontinuities may be present in the structures detected.
+
+6. Set the parameter "Keep all the generated files" to Yes to save all the intermediate results obtained in the
+different steps carried out internally by tomosegmemTV.
+
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/04_MembranesSegmentation.png
+   :width: 500
+   :alt: Vesicles segmentation
+
+Note: in this example all the parameter values provided have been tuned previously, but in the normal scenario consists
+of some executions until getting the desired result. Even more, sometimes it is necessary to go back from the membrane
+annotator to tune some parameter to, for example, get the membranes less connected. On the other hand, it is
+recommended to keep all the files when you are not familiarized with the algorithm so, if the membranes get lost in the
+final result, the intermediate results can be analyzed to determine when they got lost and, as a consequence, know
+know which parameter should be tuned. For a more detailed explanation, click HERE --> AÑADIR REFERENCIA A TEORÍA DE
+TOMOSEGMEMTV.
+
+The result obtained should look like the figure below.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/04_res_MembranesSegmentation.png
+   :width: 500
+   :alt: Vesicles segmentation result
+
+Hint: the recommended procedure is to work with one or two tomograms of the set to tune the parameters and then use
+that configuration with all the set.
+
+
+
+
+
 .. _Scipion: http://scipion.i2pc.es/
 .. _scipion-em-tomo: https://github.com/scipion-em/scipion-em-tomo
 .. _scipion-em-imod: https://github.com/scipion-em/scipion-em-imod
