@@ -219,12 +219,15 @@
 <span class="c1"># Tested in test_workflow_deconvolution</span>
 <span class="c1"># Tested by test_workflow_levyplot</span>
 <span class="c1"># Tested in test_workflow_deconvolution2</span>
-
+<span class="c1"># Tested in test_workflow_ivivc</span>
 
 <div class="viewcode-block" id="ProtPKPDDeconvolve"><a class="viewcode-back" href="../../../api/pkpd/pkpd.protocols.protocol_pkpd_dissolution_deconvolve.html#pkpd.protocols.protocol_pkpd_dissolution_deconvolve.ProtPKPDDeconvolve">[docs]</a><span class="k">class</span> <span class="nc">ProtPKPDDeconvolve</span><span class="p">(</span><span class="n">ProtPKPDODEBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Deconvolve the drug dissolution from a compartmental model.&quot;&quot;&quot;</span>
 
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;dissol deconv&#39;</span>
+    <span class="n">BIOAVAIL_NONE</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">BIOAVAIL_MULT</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">BIOAVAIL_DIV</span> <span class="o">=</span> <span class="mi">2</span>
 
     <span class="c1">#--------------------------- DEFINE param functions --------------------------------------------</span>
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
@@ -235,6 +238,12 @@
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select a run of an ODE model&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;normalize&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Normalize by dose&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Normalize the output by the input dose, so that a total absorption is represented by 100.&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;considerBioaval&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Consider bioavailability&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">BIOAVAIL_NONE</span><span class="p">,</span>
+                      <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Do not correct&#39;</span><span class="p">,</span><span class="s1">&#39;Multiply deconvolution by bioavailability&#39;</span><span class="p">,</span><span class="s1">&#39;Divide deconvolution by bioavailability&#39;</span><span class="p">],</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Take into account the bioavailability&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;saturate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Saturate at 100%&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;normalize&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Saturate the absorption so that there cannot be values beyond 100&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;removeTlag&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Remove tlag effect&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;If set to True, then the deconvolution is performed ignoring the the tlag in the absorption.&#39;</span>
                            <span class="s1">&#39;This homogeneizes the different responses.&#39;</span><span class="p">)</span>
@@ -309,15 +318,21 @@
 
             <span class="n">cumulatedDose</span><span class="o">=</span><span class="mf">0.0</span>
             <span class="n">A</span><span class="o">=</span><span class="n">t</span><span class="o">*</span><span class="mf">0.0</span> <span class="c1"># Allocate memory</span>
-            <span class="n">totalReleased</span> <span class="o">=</span> <span class="n">drugSource</span><span class="o">.</span><span class="n">getAmountReleasedUpTo</span><span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">/</span><span class="mi">100</span> <span class="c1"># Divided by 100 to have a number between 0 and 100</span>
+            <span class="n">totalReleased</span> <span class="o">=</span> <span class="n">drugSource</span><span class="o">.</span><span class="n">getAmountReleasedUpTo</span><span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="n">t</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;t(min) A(</span><span class="si">%s</span><span class="s2">)&quot;</span><span class="o">%</span><span class="n">Avar</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">_toString</span><span class="p">())</span>
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">size</span><span class="p">):</span>
                 <span class="n">cumulatedDose</span><span class="o">+=</span><span class="n">drugSource</span><span class="o">.</span><span class="n">getAmountReleasedAt</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">deltaT</span><span class="p">)</span>
                 <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">=</span><span class="n">cumulatedDose</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-                    <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">/=</span> <span class="n">totalReleased</span>
+                    <span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*=</span> <span class="mf">100.0</span><span class="o">/</span><span class="n">totalReleased</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%f</span><span class="s2"> </span><span class="si">%f</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">A</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
                 <span class="c1"># print(&quot;%f %f %f %f&quot;%(t[i], A[i], drugSource.getAmountReleasedAt(t[i], 0.5), drugSource.getAmountReleasedUpTo(t[i] + 0.5)))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">saturate</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+                <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">A</span><span class="p">,</span><span class="kc">None</span><span class="p">,</span><span class="mf">100.0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">considerBioaval</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">BIOAVAIL_DIV</span><span class="p">:</span>
+                <span class="n">A</span> <span class="o">/=</span> <span class="n">sample</span><span class="o">.</span><span class="n">getBioavailability</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">considerBioaval</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">BIOAVAIL_MULT</span><span class="p">:</span>
+                <span class="n">A</span> <span class="o">*=</span> <span class="n">sample</span><span class="o">.</span><span class="n">getBioavailability</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">addSample</span><span class="p">(</span><span class="n">sampleName</span><span class="p">,</span><span class="n">t</span><span class="o">-</span><span class="n">tlag</span><span class="p">,</span><span class="n">A</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">outputExperiment</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPath</span><span class="p">(</span><span class="s2">&quot;experiment.pkpd&quot;</span><span class="p">))</span></div>
@@ -368,9 +383,11 @@
         <dl>
             <dt>Branches</dt>
             <dd><a href="../../../gh-pages/index.html">gh-pages</a></dd>
+            <dd><a href="../../../jj_denoise_segmentation_dirPicking_workshop/index.html">jj_denoise_segmentation_dirPicking_workshop</a></dd>
             <dd><a href="../../../release-2.0.0/index.html">release-2.0.0</a></dd>
             <dd><a href="../../../release-3.0.0/_modules/pkpd/protocols/protocol_pkpd_dissolution_deconvolve.html">release-3.0.0</a></dd>
             <dd><a href="../../../rsanchezgarc-patch-1/index.html">rsanchezgarc-patch-1</a></dd>
+            <dd><a href="../../../tomo_picking_tutorial/index.html">tomo_picking_tutorial</a></dd>
         </dl>
     </div>
 </div>

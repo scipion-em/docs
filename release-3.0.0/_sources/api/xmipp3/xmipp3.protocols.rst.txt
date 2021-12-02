@@ -101,6 +101,7 @@ Submodules
    xmipp3.protocols.protocol_screen_deeplearning
    xmipp3.protocols.protocol_screen_particles
    xmipp3.protocols.protocol_shift_particles
+   xmipp3.protocols.protocol_shift_volume
    xmipp3.protocols.protocol_simulate_ctf
    xmipp3.protocols.protocol_solid_angles
    xmipp3.protocols.protocol_split_volume
