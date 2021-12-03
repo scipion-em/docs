@@ -20,22 +20,28 @@ out in Scipion_, using the plugins listed below for each step:
 
 4. Tomogram segmentation, annotation and tomomask (segmemtation) resizing - scipion-em-tomosegmemtv_
 
-5. Assign tomomasks to tomograms - scipion-em-tomo_
+5. Directional picking (preseg, graphs, filaments and picking) - scipion-em-pyseg_
 
-6. Directional picking (preseg, graphs, filaments and picking) - scipion-em-pyseg_
+6. Remove duplicates (filter picked particles by distance) - scipion-em-tomo3d_
 
-7. Remove duplicates (filter picked particles by distance) - scipion-em-tomo3d_
+7. Extract particles - scipion-em-emantomo_
 
-8. Extract particles - scipion-em-emantomo_
+8. 2D classification and rot angle randomization - scipion-em-pyseg_
 
-9. 2D classification and rot angle randomization - scipion-em-pyseg_
-
-10. Generate an initial model - scipion-em-reliontomo_
+9. Generate an initial model - scipion-em-reliontomo_
 
 Thus, 8 different plugins will be used in this tutorial, highlighting the power of Scipion in terms of interoperability.
 
 
 .. contents:: Table of Contents
+
+Associated resources
+====================
+
+Here you can find resources associated with this content, like videos or presentations used in courses and other
+documentation pages:
+
+`Basic actions with Scipion <https://scipion-em.github.io/docs/docs/user/scipion-gui.html#scipion-gui>`_
 
 The dataset
 ===========
@@ -84,6 +90,8 @@ double click on it.
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/01_res_ImportTomo.png
    :width: 700
    :alt: Import tomogram result
+
+.. _Tomogram normalization:
 
 Tomogram normalization
 =======================
@@ -412,7 +420,7 @@ is located at the top right corner of the project panel).
    :width: 400
    :alt: Membrane Annotator save results and exit
 
-Analyze annotated membranes
+Analyze the annotated membranes
 ---------------------------
 
 If we click on button "Analyze Results" in the lower panel of the project interface, the 3D visualization tool from
@@ -423,7 +431,34 @@ or by slices, as shown in the figure below.
    :width: 1000
    :alt: Membrane Annotator results with tomo3d
 
+Resize the tomomasks (segmentations)
+====================================
 
+After having carried out the segmentation and annotation of the vesicles in a smaller size to improve both performance
+and contrast (explained in section `Tomogram normalization`_), the segmented and annotated data must be resied to its
+previous size for the picking of the membrane particles (smaller sampling rate will make the picking algorithms easier
+and even possible to find the desired densities). This operation will be carried out with protocol "Resize segmented or
+annotated volume" from plugin scipion-em-tomosegmemtv. The tomomasks desired to be resized and the tomograms to which
+they have to be referred and resized to their size are the arguments required to be filled. Select the pointer to the
+annotation protocol output for the first and the pointer to the imported tomogram for the second.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/06_resize_tomoMasks.png.png
+   :width: 1000
+   :alt: Resize tomomasks protocol
+
+We're referring the tomomasks to the imported tomograms and not to the denoised ones to carry out the picking procedure
+with the less processed data as possible, for two main reasons:
+
+1. PySeg graphs calculations expect the data not to be filtered, so it will provide the best result with unfiltered
+(e. g. not denoised) data.
+
+2. Avoid all the interpolations and mathematical treatment of the data at the pint of identifying small structures,
+increasing the probabilities of the picked objects to be a physical entity instead of a mathematical artifact,
+
+*SUMMARY:*
+
+At this point we have the membranes segmented, annotated, at the correct size and referred to the imported tomograms.
+Thus, we're ready for the picking.
 
 
 
