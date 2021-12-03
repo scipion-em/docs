@@ -201,6 +201,9 @@ generate an auxiliary window that lists the tomograms to be annotated and allow 
 annotator tool by double clicking on it. It also indicates which of them have been annotated and which are still
 pending to be processed. The only parameter present in this protocol is the pointer to the tomomasks (segmentations).
 
+Note: It may take a few seconds to be displayed after double clicking on one tomogram from the list shown in the
+auxiliary window.
+
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotation.png
    :width: 1000
    :alt: Vesicles annotation
@@ -257,8 +260,8 @@ tomogram and locate all vesicles desired to be annotated.
 7. Set Material panel: it works like the "Display Cursor" functionality explained in 6.2, but to annotate the desired
 structures. To do that, click on button "Display Cursor" to activate the cursor mode. Then select a structure by
 clicking on it (until here it's the same as before) and finally introduce a value in the corresponding textbox before
-clicking again on the cursor button (renamed again) to stop it and automatically execute the labelling of the selected
-structure, shown in view "Material".
+clicking again on the cursor button (renamed to "Change Lbl.") to stop it and automatically execute the labelling of
+the selected structure, shown in view "Material".
 
 8. Results panel: it has two buttons, one to save the automatic size labels calculated when clicking on button "Update
 Labels" and the other to save the manually annotated structures. IMPORTANT: working from Scipion, this step is required
@@ -305,10 +308,120 @@ On the other hand, it's recommendable to check that both parts of target 2 are o
 with the button "Display Cursor" from panel "Size Thresholding" [6]. The result is that in this case both parts are of
 the same size, which means that most of the whole changing shape through the slices was very well segmented.
 
-Manual annotation of the targets
---------------------------------
+.. _Manual annotation of the target 1:
 
+Manual annotation of the target 1
+---------------------------------
 
+The first target membrane has been detected in two unconnected parts of different sizes (colors), as shown below (the
+size is shown in the index label of the tooltip. The background size will be always 0). It can be observed that target
+3 has different size, so it's not connected to the orange part of target 1 and that the blue part of target one can be
+annotated with the same label as the orange one to get the full membrane annotated.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_target1_1.png
+   :width: 650
+   :alt: Membrane Annotator target 1 sizes
+
+The procedure followed to check the sizes was:
+
+1. Click on the magnifier with a cross icon from "Tools shortcuts" [1].
+
+2. Create a zoom window clicking and dragging around the target 1 vesicle to zoom in. When the zoom mode is active, it
+can be smoothly controlled with the mouse wheel.
+
+3. Click on button "Display Cursor" from panel "Size Threshold" [6] and click on the structure whose size is desired to
+be displayed. To fine tune the position of the cursor, use the arrow keys from the keyboard.
+Note: to generate multiple tooltips, right click on the current tooltip and select option "Create New Data Tip" or
+directly press shift + left click.
+
+4. To finish the cursor mode, click on the same button pressed to activate it, but now called "Stop Cursor".
+
+Let's annotate now the orange part of target one with label 1 (Use the zoom in tool if necessary, as explained before):
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_target1_2.png
+   :width: 650
+   :alt: Membrane Annotator target 1 annotation
+
+1. Click on button "Display Cursor" from panel "Set Material" [7].
+
+2. Click on the membrane and, before clicking on the same button (now named "Change Lbl."), be sure that the clicked
+pixel belongs to a structure (index must be grater than 0).
+
+3. Leave the textbox "Label" value as 1. If we we annotating the target 2 o target 3 vesicles, this value should have
+to be set to 2 or 3, respectively.
+
+4. Finally, click on the button "Change Lbl." to annotate that part of target 1 vesicle with label 1. This action will
+display automatically the view "Material" from the panel "View" [4], as can be observed in the figure below.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_target1_3.png
+   :width: 650
+   :alt: Membrane Annotator target 1 material view part
+
+If we repeat this procedure with the blue part of target 1 vesicle (annotatin it with label 1), the result should look
+like as shown in the figure below.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_target1_4.png
+   :width: 650
+   :alt: Membrane Annotator target 1 material view full
+
+Manual annotation of the target 2
+---------------------------------
+
+Proceeding the same as explain in section `Manual annotation of the target 1`_, it can be observed that the target has
+been detected in two different parts (upper part, with a size of 111171 voxels and lower part, of size 10330 voxels),
+just the same as what happened with target 1. Moreover, the inner small vesicle and the top left structure are
+disconnected from target 2, because they have different sizes (see figure below).
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_target2_1.png
+   :width: 650
+   :alt: Membrane Annotator target 2 sizes
+
+Hence, we can proceed to the manual annotation, this time with label 2. The final result of the target 2 vesicle
+annotation is shown in the figure below.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_target2_2.png
+   :width: 650
+   :alt: Membrane Annotator target 2 material view full
+
+Manual annotation of the target 3
+---------------------------------
+
+This is the easiest one, identified as a continuous structure. So we can directly annotate it with label 3. The result
+of the three membranes annotated can be observed in the figure below.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_targe3.png
+   :width: 650
+   :alt: Membrane Annotator target 3 material view full
+
+Save the annotated vesicles and finish the interactive annotation protocol
+--------------------------------------------------------------------------
+
+To successfully save the results of the annotation, follow the steps enumerated below:
+
+1. Click on button "Save Materials" from panel Results [8].
+
+2. If everything goes fine, the first line of the "Log Panel" [9], should be "Materials were correctly saved".
+
+3. Close Membrane Annotator and check that the status of the tomogram listed in the auxiliary window has been updated
+to "DONE". Finally, close the auxiliary window.
+
+4. The protocol box should have now update its state to inactive. If not, refresh the project interface (refresh icon
+is located at the top right corner of the project panel).
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_saveResults.png
+   :width: 400
+   :alt: Membrane Annotator save results and exit
+
+Analyze annotated membranes
+---------------------------
+
+If we click on button "Analyze Results" in the lower panel of the project interface, the 3D visualization tool from
+plugin scipion-em-tomo3d is launched. It allows the user to observe the membranes annotated placed on the full tomogram
+or by slices, as shown in the figure below.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_tomo3dviewer.png
+   :width: 1000
+   :alt: Membrane Annotator results with tomo3d
 
 
 
