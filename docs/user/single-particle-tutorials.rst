@@ -2,7 +2,7 @@
    :width: 250
    :alt: scipion logo
 
-.. _single-particles-tutorials:
+.. _single-particle-tutorials:
 
 Introduction to Scipion
 -----------------------
