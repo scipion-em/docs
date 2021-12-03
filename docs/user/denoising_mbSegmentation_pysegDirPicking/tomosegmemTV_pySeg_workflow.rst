@@ -389,7 +389,7 @@ Manual annotation of the target 3
 This is the easiest one, identified as a continuous structure. So we can directly annotate it with label 3. The result
 of the three membranes annotated can be observed in the figure below.
 
-.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_targe3.png
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_target3.png
    :width: 650
    :alt: Membrane Annotator target 3 material view full
 
