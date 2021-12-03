@@ -443,7 +443,7 @@ they have to be referred and resized to their size are the arguments required to
 annotation protocol output for the first and the pointer to the imported tomogram for the second.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/06_resize_tomoMasks.png
-   :width: 1000
+   :width: 500
    :alt: Resize tomomasks protocol
 
 We're referring the tomomasks to the imported tomograms and not to the denoised ones to carry out the picking procedure
