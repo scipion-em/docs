@@ -442,7 +442,7 @@ annotated volume" from plugin scipion-em-tomosegmemtv. The tomomasks desired to 
 they have to be referred and resized to their size are the arguments required to be filled. Select the pointer to the
 annotation protocol output for the first and the pointer to the imported tomogram for the second.
 
-.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/06_resize_tomoMasks.png.png
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/06_resize_tomoMasks.png
    :width: 1000
    :alt: Resize tomomasks protocol
 
