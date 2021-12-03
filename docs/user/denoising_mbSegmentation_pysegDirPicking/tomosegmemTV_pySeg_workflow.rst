@@ -43,6 +43,11 @@ documentation pages:
 
 `Basic actions with Scipion <https://scipion-em.github.io/docs/docs/user/scipion-gui.html#scipion-gui>`_
 
+Practise objective
+==================
+
+The aim of this tutorial is to pick the membrane ribosomes of an in situ tomogram usin gsegmentation, annotation and directional picking protocols inside Scipion framework.
+
 The dataset
 ===========
 
