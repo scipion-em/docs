@@ -17,6 +17,14 @@ Picking tutorial for Tomography
 This page will present the different picking protocols and strategies available in Scipion for Tomography and the Plugins where the various programs can be found.
 The tutorial will cover from the picking step to the extraction of the coordinates selected in the tomogram, including some useful tools to complement the protocols involved in the picking workflows.
 
+Additional resources
+============
+
+Here you can find some valuable resources to complement the contents described in the tutorial:
+
+* `Slides - Scipion tomography course December 2021 <https://docs.google.com/presentation/d/1Dyt9An3FR_qNDugjmB9VEriiASzrZb1GlxLBTVkSY7I/edit?usp=sharing>`_
+* `Video tutorials for Directional picking tutorial section <x>`_
+
 Where to find the protocols?
 ============
 
