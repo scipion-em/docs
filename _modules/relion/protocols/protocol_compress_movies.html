@@ -210,12 +210,13 @@
 <span class="kn">import</span> <span class="nn">os</span>
 
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
-<span class="kn">import</span> <span class="nn">pyworkflow.object</span> <span class="k">as</span> <span class="nn">pwobj</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.constants</span> <span class="kn">import</span> <span class="n">PROD</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">ProtAlignMovies</span>
 <span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">MovieAlignment</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol</span> <span class="kn">import</span> <span class="n">STEPS_PARALLEL</span>
+
+<span class="kn">import</span> <span class="nn">relion</span>
 
 
 <div class="viewcode-block" id="ProtRelionCompressMovies"><a class="viewcode-back" href="../../../api/relion/relion.protocols.protocol_compress_movies.html#relion.protocols.protocol_compress_movies.ProtRelionCompressMovies">[docs]</a><span class="k">class</span> <span class="nc">ProtRelionCompressMovies</span><span class="p">(</span><span class="n">ProtAlignMovies</span><span class="p">):</span>
@@ -225,49 +226,38 @@
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;compress movies&#39;</span>
     <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">PROD</span>
 
+    <span class="n">OP_COMPRESS</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">OP_ESTIMATE</span> <span class="o">=</span> <span class="mi">1</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
         <span class="n">ProtAlignMovies</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">isEER</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stepsExecutionMode</span> <span class="o">=</span> <span class="n">STEPS_PARALLEL</span>
 
     <span class="k">def</span> <span class="nf">_getConvertExtension</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Check whether it is needed to convert to .mrc or not &quot;&quot;&quot;</span>
         <span class="n">ext</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">getExt</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-        <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.mrc&#39;</span><span class="p">,</span> <span class="s1">&#39;.mrcs&#39;</span><span class="p">,</span> <span class="s1">&#39;.tiff&#39;</span><span class="p">,</span> <span class="s1">&#39;.tif&#39;</span><span class="p">,</span> <span class="s1">&#39;.eer&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;mrc&#39;</span>
+        <span class="k">return</span> <span class="kc">None</span> <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.mrc&#39;</span><span class="p">,</span> <span class="s1">&#39;.mrcs&#39;</span><span class="p">,</span> <span class="s1">&#39;.tiff&#39;</span><span class="p">,</span> <span class="s1">&#39;.tif&#39;</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;mrc&#39;</span>
 
     <span class="c1"># -------------------------- DEFINE param functions -----------------------</span>
     <span class="k">def</span> <span class="nf">_defineAlignmentParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputGainProt&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">PointerParam</span><span class="p">,</span>
-                      <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputGainProt&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                       <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;ProtRelionCompressEstimateGain&#39;</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Input gain estimation protocol (optional)&#39;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Provide an estimate gain reference protocol &#39;</span>
-                           <span class="s1">&#39;from where the gain file will be taken.&#39;</span><span class="p">)</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Input gain (Optional)&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Provide as input a compress estimate protocol &#39;</span>
+                           <span class="s1">&#39;from where the estimated gain file will be taken.&#39;</span><span class="p">)</span>
 
         <span class="n">group</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">addGroup</span><span class="p">(</span><span class="s2">&quot;TIFF Options&quot;</span><span class="p">)</span>
+
         <span class="n">group</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;compression&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
                        <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="s1">&#39;zip&#39;</span><span class="p">,</span> <span class="s1">&#39;lzw&#39;</span><span class="p">],</span>
                        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Compression type&#39;</span><span class="p">)</span>
+
         <span class="n">group</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;deflateLevel&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
                        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Deflate level&#39;</span><span class="p">,</span>
                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;deflate level. 1 (fast) &quot;</span>
                             <span class="s2">&quot;to 9 (slowest but best compression)&quot;</span><span class="p">)</span>
-
-        <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="s2">&quot;EER&quot;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;eerGroup&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;EER fractionation&#39;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The number of hardware frames to group into one &quot;</span>
-                           <span class="s2">&quot;fraction. This option is relevant only for Falcon4 &quot;</span>
-                           <span class="s2">&quot;movies in the EER format. Falcon 4 operates at &quot;</span>
-                           <span class="s2">&quot;248 frames/s.</span><span class="se">\n</span><span class="s2">Fractionate such that each fraction &quot;</span>
-                           <span class="s2">&quot;has about 0.5 to 1.25 e/A2.&quot;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;eerSampling&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                      <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">],</span>
-                      <span class="n">display</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="o">.</span><span class="n">DISPLAY_HLIST</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;EER upsampling&#39;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;EER upsampling (1 = 4K or 2 = 8K). 8K rendering is not &quot;</span>
-                           <span class="s2">&quot;recommended by Relion. See &quot;</span>
-                           <span class="s2">&quot;https://relion.readthedocs.io/en/latest/Reference/MovieCompression.html&quot;</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
@@ -275,36 +265,30 @@
     <span class="k">def</span> <span class="nf">_convertInputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Relion version:&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;relion_convert_to_tiff --version&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Detected version from config: </span><span class="si">%s</span><span class="s2">&quot;</span>
+                  <span class="o">%</span> <span class="n">relion</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getActiveVersion</span><span class="p">())</span>
         <span class="c1"># Create a local link to the input gain file if necessary</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputGainProt</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-            <span class="n">inputGainProt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputGainProt</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-            <span class="n">inputGainProt</span><span class="o">.</span><span class="n">_createFilenameTemplates</span><span class="p">()</span>
-
+        <span class="n">inputGain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputGain</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">inputGain</span><span class="p">:</span>
             <span class="n">tmpGain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s1">&#39;gain_estimate.bin&#39;</span><span class="p">)</span>
-            <span class="n">pwutils</span><span class="o">.</span><span class="n">createAbsLink</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">inputGainProt</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s2">&quot;output_gain&quot;</span><span class="p">)),</span>
-                                  <span class="n">tmpGain</span><span class="p">)</span>
-            <span class="n">pwutils</span><span class="o">.</span><span class="n">createAbsLink</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">inputGainProt</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="s2">&quot;output_gain_extra&quot;</span><span class="p">)),</span>
-                                  <span class="n">tmpGain</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.bin&#39;</span><span class="p">,</span> <span class="s1">&#39;_reliablity.bin&#39;</span><span class="p">))</span>
-
+            <span class="n">pwutils</span><span class="o">.</span><span class="n">createLink</span><span class="p">(</span><span class="n">inputGain</span><span class="p">,</span> <span class="n">tmpGain</span><span class="p">)</span>
+            <span class="n">pwutils</span><span class="o">.</span><span class="n">createLink</span><span class="p">(</span><span class="n">inputGain</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.bin&#39;</span><span class="p">,</span> <span class="s1">&#39;_reliablity.bin&#39;</span><span class="p">),</span>
+                               <span class="n">tmpGain</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.bin&#39;</span><span class="p">,</span> <span class="s1">&#39;_reliablity.bin&#39;</span><span class="p">))</span>
         <span class="n">ProtAlignMovies</span><span class="o">.</span><span class="n">_convertInputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_processMovie</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
         <span class="n">fn</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="s1">&#39;_originalFileName&#39;</span><span class="p">,</span> <span class="n">movie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
         <span class="n">baseName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
         <span class="n">compression</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getEnumText</span><span class="p">(</span><span class="s1">&#39;compression&#39;</span><span class="p">)</span>
-        <span class="n">pwutils</span><span class="o">.</span><span class="n">createAbsLink</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">fn</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="n">baseName</span><span class="p">))</span>
-        <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot; --i </span><span class="si">%s</span><span class="s2"> --o ../extra/&quot;</span> <span class="o">%</span> <span class="n">baseName</span>
-        <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; --compression </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">compression</span>
+        <span class="n">pwutils</span><span class="o">.</span><span class="n">createLink</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="n">baseName</span><span class="p">))</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot;--i </span><span class="si">%s</span><span class="s2"> --o ../extra/ &quot;</span> <span class="o">%</span> <span class="n">baseName</span>
+        <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--compression </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="n">compression</span>
         <span class="c1"># TODO: Check if deflateLevel is only valid for zip (deflate)</span>
         <span class="k">if</span> <span class="n">compression</span> <span class="o">==</span> <span class="s1">&#39;zip&#39;</span><span class="p">:</span>  <span class="c1"># deflate</span>
-            <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; --deflate_level </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">deflateLevel</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--deflate_level </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">deflateLevel</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputGainProt</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-            <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; --gain gain_estimate.bin&quot;</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isEER</span><span class="p">:</span>
-            <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; --eer_grouping </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">eerGroup</span>
-            <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; --eer_upsampling </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">eerSampling</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputGain</span><span class="p">():</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--gain gain_estimate.bin &quot;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;relion_convert_to_tiff&#39;</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">())</span>
 
@@ -317,21 +301,14 @@
         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;Zivanov2019&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">firstMovie</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">isEER</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">getExt</span><span class="p">(</span><span class="n">firstMovie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span> <span class="o">==</span> <span class="s2">&quot;.eer&quot;</span>
+        <span class="c1"># Check base validation before the specific ones for Motioncor</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="n">ProtAlignMovies</span><span class="o">.</span><span class="n">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
-        <span class="n">errors</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">ProtAlignMovies</span><span class="o">.</span><span class="n">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">relion</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getActiveVersion</span><span class="p">():</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Could not detect the current Relion version. </span><span class="se">\n</span><span class="s2">&quot;</span>
+                          <span class="s2">&quot;RELION_HOME=&#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">relion</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getHome</span><span class="p">())</span>
 
         <span class="k">return</span> <span class="n">errors</span>
-
-    <span class="k">def</span> <span class="nf">_warnings</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">warnings</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isEER</span><span class="p">:</span>
-            <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Note that after compression into TIFF the &quot;</span>
-                            <span class="s2">&quot;original EER gain reference should be inverted.&quot;</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">warnings</span>
 
     <span class="c1"># ------------------------ Extra BASE functions ---------------------------</span>
     <span class="k">def</span> <span class="nf">_getRelPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">baseName</span><span class="p">,</span> <span class="n">refPath</span><span class="p">):</span>
@@ -362,14 +339,13 @@
                                              <span class="n">xshifts</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">n</span><span class="p">,</span> <span class="n">yshifts</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">n</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">newMovie</span>
 
-    <span class="k">def</span> <span class="nf">_updateOutputSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputName</span><span class="p">,</span> <span class="n">outputSet</span><span class="p">,</span>
-                         <span class="n">state</span><span class="o">=</span><span class="n">pwobj</span><span class="o">.</span><span class="n">Set</span><span class="o">.</span><span class="n">STREAM_OPEN</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Redefine this method to update gain file. &quot;&quot;&quot;</span>
-        <span class="n">first</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_firstUpdate&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">first</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputGainProt</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-            <span class="n">outputSet</span><span class="o">.</span><span class="n">setGain</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;gain-reference.mrc&quot;</span><span class="p">)))</span>
-
-        <span class="n">ProtAlignMovies</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputName</span><span class="p">,</span> <span class="n">outputSet</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">state</span><span class="p">)</span></div>
+<div class="viewcode-block" id="ProtRelionCompressMovies.getInputGain"><a class="viewcode-back" href="../../../api/relion/relion.protocols.protocol_compress_movies.html#relion.protocols.protocol_compress_movies.ProtRelionCompressMovies.getInputGain">[docs]</a>    <span class="k">def</span> <span class="nf">getInputGain</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">inputGainProt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputGainProt</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">inputGainProt</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">inputGain</span> <span class="o">=</span> <span class="n">inputGainProt</span><span class="o">.</span><span class="n">getOutputGain</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">inputGain</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">inputGain</span>
+        <span class="k">return</span> <span class="kc">None</span></div></div>
 </pre></div>
 
            </div>

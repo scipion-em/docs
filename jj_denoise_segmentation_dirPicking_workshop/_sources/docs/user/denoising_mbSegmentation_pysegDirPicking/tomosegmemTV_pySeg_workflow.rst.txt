@@ -38,7 +38,7 @@ Thus, 8 different plugins will be used in this tutorial, highlighting the power 
 Objective
 =========
 
-The aim of this tutorial is to pick the membrane ribosomes of an in situ tomogram usin gsegmentation, annotation and directional picking protocols inside Scipion framework.
+The aim of this tutorial is to pick the membrane ribosomes of an in situ tomogram using segmentation, annotation and directional picking protocols inside Scipion framework.
 
 Associated resources
 ====================
