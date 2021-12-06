@@ -10,15 +10,15 @@
 
 .. _tutorial-picking:
 
-==============
+===============================
 Picking tutorial for Tomography
-==============
+===============================
 
 This page will present the different picking protocols and strategies available in Scipion for Tomography and the Plugins where the various programs can be found.
 The tutorial will cover from the picking step to the extraction of the coordinates selected in the tomogram, including some useful tools to complement the protocols involved in the picking workflows.
 
 Additional resources
-============
+====================
 
 Here you can find some valuable resources to complement the contents described in the tutorial:
 
@@ -26,7 +26,7 @@ Here you can find some valuable resources to complement the contents described i
 * `Video tutorials for Directional picking tutorial section <x>`_
 
 Where to find the protocols?
-============
+============================
 
 Protocols needed to perform and analyze pickings are available in the following plugins:
 
@@ -38,7 +38,7 @@ Protocols needed to perform and analyze pickings are available in the following 
 It is worth mentioning that all these plugins strongly depend on the **scipion-em-tomo** plugin, which should be installed before any of the earlier mentioned Plugins.
 
 Picking strategies in Scipion for Tomography
-============
+=============================================
 
 Currently, we have implemented two different picking strategies that can be applied to your dataset:
 
@@ -54,12 +54,12 @@ On the other hand, directional pickings will provide both the spatial location o
 Deciding which strategy suits your data better depends on the conditions of the particles inside the tomogram. In general, suspended particles are better handled by non-directional pickings, while particles close or attached to a vesicle or describing specific geometries are more easily analyzed by directional pickings.
 
 Directional picking tutorial
-============
+============================
 
 The following sections will describe the procedure to pick oriented particles with Dynamo software inside Scipion. The data analyzed during the tutorial is available here.
 
 Step 0: Importing and binning the data
----------------------------------
+--------------------------------------
 
 Firstly, we need to import our tomograms inside Scipion with any import protocols available. We will use the import protocol implemented inside **scipion-em-dynamo** for this tutorial.
 
@@ -90,7 +90,7 @@ Once the tomograms have been imported, it might be helpful to downscale them to 
    :width: 400
 
 Step 1: Picking non-oriented particles with Dynamo
----------------------------------
+---------------------------------------------------
 
 We can move now to the picking steps of the particles found in the tomogram we have just imported and binned.
 
@@ -160,7 +160,7 @@ Now we can close the tomogram dialog. You will be prompted with another window w
 You have now finished the picking process in Dynamo; congratulations! However, our picking does not have any orientation information yet. This is because Dynamo's `General` model type is a **non-directional picking**. Therefore, to impart an orientation to your already picked particles, we need to define the membrane surface present in the tomogram as a new Dynamo model.
 
 Step 2: Defining a membrane geometry with Dynamo
----------------------------------
+------------------------------------------------
 
 We can copy the **dynamo - vectorial picking** protocol we have just created to select our membrane. Before running it, change the model type in the form to `Surface`. The remaining parameters can be left unchanged.
 
@@ -205,7 +205,7 @@ If you are happy with your results, you can close the `dtmslice` window, wait un
 We now have all the information we need to extract your initially picked "user points" based on the orientation described by the geometry of the membrane we have just defined. To that end, we will combine the output of both picking protocols with the **dynamo - model workflow** protocol.
 
 Step 3: Orienting particles in Dynamo - Cropping points
----------------------------------
+-------------------------------------------------------
 
 At this moment, Scipion has stored separately the two different geometries picked with the Dynamo `dtmslice` tool. The next step is to use the previous information to generate a directional picking with coordinates extracted posteriorly.
 
@@ -234,7 +234,7 @@ Below you can find a brief description of the parameters associated with a `Gene
 Unlike the **dynamo - vectorial picking**, this protocol is not interactive. Therefore, it will automatically register an oriented `SetOfCoordinates3D` in Scipion that can be extracted afterward.
 
 Step 4: Checking a `SetOfCoordinates3D` in Scipion
----------------------------------
+---------------------------------------------------
 
 At this point, you might be interested in checking the coordinates you have already picked and their orientations. To that end, you can use one of the three viewers available in Scipion to check 3D coordinates. The viewers currently available are the following:
 
@@ -265,7 +265,7 @@ Apart from buttons and menus displayed in the viewer window, the following navig
    :width: 400
 
 Step 5: From coordinates to subtomograms
----------------------------------
+-----------------------------------------
 
 Now that you have generated and checked your oriented `SetOfCoordinates3D`, we can proceed to extract those locations in the tomogram to create a `SetOfSubtomograms`. To that end, we will the extraction implemented in the Dynamo plugin called **dynamo - vectorial extraction**. The parameters to be filled up in the form of the protocol are the following:
 
@@ -293,7 +293,7 @@ Once the protocol is finished, Scipion will generate a `SetOfSubtomograms` that 
 Congratulations, you have finished the directional picking tutorial of Scipion with Dynamo! The following section will describe the advantage of having oriented particles vs. non-oriented particles and how these orientations may impact further steps of the workflow. You can also move to the **Non-directional picking** tutorial if you are interested in learning more about this other picking strategy in the Scipion framework.
 
 Step 6: Prealigment of subtomograms
----------------------------------
+------------------------------------
 
 The main advantage of working with oriented coordinates is that the subtomograms extracted from them will inherit this same orientation. Thus, whenever we go to a refinement protocol, we can use this information as an initial guess of the alignment, making the process more reliable, accurate, and faster.
 
@@ -330,14 +330,14 @@ Below, you can find an overall view of the Scipion workflow described during the
    :width: 400
 
 Non-directional picking tutorial
-============
+================================
 
 The following sections will describe the procedure to pick non-oriented particles with Eman software inside Scipion. The data analyzed during the tutorial is available here.
 
 We will describe two possible picking approaches: a neural network-based picking and a template matching-based picking. At the end of the tutorial, we will also define some consensus steps that could be performed when several pickings are available in the project.
 
 Step 0: Importing and binning the data in Scipion
----------------------------------
+-------------------------------------------------
 
 We will start by importing our tomograms inside Scipion with the import protocol implemented inside **scipion-em-tomo**: **tomo - import tomograms**.
 
@@ -361,7 +361,7 @@ An example of a binning protocol execution is provided at the end of the **Step 
 As a reference, this tutorial will use the imported tomogram binned to half of its original size. Thus, you may need to update some of the protocol parameters (such as the box size in the picking/extraction steps) if you binned the tomogram by a higher factor or decided not to bin the tomogram.
 
 Neural network picking - Step 1: Picking particles with Eman Convnet picking
----------------------------------
+-----------------------------------------------------------------------------
 
 Eman tomography plugin for Scipion has several picking alternatives available for picking, ranging from manual to fully automatic methods. However, the neural network-based picking usually offers better performance and accuracy when compared to the other alternatives.
 
@@ -445,7 +445,7 @@ Probably you would like to check at this point the result of your picking with o
    :width: 400
 
 Neural network picking - Step 2: From coordinates to subtomograms
----------------------------------
+------------------------------------------------------------------
 
 Now that our coordinates are saved in Scipion, we can proceed with their extraction to get our subtomograms. To that end, we will use the extraction protocol implemented in the **scipion-em-emantomo** plugin **emantomo - extraction from tomograms**.
 
@@ -474,7 +474,7 @@ All the extraction process is automatic, and it will finish with the registratio
 Congratulations, you have finished the **Neural network picking** tutorial! Now we will move to the second picking strategy in Eman, where we will cover the remaining picking tools available in the plugin.
 
 Template matching picking - Step 1: Manual picking of coordinates
----------------------------------
+------------------------------------------------------------------
 
 We will continue this tutorial exploring the remaining two picking alternatives that you can find in **scipion-em-emantomo** plugin: the manual picking and template matching functionalities. During the following sections, you will learn to create a template with Eman that can be used to locate particles similar to it in the tomogram.
 
@@ -534,7 +534,7 @@ Once you have picked all your tomograms, you can close the dialog window. Then, 
 As we did in earlier steps in the tutorial, you can check the coordinates you picked with any coordinate viewers implemented in Scipion.  A full description of the available viewers can be found in the section **Step 4: Checking a `SetOfCoordinates3D` in Scipion** from the **Direction picking tutorial**.
 
 Template matching picking - Step 2: Template generation
----------------------------------
+-------------------------------------------------------
 
 Since we already have several particles picked in Scipion, we can now process them to generate an initial model that we can use afterward as the template for the template-based picking implemented in the plugin.
 
@@ -581,7 +581,7 @@ After setting all the parameters, you can launch the protocol. Scipion will auto
    :width: 400
 
 Template matching picking - Step 3: Template matching picking with Eman
----------------------------------
+------------------------------------------------------------------------
 
 Now that we have an initial model, we can use it as a template to pick all the particles automatically in our subtomogram with the **emantomo - template matching** protocol.
 
@@ -612,7 +612,7 @@ As we did before, you can the picked coordinates with a viewer to evaluate the p
 Congratulations, you have finished the **Template matching picking** tutorial! The following extra section will describe how we can combine the output of the two pickings performed during the **Non-directional picking tutorial** with the consensus protocol implemented in Scipion.
 
 Extra step: Picking consensus in Scipion
----------------------------------
+----------------------------------------
 
 As we have seen during the previous tutorials, many picking alternatives are available in Scipion for Tomography. Although all these tools may select similar coordinates in most cases, they might be subtle differences when comparing their results. Thus, it is usually a good idea to combine the results of different picking algorithms with a consensus to increase our confidence in the picking performance.
 
