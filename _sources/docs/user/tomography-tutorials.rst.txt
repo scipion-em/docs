@@ -4,6 +4,12 @@
 
 .. _tomography-tutorials:
 
-Introduction to Scipion Tomography
------------------------------------
+=====================
+Tomography Tutorial
+=====================
+
+.. toctree::
+   :maxdepth: 1
+
+   docs/user/tutorials/tomo/Picking_tutorial/Tutorial_Picking
 
