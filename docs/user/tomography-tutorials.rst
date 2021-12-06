@@ -4,10 +4,6 @@
 
 .. _tomography-tutorials:
 
-=====================
-Tomography Tutorial
-=====================
-
 .. toctree::
    :maxdepth: 1
 
