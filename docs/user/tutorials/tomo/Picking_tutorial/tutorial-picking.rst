@@ -8,7 +8,7 @@
    :align: right
    :alt: scipion tomo logo
 
-.. Picking tutorial for Tomography:
+.. _tutorial-picking:
 
 ==============
 Picking tutorial for Tomography
