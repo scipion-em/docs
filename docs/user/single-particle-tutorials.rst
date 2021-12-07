@@ -38,8 +38,10 @@ Reconstruct Significant.
 *Guide*:
 `scipion\_tutorial\_initialvolume.pdf <https://github.com/I2PC/scipion/wiki/tutorials/scipion_tutorial_initialvolume.pdf>`__\
 
+
 Mix-and-match in Scipion
 ------------------------
+
 .. figure:: /docs/images/betagal.png
    :align: right
    :height: 96

@@ -11,5 +11,6 @@ Tomography Tutorial
 .. toctree::
    :maxdepth: 1
 
-   docs/user/tutorials/tomo/Picking_tutorial/tutorial-picking
+   `Picking tutorial <docs/user/tutorials/tomo/Picking_tutorial/tutorial-picking>`_
+
 
