@@ -4,13 +4,7 @@
 
 .. _tomography-tutorials:
 
-=====================
-Tomography Tutorial
-=====================
 
-.. toctree::
-   :maxdepth: 1
-
-   `Picking tutorial <docs/user/tutorials/tomo/Picking_tutorial/tutorial-picking>`_
-
+`Picking tutorial <docs/user/tutorials/tomo/Picking_tutorial/tutorial-picking>`_
+-----------------------------------------------------------------------------------
 
