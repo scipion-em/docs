@@ -23,11 +23,20 @@ Tutorials
 
 These tutorials provides a quick introduction to processing with Scipion.
 
+Single particle tutorials
+-------------------------
+
 .. toctree::
     :maxdepth: 1
 
-    Single Particles Tutorials <single-particles-tutorials>
-    Tomography Tutorials <tomography-tutorials>
+    Single particles tutorials <single-particle-tutorials>
+
+
+Tomography tutorials
+--------------------
+
+* `Tomography Picking <https://scipion-em.github.io/docs/docs/user/tutorials/tomo/Picking_tutorial/tutorial-picking.html>`_
+
 
 
 Processing How To's
@@ -44,11 +53,6 @@ Creating subsets
 `Creating subsets <protUserSubSet>`__: Find out how to create subsets
 from micrographs, particles, volumes or from 2D/3D classifications.
 This tool is valid for results from any package.
-
-How to create 2D masks
---------------------------
-`How to create 2D masks <create2DMask>`__: Guide to creating 2D
-masks, either interactively or through protocols.
 
 FAQ
 ---------

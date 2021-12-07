@@ -3,3 +3,6 @@
    :alt: scipion logo
 
 .. _tomography-tutorials:
+
+`Picking tutorial <docs/user/tutorials/tomo/Picking_tutorial/tutorial-picking>`_
+
