@@ -53,10 +53,15 @@ On the other hand, directional pickings will provide both the spatial location o
 
 Deciding which strategy suits your data better depends on the conditions of the particles inside the tomogram. In general, suspended particles are better handled by non-directional pickings, while particles close or attached to a vesicle or describing specific geometries are more easily analyzed by directional pickings.
 
+Preliminary steps
+============
+
+If you are new to Scipion, we strongly suggest that you follow this `Scipion tutorial <https://scipion-em.github.io/docs/docs/user/scipion-gui.html#scipion-gui>`_ to learn how to navigate and work with the interface of Scipion. In the previous tutorial, you will find how to look for and create new protocols, together with some examples of SPA workflows.
+
 Directional picking tutorial
 ============
 
-The following sections will describe the procedure to pick oriented particles with Dynamo software inside Scipion. The data analyzed during the tutorial is available here.
+The following sections will describe the procedure to pick oriented particles with Dynamo software inside Scipion. The data analyzed during the tutorial is available `here <http://scipion.cnb.csic.es/downloads/scipion/data/tutorials/tomography/Day2/eman-dynamo/>`_.
 
 Step 0: Importing and binning the data
 ---------------------------------
@@ -332,7 +337,7 @@ Below, you can find an overall view of the Scipion workflow described during the
 Non-directional picking tutorial
 ============
 
-The following sections will describe the procedure to pick non-oriented particles with Eman software inside Scipion. The data analyzed during the tutorial is available here.
+The following sections will describe the procedure to pick non-oriented particles with Eman software inside Scipion. The data analyzed during the tutorial is available `here <http://scipion.cnb.csic.es/downloads/scipion/data/tutorials/tomography/Day2/eman-dynamo/>`_.
 
 We will describe two possible picking approaches: a neural network-based picking and a template matching-based picking. At the end of the tutorial, we will also define some consensus steps that could be performed when several pickings are available in the project.
 
