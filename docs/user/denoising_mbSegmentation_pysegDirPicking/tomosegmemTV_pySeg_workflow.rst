@@ -812,7 +812,7 @@ The obtained mask, displayed in Y positive view with viewer DataViewer from xmip
 below.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/14_res_create_3d_mask.png
-   :width: 500
+   :width: 650
    :alt: Create 3D mask result
 
 
