@@ -776,8 +776,6 @@ ribosome, the membrane and a small amount of the inner surroundings. All these r
 the mask will be referred to the center of the box (which means the vesicle), also suggest the need of some shifting
 of the cylinder center.
 
-*Note*: The mask parameters, specially the offset was satisfactorily determined after some tries.
-
 Now, let's open the protocol and set the following values in the parameters listed below:
 
 1. Set the parameter "Mask source" to "Geometry".
@@ -805,7 +803,7 @@ thickness considered) + 20Å (inner surrounding considered), which is 380Å / 13
 to *2* px.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/14_create_3d_mask.png
-   :width: 500
+   :width: 800
    :alt: Create 3D mask protocol
 
 The obtained mask, displayed in Y positive view with viewer DataViewer from xmipp, should look like shown in the figure
