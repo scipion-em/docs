@@ -535,7 +535,7 @@ rate, which is 13.68 Å/voxel. The graph shown is the result of tracing a profil
 3. This was done also inside Scipion, using the tools included in the viewer DataViewer from xmipp.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/07_res_preseg_02.png
-   :width: 1000
+   :width: 800
    :alt: Preseg profiling
 
 Graphs
