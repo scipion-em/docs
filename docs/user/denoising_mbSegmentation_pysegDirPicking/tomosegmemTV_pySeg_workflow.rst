@@ -807,7 +807,7 @@ to *2* px.
    :alt: Create 3D mask protocol
 
 The obtained mask, displayed in Y positive view with viewer DataViewer from xmipp, should look like shown in the figure
-below.
+below. To change the view, click on the colored cube ico on the top toolbar.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/14_res_create_3d_mask.png
    :width: 650
