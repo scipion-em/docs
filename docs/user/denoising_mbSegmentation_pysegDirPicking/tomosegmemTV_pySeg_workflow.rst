@@ -35,7 +35,7 @@ Figure below shows and scheme of the main workflow steps proposed for this tutor
 out.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/00_workflow_scheme.png
-   :width: 550
+   :width: 400
    :alt: Workflow scheme
 
 
