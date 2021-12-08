@@ -576,6 +576,8 @@ annotation step.
    :width: 1000
    :alt: Graphs results
 
+.. _fils protocol:
+
 Fils
 ----
 
@@ -629,11 +631,42 @@ results have been followed.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/09_res_fils.png
    :width: 1000
-   :alt: Fils protocol
+   :alt: Fils results
 
 Picking
 -------
 
+Finally, to get the particles picked, let's open the picking protocol and set the following parameters as follows:
+
+1. Input tab: we have to select which filaments protocols to use and which set of tomograms must be the coordinates
+referred to. In our case, we only have the previous fils protocol execution, and the coordinates should be picked on
+the original tomogram, following the same as raw data as possible reasoning as before to avoid possible mathematical
+artifacts.
+
+2. Picking tab:
+
+    2.1 Set the parameter "Segmentation area for picking" to "Outer surroundings", where the ribosomes are located.
+
+    2.2 Set parameter "Find on two surfaces" to "Projected local minima". This parameter is used to indicate if we want
+    to keep the coordinates of the cutting point of the filament with the membrane or the cutting point and the
+    projections of the filament over the membrane, respectively. The second option will result in an over-picking. This
+    can be a good strategy in order to ensure that no particles are lost when picking, but some kind of distance or
+    angular filtering should be applied later to remove the duplicates.
+
+3. Refinement tab: this tab allows the user to refine the picking results by specifying the density level or the minimum
+distance between the picked coordinates. Let this tab with the default values. We'll deal with the over-picking later.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/10_picking.png
+   :width: 1000
+   :alt: Picking protocol
+
+Results can be displayed with multiple viewers, like the one from plugin scipion-em-emantomo but, following the same
+structure considered to show the results on the `graphs protocol`_ and `fils protocol`_, we'll use the viewer from
+plugin scipion-em-tomo3d:
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/10_res_picking.png
+   :width: 1000
+   :alt: Picking results
 
 
 .. _PySeg presentation: https://docs.google.com/presentation/d/1zFArx9GuIN20EZ_uK2OsIzDpae61ryn9x3eColO5n3k/edit?usp=sharing`_
