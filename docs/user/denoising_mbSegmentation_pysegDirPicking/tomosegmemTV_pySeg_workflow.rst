@@ -495,6 +495,8 @@ first and last nodes, without intermediate elements).
 Each of these steps is represented with a different protocol inside Scipion, and they will be explained in the following
 subsections.
 
+.. _preseg protocol:
+
 Preseg
 ------
 
@@ -540,6 +542,8 @@ rate, which is 13.68 Å/voxel. The graph shown is the result of tracing a profil
    :width: 800
    :alt: Preseg profiling
 
+.. _graphs protocol:
+
 Graphs
 ------
 At this point, it's time to calculate the graphs: look for the protocol, open it and update the parameter values as
@@ -555,24 +559,80 @@ should be used when picking large particles, like ribosomes.
 
 4. Parameter "Maximum distance to membrane" can be set in two different ways, which are introducing manually the desired
 value or clicking on the wizard (wand) icon. This action will read the value of parameter parameter "Segmented membrane
-neighbours" from the preseg protocol selected in parameter "Pre-segmentation".
+neighbours" from the preseg protocol selected in parameter "Pre-segmentation". That value should be *330* angstroms.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/08_graphs.png
    :width: 500
    :alt: Graphs protocol
 
 Results can be displayed by clicking on button "Analyze Results". That action will allow us to select which vesicle is
-desired to be represented with 3D viewer from plugin scipion-em-tomo3d. Results should look like shown in the figure
-below. Observe that the numbers correspond to the `target vesicles`_ which is being used in this tutorial from the
+desired to be represented with 3D viewer from plugin scipion-em-tomo3d setting the coloring option "Color Graph By",
+located on the top left corner, to value "mb_eu_dst", which colors the graphs considering the euclidean distance to the
+membrane. Results should look like shown in the figure below. Observe that the numbers correspond to the
+`target vesicles`_ which is being used in this tutorial from the
 annotation step.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/08_res_graphs.png
    :width: 1000
    :alt: Graphs results
 
+Fils
+----
 
+Once the graphs have been calculated, it's time to refine them. This is the aim of the fils protocol. This is a good
+moment to go back to the `PySeg presentation`_ and refresh the concepts of euclidean and geodesic distances and
+sinuosity. Apart from that, the protocol labels were written with the objetive of providing an approximate idea of what
+these concepts means.
 
+Now, let's open the fils protocol and set the following parameters as explained below:
 
+1. Input tab: set the parameter "Graphs" pointer to the graphs protocol executed before.
+
+2. Sources tab: used to define geometrically how the filaments should be in the area selected as source area. Observe
+that the source filament area is the membrane. Because the ribosomes doesn't go through the membrane, the geometrical
+descriptors on this area won't make a difference in the obtained result. Hence, let all the parameter with the default
+values. Targets tab: it's the same as the sources tab, but for the area chosen as target area:
+
+    2.1 Set the parameter "Filament area" to "Outer Surroundings". This is the area of interest for picking the membrane
+    ribosomes.
+
+    2.2 For the euclidean distance, set the minimum value to *0* nm and the maximum to *30* nm, which is the largest size
+    expected for the ribosomes we're trying to pick.
+
+    2.3 For the geodesic distance, set the minimum value to *0* nm and the maximum value to *60* nm. That way, we're
+    considering some flexibility in the filaments.
+
+    2.4 For the sinuosity, set the minimum value to *0* and the maximum to *2*. The recommended value for this parameter is
+    the ratio geodesicLength/euclideanLength, but it doesn't have to. Sinuosity specified in a value of distances or
+    lengths contained in the intervals set before for euclidean distance and geodesic length, respectively.
+
+3. Refinement tab: it's used to apply a geometric filter to refine the calculated filaments. They must be introduced in
+ranges [min max]. In our case, considering the type and and features of the target particles, set them as follows:
+
+    3.1 Euclidean distance range: from *20* to *30* nm, which is the expected range of a ribosome size variation,
+    approximately.
+
+    3.2 Geodesic distance range: from *20* to *60* nm, which goes from the shortest straight length to a maximum value
+    considering some flexibility.
+
+    3.3 Sinuosity range: from *0* to *2*. Thus, we're considering all the flexibility values present considering the
+    euclidean and geodesic values provided before.
+
+*Note:* the lengths are delimited by the thickness of each area generated in the `preseg protocol`_.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/09_fils.png
+   :width: 800
+   :alt: Fils protocol
+
+The resulting filaments should look like in the figure below. The same considerations as in the `graphs protocol`_
+results have been followed.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/09_res_fils.png
+   :width: 1000
+   :alt: Fils protocol
+
+Picking
+-------
 
 
 
