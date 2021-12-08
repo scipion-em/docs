@@ -41,6 +41,11 @@ out.
 
 .. contents:: Table of Contents
 
+Objective
+=========
+
+The aim of this tutorial is to pick the membrane ribosomes of an in situ tomogram using segmentation, annotation and directional picking protocols inside Scipion framework.
+
 Associated resources
 ====================
 
