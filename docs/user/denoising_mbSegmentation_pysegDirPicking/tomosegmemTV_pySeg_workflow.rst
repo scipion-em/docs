@@ -31,6 +31,12 @@ out in Scipion_, using the plugins listed below for each step:
 9. Generate an initial model - scipion-em-reliontomo_
 
 Thus, 8 different plugins will be used in this tutorial, highlighting the power of Scipion in terms of interoperability.
+Figure below shows and scheme of the main workflow steps proposed for this tutorials and the plugins used to carry them
+out.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/00_workflow_scheme.png
+   :width: 550
+   :alt: Workflow scheme
 
 
 .. contents:: Table of Contents
@@ -41,10 +47,14 @@ Associated resources
 Here you can find resources associated with this content, like videos or presentations used in courses and other
 documentation pages:
 
+`PySeg presentation`_
+
 `Basic actions with Scipion <https://scipion-em.github.io/docs/docs/user/scipion-gui.html#scipion-gui>`_
 
 The dataset
 ===========
+
+PySeg presentation
 
 The dataset reference used in this tutorial is EMD-10439_, which consists of an in situ tomogram of intact P19 cells
 acquired with phase-plate, with a sampling rate of 13.68 Å/voxel and dimensions (X, Y, Z) = (928, 928, 500) pixels.
@@ -460,8 +470,79 @@ increasing the probabilities of the picked objects to be a physical entity inste
 At this point we have the membranes segmented, annotated, at the correct size and referred to the imported tomograms.
 Thus, we're ready for the picking.
 
+Directional picking with PySeg
+==============================
+
+As it was explained in `PySeg presentation`_, the directional picking is composed by four main steps (assuming that the
+segmentation and annotation of the membranes have been performed before):
+
+1. Preseg: segment membranes into membranes, inner surroundings and outer surroundings
+
+2. Graphs: analyze a GraphMCF (Mean Cumulative Function) from a segmented membrane. A graph is a set of connected nodes.
+
+3. Fils: filter a MbGraphMCF object by extracting a filament network. A filament represent to nodes connected (only the
+first and last nodes, without intermediate elements).
+
+4. Picking: extract particles from a filament network of a oriented single membrane graph.
+
+Each of these steps is represented with a different protocol inside Scipion, and they will be explained in the following
+subsections.
+
+Preseg
+------
+
+Look for pyseg protocol and open it. At first sight, it's remarkable that this protocol allows the user to get the
+previous segmented and annotated data from Scipion (Scipion Protocol) or from outside (e. g., using the standalone
+version of the membrane annotation tool and preparing a star file with the data as expected by the preseg.) Said that,
+let's replace the following parameter default values by the ones required for this tutorial:
+
+1. On parameter "Segmented and annotated tomograms", select the pointer which corresponds to the output of the resizing
+protocol applied before.
+
+2. Update value of parameter "Offset volxels" to *44* voxels. This parameter represents the width of a margin considered
+when cropping the vesicles. It's necessary to provide a value which ensures that the desired biological entities, e. g.
+membrane proteins, are included in the cropped area.
+
+3. Update "Segmented membrane thickness" to *60* angstroms. Value introduced will be divided by 2 internally to get the
+semi-width of the membrane, which which will be considered at both sides of the membrane central line.
+
+4. On parameter "Segmented membrane neighbours", type value *330* angstroms. This parameter represents the thickness
+around the membrane to represent the in-membrane and out-membrane surroundings desired to be included in the analysis.
+The value chose was 330 angstroms because the size of a ribosome varies from 200 to 300 angstroms in diameter, and a
+margin of the 10% of error is considered for the biggest size (that additional 30 angstroms).
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/07_preseg.png
+   :width: 500
+   :alt: Preseg protocol
+
+If the results are displayed with the viewer DataViewer from xmipp (right click in the output element shown in the
+object lower panel, in tab "Summary".), they should look like as can be observed in the left side of the figure below,
+which represents the area segmentation of the central slice of each vesicle. The right side and the numbers are used to
+visually relate each segmentation to the target membranes they represent.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/07_res_preseg_01.png
+   :width: 800
+   :alt: Preseg results
+
+For a better understanding of the parameters introduced in this protocol, the figure below shows the thickness of the
+membrane, the inner surroundings and the outer surroundings and their conversion to angstroms considering the sampling
+rate, which is 13.68 Å/voxel. The graph shown is the result of tracing a profile on one of the slices of target vesicle
+3. This was done also inside Scipion, using the tools included in the viewer DataViewer from xmipp.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/07_res_preseg_02.png
+   :width: 1000
+   :alt: Preseg profiling
+
+Graphs
+------
 
 
+
+
+
+
+
+.. _PySeg presentation: https://docs.google.com/presentation/d/1zFArx9GuIN20EZ_uK2OsIzDpae61ryn9x3eColO5n3k/edit?usp=sharing`_
 .. _Scipion: http://scipion.i2pc.es/
 .. _scipion-em-tomo: https://github.com/scipion-em/scipion-em-tomo
 .. _scipion-em-imod: https://github.com/scipion-em/scipion-em-imod
