@@ -633,6 +633,8 @@ results have been followed.
    :width: 1000
    :alt: Fils results
 
+.. _picking protocol:
+
 Picking
 -------
 
@@ -667,6 +669,35 @@ plugin scipion-em-tomo3d:
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/10_res_picking.png
    :width: 1000
    :alt: Picking results
+
+Picking post processing
+=======================
+
+This section contains the steps suggested to resolve the over-picking scenario described in `picking protocol`_ and also
+to get rid of bad picked elements. For the first one, we'll use the protocol "remove duplicates" and for the second, the
+protocol "filter by normal", btoh from plugin scipion-em-tomo3d.
+
+Remove duplicates
+-----------------
+
+Using this protocol, the over-picked particles will be replaced by the mean position and orientation of them. Hence,
+let's open the protocol, select the pointer to the coordinates picked before and let the radius value with the default
+value of *10* voxels. This is only a coincidence, considering half of the size of the biggest ribosome and the sampling
+rate of our data (150Å / 13.60 Å/voxel ~ 11 voxel).
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/11_remove_duplicates.png
+   :width: 500
+   :alt: Remove duplicates protocol
+
+Using again the viewer from plugin scipion-em-protocol, the result should look like this:
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/11_res_remove_duplicates.png
+   :width: 750
+   :alt: Remove duplicates results
+
+
+
+
 
 
 .. _PySeg presentation: https://docs.google.com/presentation/d/1zFArx9GuIN20EZ_uK2OsIzDpae61ryn9x3eColO5n3k/edit?usp=sharing`_
