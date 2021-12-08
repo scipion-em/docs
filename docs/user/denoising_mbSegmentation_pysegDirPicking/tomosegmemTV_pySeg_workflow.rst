@@ -22,7 +22,7 @@ out in Scipion_, using the plugins listed below for each step:
 
 5. Directional picking (preseg, graphs, filaments and picking) - scipion-em-pyseg_
 
-6. Remove duplicates (filter picked particles by distance) - scipion-em-tomo3d_
+6. Remove duplicates (filter picked particles by distance) and filter by normal - scipion-em-tomo3d_
 
 7. Extract particles - scipion-em-emantomo_
 
@@ -662,6 +662,10 @@ distance between the picked coordinates. Let this tab with the default values. W
    :width: 1000
    :alt: Picking protocol
 
+It can be observed in the summary tab of the lower panel on the project interface that *2339* particles were picked.
+For the moment, let's ignore the box size displayed there, which is a default value required for some viewers to be
+different from zero.
+
 Results can be displayed with multiple viewers, like the one from plugin scipion-em-emantomo but, following the same
 structure considered to show the results on the `graphs protocol`_ and `fils protocol`_, we'll use the viewer from
 plugin scipion-em-tomo3d:
@@ -689,11 +693,132 @@ rate of our data (150Å / 13.60 Å/voxel ~ 11 voxel).
    :width: 500
    :alt: Remove duplicates protocol
 
-Using again the viewer from plugin scipion-em-protocol, the result should look like this:
+Again, on the summary tab of the lower panel on the project interface, it can be observed that we have now *641*
+particles after having removed the duplicates. As before, using the viewer from plugin scipion-em-protocol, the result
+should look like this:
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/11_res_remove_duplicates.png
    :width: 750
    :alt: Remove duplicates results
+
+Filter by normal
+----------------
+
+Let's continue cleaning the data. Protocol "filter by normal" takes the vesicles and the particles and filters them by
+different criteria related with the normal direction. If the user has a set of coordinates with orientation but not the
+surfaces or meshes corresponding to the membranes or vesicles which are the reference for the orientation, these
+surfaces can be created from the orientated coordinates by using the protocol “fit vesicles” from plugin
+scipion-em-xmipptomo plugin. Hence, let's generate the meshes required to use to use the filter by normal.
+
+Protocol "fit vesicles" only requires two inputs, which are the pointers to the resulting set of coordinates after
+having removed the duplicates and the tomograms from which the input coordinates come. Finally, click on button
+"Execute" and the set of meshes will be generated.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/12_fit_vesicles.png
+   :width: 500
+   :alt: Fit vesicles protocol
+
+At this point, we are ready to use the filter by normal, so let's open it and follow these steps:
+
+1. Set the input coordinates pointer to the coordinates obtained after having removed the duplicates.
+
+2. Set the vesicles pointer to the set of meshes generated before with the protocol "fit vesicles".
+
+3. Update the parameter "Tolerance in degrees" to "30".
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/12_filter_by_normal.png
+   :width: 500
+   :alt: Filter by normal protocol
+
+After executing it, we should have *285* items.
+
+Subtomogram extraction
+======================
+
+This operation consists on cropping out particles with a specified box size in order to get them separately and with
+the surroundings to perform the subtomogram averaging. We'll carry it out using the protocol "extraction from tomogram"
+from plugin scipion-em-emantomo. Let's open it and set the parameters as listed below:
+
+1. Input tab:
+
+    1.1 Set the input coordinates pointer to the coordinates generated after having filtered by normal.
+
+    1.2 Set the parameter "Tomogram source" to "other" to manually specify the tomogram from where the particles were
+    picked.
+
+    1.3 Set the pointer of the input tomograms to the imported tomograms (remember, as raw data as possible).
+
+    1.4 The box size is quite critical. Let's ignore the wizard considering that PySeg considers the coordinates from the
+    membrane, so the box size introduced to ensure that the whole particle is contained in the cropped subvolume must be
+    approximately the double of the particle largest expected size, which is 300 Å. Thus, in voxels it should be around
+    600Å / 13.68Å/voxel ~ *44* voxel.
+
+2. Preprocess tab:
+
+    2.1 Set tha parameter "Invert contrast" to "Yes" to get, on our case a white over black representation.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/13_extract_particles.png
+   :width: 800
+   :alt: Extract particles protocol
+
+2D classification
+=================
+
+With the particles extracted, we're almost ready to carry out a 2D classification with a protocol of the same name from
+plugin scipion-em-pyseg. This 2D classification is performed using a clustering algorithm of the rotational average of
+each particle around the normal axis. But, before that, let's deal with that 'almost ready'. We're not ready yet because
+the classification protocol needs a mask which is applied to work on the regions of interest of the subtomograms. In
+our case, the region of interest is the membrane and the ribosome.
+
+We'll generate the mask with protocol "create 3d mask" from plugin scipion-em-xmipp. Our mask will be a cylinder of
+radius approximately half of the size of the biggest ribosome considered and with a height enough to cover the whole
+ribosome, the membrane and a small amount of the inner surroundings. All these requirements together and the fact that
+the mask will be referred to the center of the box (which means the vesicle), also suggest the need of some shifting
+of the cylinder center.
+
+*Note*: The mask parameters, specially the offset was satisfactorily determined after some tries.
+
+Now, let's open the protocol and set the following values in the parameters listed below:
+
+1. Set the parameter "Mask source" to "Geometry".
+
+2. Set "Sampling rate" to *13.68* Å/px to make the mask be at the same sampling rate of our data.
+
+3. Set "Mask size" to *44* px, because it has to be of the same box size as our subtomograms (44 is the value we
+introduced as box size ehrn extracting the particles with scipion-em-emantomo).
+
+4. Select "Cylinder" from "Mask type".
+
+5. Set "Radius" to 150Å / 13.68Å/px ~ 11 (+ 1 leaving some margin to ensure the particle is completely contained in the
+mask). Thus, the radius will be set to *12* px.
+
+6. Set the parameter "Shift center of the mask" to "Yes".
+
+7. Set the Z component of the parameter "Shit Center" to *6* px, which is about 6px * 13.68Å/px ~ 82Å, which is
+approximately 60Å (remember `preseg protocol`_) of the membrane thickness and 20Å of the inner surroundings.
+
+8. Set the parameter "Height" to *30* px. This value was estimated as 300Å (ribosome largest size) + 60Å (membrane
+thickness considered) + 20Å (inner surrounding considered), which is 380Å / 13.68Å/px ~ 28px which will be considered
+30 to leave a small margin.
+
+9. In the tab "Postprocessing" with the default values, set the parameter "Smooth borders" to "Yes" and "Gaussian sigma"
+to *2* px.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/14_create_3d_mask.png
+   :width: 500
+   :alt: Create 3D mask protocol
+
+The obtained mask, displayed in Y positive view with viewer DataViewer from xmipp, should look like shown in the figure
+below.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/14_res_create_3d_mask.png
+   :width: 500
+   :alt: Create 3D mask result
+
+
+
+
+
 
 
 
