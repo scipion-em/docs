@@ -621,7 +621,7 @@ ranges [min max]. In our case, considering the type and and features of the targ
 *Note:* the lengths are delimited by the thickness of each area generated in the `preseg protocol`_.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/09_fils.png
-   :width: 800
+   :width: 1000
    :alt: Fils protocol
 
 The resulting filaments should look like in the figure below. The same considerations as in the `graphs protocol`_
