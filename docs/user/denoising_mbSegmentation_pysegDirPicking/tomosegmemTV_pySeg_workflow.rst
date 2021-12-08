@@ -296,6 +296,8 @@ to be carried out once all the desired vesicles have been annotated.
 
 11. Data visualization panel.
 
+.. _target vesicles:
+
 Target vesicles
 ---------------
 It can be observed that three of the vesicles (squared in the figure below) contain most of the membrane ribosomes.
@@ -523,7 +525,7 @@ margin of the 10% of error is considered for the biggest size (that additional 3
 If the results are displayed with the viewer DataViewer from xmipp (right click in the output element shown in the
 object lower panel, in tab "Summary".), they should look like as can be observed in the left side of the figure below,
 which represents the area segmentation of the central slice of each vesicle. The right side and the numbers are used to
-visually relate each segmentation to the target membranes they represent.
+visually relate each segmentation to the `target vesicles`_ they represent.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/07_res_preseg_01.png
    :width: 800
@@ -540,6 +542,33 @@ rate, which is 13.68 Å/voxel. The graph shown is the result of tracing a profil
 
 Graphs
 ------
+At this point, it's time to calculate the graphs: look for the protocol, open it and update the parameter values as
+enumerated below:
+
+1. Set parameter "Threads" to *3*.
+
+2. Set parameter "Pre-segmentation" pointer to the preseg protocol executed before.
+
+3. Update parameter "Sigma for gaussian filtering" to *2*. It allows to smooth small and irrelevant features and
+increases the signal noise ratio (SNR). Higher values will provide less dense graphs (lower execution time), so they
+should be used when picking large particles, like ribosomes.
+
+4. Parameter "Maximum distance to membrane" can be set in two different ways, which are introducing manually the desired
+value or clicking on the wizard (wand) icon. This action will read the value of parameter parameter "Segmented membrane
+neighbours" from the preseg protocol selected in parameter "Pre-segmentation".
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/08_graphs.png
+   :width: 500
+   :alt: Graphs protocol
+
+Results can be displayed by clicking on button "Analyze Results". That action will allow us to select which vesicle is
+desired to be represented with 3D viewer from plugin scipion-em-tomo3d. Results should look like shown in the figure
+below. Observe that the numbers correspond to the `target vesicles`_ which is being used in this tutorial from the
+annotation step.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/08_res_graphs.png
+   :width: 1000
+   :alt: Graphs results
 
 
 
