@@ -800,7 +800,7 @@ thickness considered) + 20Å (inner surrounding considered), which is 380Å / 13
 30 to leave a small margin.
 
 9. In the tab "Postprocessing" with the default values, set the parameter "Smooth borders" to "Yes" and "Gaussian sigma"
-to *2* px.
+to *2* px. This smoothing is very useful to minimize border effects.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/14_create_3d_mask.png
    :width: 800
@@ -812,6 +812,26 @@ below. To change the view, click on the colored cube ico on the top toolbar.
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/14_res_create_3d_mask.png
    :width: 650
    :alt: Create 3D mask result
+
+Finally, we have all the elements required to perform the 2D classification. So let's open the protocol and set the
+values enumerated below:
+
+1. Set the input subtomograms pointer to the ones extracted with scipion-em-emantomo after having filtered by normal.
+
+2. Set the mask pointer to the mask generated before.
+
+3. Set the Filter size to *2* voxels.
+
+Let all the rest of parameters with the default values. It's remarkable that this protocol offers three different
+clustering algorithm, each with its own parameter, which will be shown in the protocol form when a different algorithm
+is selected. We've chosen Affinity Propagation (AP) for this tutorial due to its simplicity (number of clusters doesn't
+have to be specified like in other clustering algorithms), general applicability and performance.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/15_2d_classification.png
+   :width: 500
+   :alt: 2D classification protocol
+
+
 
 
 
