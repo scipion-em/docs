@@ -127,14 +127,14 @@ To visualize the outputs of a protocol, Scipion provides the ``Analyze Results``
 button. Once it is clicked on, the corresponding viewer for the output object
 will open (Fig. 9). This example shows a set of particles.
 
-Another way to view a protocol output is by ``Right-click`` on it. The capable
-viewers of opening the type of object in question will then appear.
-All you have to do is choose one of them and that output will be displayed (Fig. 10).
-
 .. figure:: /docs/images/guis/Analize_Results.png
     :alt: Analize Results
 
     Figure 9. Analize Results
+
+Another way to view a protocol output is by ``Right-click`` on it. The capable
+viewers of opening the type of object in question will then appear.
+All you have to do is choose one of them and that output will be displayed (Fig. 10).
 
 
 .. figure:: /docs/images/guis/Viewer_list.png
