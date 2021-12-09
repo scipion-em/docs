@@ -828,7 +828,7 @@ is selected. We've chosen Affinity Propagation (AP) for this tutorial due to its
 have to be specified like in other clustering algorithms), general applicability and performance.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/15_2d_classification.png
-   :width: 500
+   :width: 550
    :alt: 2D classification protocol
 
 
