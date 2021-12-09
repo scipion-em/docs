@@ -53,7 +53,7 @@ Associated resources
 Here you can find resources associated with this content, like videos or presentations used in courses and other
 documentation pages:
 
-`Denoising tomograms and membrane segmentation <https://docs.google.com/presentation/d/1u8v4F7ca3EgzpvOCZ7DteiIB42iQ_4FD1EP6KH2g0Yk/edit?usp=sharing>`_
+`Denoising tomograms and membrane segmentation`_
 
 `PySeg presentation`_
 
@@ -205,8 +205,8 @@ of some executions until getting the desired result. Even more, sometimes it is 
 annotator to tune some parameter to, for example, get the membranes less connected. On the other hand, it is
 recommended to keep all the files when you are not familiarized with the algorithm so, if the membranes get lost in the
 final result, the intermediate results can be analyzed to determine when they got lost and, as a consequence, know
-know which parameter should be tuned. For a more detailed explanation, click HERE --> AÑADIR REFERENCIA A TEORÍA DE
-TOMOSEGMEMTV.
+know which parameter should be tuned. For a more detailed explanation, review the presentation:
+`Denoising tomograms and membrane segmentation`_
 
 The result obtained should look like the figure below.
 
@@ -880,8 +880,8 @@ Extra material
 
 
 
-
-.. _PySeg presentation: https://docs.google.com/presentation/d/1zFArx9GuIN20EZ_uK2OsIzDpae61ryn9x3eColO5n3k/edit?usp=sharing`_
+.. _Denoising tomograms and membrane segmentation: https://docs.google.com/presentation/d/1u8v4F7ca3EgzpvOCZ7DteiIB42iQ_4FD1EP6KH2g0Yk/edit?usp=sharing
+.. _PySeg presentation: https://docs.google.com/presentation/d/1zFArx9GuIN20EZ_uK2OsIzDpae61ryn9x3eColO5n3k/edit?usp=sharing
 .. _Scipion: http://scipion.i2pc.es/
 .. _scipion-em-tomo: https://github.com/scipion-em/scipion-em-tomo
 .. _scipion-em-imod: https://github.com/scipion-em/scipion-em-imod
