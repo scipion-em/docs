@@ -35,7 +35,10 @@ Single particle tutorials
 Tomography tutorials
 --------------------
 
-* `Tomography Picking <https://scipion-em.github.io/docs/docs/user/tutorials/tomo/Picking_tutorial/tutorial-picking.html>`_
+.. toctree::
+    :maxdepth: 1
+
+    `Tomography Picking <https://scipion-em.github.io/docs/docs/user/tutorials/tomo/Picking_tutorial/tutorial-picking.html>`_
 
 
 
