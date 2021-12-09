@@ -110,6 +110,7 @@ Xmipp
 * Directory layout changed, installation refactored
 * DeepRes - Local resolution
 * FSC-Q -  Map-to-model Analysis
+* DeepEMhancer - Deep learning for map post-processing
 
 Developers
 ~~~~~~~~~~
