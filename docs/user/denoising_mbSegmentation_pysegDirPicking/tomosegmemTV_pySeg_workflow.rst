@@ -831,6 +831,41 @@ have to be specified like in other clustering algorithms), general applicability
    :width: 550
    :alt: 2D classification protocol
 
+Once the protocol execution is finished, let's right click on the outputClasses object located in the lower panel of the
+project interface, in the tab "Summary". Then select the option "Open with TomoDataViewer" and the classes obtained will
+be displayed with xmipp's viewer. On the top toolbar, set the size (besides the magnifier icon) to 650 and press Intro.
+The 2 classes obtained are represented as the rotational average around the normal axis, as can be observed on the left
+side of the figure below. It seems quite clear that our ribosome is on class 1, and it's composed of 99 particles,
+while the other class only shows the membrane. Thus, will use the subset functionality provided by this viewer to create
+a subset only composed of the particles which belong to class 1:
+
+1. Select the row corresponding to class 1.
+
+2. Click on the button "+ Particles".
+
+3. On the auxiliary window generated, choose a name for the subset. In our case it will be *class1*.:align:
+
+4. Click on the button "Ok" and the subset will be automatically generated.
+
+At this point, the viewer can be closed.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/15_res_2d_classification.png
+   :width: 1000
+   :alt: 2D classification results
+
+*SUMMARY:*
+
+That was the last point of this tutorial. If we perform some subtomogram averaging (STA) steps membrane alignment,
+particle alignment and subtomogram reconstruction), we can obtain a structure for our ribosomes, as shown in the figure
+below. Those STA steps are out of the scope of this tutorials, but the protocols used and the values of the parameters
+can be observed in section `extra material`_ .
+
+
+
+.. _extra meterial:
+
+Extra material
+==============
 
 
 
