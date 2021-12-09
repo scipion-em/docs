@@ -39,7 +39,7 @@ Tomography tutorials
     :maxdepth: 1
 
     `Tomography Picking <https://scipion-em.github.io/docs/docs/user/tutorials/tomo/Picking_tutorial/tutorial-picking.html>`_
-
+    `Denoising, Membrane Segmentation and Annotation and Directional Picking<https://scipion-em.github.io/docs/jj_denoise_segmentation_dirPicking_workshop/docs/user/denoising_mbSegmentation_pysegDirPicking/tomosegmemTV_pySeg_workflow.html>`_
 
 
 Processing How To's
