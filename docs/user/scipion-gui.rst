@@ -107,10 +107,6 @@ operation (Fig. 7).
     Figure 7. Removing a protocol
 
 
-Bottom right panel displays information for the selected run, such as inputs
-and outputs, execution logs or documentation - also provides
-``Analyze Results`` button to visualize outputs.
-
 .. note::  These options and others can also be found by ``right-click`` on a
            protocol (Fig. 8).
 
@@ -119,6 +115,47 @@ and outputs, execution logs or documentation - also provides
 
     Figure 8. Protocol options
 
+
+Analyzing Results
+------------------
+
+Some graphical viewers allow the visualization of the results of the protocols
+for later analysis.
+Bottom right panel displays information for the selected run, such as inputs
+and outputs, execution logs or documentation.
+To visualize the outputs of a protocol, Scipion provides the ``Analyze Results``
+button. Once it is clicked on, the corresponding viewer for the output object
+will open (Fig. 9). This example shows a set of particles.
+
+.. figure:: /docs/images/guis/Analize_Results.png
+    :alt: Analize Results
+
+    Figure 9. Analize Results
+
+Another way to view a protocol output is by ``Right-click`` on it. The capable
+viewers of opening the type of object in question will then appear.
+All you have to do is choose one of them and that output will be displayed (Fig. 10).
+
+
+.. figure:: /docs/images/guis/Viewer_list.png
+    :alt: Viewer list
+
+    Figure 10. Viewer list
+
+Waiting for other protocols
+---------------------------
+
+Sometimes we need a protocol to finish its execution to be able to launch
+another protocol. Scipion protocol forms have a parameter called "Wait for"
+(Fig. 11) in which you can specify one or more protocols (protocols IDs
+separated by a comma).This protocol starts after the input protocols in the list
+are finished. This function will allow you to "schedule" many
+runs that will be executed after each other.
+
+.. figure:: /docs/images/guis/wait_for.png
+    :alt: Prerequisites parameter
+
+    Figure 10. Prerequisites parameter
 
 To better familiarize ourselves with the Scipion GUI, we will use two more
 complex projects. More specifically, for this tutorial we registered projects
@@ -134,7 +171,7 @@ If we open TestSpiderWorkflow project GUI is loaded(Fig 9).
 .. figure:: /docs/images/guis/project.png
     :alt: Project GUI in Protocols Mode
 
-    Figure 9. Project GUI in Protocols Mode
+    Figure 12. Project GUI in Protocols Mode
 
 If we switch to Data mode (top right), then left panel displays EM objects registered for
 each type and right panel displays project data tree, with protocol
@@ -147,7 +184,7 @@ emphasizing on data handling.
 .. figure:: /docs/images/guis/datamode.png
     :alt: Project GUI in Data Mode
 
-    Figure 10. Project GUI in Data Mode
+    Figure 13. Project GUI in Data Mode
 
 TestSpiderWorkflow project imports a set of particles, preprocess and
 aligns them to finally use it as input for different 2D classification
@@ -157,13 +194,13 @@ following form is displayed:
 .. figure:: /docs/images/guis/filter.png
     :alt: Filter Particles Protocol Form
 
-    Figure 11. Filter Particles Protocol Form
+    Figure 14. Filter Particles Protocol Form
 
 
 Protocol provides cite references and help util to introduce user on the
-subject (Fig. 12-13). Form possess two sections: Run and Input. Run
+subject (Fig. 15-16). Form possess two sections: Run and Input. Run
 section is common to all protocols and allows the user to configure run
-label and comments (to personalize runs, Fig. 11); execution mode
+label and comments (to personalize runs, Fig. 14); execution mode
 (restart or resume), host, queue and threads or MPI. Many image
 processing tasks are computer expensive so they need to be run on
 specific hosts, using queue system and parallel processing.
@@ -173,25 +210,25 @@ protocols with independent steps.
 Input section allows to specify input parameters for the task, like
 input particles or filter type. A brief description is provided for all
 of them (using help button) and for some a Search GUI to select input
-object (Fig. 11) or a wizard GUI (through eye button). Parameters are
+object (Fig. 14) or a wizard GUI (through eye button). Parameters are
 showed considering expert level selected (Normal, Advanced or Expert).
 
 .. figure:: /docs/images/guis/cite.png
     :alt: Protocol Cite
 
-    Figure 12. Protocol Cite
+    Figure 15. Protocol Cite
 
 .. figure:: /docs/images/guis/protocol_help.png
     :alt: Protocol Help
 
-    Figure 13. Protocol Help
+    Figure 16. Protocol Help
 
 .. figure:: /docs/images/guis/inputlist.png
     :alt: List of SetOfParticles objects registered
 
-    Figure 14. List of SetOfParticles objects registered
+    Figure 17. List of SetOfParticles objects registered
 
-We can visualize filtered particles using "Analyze Results" (Fig. 15).
+We can visualize filtered particles using "Analyze Results" (Fig. 18).
 ShowJ viewer is the default viewer for most of Scipion objects, like
 images, volumes, sets of images, classes, etc. It can display data in
 gallery and table modes and navigate trough different blocks of data.
@@ -202,11 +239,11 @@ algorithm.
 .. figure:: /docs/images/guis/particles2.png
     :alt: ShowJ displaying filtered particles
 
-    Figure 15. ShowJ displaying filtered particles
+    Figure 18. ShowJ displaying filtered particles
 
 If we select 2D classification protocol ``spider-classify kmeans`` and
 open output classes, we can see representative particle for each class
-(Fig. 16). Third and fourth items seemed very similar so we can disable
+(Fig. 19). Third and fourth items seemed very similar so we can disable
 fourth item and create a subset containing only remaining classes. This
 operation registers a subset protocol with this classes as input and the
 set of classes with enabled items as output.
@@ -215,20 +252,20 @@ set of classes with enabled items as output.
 .. figure:: /docs/images/guis/classes.png
     :alt: ShowJ displaying a SetOfClasses
 
-    Figure 16. ShowJ displaying a SetOfClasses
+    Figure 19. ShowJ displaying a SetOfClasses
 
 Xmipp Workflow
 --------------
 
 If you open TestXmippWorkflow the following project GUI is displayed
-(Fig. 17):
+(Fig. 20):
 
 .. figure:: /docs/images/guis/xmipp-project.png
     :alt: TestXmippWorkflow Project GUI
 
-    Figure 17. TestXmippWorkflow Project GUI
+    Figure 20. TestXmippWorkflow Project GUI
 
-This project imports a set of micrographs (eg: Fig. 18), reduce its
+This project imports a set of micrographs (eg: Fig. 21), reduce its
 image size using downsample and estimates their CTF. Then, picks
 particles from micrographs and extracts particles to use it as input for
 alignment and classification algorithms like cl2d, ml2d, kendersom or
@@ -239,7 +276,7 @@ GUIs.
 .. figure:: /docs/images/guis/micrograph.png
     :alt: ShowJ displaying input micrograph with "gaussian blur" filter applied
 
-    Figure 18. ShowJ displaying input micrograph with "gaussian blur" filter applied
+    Figure 21. ShowJ displaying input micrograph with "gaussian blur" filter applied
 
 
 ShowJ GUI for single images is displayed above (see Showj)
@@ -250,7 +287,7 @@ Screen micrographs produces this output:
 .. figure:: /docs/images/guis/ctf2.png
     :alt: CTF Recalculate Wizard
 
-    Figure 19. CTF Recalculate Wizard
+    Figure 22. CTF Recalculate Wizard
 
 We can use CTF wizard to redefine input parameters to recalculate CTF on
 specific micrographs. Recalculate CTFs will register a new protocol that
@@ -258,13 +295,13 @@ receives this SetOfCTF as input and creates an output set with CTFs
 updated.
 
 Particle picking can be done in Scipion using Xmipp, Eman, Bsoft, etc.
-In this tutorial we chose Xmipp Particle Picker, see Fig. 20.
+In this tutorial we chose Xmipp Particle Picker, see Fig. 23.
 
 
 .. figure:: /docs/images/guis/picking.png
     :alt: Xmipp Particle Picker GUI
 
-    Figure 20. Xmipp Particle Picker GUI
+    Figure 23. Xmipp Particle Picker GUI
 
 The Xmipp picker allows us to iterate over the micrographs to pick
 particles, see :doc:`Picker<picker>`. After we have done
