@@ -5,6 +5,15 @@
 .. _tomography-tutorials:
 
 
+Tomogram Reconstruction
+-----------------------
+The main goal of this tutorial is to illustrate the combination of different tomography software
+packages in the same Scipion project.
+
+ *Guide*:
+ `Tomogram Reconstruction <https://docs.google.com/document/d/1ESIGTwPyunnelq4zCVrSL1BSqn-Qpf0tCcN-vY_mCtk>`_
+
+
 Picking Tutorial
 -----------------
 This page will present the different picking protocols and strategies available in Scipion for Tomography and the Plugins where the various programs can be found.
@@ -24,3 +33,24 @@ tomogram to the initial model generation after having picked the particles.
  `Denoising, Membrane Segmentation and Annotation and Directional Picking <docs/user/denoising_mbSegmentation_pysegDirPicking/tomosegmemTV_pySeg_workflow>`_
 
 
+Subtomogram Averaging Ribosome (Part I)
+---------------------------------------
+
+In this tutorial, we will describe a basic workflow that goes
+from a tomogram containing purified ribosomes to a subtomogram average of the
+ribosome. To achieve this task, we will import the data to Scipion and then,
+perform a picking, extraction, classification and subtomogram refinement.
+
+ *Guide*:
+ `Subtomogram Averaging Ribosome <https://docs.google.com/document/d/1wH9vCDVbjlkMwGiXB3-BsKfNEr-vKgKDry8CRHch9Yk>`_
+
+
+Subtomogram Averaging HIV (Part II)
+------------------------------------
+In this first part of the tutorial, we will follow a workflow from tomogram to
+subtomogram averaging. Our objective is to reconstruct a protein of the
+capsid of the HIV virus, so our particles will have to maintain the orientation
+with respect to the virus internal membrane.
+
+ *Guide*:
+ `Subtomogram Averaging HIV <https://docs.google.com/document/d/14hFAyyb19SZsXe1i82NN9RP9VW1ZyCEAJJznnEOeA7Q>`_
