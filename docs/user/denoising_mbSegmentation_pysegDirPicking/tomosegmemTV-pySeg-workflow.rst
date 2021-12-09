@@ -2,7 +2,7 @@
    :width: 250
    :alt: scipion logo
 
-.. _Tutorial-Denoising-Membrane-Segmentation-and-Annotation-and-Directional-Picking:
+.. _tomosegmemTV-pySeg-workflow:
 
 ==================================================================================
 Tutorial - Denoising, Membrane Segmentation and Annotation and Directional Picking
