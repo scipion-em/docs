@@ -44,13 +44,16 @@ out.
 Objective
 =========
 
-The aim of this tutorial is to pick the membrane ribosomes of an in situ tomogram using segmentation, annotation and directional picking protocols inside Scipion framework.
+The aim of this tutorial is to pick the membrane ribosomes of an in situ tomogram using segmentation, annotation and
+directional picking protocols inside Scipion framework.
 
 Associated resources
 ====================
 
 Here you can find resources associated with this content, like videos or presentations used in courses and other
 documentation pages:
+
+`Denoising tomograms and membrane segmentation <https://docs.google.com/presentation/d/1u8v4F7ca3EgzpvOCZ7DteiIB42iQ_4FD1EP6KH2g0Yk/edit?usp=sharing>`_
 
 `PySeg presentation`_
 
