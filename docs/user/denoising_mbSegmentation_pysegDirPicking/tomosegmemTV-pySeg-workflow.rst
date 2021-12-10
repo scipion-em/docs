@@ -871,25 +871,7 @@ At this point, the viewer can be closed.
 *SUMMARY:*
 
 That was the last point of this tutorial. If we perform some subtomogram averaging (STA) steps membrane alignment,
-particle alignment and subtomogram reconstruction), we can obtain a structure for our ribosomes, as shown in the figure
-below. Those STA steps are out of the scope of this tutorials, but the protocols used and the values of the parameters
-can be observed in section `extra material`_ .
-
-
-
-.. _extra meterial:
-
-Extra material
-==============
-
-
-
-
-
-
-
-
-
+particle alignment and subtomogram reconstruction), we can obtain a structure for our ribosomes.
 
 
 .. _Denoising tomograms and membrane segmentation: https://docs.google.com/presentation/d/1u8v4F7ca3EgzpvOCZ7DteiIB42iQ_4FD1EP6KH2g0Yk/edit?usp=sharing
