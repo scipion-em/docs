@@ -8,6 +8,11 @@
 Tutorial - Denoising, Membrane Segmentation and Annotation and Directional Picking
 ==================================================================================
 
+.. contents:: Table of Contents
+
+Introduction
+============
+
 This tutorial covers a part of the full data processing pipeline in cryo electron tomography, concretely from the
 tomogram to the initial model generation after having picked the particles. All the data processing has been carried
 out in Scipion_, using the plugins listed below for each step:
@@ -47,20 +52,17 @@ box represents a protocol and a different color has been chosen for the differen
 belong to.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/00_project_overview_colored.png
-   :width: 550
+   :width: 400
    :alt: Project overview
 
-
-.. contents:: Table of Contents
-
 Objective
-=========
+---------
 
 The aim of this tutorial is to pick the membrane ribosomes of an in situ tomogram using segmentation, annotation and
 directional picking protocols inside Scipion framework.
 
 Associated resources
-====================
+--------------------
 
 Here you can find resources associated with this content, like videos or presentations used in courses and other
 documentation pages:
@@ -72,7 +74,7 @@ documentation pages:
 `Basic actions with Scipion <https://scipion-em.github.io/docs/docs/user/scipion-gui.html#scipion-gui>`_
 
 The dataset
-===========
+-----------
 
 The dataset reference used in this tutorial is EMD-10439_, which consists of an in situ tomogram of intact P19 cells
 acquired with phase-plate, with a sampling rate of 13.68 Å/voxel and dimensions (X, Y, Z) = (928, 928, 500) pixels.
