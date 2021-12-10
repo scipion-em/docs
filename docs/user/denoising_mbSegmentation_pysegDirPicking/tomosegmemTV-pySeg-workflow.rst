@@ -28,7 +28,7 @@ out in Scipion_, using the plugins listed below for each step:
 
 8. 2D classification - scipion-em-pyseg_
 
-8. Create 3d mask - scipion-em-xmipp_
+9. Create 3d mask - scipion-em-xmipp_
 
 Thus, 8 different plugins will be used in this tutorial, highlighting the power of Scipion in terms of interoperability.
 Figure below shows and scheme of the main workflow steps proposed for this tutorials and the plugins used to carry them
