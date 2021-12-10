@@ -71,7 +71,7 @@ First of all, open a terminal and execute the command scipion3 to run Scipion. A
 
 1. Click on button "Create Project".
 
-2. Write a name for it. We'll name it tomo_workshop_2021_tomosegmemTV_pyseg.
+2. Write a name for it. We'll name it *Day_2_memb_seg_and_pyseg_dir_picking*.
 
 3. Click on button "Create".
 
@@ -883,7 +883,7 @@ Extra material
 .. _Scipion: http://scipion.i2pc.es/
 .. _scipion-em-tomo: https://github.com/scipion-em/scipion-em-tomo
 .. _scipion-em-imod: https://github.com/scipion-em/scipion-em-imod
-.. _scipion-em-jjsoft:: https://github.com/scipion-em/scipion-em-jjsoft
+.. _scipion-em-jjsoft: https://github.com/scipion-em/scipion-em-jjsoft
 .. _scipion-em-tomosegmemtv: https://github.com/scipion-em/scipion-em-tomosegmemtv
 .. _scipion-em-pyseg: https://github.com/scipion-em/scipion-em-pyseg
 .. _scipion-em-tomo3d: https://github.com/scipion-em/scipion-em-tomo3d
