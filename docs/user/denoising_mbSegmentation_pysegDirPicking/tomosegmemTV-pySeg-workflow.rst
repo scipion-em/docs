@@ -42,6 +42,14 @@ out.
    :width: 400
    :alt: Workflow scheme
 
+The figure below is a capture of the final aspect of the project we're going to generate during this tutorial. Each
+box represents a protocol and a different color has been chosen for the different plugins which the protocols used
+belong to.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/00_workflow_scheme.png
+   :width: 550
+   :alt: Project overview
+
 
 .. contents:: Table of Contents
 
