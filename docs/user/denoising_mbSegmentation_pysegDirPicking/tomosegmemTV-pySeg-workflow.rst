@@ -62,8 +62,6 @@ documentation pages:
 The dataset
 ===========
 
-PySeg presentation
-
 The dataset reference used in this tutorial is EMD-10439_, which consists of an in situ tomogram of intact P19 cells
 acquired with phase-plate, with a sampling rate of 13.68 Å/voxel and dimensions (X, Y, Z) = (928, 928, 500) pixels.
 
