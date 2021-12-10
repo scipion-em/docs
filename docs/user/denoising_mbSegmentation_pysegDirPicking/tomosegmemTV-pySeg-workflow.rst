@@ -32,7 +32,7 @@ out in Scipion_, using the plugins listed below for each step:
 
 10. 2D classification - scipion-em-pyseg_
 
-
+11. Visualization tools - scipion-em-xmipp_, scipion-em-imod_ and scipion-em-pyseg_
 
 Thus, 9 different plugins will be used in this tutorial, highlighting the power of Scipion in terms of interoperability.
 Figure below shows and scheme of the main workflow steps proposed for this tutorials and the plugins used to carry them
