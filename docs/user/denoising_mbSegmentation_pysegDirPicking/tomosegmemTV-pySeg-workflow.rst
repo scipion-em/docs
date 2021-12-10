@@ -46,7 +46,7 @@ The figure below is a capture of the final aspect of the project we're going to 
 box represents a protocol and a different color has been chosen for the different plugins which the protocols used
 belong to.
 
-.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/00_workflow_scheme.png
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/00_project_overview_colored.png
    :width: 550
    :alt: Project overview
 
