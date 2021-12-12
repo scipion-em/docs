@@ -14,6 +14,20 @@ packages in the same Scipion project.
  `Tomogram Reconstruction <https://docs.google.com/document/d/1ESIGTwPyunnelq4zCVrSL1BSqn-Qpf0tCcN-vY_mCtk>`_
 
 
+Manual Tomogram Reconstruction with etomo
+-----------------------------------------
+This tutorial shows how Scipion incorporates etomo (scipion-em-imod) and how the tomograms can be manually reconstrutedthewith it, inside a Scipion project.
+
+ *Guide*:
+ `Manual Tomogram Reconstruction <https://docs.google.com/document/d/1TvdtTAojfAwSeQMfGdkXWIWTC7vobgicbYTq4aX1-H8>`_
+
+Tomogram Reconstruction and Local Resolution Analysis with MonoTomo
+-------------------------------------------------------------------
+This tutorial shows how to reconstruct a tomogram in Scipion evaluating its local resolution
+
+ *Guide*:
+ `Local Resolution of a Tomogram Reconstruction <https://docs.google.com/document/d/1GfyYaHKaKivptV9wu-nRQSRIiq9onsC-I3qAbv25YUE>`_
+
 Picking Tutorial
 -----------------
 This page will present the different picking protocols and strategies available in Scipion for Tomography and the Plugins where the various programs can be found.
