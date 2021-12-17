@@ -10,6 +10,45 @@ Release-notes
 
 .. contents:: Table of Contents
 
+v3.0.18 (2021-12-17) core or pworkflow
+======================================
+Users:
+ - Fixed GUI errors:
+   - fixing the workflow collapse/expande nodes
+   - resetting nodes with manual subset looses the parent
+   - reporting the protocol wall time
+   - finished protocol can't be modified
+ - Fixed: execute a protocol directly that is not streaming and that has an open input must be scheduled
+ - All sets in streaming are closed when stopping a protocol
+ - fixing an error closing some viewers(the action of closing some viewers closed Scipion completely)
+ - fixing an error drawing the protocols step tree
+ - fixing an error deleting a protocol using the "delete" key
+ - logging DEBUG mode will be activated when toggling debug mode
+ - A dramatic plugin import error will be tolerated. Plugin will not be loaded but scipion will open
+ - Possible outputs definition is now possible. Protocols can define possible outputs to allow designing
+   a workflow in advance without executing them.   
+ - New variable added: SCIPION_STEPS_CHECK_SEC. Defaults to 3 (seconds). It represents how often new input is checked in streamified protocols. Increasing this   
+   value will relax the stress in the system, but will feel less "alive".
+ - Workflow templates can now be imported into an existing project
+
+Developers:
+ - Possible Outputs allowed: dict or enum definition possible, see Protocol._possibleOutput
+ - Allow readonly parameters in protocols. Useful in combination with wizards or just informative parameters.
+ - Added the variable SCIPION_PRIORITY_PACKAGE_LIST that is used in the protocols tree view in order to load first the plugins that contains the main
+   sections. This variable is defined as string with the packages names separated by a space.
+   e.g: SCIPION_PRIORITY_PACKAGE_LIST = "pwem tomo cistem"
+   
+V3.0.14 (2021-12-17) em core or pwem
+====================================
+Users:
+  - New protocol: numeric classes extractor: Extracts items from a SetOfClasses based on number of items assigned to the classes
+  - Filter ser protocol can filter by ranking: ascending or descending getting N items or a percentage.
+  - Outputs predefined for: import masks, import micrographs, import movies, movie alignment methods, ctf estimators, particle pickers, particle extractors.
+
+.. figure:: possible-outputs.gif
+  
+  - Filebrowser preview for images limited to 500MB (default). MAX_PREVIEW_FILE_SIZE (in MB) can be used to change this value.
+
 
 v3.0 (2020-11-10) Eugenius
 ==========================
