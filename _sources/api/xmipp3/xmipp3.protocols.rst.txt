@@ -108,6 +108,7 @@ Submodules
    xmipp3.protocols.protocol_split_volume_hierarchical_cluster
    xmipp3.protocols.protocol_structure_map
    xmipp3.protocols.protocol_structure_map_zernike3d
+   xmipp3.protocols.protocol_subtract_projection
    xmipp3.protocols.protocol_trigger_data
    xmipp3.protocols.protocol_validate_fscq
    xmipp3.protocols.protocol_validate_nontilt
