@@ -30,6 +30,8 @@ Users:
  - New variable added: SCIPION_STEPS_CHECK_SEC. Defaults to 3 (seconds). It represents how often new input is checked in streamified protocols. Increasing this   
    value will relax the stress in the system, but will feel less "alive".
  - Workflow templates can now be imported into an existing project
+ 
+.. figure:: import-template.gif
 
 Developers:
  - Possible Outputs allowed: dict or enum definition possible, see Protocol._possibleOutput
