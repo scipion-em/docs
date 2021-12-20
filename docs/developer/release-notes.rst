@@ -10,7 +10,7 @@ Release-notes
 
 .. contents:: Table of Contents
 
-v3.0.18 (2021-12-17) core or pworkflow
+v3.0.18 (2021-12-20) core or pworkflow
 ======================================
 Users:
  - Fixed GUI errors:
@@ -40,7 +40,7 @@ Developers:
    sections. This variable is defined as string with the packages names separated by a space.
    e.g: SCIPION_PRIORITY_PACKAGE_LIST = "pwem tomo cistem"
    
-V3.0.14 (2021-12-17) em core or pwem
+V3.0.14 (2021-12-20) em core or pwem
 ====================================
 Users:
   - New protocol: numeric classes extractor: Extracts items from a SetOfClasses based on number of items assigned to the classes
