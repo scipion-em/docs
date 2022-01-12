@@ -1,4 +1,4 @@
-.. figure:: /docs/images/scipion_logo.png
+.. figure:: /docs/images/ScipionCloud_icon.png
    :width: 250
    :alt: scipion logo
 
