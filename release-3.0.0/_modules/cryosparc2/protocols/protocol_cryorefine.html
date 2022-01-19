@@ -208,6 +208,8 @@
 <span class="c1"># *  e-mail address &#39;scipion@cnb.csic.es&#39;</span>
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
+<span class="kn">import</span> <span class="nn">emtable</span>
+
 <span class="kn">import</span> <span class="nn">pwem.objects</span> <span class="k">as</span> <span class="nn">pwobj</span>
 <span class="kn">import</span> <span class="nn">pwem.protocols</span> <span class="k">as</span> <span class="nn">pwprot</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
@@ -221,7 +223,8 @@
                      <span class="n">cryosparcValidate</span><span class="p">,</span> <span class="n">gpusValidate</span><span class="p">,</span> <span class="n">getSymmetry</span><span class="p">,</span>
                      <span class="n">waitForCryosparc</span><span class="p">,</span> <span class="n">clearIntermediateResults</span><span class="p">,</span> <span class="n">enqueueJob</span><span class="p">,</span>
                      <span class="n">fixVolume</span><span class="p">,</span> <span class="n">copyFiles</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">..constants</span> <span class="kn">import</span> <span class="n">md</span><span class="p">,</span> <span class="n">NOISE_MODEL_CHOICES</span><span class="p">,</span> <span class="n">REFINE_MASK_CHOICES</span>
+<span class="kn">from</span> <span class="nn">..constants</span> <span class="kn">import</span> <span class="p">(</span><span class="n">NOISE_MODEL_CHOICES</span><span class="p">,</span> <span class="n">REFINE_MASK_CHOICES</span><span class="p">,</span>
+                         <span class="n">RELIONCOLUMNS</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="ProtCryoSparcRefine3D"><a class="viewcode-back" href="../../../api/cryosparc2/cryosparc2.protocols.protocol_cryorefine.html#cryosparc2.protocols.protocol_cryorefine.ProtCryoSparcRefine3D">[docs]</a><span class="k">class</span> <span class="nc">ProtCryoSparcRefine3D</span><span class="p">(</span><span class="n">ProtCryosparcBase</span><span class="p">,</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">ProtRefine3D</span><span class="p">):</span>
@@ -536,6 +539,12 @@
         <span class="n">validateMsgs</span> <span class="o">=</span> <span class="n">cryosparcValidate</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">validateMsgs</span><span class="p">:</span>
             <span class="n">validateMsgs</span> <span class="o">=</span> <span class="n">gpusValidate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">())</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">validateMsgs</span><span class="p">:</span>
+                <span class="n">particles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getInputParticles</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">particles</span><span class="o">.</span><span class="n">hasCTF</span><span class="p">():</span>
+                    <span class="n">validateMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="s2">&quot;The Particles has not associated a &quot;</span>
+                        <span class="s2">&quot;CTF model&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">validateMsgs</span>
 
     <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -577,13 +586,11 @@
         <span class="n">imgSet</span><span class="o">.</span><span class="n">setAlignmentProj</span><span class="p">()</span>
         <span class="n">imgSet</span><span class="o">.</span><span class="n">copyItems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getInputParticles</span><span class="p">(),</span>
                          <span class="n">updateItemCallback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_createItemMatrix</span><span class="p">,</span>
-                         <span class="n">itemDataIterator</span><span class="o">=</span><span class="n">md</span><span class="o">.</span><span class="n">iterRows</span><span class="p">(</span><span class="n">outImgsFn</span><span class="p">,</span>
-                                                      <span class="n">sortByLabel</span><span class="o">=</span><span class="n">md</span><span class="o">.</span><span class="n">RLN_IMAGE_ID</span><span class="p">))</span>
+                         <span class="n">itemDataIterator</span><span class="o">=</span><span class="n">emtable</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">iterRows</span><span class="p">(</span><span class="n">fileName</span><span class="o">=</span><span class="n">outImgsFn</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">_createItemMatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
         <span class="n">createItemMatrix</span><span class="p">(</span><span class="n">particle</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="n">pwobj</span><span class="o">.</span><span class="n">ALIGN_PROJ</span><span class="p">)</span>
-        <span class="n">setCryosparcAttributes</span><span class="p">(</span><span class="n">particle</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span>
-                               <span class="n">md</span><span class="o">.</span><span class="n">RLN_PARTICLE_RANDOM_SUBSET</span><span class="p">)</span>
+        <span class="n">setCryosparcAttributes</span><span class="p">(</span><span class="n">particle</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">RELIONCOLUMNS</span><span class="o">.</span><span class="n">rlnRandomSubset</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_defineParamsName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Define a list with all protocol parameters names&quot;&quot;&quot;</span>
