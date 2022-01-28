@@ -213,7 +213,7 @@
 
 <span class="kn">from</span> <span class="nn">pwem</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">pwem.emlib</span> <span class="kn">import</span> <span class="p">(</span><span class="n">MetaData</span><span class="p">,</span> <span class="n">MDL_X</span><span class="p">,</span> <span class="n">MDL_COUNT</span><span class="p">,</span> <span class="n">MDL_NMA_MODEFILE</span><span class="p">,</span> <span class="n">MDL_ORDER</span><span class="p">,</span>
-                        <span class="n">MDL_ENABLED</span><span class="p">,</span> <span class="n">MDL_NMA_COLLECTIVITY</span><span class="p">,</span> <span class="n">MDL_NMA_SCORE</span><span class="p">)</span>
+                        <span class="n">MDL_ENABLED</span><span class="p">,</span> <span class="n">MDL_NMA_COLLECTIVITY</span><span class="p">,</span> <span class="n">MDL_NMA_SCORE</span><span class="p">,</span> <span class="n">MDL_NMA_EIGENVAL</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">EMProtocol</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="n">IntParam</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">EnumParam</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="o">*</span>
@@ -398,6 +398,8 @@
         <span class="n">mdOut</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">()</span>
         <span class="n">collectivityList</span> <span class="o">=</span> <span class="p">[]</span>
 
+        <span class="n">ids</span><span class="p">,</span> <span class="n">eigvals</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_eigval</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">eigvals</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fnVec</span><span class="p">)):</span>
             <span class="n">line</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
             <span class="n">collectivity</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
@@ -412,8 +414,11 @@
                 <span class="n">mdOut</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">MDL_ENABLED</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">mdOut</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">MDL_ENABLED</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">mdOut</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">MDL_NMA_EIGENVAL</span><span class="p">,</span> <span class="n">eigvals</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
             <span class="n">mdOut</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">MDL_NMA_COLLECTIVITY</span><span class="p">,</span> <span class="n">collectivity</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
-
             <span class="k">if</span> <span class="n">collectivity</span> <span class="o">&lt;</span> <span class="n">collectivityThreshold</span><span class="p">:</span>
                 <span class="n">mdOut</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">MDL_ENABLED</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
         <span class="n">fh</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
@@ -441,6 +446,21 @@
         <span class="n">cleanPath</span><span class="p">(</span><span class="s2">&quot;Chkmod.res&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_leaveWorkingDir</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_get_eigval</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># We are inside the working directory</span>
+        <span class="n">fn</span> <span class="o">=</span> <span class="s1">&#39;logs/run.stdout&#39;</span>
+        <span class="c1"># fn = &#39;run.stdout&#39;</span>
+        <span class="n">content</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">Lines</span> <span class="o">=</span> <span class="n">content</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">eigval</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">Lines</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39; Rdmodfacs&gt; Eigenvector number:&#39;</span><span class="p">):</span>
+                <span class="n">ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">32</span><span class="p">:]))</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39; Rdmodfacs&gt; Corresponding eigenvalue:&#39;</span><span class="p">):</span>
+                <span class="n">eigval</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">37</span><span class="p">:]))</span>
+        <span class="k">return</span> <span class="n">ids</span><span class="p">,</span> <span class="n">eigval</span>
 
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
