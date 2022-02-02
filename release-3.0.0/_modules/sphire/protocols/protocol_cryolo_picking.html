@@ -319,6 +319,13 @@
                             <span class="s2">&quot; crYOLO can use multiple GPUs - in that case&quot;</span>
                             <span class="s2">&quot; set to i.e. *0 1 2*.&quot;</span><span class="p">)</span>
 
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;boxSizeFactor&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span>
+                      <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">cons</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Adjust estimated box size by&quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Value to multiply crYOLO estimated box size to be registered in the &quot;</span>
+                            <span class="s2">&quot;SetOfCoordinates. It is usually very tight to make a later extraction&quot;</span><span class="p">)</span>
+
         <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineStreamingParams</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
@@ -365,6 +372,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_pickMicrographList</span><span class="p">([</span><span class="n">micrograph</span><span class="p">],</span> <span class="n">args</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_pickMicrographList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">micList</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">micList</span><span class="p">:</span>  <span class="c1"># maybe in continue cases, need to properly check</span>
+            <span class="k">return</span>
+
         <span class="k">def</span> <span class="nf">cleanAndMakePath</span><span class="p">(</span><span class="n">inDirectory</span><span class="p">):</span>
             <span class="n">pwutils</span><span class="o">.</span><span class="n">cleanPath</span><span class="p">(</span><span class="n">inDirectory</span><span class="p">)</span>
             <span class="n">pwutils</span><span class="o">.</span><span class="n">makePath</span><span class="p">(</span><span class="n">inDirectory</span><span class="p">)</span>
@@ -379,12 +389,13 @@
         <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; -i </span><span class="si">%s</span><span class="s2">/&quot;</span> <span class="o">%</span> <span class="n">workingDir</span>
         <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; -o </span><span class="si">%s</span><span class="s2">/&quot;</span> <span class="o">%</span> <span class="n">workingDir</span>
         <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; -t </span><span class="si">%0.3f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">conservPickVar</span>
-        <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; -g </span><span class="si">%(GPU)s</span><span class="s2">&quot;</span>  <span class="c1"># Add GPU that will be set by the executor</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">usingCpu</span><span class="p">():</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; -g </span><span class="si">%(GPU)s</span><span class="s2">&quot;</span>  <span class="c1"># Add GPU that will be set by the executor</span>
         <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; -nc </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">numCpus</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lowPassFilter</span><span class="p">:</span>
             <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --otf&#39;</span>
 
-        <span class="n">Plugin</span><span class="o">.</span><span class="n">runCryolo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;cryolo_predict.py&#39;</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">useCpu</span><span class="o">=</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">useGpu</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="n">Plugin</span><span class="o">.</span><span class="n">runCryolo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;cryolo_predict.py&#39;</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">useCpu</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">usingCpu</span><span class="p">())</span>
 
         <span class="c1"># Move output files to a common location</span>
         <span class="n">dirs2Move</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workingDir</span><span class="p">,</span> <span class="nb">dir</span><span class="p">)</span> <span class="k">for</span> <span class="nb">dir</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;CBOX&#39;</span><span class="p">,</span> <span class="s1">&#39;DISTR&#39;</span><span class="p">]]</span>
@@ -405,6 +416,10 @@
             <span class="k">else</span><span class="p">:</span>  <span class="c1"># If not crYOLO estimates it</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">boxSizeEstimated</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
                 <span class="n">boxSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getEstimatedBoxSize</span><span class="p">()</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxSizeFactor</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">boxSize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">boxSize</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxSizeFactor</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+
             <span class="n">outputCoords</span><span class="o">.</span><span class="n">setBoxSize</span><span class="p">(</span><span class="n">boxSize</span><span class="p">)</span>
 
         <span class="c1"># Calculate if flip is needed</span>
@@ -417,14 +432,18 @@
             <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">coordsFile</span><span class="p">):</span>
                 <span class="n">convert</span><span class="o">.</span><span class="n">readMicrographCoords</span><span class="p">(</span><span class="n">mic</span><span class="p">,</span> <span class="n">outputCoords</span><span class="p">,</span> <span class="n">coordsFile</span><span class="p">,</span> <span class="n">boxSize</span><span class="p">,</span>
                                              <span class="n">yFlipHeight</span><span class="o">=</span><span class="n">yFlipHeight</span><span class="p">,</span>
-                                             <span class="n">boxSizeEstimated</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">boxSizeEstimated</span><span class="p">)</span></div>
+                                             <span class="n">boxSizeEstimated</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">boxSizeEstimated</span><span class="p">)</span>
 
-<div class="viewcode-block" id="SphireProtCRYOLOPicking.createOutputStep"><a class="viewcode-back" href="../../../api/sphire/sphire.protocols.protocol_cryolo_picking.html#sphire.protocols.protocol_cryolo_picking.SphireProtCRYOLOPicking.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Register box size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">createBoxSizeOutput</span><span class="p">(</span><span class="n">outputCoords</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SphireProtCRYOLOPicking.createBoxSizeOutput"><a class="viewcode-back" href="../../../api/sphire/sphire.protocols.protocol_cryolo_picking.html#sphire.protocols.protocol_cryolo_picking.SphireProtCRYOLOPicking.createBoxSizeOutput">[docs]</a>    <span class="k">def</span> <span class="nf">createBoxSizeOutput</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordSet</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; The output is just an Integer. Other protocols can use it in those</span>
 <span class="sd">            IntParam if it has set allowsPointer=True</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">boxSize</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputCoordinates</span><span class="o">.</span><span class="n">getBoxSize</span><span class="p">())</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">boxsize</span><span class="o">=</span><span class="n">boxSize</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;boxsize&quot;</span><span class="p">):</span>
+            <span class="n">boxSize</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="n">coordSet</span><span class="o">.</span><span class="n">getBoxSize</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">boxsize</span><span class="o">=</span><span class="n">boxSize</span><span class="p">)</span></div>
 
     <span class="c1"># --------------------------- INFO functions ------------------------------</span>
     <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -433,15 +452,16 @@
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">validateMsgs</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">useGpu</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getCondaActivationCmd</span><span class="p">()</span> <span class="o">+</span>
-                                                <span class="n">Plugin</span><span class="o">.</span><span class="n">getVar</span><span class="p">(</span><span class="n">CRYOLO_ENV_ACTIVATION_CPU</span><span class="p">))):</span>
-            <span class="n">validateMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;CPU implementation of crYOLO is not installed, &quot;</span>
-                                <span class="s2">&quot;install &#39;cryoloCPU&#39; or use the GPU implementation.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">usingCpu</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getCondaActivationCmd</span><span class="p">()</span> <span class="o">+</span> <span class="n">Plugin</span><span class="o">.</span><span class="n">getVar</span><span class="p">(</span><span class="n">CRYOLO_ENV_ACTIVATION_CPU</span><span class="p">)):</span>
+                <span class="n">validateMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;CPU implementation of crYOLO is not installed, &quot;</span>
+                                    <span class="s2">&quot;install &#39;cryoloCPU&#39; or use the GPU implementation.&quot;</span><span class="p">)</span>
 
-        <span class="n">nprocs</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfThreads</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
-        <span class="k">if</span> <span class="n">nprocs</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">()):</span>
-            <span class="n">validateMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Multiple GPUs can not be used by a single process. &quot;</span>
-                                <span class="s2">&quot;Make sure you specify more threads than GPUs.&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">nprocs</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfThreads</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">nprocs</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">()):</span>
+                <span class="n">validateMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Multiple GPUs can not be used by a single process. &quot;</span>
+                                    <span class="s2">&quot;Make sure you specify more threads than GPUs.&quot;</span><span class="p">)</span>
 
         <span class="n">modelPath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputModel</span><span class="p">()</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">modelPath</span><span class="p">):</span>
@@ -503,6 +523,9 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">micList</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">wd</span> <span class="o">+=</span> <span class="s1">&#39;-</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">micList</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strId</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">wd</span></div>
+
+<div class="viewcode-block" id="SphireProtCRYOLOPicking.usingCpu"><a class="viewcode-back" href="../../../api/sphire/sphire.protocols.protocol_cryolo_picking.html#sphire.protocols.protocol_cryolo_picking.SphireProtCRYOLOPicking.usingCpu">[docs]</a>    <span class="k">def</span> <span class="nf">usingCpu</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">useGpu</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="nf">_getEstimatedBoxSize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">sizeSummaryFilePattern</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getOutputDISTRDir</span><span class="p">(),</span>
