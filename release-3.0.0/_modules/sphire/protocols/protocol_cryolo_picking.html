@@ -216,10 +216,11 @@
 
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">Config</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Boolean</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="n">Integer</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="k">as</span> <span class="nn">cons</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">ProtParticlePickingAuto</span>
+<span class="kn">import</span> <span class="nn">pwem.objects</span> <span class="k">as</span> <span class="nn">emobj</span>
 
 <span class="kn">from</span> <span class="nn">sphire</span> <span class="kn">import</span> <span class="n">Plugin</span>
 <span class="kn">import</span> <span class="nn">sphire.convert</span> <span class="k">as</span> <span class="nn">convert</span>
@@ -231,7 +232,7 @@
 <span class="sd">    either manually or in a supervised mode.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;cryolo picking&#39;</span>
-    <span class="n">boxSizeEstimated</span> <span class="o">=</span> <span class="n">Boolean</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
         <span class="n">ProtParticlePickingAuto</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
@@ -414,7 +415,6 @@
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxSize</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>  <span class="c1"># Box size can be provided by the user</span>
                 <span class="n">boxSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxSize</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>  <span class="c1"># If not crYOLO estimates it</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">boxSizeEstimated</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
                 <span class="n">boxSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getEstimatedBoxSize</span><span class="p">()</span>
 
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxSizeFactor</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
@@ -427,12 +427,28 @@
         <span class="c1"># to open the image file each time for checking this</span>
         <span class="n">yFlipHeight</span> <span class="o">=</span> <span class="n">convert</span><span class="o">.</span><span class="n">getFlipYHeight</span><span class="p">(</span><span class="n">micDoneList</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
 
+        <span class="c1"># Create a reader to parse .cbox files</span>
+        <span class="c1"># and a Coordinate object to add to output set</span>
+        <span class="n">reader</span> <span class="o">=</span> <span class="n">convert</span><span class="o">.</span><span class="n">CoordBoxReader</span><span class="p">(</span><span class="n">boxSize</span><span class="p">,</span>
+                                        <span class="n">yFlipHeight</span><span class="o">=</span><span class="n">yFlipHeight</span><span class="p">,</span>
+                                        <span class="n">boxSizeEstimated</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">boxSizeEstimated</span><span class="p">)</span>
+        <span class="n">coord</span> <span class="o">=</span> <span class="n">emobj</span><span class="o">.</span><span class="n">Coordinate</span><span class="p">()</span>
+        <span class="n">coord</span><span class="o">.</span><span class="n">_cryoloScore</span> <span class="o">=</span> <span class="n">emobj</span><span class="o">.</span><span class="n">Float</span><span class="p">()</span>
+
         <span class="k">for</span> <span class="n">mic</span> <span class="ow">in</span> <span class="n">micDoneList</span><span class="p">:</span>
-            <span class="n">coordsFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outDir</span><span class="p">,</span> <span class="n">convert</span><span class="o">.</span><span class="n">getMicIdName</span><span class="p">(</span><span class="n">mic</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.cbox&#39;</span><span class="p">))</span>
+            <span class="n">cboxFile</span> <span class="o">=</span> <span class="n">convert</span><span class="o">.</span><span class="n">getMicIdName</span><span class="p">(</span><span class="n">mic</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;.cbox&#39;</span><span class="p">)</span>
+            <span class="n">coordsFile</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">outDir</span><span class="p">,</span> <span class="n">cboxFile</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">coordsFile</span><span class="p">):</span>
-                <span class="n">convert</span><span class="o">.</span><span class="n">readMicrographCoords</span><span class="p">(</span><span class="n">mic</span><span class="p">,</span> <span class="n">outputCoords</span><span class="p">,</span> <span class="n">coordsFile</span><span class="p">,</span> <span class="n">boxSize</span><span class="p">,</span>
-                                             <span class="n">yFlipHeight</span><span class="o">=</span><span class="n">yFlipHeight</span><span class="p">,</span>
-                                             <span class="n">boxSizeEstimated</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">boxSizeEstimated</span><span class="p">)</span>
+                <span class="n">reader</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">coordsFile</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">score</span> <span class="ow">in</span> <span class="n">reader</span><span class="o">.</span><span class="n">iterCoords</span><span class="p">():</span>
+                    <span class="c1"># Clean up objId to add as a new coordinate</span>
+                    <span class="n">coord</span><span class="o">.</span><span class="n">setObjId</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+                    <span class="n">coord</span><span class="o">.</span><span class="n">setPosition</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+                    <span class="n">coord</span><span class="o">.</span><span class="n">setMicrograph</span><span class="p">(</span><span class="n">mic</span><span class="p">)</span>
+                    <span class="n">coord</span><span class="o">.</span><span class="n">_cryoloScore</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+                    <span class="c1"># Add it to the set</span>
+                    <span class="n">outputCoords</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coord</span><span class="p">)</span>
+                <span class="n">reader</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
         <span class="c1"># Register box size</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">createBoxSizeOutput</span><span class="p">(</span><span class="n">outputCoords</span><span class="p">)</span></div>
@@ -500,6 +516,11 @@
         <span class="k">return</span> <span class="n">cites</span>
 
     <span class="c1"># -------------------------- UTILS functions ------------------------------</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">boxSizeEstimated</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Only when boxSize == 0 it is estimated by cryolo</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxSize</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span>
+
 <div class="viewcode-block" id="SphireProtCRYOLOPicking.getInputModel"><a class="viewcode-back" href="../../../api/sphire/sphire.protocols.protocol_cryolo_picking.html#sphire.protocols.protocol_cryolo_picking.SphireProtCRYOLOPicking.getInputModel">[docs]</a>    <span class="k">def</span> <span class="nf">getInputModel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputModelFrom</span> <span class="o">==</span> <span class="n">INPUT_MODEL_GENERAL</span><span class="p">:</span>
             <span class="n">m</span> <span class="o">=</span> <span class="n">Plugin</span><span class="o">.</span><span class="n">getCryoloGeneralModel</span><span class="p">()</span>

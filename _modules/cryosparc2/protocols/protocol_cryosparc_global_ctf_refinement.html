@@ -210,6 +210,7 @@
 <span class="kn">import</span> <span class="nn">os</span>
 
 <span class="kn">import</span> <span class="nn">emtable</span>
+<span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="kn">import</span> <span class="n">parse_version</span>
 
 <span class="kn">from</span> <span class="nn">pwem</span> <span class="kn">import</span> <span class="n">ALIGN_PROJ</span>
 <span class="kn">import</span> <span class="nn">pwem.protocols</span> <span class="k">as</span> <span class="nn">pwprot</span>
@@ -218,7 +219,8 @@
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">BETA</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="n">String</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span>
-                                        <span class="n">LEVEL_ADVANCED</span><span class="p">,</span> <span class="n">Positive</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">)</span>
+                                        <span class="n">LEVEL_ADVANCED</span><span class="p">,</span> <span class="n">Positive</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span>
+                                        <span class="n">EnumParam</span><span class="p">)</span>
 
 <span class="kn">from</span> <span class="nn">.protocol_base</span> <span class="kn">import</span> <span class="n">ProtCryosparcBase</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">RELIONCOLUMNS</span>
@@ -226,7 +228,9 @@
                        <span class="n">setCryosparcAttributes</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="p">(</span><span class="n">addComputeSectionParams</span><span class="p">,</span> <span class="n">cryosparcValidate</span><span class="p">,</span> <span class="n">gpusValidate</span><span class="p">,</span>
                      <span class="n">enqueueJob</span><span class="p">,</span> <span class="n">waitForCryosparc</span><span class="p">,</span> <span class="n">clearIntermediateResults</span><span class="p">,</span>
-                     <span class="n">copyFiles</span><span class="p">)</span>
+                     <span class="n">copyFiles</span><span class="p">,</span> <span class="n">getCryosparcVersion</span><span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">..constants</span> <span class="kn">import</span> <span class="o">*</span>
 
 <div class="viewcode-block" id="ProtCryoSparcGlobalCtfRefinement"><a class="viewcode-back" href="../../../api/cryosparc2/cryosparc2.protocols.protocol_cryosparc_global_ctf_refinement.html#cryosparc2.protocols.protocol_cryosparc_global_ctf_refinement.ProtCryoSparcGlobalCtfRefinement">[docs]</a><span class="k">class</span> <span class="nc">ProtCryoSparcGlobalCtfRefinement</span><span class="p">(</span><span class="n">ProtCryosparcBase</span><span class="p">,</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">ProtParticles</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -236,6 +240,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;global ctf refinement&#39;</span>
     <span class="n">_className</span> <span class="o">=</span> <span class="s2">&quot;ctf_refine_global&quot;</span>
+    <span class="n">_protCompatibility</span> <span class="o">=</span> <span class="p">[</span><span class="n">V3_0_0</span><span class="p">,</span> <span class="n">V3_1_0</span><span class="p">,</span> <span class="n">V3_2_0</span><span class="p">,</span> <span class="n">V3_3_0</span><span class="p">,</span> <span class="n">V3_3_1</span><span class="p">]</span>
+    <span class="n">newParamsName</span> <span class="o">=</span> <span class="p">[]</span>
 
     <span class="k">def</span> <span class="nf">_initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_createFilenameTemplates</span><span class="p">()</span>
@@ -314,6 +320,57 @@
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Fit Tetrafoil&quot;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Whether to fit beam tetrafoil.&quot;</span><span class="p">)</span>
 
+        <span class="c1"># new parameter to V3.3.1</span>
+        <span class="n">csVersion</span> <span class="o">=</span> <span class="n">getCryosparcVersion</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">csVersion</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">V3_3_1</span><span class="p">):</span>
+
+            <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;crg_do_anisomag&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Fit Anisotropic Mag.&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Whether to fit beam anisotropic magnification.&quot;</span><span class="p">)</span>
+
+            <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;crg_do_ews_correct&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Account for EWS curvature&quot;</span><span class="p">,</span>
+                          <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Whether or not to correct for the curvature of &quot;</span>
+                               <span class="s2">&quot;the Ewald Sphere&quot;</span><span class="p">)</span>
+            <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;crg_ews_zsign&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
+                          <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;positive&#39;</span><span class="p">,</span> <span class="s1">&#39;negative&#39;</span><span class="p">],</span>
+                          <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;EWS curvature sign&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Whether to use positive or negative curvature in &#39;</span>
+                               <span class="s1">&#39;Ewald Sphere correction.&#39;</span><span class="p">)</span>
+
+            <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;ctf_reset_tilt&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Reset Tilt to default&quot;</span><span class="p">,</span>
+                          <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Reset tilt and shift CTF parameters to 0 &quot;</span>
+                               <span class="s2">&quot;before refining.&quot;</span><span class="p">)</span>
+
+            <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;ctf_reset_trefoil&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Reset Trefoil to default&quot;</span><span class="p">,</span>
+                          <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Reset trefoil CTF parameters to 0 before &quot;</span>
+                               <span class="s2">&quot;refining.&quot;</span><span class="p">)</span>
+
+            <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;ctf_reset_tetra&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Reset Tetrafoil to default&quot;</span><span class="p">,</span>
+                          <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Reset tetrafoil CTF parameters to 0 &quot;</span>
+                               <span class="s2">&quot;before refining.&quot;</span><span class="p">)</span>
+
+            <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;ctf_reset_anisomag&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Reset Anisotropic Magnification to default&quot;</span><span class="p">,</span>
+                          <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Reset anisotropic magnification parameters to &quot;</span>
+                               <span class="s2">&quot;0 before refining.&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">newParamsName</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;ctf_reset_anisomag&#39;</span><span class="p">,</span> <span class="s1">&#39;ctf_reset_tetra&#39;</span><span class="p">,</span>
+                                  <span class="s1">&#39;ctf_reset_trefoil&#39;</span><span class="p">,</span> <span class="s1">&#39;crg_do_ews_correct&#39;</span><span class="p">,</span>
+                                  <span class="s1">&#39;crg_ews_zsign&#39;</span><span class="p">,</span> <span class="s1">&#39;crg_do_anisomag&#39;</span><span class="p">,</span>
+                                  <span class="s1">&#39;ctf_reset_tilt&#39;</span><span class="p">]</span>
+
+
         <span class="c1"># --------------[Compute settings]---------------------------</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s2">&quot;Compute settings&quot;</span><span class="p">)</span>
         <span class="n">addComputeSectionParams</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">allowMultipleGPUs</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
@@ -340,7 +397,7 @@
                             <span class="s1">&#39;crg_do_trefoil&#39;</span><span class="p">,</span>
                             <span class="s1">&#39;crg_do_spherical&#39;</span><span class="p">,</span>
                             <span class="s1">&#39;crg_do_tetrafoil&#39;</span><span class="p">,</span>
-                            <span class="s1">&#39;compute_use_ssd&#39;</span><span class="p">]</span>
+                            <span class="s1">&#39;compute_use_ssd&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">newParamsName</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lane</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="s1">&#39;compute_lane&#39;</span><span class="p">))</span>
 
     <span class="c1"># --------------------------- STEPS functions ------------------------------</span>
@@ -435,7 +492,10 @@
         <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">for</span> <span class="n">paramName</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_paramsName</span><span class="p">:</span>
-            <span class="n">params</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">paramName</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="n">paramName</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">paramName</span> <span class="o">!=</span> <span class="s1">&#39;crg_ews_zsign&#39;</span><span class="p">:</span>
+                <span class="n">params</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">paramName</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="n">paramName</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">params</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">paramName</span><span class="p">)]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">EWS_CURVATURE_SIGN</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">crg_ews_zsign</span><span class="o">.</span><span class="n">get</span><span class="p">()])</span>
 
         <span class="c1"># Determinate the GPUs to use (in dependence of</span>
         <span class="c1"># the cryosparc version)</span>
