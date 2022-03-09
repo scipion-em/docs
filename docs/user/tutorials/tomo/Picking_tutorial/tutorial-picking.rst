@@ -32,7 +32,7 @@ Protocols needed to perform and analyze pickings are available in the following 
 
 * **scipion-em-emantomo**
 * **scipion-em-dynamo**
-* **scipion-em-tomo3D**
+* **scipion-em-tomoviz**
 * **scipion-em-xmipptomo**
 
 It is worth mentioning that all these plugins strongly depend on the **scipion-em-tomo** plugin, which should be installed before any of the earlier mentioned Plugins.
@@ -243,11 +243,11 @@ Step 4: Checking a `SetOfCoordinates3D` in Scipion
 
 At this point, you might be interested in checking the coordinates you have already picked and their orientations. To that end, you can use one of the three viewers available in Scipion to check 3D coordinates. The viewers currently available are the following:
 
-* **Tomo3D** viewer (available in **scipion-em-tomo3D** plugin): This viewer offers a 3D view of coordinates, orientations, and tomograms. It is helpful to check the coordinates and directions without losing the context provided by your tomogram. In addition, the viewer offers an interactive mode to remove unwanted coordinates.
+* **Tomoviz** viewer (available in **scipion-em-tomoviz** plugin): This viewer offers a 3D view of coordinates, orientations, and tomograms. It is helpful to check the coordinates and directions without losing the context provided by your tomogram. In addition, the viewer offers an interactive mode to remove unwanted coordinates.
 * **Eman** viewer (available in **scipion-em-emantomo** plugin): This viewer relies on the Eman boxing interface to show a sliced view of the tomograms and their associated coordinates. It also offers a window to see a 2D preview of the subtomograms to be extracted.
 * **Dynamo** viewer (available in **scipion-em-dynamo** plugin): This viewer relies on the Dynamo `dtmslice` interface described before in this tutorial. Therefore, you can use any of the tools implemented in this tool to modify or check your coordinates
 
-Since we would like to check the orientation of the coordinates, we recommend using the viewer offered in **scipion-em-tomo3D**. If you have this plugin installed, you can open it by clicking on |results|.
+Since we would like to check the orientation of the coordinates, we recommend using the viewer offered in **scipion-em-tomoviz**. If you have this plugin installed, you can open it by clicking on |results|.
 
 Suppose you want to choose any other viewer. In that case, you can right-click on any output/input object found in the summary section of the Scipion interface to get a list of the available viewers for that specific Scipion object.
 
@@ -255,7 +255,7 @@ As it happened with the picking protocol, you will be prompted with a tomogram d
 
 .. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Tomo_dialog_tomo3d.png
    :align: center
-   :alt: tomo dialog tomo3d
+   :alt: tomo dialog tomoviz
    :width: 400
 
 Apart from buttons and menus displayed in the viewer window, the following navigation tools are also available:
@@ -266,7 +266,7 @@ Apart from buttons and menus displayed in the viewer window, the following navig
 
 .. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Tomo3d_dynamo.png
    :align: center
-   :alt: tomo3d viewer dynamo
+   :alt: tomoviz viewer dynamo
    :width: 400
 
 Step 5: From coordinates to subtomograms
@@ -442,11 +442,11 @@ You can also apply your trained net to all the tomograms by clicking on the `App
 
 Once you are happy with your predictions, close the Convent windows to save the predicted coordinates in Scipion automatically. Do not forget to save your network before exiting to reuse it in the future.
 
-Probably you would like to check at this point the result of your picking with one of the coordinate viewers implemented in Scipion. A full description of the available viewers can be found in the section **Step 4: Checking a `SetOfCoordinates3D` in Scipion** from the **Direction picking tutorial**. Below, our Convent picking result is displayed with the **Tomo3D viewer**.
+Probably you would like to check at this point the result of your picking with one of the coordinate viewers implemented in Scipion. A full description of the available viewers can be found in the section **Step 4: Checking a `SetOfCoordinates3D` in Scipion** from the **Direction picking tutorial**. Below, our Convent picking result is displayed with the **Tomoviz viewer**.
 
 .. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Tomo3d_eman_convnet.png
    :align: center
-   :alt: tomo3d viewer eman convnet
+   :alt: tomoviz viewer eman convnet
    :width: 400
 
 Neural network picking - Step 2: From coordinates to subtomograms
@@ -607,11 +607,11 @@ The parameters to be filled up in the protocol form are described below:
 
 After launching the protocol, Eman will automatically pick the particles in the tomogram based on your template, and Scipion will register those particles in a new `SetOfCoordinates3D`.
 
-As we did before, you can the picked coordinates with a viewer to evaluate the picking. Below we provide our picked coordinates shown with the **Tomo3D viewer**.
+As we did before, you can the picked coordinates with a viewer to evaluate the picking. Below we provide our picked coordinates shown with the **Tomoviz viewer**.
 
 .. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Tomo3d_eman_template_matching.png
    :align: center
-   :alt: tomo3d viewer eman template matching
+   :alt: tomoviz viewer eman template matching
    :width: 400
 
 Congratulations, you have finished the **Template matching picking** tutorial! The following extra section will describe how we can combine the output of the two pickings performed during the **Non-directional picking tutorial** with the consensus protocol implemented in Scipion.
@@ -621,7 +621,7 @@ Extra step: Picking consensus in Scipion
 
 As we have seen during the previous tutorials, many picking alternatives are available in Scipion for Tomography. Although all these tools may select similar coordinates in most cases, they might be subtle differences when comparing their results. Thus, it is usually a good idea to combine the results of different picking algorithms with a consensus to increase our confidence in the picking performance.
 
-Scipion has implemented a picking consensus in the **scipion-em-tomo3D** plugin: the **tomo3D - picking consensus** protocol. This protocol works similarly to the picking consensus implemented for SPA, but it has been extended to work with 3D coordinates. In addition, the protocol includes a new consensus functionality for transformation matrices, which allows combining the orientations of the coordinates accurately in case they are coming from a directional picking.
+Scipion has implemented a picking consensus in the **scipion-em-tomoviz** plugin: the **tomoviz - picking consensus** protocol. This protocol works similarly to the picking consensus implemented for SPA, but it has been extended to work with 3D coordinates. In addition, the protocol includes a new consensus functionality for transformation matrices, which allows combining the orientations of the coordinates accurately in case they are coming from a directional picking.
 
 In this tutorial section, we will learn how to combine the outputs of the **emantomo - tomo boxer convnet** and the **emantomo - template matching** protocols. The parameters to be filled up in the protocol form are described below:
 

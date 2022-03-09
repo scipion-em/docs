@@ -458,12 +458,12 @@ Analyze the annotated membranes
 -------------------------------
 
 If we click on button "Analyze Results" in the lower panel of the project interface, the 3D visualization tool from
-plugin scipion-em-tomo3d is launched. It allows the user to observe the membranes annotated placed on the full tomogram
+plugin scipion-em-tomoviz is launched. It allows the user to observe the membranes annotated placed on the full tomogram
 or by slices, as shown in the figure below.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_tomo3dviewer.png
    :width: 1000
-   :alt: Membrane Annotator results with tomo3d
+   :alt: Membrane Annotator results with tomoviz
 
 Resize the tomomasks (segmentations)
 ====================================
@@ -583,7 +583,7 @@ neighbours" from the preseg protocol selected in parameter "Pre-segmentation". T
    :alt: Graphs protocol
 
 Results can be displayed by clicking on button "Analyze Results". That action will allow us to select which vesicle is
-desired to be represented with 3D viewer from plugin scipion-em-tomo3d setting the coloring option "Color Graph By",
+desired to be represented with 3D viewer from plugin scipion-em-tomoviz setting the coloring option "Color Graph By",
 located on the top left corner, to value "mb_eu_dst", which colors the graphs considering the euclidean distance to the
 membrane. Results should look like shown in the figure below. Observe that the numbers correspond to the
 `target vesicles`_ which is being used in this tutorial from the
@@ -685,7 +685,7 @@ different from zero.
 
 Results can be displayed with multiple viewers, like the one from plugin scipion-em-emantomo but, following the same
 structure considered to show the results on the `graphs protocol`_ and `fils protocol`_, we'll use the viewer from
-plugin scipion-em-tomo3d:
+plugin scipion-em-tomoviz:
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/10_res_picking.png
    :width: 1000
@@ -696,7 +696,7 @@ Picking post processing
 
 This section contains the steps suggested to resolve the over-picking scenario described in `picking protocol`_ and also
 to get rid of bad picked elements. For the first one, we'll use the protocol "remove duplicates" and for the second, the
-protocol "filter by normal", btoh from plugin scipion-em-tomo3d.
+protocol "filter by normal", both from plugin scipion-em-tomoviz.
 
 Remove duplicates
 -----------------
@@ -881,10 +881,10 @@ particle alignment and subtomogram reconstruction), we can obtain a structure fo
 .. _Scipion: http://scipion.i2pc.es/
 .. _scipion-em-tomo: https://github.com/scipion-em/scipion-em-tomo
 .. _scipion-em-imod: https://github.com/scipion-em/scipion-em-imod
-.. _scipion-em-jjsoft: https://github.com/scipion-em/scipion-em-jjsoft
+.. _scipion-em-tomo3d: https://github.com/scipion-em/scipion-em-tomo3d
 .. _scipion-em-tomosegmemtv: https://github.com/scipion-em/scipion-em-tomosegmemtv
 .. _scipion-em-pyseg: https://github.com/scipion-em/scipion-em-pyseg
-.. _scipion-em-tomo3d: https://github.com/scipion-em/scipion-em-tomo3d
+.. _scipion-em-tomoviz: https://github.com/scipion-em/scipion-em-tomoviz
 .. _scipion-em-emantomo: https://github.com/scipion-em/scipion-em-emantomo
 .. _scipion-em-xmipp: https://github.com/I2PC/scipion-em-xmipp
 .. _scipion-em-xmipptomo: https://github.com/I2PC/scipion-em-xmipptomo
