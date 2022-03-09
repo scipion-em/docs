@@ -21,7 +21,7 @@ out in Scipion_, using the plugins listed below for each step:
 
 2. Tomogram normalization - scipion-em-imod_
 
-3. Tomogram denoising - scipion-em-jjsoft_
+3. Tomogram denoising - scipion-em-tomo3d_
 
 4. Tomogram segmentation, annotation and tomomask (segmemtation) resizing - scipion-em-tomosegmemtv_
 
