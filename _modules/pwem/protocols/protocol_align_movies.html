@@ -232,6 +232,8 @@
 <span class="n">OUT_MICS</span> <span class="o">=</span> <span class="s2">&quot;outputMicrographs&quot;</span>
 <span class="n">OUT_MICS_DW</span> <span class="o">=</span> <span class="s2">&quot;outputMicrographsDoseWeighted&quot;</span>
 <span class="n">OUT_MOVIES</span> <span class="o">=</span> <span class="s2">&quot;outputMovies&quot;</span>
+<span class="n">OUT_MICS_ODD</span> <span class="o">=</span> <span class="s1">&#39;outputMicrographsOdd&#39;</span>
+<span class="n">OUT_MICS_EVEN</span> <span class="o">=</span> <span class="s1">&#39;outputMicrographsEven&#39;</span>
 
 
 <div class="viewcode-block" id="ProtAlignMovies"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_align_movies.html#pwem.protocols.protocol_align_movies.ProtAlignMovies">[docs]</a><span class="k">class</span> <span class="nc">ProtAlignMovies</span><span class="p">(</span><span class="n">ProtProcessMovies</span><span class="p">):</span>
@@ -245,7 +247,12 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_possibleOutputs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">({</span><span class="n">OUT_MICS</span><span class="p">:</span> <span class="n">emobj</span><span class="o">.</span><span class="n">SetOfMicrographs</span><span class="p">,</span>
                              <span class="n">OUT_MICS_DW</span><span class="p">:</span> <span class="n">emobj</span><span class="o">.</span><span class="n">SetOfMicrographs</span><span class="p">,</span>
+                             <span class="n">OUT_MICS_ODD</span><span class="p">:</span> <span class="n">emobj</span><span class="o">.</span><span class="n">SetOfMicrographs</span><span class="p">,</span>
+                             <span class="n">OUT_MICS_EVEN</span><span class="p">:</span> <span class="n">emobj</span><span class="o">.</span><span class="n">SetOfMicrographs</span><span class="p">,</span>
                              <span class="n">OUT_MOVIES</span><span class="p">:</span> <span class="n">emobj</span><span class="o">.</span><span class="n">SetOfMovies</span><span class="p">})</span>
+
+    <span class="c1"># Even / odd functionality</span>
+    <span class="n">evenOddCapable</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="c1"># -------------------------- DEFINE param functions -----------------------</span>
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
@@ -298,6 +305,14 @@
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;doSaveMovie&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Save movie&quot;</span><span class="p">,</span> <span class="n">expertLevel</span><span class="o">=</span><span class="n">pwcts</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Save Aligned movie&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">evenOddCapable</span><span class="p">:</span>
+            <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;splitEvenOdd&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span>
+                          <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Split &amp; sum odd/even frames?&#39;</span><span class="p">,</span>
+                          <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Generate odd and even sums using odd and even frames &#39;</span>
+                               <span class="s1">&#39;respectively when this option is enabled.&#39;</span><span class="p">)</span>
 
     <span class="c1"># --------------------------- STEPS functions ----------------------------</span>
 <div class="viewcode-block" id="ProtAlignMovies.createOutputStep"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_align_movies.html#pwem.protocols.protocol_align_movies.ProtAlignMovies.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -464,6 +479,14 @@
                                 <span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicWtName</span><span class="p">,</span>
                                 <span class="n">OUT_MICS_DW</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_doSplitEvenOdd</span><span class="p">():</span>
+            <span class="n">_updateOutputMicSet</span><span class="p">(</span><span class="s1">&#39;micrographs_even.sqlite&#39;</span><span class="p">,</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicEvenName</span><span class="p">,</span>
+                                <span class="n">OUT_MICS_EVEN</span><span class="p">)</span>
+            <span class="n">_updateOutputMicSet</span><span class="p">(</span><span class="s1">&#39;micrographs_odd.sqlite&#39;</span><span class="p">,</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicOddName</span><span class="p">,</span>
+                                <span class="n">OUT_MICS_ODD</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>  <span class="c1"># Unlock createOutputStep if finished all jobs</span>
             <span class="n">outputStep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFirstJoinStep</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">outputStep</span> <span class="ow">and</span> <span class="n">outputStep</span><span class="o">.</span><span class="n">isWaiting</span><span class="p">():</span>
@@ -538,6 +561,13 @@
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">summaryVar</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">)]</span>
 
     <span class="c1"># --------------------------- UTILS functions ----------------------------</span>
+    <span class="k">def</span> <span class="nf">_doSplitEvenOdd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns if even/odd stuff has to be done&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">evenOddCapable</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">splitEvenOdd</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
     <span class="k">def</span> <span class="nf">_useAlignToSum</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="s1">&#39;useAlignToSum&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
 
@@ -643,6 +673,18 @@
 <span class="sd">        (relative to micFolder)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMovieRoot</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_aligned_mic_DW.mrc&#39;</span>
+
+    <span class="k">def</span> <span class="nf">_getOutputMicEvenName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the name of the output EVEN micrograph</span>
+<span class="sd">        (relative to micFolder)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMovieRoot</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_aligned_mic_EVN.mrc&#39;</span>
+
+    <span class="k">def</span> <span class="nf">_getOutputMicOddName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the name of the output EVEN micrograph</span>
+<span class="sd">        (relative to micFolder)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMovieRoot</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_aligned_mic_ODD.mrc&#39;</span>
 
     <span class="k">def</span> <span class="nf">_getOutputMicThumbnail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getMovieRoot</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_thumbnail.png&#39;</span><span class="p">)</span>
