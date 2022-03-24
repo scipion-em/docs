@@ -37,10 +37,12 @@ The Github webpage of scipion-em-tomo is available `here <https://github.com/sci
 2. GitHub cloning
 ------------------------------------------------------------------------
 
-* Using the command line, go to the folder where you would like to download the scipion-em-tomo plugin and run::
+* Using the command line, go to the folder where you would like to download the scipion-em-tomo plugin and run:
+.. code-block:: bash
     git clone https://github.com/scipion-em/scipion-em-tomo.git
 
-* In the same folder you have executed the previous command, run in the command line::
+* In the same folder you have executed the previous command, run in the command line:
+.. code-block:: bash
     scipion installp -p ~/scipion-em-tomo --devel
 
 The previous command will automatically install and configure the plugin inside Scipion in devel mode so it can be used within the Scipion framework
@@ -50,10 +52,12 @@ The previous command will automatically install and configure the plugin inside 
 
 Any plugin installed in devel mode should be updated manually through the command line. The following steps describe the steps to be followed:
 
-* Using the terminal, go to the folder where you installed your plugin::
+* Using the terminal, go to the folder where you installed your plugin
+.. code-block:: bash
     Example: cd /path/to/your/plugin/folder/scipion-em-tomo
 
-* Once you are inside the folder of the plugin to be updated, run::
+* Once you are inside the folder of the plugin to be updated, run:
+.. code-block:: bash
     git pull
 
 After executing the previous command, you will be up to date with the latest development version of the plugin. Note that there is no need to install the plugin again, all the new changes will be recognized automatically inside Scipion. In case the changes require a reinstallation of the binaries or the plugin, it will be announced through the main Slack channels.
