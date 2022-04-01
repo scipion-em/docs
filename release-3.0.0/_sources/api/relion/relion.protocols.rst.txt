@@ -15,11 +15,11 @@ Submodules
    relion.protocols.protocol_center_averages
    relion.protocols.protocol_classify2d
    relion.protocols.protocol_classify3d
+   relion.protocols.protocol_compress_estimate_gain
    relion.protocols.protocol_compress_movies
    relion.protocols.protocol_create_mask3d
    relion.protocols.protocol_crop_resize
    relion.protocols.protocol_ctf_refinement
-   relion.protocols.protocol_estimate_gain
    relion.protocols.protocol_expand_symmetry
    relion.protocols.protocol_export_coords
    relion.protocols.protocol_export_ctf
@@ -35,7 +35,6 @@ Submodules
    relion.protocols.protocol_reconstruct
    relion.protocols.protocol_refine3d
    relion.protocols.protocol_remove_views
-   relion.protocols.protocol_select_classes
    relion.protocols.protocol_subtract
    relion.protocols.protocol_symmetrize_volume
 
