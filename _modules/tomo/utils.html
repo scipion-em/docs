@@ -217,7 +217,8 @@
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 
 <span class="kn">import</span> <span class="nn">tomo.constants</span> <span class="k">as</span> <span class="nn">const</span>
-<span class="kn">from</span> <span class="nn">tomo.objects</span> <span class="kn">import</span> <span class="n">SetOfCoordinates3D</span><span class="p">,</span> <span class="n">SetOfSubTomograms</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="n">Pointer</span><span class="p">,</span> <span class="n">RELATION_SOURCE</span><span class="p">,</span> <span class="n">OBJECT_PARENT_ID</span>
+<span class="kn">from</span> <span class="nn">tomo.objects</span> <span class="kn">import</span> <span class="n">SetOfCoordinates3D</span><span class="p">,</span> <span class="n">SetOfSubTomograms</span><span class="p">,</span> <span class="n">SetOfTiltSeries</span>
 
 
 <div class="viewcode-block" id="existsPlugin"><a class="viewcode-back" href="../../api/tomo/tomo.utils.html#tomo.utils.existsPlugin">[docs]</a><span class="k">def</span> <span class="nf">existsPlugin</span><span class="p">(</span><span class="n">plugin</span><span class="p">):</span>
@@ -518,6 +519,25 @@
     <span class="sd">&quot;&quot;&quot;This attribute is named tsId in all the tomography objects excepting in coordinates or subtomograms (via the</span>
 <span class="sd">    corresponding coordinate)&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="s1">&#39;_tomoId&#39;</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">setObject</span><span class="p">)</span> <span class="ow">in</span> <span class="p">[</span><span class="n">SetOfCoordinates3D</span><span class="p">,</span> <span class="n">SetOfSubTomograms</span><span class="p">]</span> <span class="k">else</span> <span class="s1">&#39;_tsId&#39;</span>
+
+<div class="viewcode-block" id="recoverTSFromObj"><a class="viewcode-back" href="../../api/tomo/tomo.utils.html#tomo.utils.recoverTSFromObj">[docs]</a><span class="k">def</span> <span class="nf">recoverTSFromObj</span><span class="p">(</span><span class="n">child_obj</span><span class="p">,</span> <span class="n">protocol</span><span class="p">):</span>
+    <span class="n">p</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getProject</span><span class="p">()</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">getSourceGraph</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">relations</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">getRelationsByName</span><span class="p">(</span><span class="n">RELATION_SOURCE</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="n">graph</span><span class="o">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">child_obj</span><span class="o">.</span><span class="n">strId</span><span class="p">())</span>
+    <span class="n">connection</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">while</span> <span class="n">n</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">n</span><span class="o">.</span><span class="n">getParent</span><span class="p">()</span><span class="o">.</span><span class="n">isRoot</span><span class="p">():</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">getParent</span><span class="p">()</span>
+        <span class="n">connection</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">pointer</span><span class="o">.</span><span class="n">getUniqueId</span><span class="p">())</span>
+        <span class="n">connection</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">pointer</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">strId</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">rel</span> <span class="ow">in</span> <span class="n">relations</span><span class="p">:</span>
+        <span class="n">pObj</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">getObject</span><span class="p">(</span><span class="n">rel</span><span class="p">[</span><span class="n">OBJECT_PARENT_ID</span><span class="p">])</span>
+        <span class="n">pExt</span> <span class="o">=</span> <span class="n">rel</span><span class="p">[</span><span class="s1">&#39;object_parent_extended&#39;</span><span class="p">]</span>
+        <span class="n">pp</span> <span class="o">=</span> <span class="n">Pointer</span><span class="p">(</span><span class="n">pObj</span><span class="p">,</span> <span class="n">extended</span><span class="o">=</span><span class="n">pExt</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pp</span><span class="o">.</span><span class="n">getUniqueId</span><span class="p">()</span> <span class="ow">in</span> <span class="n">connection</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pObj</span><span class="p">,</span> <span class="n">SetOfTiltSeries</span><span class="p">)</span> <span class="ow">and</span> <span class="n">pObj</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span><span class="o">.</span><span class="n">hasTransform</span><span class="p">():</span>
+                <span class="k">return</span> <span class="n">pObj</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
 
 </pre></div>
 
