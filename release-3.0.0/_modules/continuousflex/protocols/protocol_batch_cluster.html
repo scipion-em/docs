@@ -186,6 +186,7 @@
 <span class="c1"># * Authors:</span>
 <span class="c1"># * J.M. De la Rosa Trevin (jmdelarosa@cnb.csic.es)</span>
 <span class="c1"># * Slavica Jonic (slavica.jonic@upmc.fr)</span>
+<span class="c1"># * Mohamad Harastani (mohamad.harastani@upmc.fr)</span>
 <span class="c1"># *</span>
 <span class="c1"># * This program is free software; you can redistribute it and/or modify</span>
 <span class="c1"># * it under the terms of the GNU General Public License as published by</span>
@@ -207,14 +208,14 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 
-
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">isfile</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">FileParam</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">BatchProtocol</span>
-<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">SetOfParticles</span><span class="p">,</span> <span class="n">Volume</span>
-
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">SetOfParticles</span><span class="p">,</span> <span class="n">Volume</span><span class="p">,</span> <span class="n">AtomStruct</span>
 <span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="kn">import</span> <span class="n">writeSetOfParticles</span>
 <span class="kn">from</span> <span class="nn">pwem.utils</span> <span class="kn">import</span> <span class="n">runProgram</span>
 <span class="kn">import</span> <span class="nn">pwem.emlib.metadata</span> <span class="k">as</span> <span class="nn">md</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
 <div class="viewcode-block" id="FlexBatchProtNMACluster"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_batch_cluster.html#continuousflex.protocols.protocol_batch_cluster.FlexBatchProtNMACluster">[docs]</a><span class="k">class</span> <span class="nc">FlexBatchProtNMACluster</span><span class="p">(</span><span class="n">BatchProtocol</span><span class="p">):</span>
@@ -236,6 +237,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;convertInputStep&#39;</span><span class="p">,</span> <span class="n">imagesMd</span><span class="p">)</span>
         <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imagesMd)s</span><span class="s1"> -o </span><span class="si">%(outputVol)s</span><span class="s1"> --fast&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;reconstructStep&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;centroidPdbStep&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;createOutputStep&#39;</span><span class="p">,</span> <span class="n">outputVol</span><span class="p">)</span>
         
     <span class="c1">#--------------------------- STEPS functions --------------------------------------------   </span>
@@ -274,13 +276,52 @@
 
 <div class="viewcode-block" id="FlexBatchProtNMACluster.reconstructStep"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_batch_cluster.html#continuousflex.protocols.protocol_batch_cluster.FlexBatchProtNMACluster.reconstructStep">[docs]</a>    <span class="k">def</span> <span class="nf">reconstructStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
         <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_reconstruct_fourier_accel&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FlexBatchProtNMACluster.centroidPdbStep"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_batch_cluster.html#continuousflex.protocols.protocol_batch_cluster.FlexBatchProtNMACluster.centroidPdbStep">[docs]</a>    <span class="k">def</span> <span class="nf">centroidPdbStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">imagesMd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;images.xmd&#39;</span><span class="p">)</span>
+        <span class="n">md_file</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="n">imagesMd</span><span class="p">)</span>
+        <span class="n">deformations</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">md_file</span><span class="p">:</span>
+            <span class="n">deformations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md_file</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_NMA</span><span class="p">,</span> <span class="n">j</span><span class="p">))</span>
+        <span class="n">ampl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">deformations</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getFnPDB</span><span class="p">())</span>
+
+        <span class="n">fnPDB</span><span class="p">,</span> <span class="n">pseudo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getFnPDB</span><span class="p">()</span>
+        <span class="n">fnModeList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getFnModes</span><span class="p">()</span>
+        <span class="n">fnOutPDB</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;centroid.pdb&#39;</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="s2">&quot; --pdb &quot;</span> <span class="o">+</span> <span class="n">fnPDB</span>
+        <span class="n">params</span> <span class="o">+=</span> <span class="s2">&quot; --nma &quot;</span> <span class="o">+</span> <span class="n">fnModeList</span>
+        <span class="n">params</span> <span class="o">+=</span> <span class="s2">&quot; -o &quot;</span> <span class="o">+</span> <span class="n">fnOutPDB</span>
+        <span class="n">params</span> <span class="o">+=</span> <span class="s2">&quot; --deformations &quot;</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ampl</span><span class="p">)</span>
+        <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_pdb_nma_deform&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
     
 <div class="viewcode-block" id="FlexBatchProtNMACluster.createOutputStep"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_batch_cluster.html#continuousflex.protocols.protocol_batch_cluster.FlexBatchProtNMACluster.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputVol</span><span class="p">):</span>
         <span class="n">vol</span> <span class="o">=</span> <span class="n">Volume</span><span class="p">()</span>
         <span class="n">vol</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">outputVol</span><span class="p">)</span>
         <span class="n">vol</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputParticles</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
+        <span class="n">atm</span> <span class="o">=</span> <span class="n">AtomStruct</span><span class="p">()</span>
+        <span class="n">fnPDB</span><span class="p">,</span> <span class="n">pseudo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getFnPDB</span><span class="p">()</span>
+        <span class="n">fnOutPDB</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;centroid.pdb&#39;</span><span class="p">)</span>
+        <span class="n">atm</span><span class="o">.</span><span class="n">setPseudoAtoms</span><span class="p">(</span><span class="n">pseudo</span><span class="p">)</span>
+        <span class="n">atm</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">fnOutPDB</span><span class="p">)</span>
+        <span class="n">atm</span><span class="o">.</span><span class="n">setVolume</span><span class="p">(</span><span class="n">vol</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">centroidPDB</span><span class="o">=</span><span class="n">atm</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputVol</span><span class="o">=</span><span class="n">vol</span><span class="p">)</span></div>
-        
+
+    <span class="c1">#--------------------------- Utility functions -----------------------------------------</span>
+<div class="viewcode-block" id="FlexBatchProtNMACluster.getFnPDB"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_batch_cluster.html#continuousflex.protocols.protocol_batch_cluster.FlexBatchProtNMACluster.getFnPDB">[docs]</a>    <span class="k">def</span> <span class="nf">getFnPDB</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># This functions returns the path of the structure, false if is atomic, true if pseudoatomic</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputNmaDimred</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">inputNMA</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;atoms.pdb&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">path</span><span class="p">,</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputNmaDimred</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">inputNMA</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;pseudoatoms.pdb&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">path</span><span class="p">,</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="FlexBatchProtNMACluster.getFnModes"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_batch_cluster.html#continuousflex.protocols.protocol_batch_cluster.FlexBatchProtNMACluster.getFnModes">[docs]</a>    <span class="k">def</span> <span class="nf">getFnModes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputNmaDimred</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">inputNMA</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;modes.xmd&#39;</span><span class="p">)</span></div>
+
     <span class="c1">#--------------------------- INFO functions --------------------------------------------</span>
     <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">summary</span> <span class="o">=</span> <span class="p">[]</span>

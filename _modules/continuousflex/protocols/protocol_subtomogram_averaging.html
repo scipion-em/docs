@@ -208,13 +208,14 @@
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">ProtAnalysis3D</span>
-<span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="kn">import</span> <span class="n">writeSetOfVolumes</span><span class="p">,</span> <span class="n">xmippToLocation</span><span class="p">,</span> <span class="n">createItemMatrix</span><span class="p">,</span> <span class="n">setXmippAttributes</span>
-<span class="kn">import</span> <span class="nn">pwem</span> <span class="k">as</span> <span class="nn">em</span>
+<span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="kn">import</span> <span class="n">writeSetOfVolumes</span><span class="p">,</span> <span class="n">xmippToLocation</span>
 <span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">Volume</span>
 <span class="kn">import</span> <span class="nn">pwem.emlib.metadata</span> <span class="k">as</span> <span class="nn">md</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
 <span class="kn">from</span> <span class="nn">pwem.utils</span> <span class="kn">import</span> <span class="n">runProgram</span>
 <span class="kn">from</span> <span class="nn">pwem</span> <span class="kn">import</span> <span class="n">Domain</span>
+<span class="kn">from</span> <span class="nn">.convert</span> <span class="kn">import</span> <span class="n">eulerAngles2matrix</span><span class="p">,</span> <span class="n">matrix2eulerAngles</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="n">WEDGE_MASK_NONE</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">WEDGE_MASK_THRE</span> <span class="o">=</span> <span class="mi">1</span>
@@ -231,7 +232,12 @@
 <span class="n">IMPORT_TOMBOX_MTV</span> <span class="o">=</span> <span class="mi">2</span>
 
 <div class="viewcode-block" id="FlexProtSubtomogramAveraging"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_subtomogram_averaging.html#continuousflex.protocols.protocol_subtomogram_averaging.FlexProtSubtomogramAveraging">[docs]</a><span class="k">class</span> <span class="nc">FlexProtSubtomogramAveraging</span><span class="p">(</span><span class="n">ProtAnalysis3D</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Protocol for subtomogram averaging. &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Protocol for subtomogram averaging. This protocol has two modes of operation.</span>
+<span class="sd">     the first is to perform subtomogram averaging using Fast Rotational Matching.</span>
+<span class="sd">     The second mode is to import a previously performed alignment using this protocol, Dynamo, or Artiatomi.</span>
+<span class="sd">     If an alignment is imported, the rigid-body parameters will be used to re-create the average structure.</span>
+<span class="sd">     &quot;&quot;&quot;</span>
+
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;subtomogram averaging&#39;</span>
 
     <span class="c1"># --------------------------- DEFINE param functions --------------------------------------------</span>
@@ -422,9 +428,32 @@
                         <span class="n">env</span> <span class="o">=</span> <span class="n">Domain</span><span class="o">.</span><span class="n">importFromPlugin</span><span class="p">(</span><span class="s1">&#39;xmipp3&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">())</span>
 
             <span class="c1"># By now, the alignment is done, the averaging should take place</span>
+            <span class="c1"># However, if the alignemnt has missing wedge compensation, we shall update the metadata:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">WedgeMode</span> <span class="o">==</span> <span class="n">WEDGE_MASK_THRE</span><span class="p">:</span>
+                <span class="n">mdImgs</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="n">md_itr</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">objId</span> <span class="ow">in</span> <span class="n">mdImgs</span><span class="p">:</span>
+                    <span class="n">rot</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_ROT</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                    <span class="n">tilt</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_TILT</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                    <span class="n">psi</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_PSI</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                    <span class="n">x</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_X</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                    <span class="n">z</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                    <span class="n">T</span> <span class="o">=</span> <span class="n">eulerAngles2matrix</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+                    <span class="c1"># Rotate 90 degrees (compensation for missing wedge)</span>
+                    <span class="n">T0</span> <span class="o">=</span> <span class="n">eulerAngles2matrix</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                    <span class="n">T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">T0</span><span class="p">))</span>
+                    <span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">matrix2eulerAngles</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+                    <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_ROT</span><span class="p">,</span> <span class="n">rot</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                    <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_TILT</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                    <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_PSI</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                    <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_X</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                    <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                    <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                    <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_Y</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">md_itr</span><span class="p">)</span>
+
             <span class="n">mdImgs</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="n">md_itr</span><span class="p">)</span>
             <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
-            <span class="n">first</span> <span class="o">=</span> <span class="kc">True</span>
 
             <span class="k">for</span> <span class="n">objId</span> <span class="ow">in</span> <span class="n">mdImgs</span><span class="p">:</span>
                 <span class="n">counter</span> <span class="o">=</span> <span class="n">counter</span> <span class="o">+</span> <span class="mi">1</span>
@@ -438,28 +467,11 @@
                 <span class="n">y_shift</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
                 <span class="n">z_shift</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
 
-                <span class="n">flip</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
                 <span class="n">tempVol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;temp.mrc&#39;</span><span class="p">)</span>
                 <span class="n">extra</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span>
 
-                <span class="k">if</span> <span class="n">flip</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">first</span><span class="p">:</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;THERE IS NO COMPENSATION FOR THE MISSING WEDGE&quot;</span><span class="p">)</span>
-                        <span class="n">first</span> <span class="o">=</span> <span class="kc">False</span>
-
-                    <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --inverse --rotate_volume euler </span><span class="si">%(rot)s</span><span class="s1"> </span><span class="si">%(tilt)s</span><span class="s1"> </span><span class="si">%(psi)s</span><span class="s1">&#39;</span> \
-                             <span class="s1">&#39; --shift </span><span class="si">%(x_shift)s</span><span class="s1"> </span><span class="si">%(y_shift)s</span><span class="s1"> </span><span class="si">%(z_shift)s</span><span class="s1"> -v 0&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">first</span><span class="p">:</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;THERE IS A COMPENSATION FOR THE MISSING WEDGE&quot;</span><span class="p">)</span>
-                        <span class="n">first</span> <span class="o">=</span> <span class="kc">False</span>
-                    <span class="c1"># First got to rotate each volume 90 degrees about the y axis, align it, then rotate back and sum it</span>
-                    <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --rotate_volume euler 0 90 0&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-                    <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-                    <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(tempVol)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --rotate_volume euler </span><span class="si">%(rot)s</span><span class="s1"> </span><span class="si">%(tilt)s</span><span class="s1"> </span><span class="si">%(psi)s</span><span class="s1">&#39;</span> \
-                             <span class="s1">&#39; --shift </span><span class="si">%(x_shift)s</span><span class="s1"> </span><span class="si">%(y_shift)s</span><span class="s1"> </span><span class="si">%(z_shift)s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-
+                <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --inverse --rotate_volume euler </span><span class="si">%(rot)s</span><span class="s1"> </span><span class="si">%(tilt)s</span><span class="s1"> </span><span class="si">%(psi)s</span><span class="s1">&#39;</span> \
+                         <span class="s1">&#39; --shift </span><span class="si">%(x_shift)s</span><span class="s1"> </span><span class="si">%(y_shift)s</span><span class="s1"> </span><span class="si">%(z_shift)s</span><span class="s1"> -v 0&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
                 <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
 
                 <span class="k">if</span> <span class="n">counter</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -479,13 +491,9 @@
         <span class="n">outputMD</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputMD</span>
         <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;cp </span><span class="si">%(avr_itr)s</span><span class="s2"> </span><span class="si">%(outputVolume)s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span>
         <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;cp </span><span class="si">%(md_itr)s</span><span class="s2"> </span><span class="si">%(outputMD)s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span>
-
         <span class="c1"># Averaging is done</span>
-
-
         <span class="n">inputSet</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imgsFn</span><span class="p">)</span>
         <span class="n">mdImgs</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputMD</span><span class="p">)</span>
-
         <span class="c1"># setting item_id (lost due to mpi usually)</span>
         <span class="k">for</span> <span class="n">objId</span> <span class="ow">in</span> <span class="n">mdImgs</span><span class="p">:</span>
             <span class="n">imgPath</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_IMAGE</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
@@ -496,10 +504,10 @@
                 <span class="k">if</span> <span class="p">(</span><span class="n">NewImgPath</span> <span class="o">==</span> <span class="n">imgPath</span><span class="p">):</span>
                     <span class="n">target_ID</span> <span class="o">=</span> <span class="n">inputSet</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ITEM_ID</span><span class="p">,</span> <span class="n">objId2</span><span class="p">)</span>
                     <span class="k">break</span>
-
             <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ITEM_ID</span><span class="p">,</span> <span class="n">target_ID</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
-
+        <span class="n">mdImgs</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ITEM_ID</span><span class="p">)</span>
         <span class="n">mdImgs</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputMD</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="FlexProtSubtomogramAveraging.adaptDynamoStep"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_subtomogram_averaging.html#continuousflex.protocols.protocol_subtomogram_averaging.FlexProtSubtomogramAveraging.adaptDynamoStep">[docs]</a>    <span class="k">def</span> <span class="nf">adaptDynamoStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dynamoTable</span><span class="p">):</span>
         <span class="n">volumes_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">imgsFn</span>
@@ -508,8 +516,6 @@
         <span class="kn">from</span> <span class="nn">continuousflex.protocols.utilities.dynamo</span> <span class="kn">import</span> <span class="n">tbl2metadata</span>
         <span class="n">tbl2metadata</span><span class="p">(</span><span class="n">dynamoTable</span><span class="p">,</span> <span class="n">volumes_in</span><span class="p">,</span> <span class="n">md_out</span><span class="p">)</span>
 
-
-        <span class="c1">### here:</span>
         <span class="n">mdImgs</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="n">md_out</span><span class="p">)</span>
         <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="n">first</span> <span class="o">=</span> <span class="kc">True</span>
@@ -521,32 +527,20 @@
             <span class="n">rot</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_ROT</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
             <span class="n">tilt</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_TILT</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
             <span class="n">psi</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_PSI</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
-
             <span class="n">x_shift</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_X</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
             <span class="n">y_shift</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
             <span class="n">z_shift</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
 
-            <span class="n">flip</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
             <span class="n">tempVol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;temp.mrc&#39;</span><span class="p">)</span>
             <span class="n">extra</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span>
 
-            <span class="k">if</span> <span class="n">flip</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">first</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Averaging based on Dynamo parameters&quot;</span><span class="p">)</span>
-                    <span class="n">first</span> <span class="o">=</span> <span class="kc">False</span>
 
-                <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --inverse --rotate_volume euler </span><span class="si">%(rot)s</span><span class="s1"> </span><span class="si">%(tilt)s</span><span class="s1"> </span><span class="si">%(psi)s</span><span class="s1">&#39;</span> \
-                         <span class="s1">&#39; --shift </span><span class="si">%(x_shift)s</span><span class="s1"> </span><span class="si">%(y_shift)s</span><span class="s1"> </span><span class="si">%(z_shift)s</span><span class="s1"> -v 0&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">first</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Averaging based on Dynamo parameters&quot;</span><span class="p">)</span>
+                <span class="n">first</span> <span class="o">=</span> <span class="kc">False</span>
 
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">first</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;THERE IS A COMPENSATION FOR THE MISSING WEDGE&quot;</span><span class="p">)</span>
-                    <span class="n">first</span> <span class="o">=</span> <span class="kc">False</span>
-                <span class="c1"># First got to rotate each volume 90 degrees about the y axis, align it, then rotate back and sum it</span>
-                <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --rotate_volume euler 0 90 0&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-                <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-                <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(tempVol)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --rotate_volume euler </span><span class="si">%(rot)s</span><span class="s1"> </span><span class="si">%(tilt)s</span><span class="s1"> </span><span class="si">%(psi)s</span><span class="s1">&#39;</span> \
-                         <span class="s1">&#39; --shift </span><span class="si">%(x_shift)s</span><span class="s1"> </span><span class="si">%(y_shift)s</span><span class="s1"> </span><span class="si">%(z_shift)s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
+            <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --inverse --rotate_volume euler </span><span class="si">%(rot)s</span><span class="s1"> </span><span class="si">%(tilt)s</span><span class="s1"> </span><span class="si">%(psi)s</span><span class="s1">&#39;</span> \
+                     <span class="s1">&#39; --shift </span><span class="si">%(x_shift)s</span><span class="s1"> </span><span class="si">%(y_shift)s</span><span class="s1"> </span><span class="si">%(z_shift)s</span><span class="s1"> -v 0&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
 
             <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
 
@@ -559,10 +553,8 @@
 
         <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(volume_out)s</span><span class="s1"> --divide </span><span class="si">%(counter)s</span><span class="s1"> -o </span><span class="si">%(volume_out)s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
         <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_image_operate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;rm -f </span><span class="si">%(tempVol)s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span>
-         <span class="c1"># Averaging is done</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;rm -f </span><span class="si">%(tempVol)s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span></div>
 
-        <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="FlexProtSubtomogramAveraging.adaptTomboxStep"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_subtomogram_averaging.html#continuousflex.protocols.protocol_subtomogram_averaging.FlexProtSubtomogramAveraging.adaptTomboxStep">[docs]</a>    <span class="k">def</span> <span class="nf">adaptTomboxStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Table</span><span class="p">):</span>
         <span class="n">volumes_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">imgsFn</span>
@@ -587,7 +579,6 @@
             <span class="n">y_shift</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
             <span class="n">z_shift</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
 
-            <span class="n">flip</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
             <span class="n">tempVol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;temp.mrc&#39;</span><span class="p">)</span>
             <span class="n">extra</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span>
 
@@ -609,6 +600,7 @@
          <span class="c1"># Averaging is done</span>
         <span class="k">pass</span></div>
 
+
 <div class="viewcode-block" id="FlexProtSubtomogramAveraging.adaptXmippStep"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_subtomogram_averaging.html#continuousflex.protocols.protocol_subtomogram_averaging.FlexProtSubtomogramAveraging.adaptXmippStep">[docs]</a>    <span class="k">def</span> <span class="nf">adaptXmippStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Table</span><span class="p">):</span>
         <span class="n">volumes_in</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">imgsFn</span>
         <span class="n">volume_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputVolume</span>
@@ -616,6 +608,36 @@
 
         <span class="c1"># Averaging based on the metadata:</span>
         <span class="n">mdImgs</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="n">md_out</span><span class="p">)</span>
+
+        <span class="c1"># if the volumes were aligned with angle_y=90 degrees, then rotate by 90 and inverse, then set angle y to 0</span>
+        <span class="n">flag</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">flag</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_Y</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">if</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">90</span><span class="p">:</span>
+            <span class="n">mdImgs</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imgsFn</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">objId</span> <span class="ow">in</span> <span class="n">mdImgs</span><span class="p">:</span>
+                <span class="n">rot</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_ROT</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">tilt</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_TILT</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">psi</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_PSI</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_X</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">z</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">T</span> <span class="o">=</span> <span class="n">eulerAngles2matrix</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+                <span class="c1"># Rotate 90 degrees (compensation for missing wedge)</span>
+                <span class="n">T0</span> <span class="o">=</span> <span class="n">eulerAngles2matrix</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">T0</span><span class="p">))</span>
+                <span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">matrix2eulerAngles</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_ROT</span><span class="p">,</span> <span class="n">rot</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_TILT</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_PSI</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_X</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_Y</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+
         <span class="n">mdImgs</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;final_md.xmd&#39;</span><span class="p">))</span>
         <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
 
@@ -631,20 +653,11 @@
             <span class="n">y_shift</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
             <span class="n">z_shift</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
 
-            <span class="n">flip</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
             <span class="n">tempVol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;temp.mrc&#39;</span><span class="p">)</span>
             <span class="n">extra</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span>
 
-            <span class="k">if</span> <span class="n">flip</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">flip</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --inverse --rotate_volume euler </span><span class="si">%(rot)s</span><span class="s1"> </span><span class="si">%(tilt)s</span><span class="s1"> </span><span class="si">%(psi)s</span><span class="s1">&#39;</span> \
-                     <span class="s1">&#39; --shift </span><span class="si">%(x_shift)s</span><span class="s1"> </span><span class="si">%(y_shift)s</span><span class="s1"> </span><span class="si">%(z_shift)s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># First got to rotate each volume 90 degrees about the y axis, align it, then sum it</span>
-                <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --rotate_volume euler 0 90 0&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-                <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-                <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(tempVol)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --rotate_volume euler </span><span class="si">%(rot)s</span><span class="s1"> </span><span class="si">%(tilt)s</span><span class="s1"> </span><span class="si">%(psi)s</span><span class="s1">&#39;</span> \
-                         <span class="s1">&#39; --shift </span><span class="si">%(x_shift)s</span><span class="s1"> </span><span class="si">%(y_shift)s</span><span class="s1"> </span><span class="si">%(z_shift)s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-
+            <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --inverse --rotate_volume euler </span><span class="si">%(rot)s</span><span class="s1"> </span><span class="si">%(tilt)s</span><span class="s1"> </span><span class="si">%(psi)s</span><span class="s1">&#39;</span> \
+                 <span class="s1">&#39; --shift </span><span class="si">%(x_shift)s</span><span class="s1"> </span><span class="si">%(y_shift)s</span><span class="s1"> </span><span class="si">%(z_shift)s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
 
             <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
 
@@ -657,25 +670,16 @@
 
         <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(volume_out)s</span><span class="s1"> --divide </span><span class="si">%(counter)s</span><span class="s1"> -o </span><span class="si">%(volume_out)s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
         <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_image_operate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;rm -f </span><span class="si">%(tempVol)s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span>
-         <span class="c1"># Averaging is done</span>
-        <span class="k">pass</span></div>
+        <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;rm -f </span><span class="si">%(tempVol)s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span></div>
+
 
 <div class="viewcode-block" id="FlexProtSubtomogramAveraging.createOutputStep"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_subtomogram_averaging.html#continuousflex.protocols.protocol_subtomogram_averaging.FlexProtSubtomogramAveraging.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># TODO: this is not needed any more, if no issue is reported then deleted it</span>
         <span class="n">inputSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputVolumes</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="c1"># partSet = self._createSetOfVolumes()</span>
-        <span class="c1"># partSet.copyInfo(inputSet)</span>
-        <span class="c1"># partSet.setAlignmentProj()</span>
-        <span class="c1"># partSet.copyItems(inputSet,</span>
-        <span class="c1">#                   updateItemCallback=self._updateParticle,</span>
-        <span class="c1">#                   itemDataIterator=md.iterRows(self.imgsFn, sortByLabel=md.MDL_ITEM_ID))</span>
         <span class="n">outvolume</span> <span class="o">=</span> <span class="n">Volume</span><span class="p">()</span>
         <span class="n">outvolume</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">inputSet</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
         <span class="n">outvolume</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputVolume</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">SubtomogramAverage</span><span class="o">=</span><span class="n">outvolume</span><span class="p">)</span></div>
-        <span class="c1"># self._defineOutputs(outputParticles=partSet, outputvolume=outvolume)</span>
-        <span class="c1"># self._defineTransformRelation(self.inputVolumes, partSet)</span>
+
 
     <span class="c1"># --------------------------- INFO functions --------------------------------------------</span>
     <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -683,24 +687,10 @@
         <span class="k">return</span> <span class="n">summary</span>
 
     <span class="k">def</span> <span class="nf">_citations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;CHEN2013235&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">pass</span>
-
-    <span class="c1"># --------------------------- UTILS functions --------------------------------------------</span>
-    <span class="k">def</span> <span class="nf">_printWarnings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">lines</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Print some warning lines to &#39;warnings.xmd&#39;,</span>
-<span class="sd">        the function should be called inside the working dir.&quot;&quot;&quot;</span>
-        <span class="n">fWarn</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;warnings.xmd&quot;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
-            <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">fWarn</span><span class="p">,</span> <span class="n">l</span>
-        <span class="n">fWarn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">_updateParticle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
-        <span class="n">setXmippAttributes</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_ROT</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_TILT</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_PSI</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_X</span><span class="p">,</span>
-                           <span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_MAXCC</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_Y</span><span class="p">)</span>
-        <span class="n">createItemMatrix</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="n">em</span><span class="o">.</span><span class="n">ALIGN_PROJ</span><span class="p">)</span></div>
+        <span class="k">pass</span></div>
 </pre></div>
 
            </div>

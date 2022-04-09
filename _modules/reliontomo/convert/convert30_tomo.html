@@ -207,66 +207,38 @@
 <span class="c1"># *  e-mail address &#39;scipion-users@lists.sourceforge.net&#39;</span>
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
-
+<span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">symlink</span>
+<span class="kn">from</span> <span class="nn">emtable</span> <span class="kn">import</span> <span class="n">Table</span>
 <span class="kn">from</span> <span class="nn">pwem.emlib.image</span> <span class="kn">import</span> <span class="n">ImageHandler</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="n">String</span>
-<span class="kn">from</span> <span class="nn">relion.convert.convert_base</span> <span class="kn">import</span> <span class="n">WriterBase</span>
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">Transform</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="n">Float</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">removeBaseExt</span>
+<span class="kn">from</span> <span class="nn">reliontomo.constants</span> <span class="kn">import</span> <span class="n">FILE_NOT_FOUND</span><span class="p">,</span> <span class="n">COORD_X</span><span class="p">,</span> <span class="n">COORD_Y</span><span class="p">,</span> <span class="n">COORD_Z</span><span class="p">,</span> <span class="n">SUBTOMO_NAME</span><span class="p">,</span> \
+    <span class="n">TILT_PRIOR</span><span class="p">,</span> <span class="n">PSI_PRIOR</span><span class="p">,</span> <span class="n">TOMO_NAME_30</span><span class="p">,</span> <span class="n">CTF_MISSING_WEDGE</span><span class="p">,</span> \
+    <span class="n">CLASS_NUMBER</span><span class="p">,</span> <span class="n">MRC</span><span class="p">,</span> <span class="n">PARTICLES_TABLE</span>
+<span class="kn">from</span> <span class="nn">reliontomo.convert.convertBase</span> <span class="kn">import</span> <span class="n">WriterTomo</span><span class="p">,</span> <span class="n">getTransformInfoFromCoordOrSubtomo</span><span class="p">,</span> <span class="n">ReaderTomo</span><span class="p">,</span> \
+    <span class="n">getTransformMatrixFromRow</span>
+<span class="kn">from</span> <span class="nn">reliontomo.utils</span> <span class="kn">import</span> <span class="n">getAbsPath</span><span class="p">,</span> <span class="n">_gen2LevelBaseName</span>
 <span class="kn">from</span> <span class="nn">scipion.install.funcs</span> <span class="kn">import</span> <span class="n">mkdir</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span>
-<span class="kn">from</span> <span class="nn">pwem.convert.transformations</span> <span class="kn">import</span> <span class="n">translation_from_matrix</span><span class="p">,</span> <span class="n">euler_from_matrix</span>
-<span class="kn">from</span> <span class="nn">relion.convert</span> <span class="kn">import</span> <span class="n">Table</span>
-
-<span class="c1"># Star file fields</span>
 <span class="kn">from</span> <span class="nn">tomo.constants</span> <span class="kn">import</span> <span class="n">BOTTOM_LEFT_CORNER</span>
-
-<span class="n">TOMO_NAME</span> <span class="o">=</span> <span class="s1">&#39;rlnMicrographName&#39;</span>
-<span class="n">COORD_X</span> <span class="o">=</span> <span class="s1">&#39;rlnCoordinateX&#39;</span>
-<span class="n">COORD_Y</span> <span class="o">=</span> <span class="s1">&#39;rlnCoordinateY&#39;</span>
-<span class="n">COORD_Z</span> <span class="o">=</span> <span class="s1">&#39;rlnCoordinateZ&#39;</span>
-<span class="n">SUBTOMO_NAME</span> <span class="o">=</span> <span class="s1">&#39;rlnImageName&#39;</span>
-<span class="n">CTF_MISSING_WEDGE</span> <span class="o">=</span> <span class="s1">&#39;rlnCtfImage&#39;</span>
-<span class="n">MAGNIFICATION</span> <span class="o">=</span> <span class="s1">&#39;rlnMagnification&#39;</span>
-<span class="n">PIXEL_SIZE</span> <span class="o">=</span> <span class="s1">&#39;rlnDetectorPixelSize&#39;</span>
-<span class="n">ROT</span> <span class="o">=</span> <span class="s1">&#39;rlnAngleRot&#39;</span>
-<span class="n">TILT</span> <span class="o">=</span> <span class="s1">&#39;rlnAngleTilt&#39;</span>
-<span class="n">TILT_PRIOR</span> <span class="o">=</span> <span class="s1">&#39;rlnAngleTiltPrior&#39;</span>
-<span class="n">PSI</span> <span class="o">=</span> <span class="s1">&#39;rlnAnglePsi&#39;</span>
-<span class="n">PSI_PRIOR</span> <span class="o">=</span> <span class="s1">&#39;rlnAnglePsiPrior&#39;</span>
-<span class="n">SHIFTX</span> <span class="o">=</span> <span class="s1">&#39;rlnOriginX&#39;</span>
-<span class="n">SHIFTY</span> <span class="o">=</span> <span class="s1">&#39;rlnOriginY&#39;</span>
-<span class="n">SHIFTZ</span> <span class="o">=</span> <span class="s1">&#39;rlnOriginZ&#39;</span>
-
-<span class="n">RELION_TOMO_LABELS</span> <span class="o">=</span> <span class="p">[</span><span class="n">TOMO_NAME</span><span class="p">,</span>
-                      <span class="n">COORD_X</span><span class="p">,</span>
-                      <span class="n">COORD_Y</span><span class="p">,</span>
-                      <span class="n">COORD_Z</span><span class="p">,</span>
-                      <span class="n">SUBTOMO_NAME</span><span class="p">,</span>
-                      <span class="n">CTF_MISSING_WEDGE</span><span class="p">,</span>
-                      <span class="n">MAGNIFICATION</span><span class="p">,</span>
-                      <span class="n">PIXEL_SIZE</span><span class="p">,</span>
-                      <span class="n">ROT</span><span class="p">,</span>
-                      <span class="n">TILT</span><span class="p">,</span>
-                      <span class="n">TILT_PRIOR</span><span class="p">,</span>
-                      <span class="n">PSI</span><span class="p">,</span>
-                      <span class="n">PSI_PRIOR</span><span class="p">,</span>
-                      <span class="n">SHIFTX</span><span class="p">,</span>
-                      <span class="n">SHIFTY</span><span class="p">,</span>
-                      <span class="n">SHIFTZ</span><span class="p">]</span>
+<span class="kn">from</span> <span class="nn">tomo.objects</span> <span class="kn">import</span> <span class="n">SubTomogram</span><span class="p">,</span> <span class="n">Coordinate3D</span><span class="p">,</span> <span class="n">TomoAcquisition</span>
 
 
-<div class="viewcode-block" id="Writer"><a class="viewcode-back" href="../../../api/reliontomo/reliontomo.convert.convert30_tomo.html#reliontomo.convert.convert30_tomo.Writer">[docs]</a><span class="k">class</span> <span class="nc">Writer</span><span class="p">(</span><span class="n">WriterBase</span><span class="p">):</span>
+<div class="viewcode-block" id="Writer"><a class="viewcode-back" href="../../../api/reliontomo/reliontomo.convert.convert30_tomo.html#reliontomo.convert.convert30_tomo.Writer">[docs]</a><span class="k">class</span> <span class="nc">Writer</span><span class="p">(</span><span class="n">WriterTomo</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Helper class to convert from Scipion SetOfImages subclasses</span>
 <span class="sd">    with star file format previous to Relion&gt;3.1, but providing the same</span>
 <span class="sd">     interface as the new Writer class.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="Writer.writeSetOfSubtomograms"><a class="viewcode-back" href="../../../api/reliontomo/reliontomo.convert.convert30_tomo.html#reliontomo.convert.convert30_tomo.Writer.writeSetOfSubtomograms">[docs]</a>    <span class="k">def</span> <span class="nf">writeSetOfSubtomograms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subtomoSet</span><span class="p">,</span> <span class="n">subtomosStar</span><span class="p">,</span> <span class="n">isPyseg</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>  <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Writer.subtomograms2Star"><a class="viewcode-back" href="../../../api/reliontomo/reliontomo.convert.convert30_tomo.html#reliontomo.convert.convert30_tomo.Writer.subtomograms2Star">[docs]</a>    <span class="k">def</span> <span class="nf">subtomograms2Star</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subtomoSet</span><span class="p">,</span> <span class="n">subtomosStar</span><span class="p">):</span>
         <span class="n">currentTomo</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-        <span class="n">MRC</span> <span class="o">=</span> <span class="s1">&#39;mrc&#39;</span>
         <span class="n">ih</span> <span class="o">=</span> <span class="n">ImageHandler</span><span class="p">()</span>
-        <span class="n">tomoTable</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createStarTomoTable</span><span class="p">(</span><span class="n">isPyseg</span><span class="p">)</span>
+        <span class="n">tomoTable</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">starHeaders</span><span class="p">)</span>
         <span class="n">tmpDir</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">getParentFolder</span><span class="p">(</span><span class="n">subtomosStar</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">subtomo</span> <span class="ow">in</span> <span class="n">subtomoSet</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">getExt</span><span class="p">(</span><span class="n">subtomo</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="n">MRC</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span> <span class="o">!=</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="n">MRC</span><span class="p">:</span>
@@ -275,14 +247,17 @@
                     <span class="n">mkdir</span><span class="p">(</span><span class="n">mrcDir</span><span class="p">)</span>
                 <span class="n">mrcFile</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">mrcDir</span><span class="p">,</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">replaceBaseExt</span><span class="p">(</span><span class="n">subtomo</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span> <span class="n">MRC</span><span class="p">))</span>
                 <span class="n">ih</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">subtomo</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span> <span class="n">mrcFile</span><span class="p">)</span>
-            <span class="n">angles</span><span class="p">,</span> <span class="n">shifts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTransformInfoFromSubtomo</span><span class="p">(</span><span class="n">subtomo</span><span class="p">)</span>
+            <span class="n">angles</span><span class="p">,</span> <span class="n">shifts</span> <span class="o">=</span> <span class="n">getTransformInfoFromCoordOrSubtomo</span><span class="p">(</span><span class="n">subtomo</span><span class="p">)</span>
             <span class="n">magn</span> <span class="o">=</span> <span class="n">subtomo</span><span class="o">.</span><span class="n">getAcquisition</span><span class="p">()</span><span class="o">.</span><span class="n">getMagnification</span><span class="p">()</span>
+            <span class="n">ctfFile</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">subtomo</span><span class="o">.</span><span class="n">getCoordinate3D</span><span class="p">(),</span> <span class="s1">&#39;_3dcftMrcFile&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">ctfFile</span><span class="p">:</span>
+                <span class="n">ctfFile</span> <span class="o">=</span> <span class="n">ctfFile</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
             <span class="n">rlnMicrographName</span> <span class="o">=</span> <span class="n">subtomo</span><span class="o">.</span><span class="n">getVolName</span><span class="p">()</span>
             <span class="n">rlnCoordinateX</span> <span class="o">=</span> <span class="n">subtomo</span><span class="o">.</span><span class="n">getCoordinate3D</span><span class="p">()</span><span class="o">.</span><span class="n">getX</span><span class="p">(</span><span class="n">BOTTOM_LEFT_CORNER</span><span class="p">)</span>
             <span class="n">rlnCoordinateY</span> <span class="o">=</span> <span class="n">subtomo</span><span class="o">.</span><span class="n">getCoordinate3D</span><span class="p">()</span><span class="o">.</span><span class="n">getY</span><span class="p">(</span><span class="n">BOTTOM_LEFT_CORNER</span><span class="p">)</span>
             <span class="n">rlnCoordinateZ</span> <span class="o">=</span> <span class="n">subtomo</span><span class="o">.</span><span class="n">getCoordinate3D</span><span class="p">()</span><span class="o">.</span><span class="n">getZ</span><span class="p">(</span><span class="n">BOTTOM_LEFT_CORNER</span><span class="p">)</span>
             <span class="n">rlnImageName</span> <span class="o">=</span> <span class="n">subtomo</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;:&#39;</span> <span class="o">+</span> <span class="n">MRC</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-            <span class="n">rlnCtfImage</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getCTFFileFromSubtomo</span><span class="p">(</span><span class="n">subtomo</span><span class="p">)</span>
+            <span class="n">rlnCtfImage</span> <span class="o">=</span> <span class="n">ctfFile</span> <span class="k">if</span> <span class="n">ctfFile</span> <span class="k">else</span> <span class="n">FILE_NOT_FOUND</span>
             <span class="n">rlnMagnification</span> <span class="o">=</span> <span class="n">magn</span> <span class="k">if</span> <span class="n">magn</span> <span class="k">else</span> <span class="mi">10000</span> <span class="c1">#64000</span>
             <span class="n">rlnDetectorPixelSize</span> <span class="o">=</span> <span class="n">subtomo</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
             <span class="n">rlnAngleRot</span> <span class="o">=</span> <span class="n">angles</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -292,7 +267,7 @@
             <span class="n">rlnOriginY</span> <span class="o">=</span> <span class="n">shifts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
             <span class="n">rlnOriginZ</span> <span class="o">=</span> <span class="n">shifts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
             <span class="n">rlnTiltPrior</span> <span class="o">=</span> <span class="n">subtomo</span><span class="o">.</span><span class="n">_tiltPriorAngle</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">subtomo</span><span class="p">,</span> <span class="s1">&#39;_tiltPriorAngle&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">rlnAngleTilt</span>
-            <span class="n">rlnTiltPsi</span> <span class="o">=</span> <span class="n">subtomo</span><span class="o">.</span><span class="n">_psiPriorAngle</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">subtomo</span><span class="p">,</span> <span class="s1">&#39;_psiPriorAngle&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">rlnAnglePsi</span>
+            <span class="n">rlnPsiPrior</span> <span class="o">=</span> <span class="n">subtomo</span><span class="o">.</span><span class="n">_psiPriorAngle</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">subtomo</span><span class="p">,</span> <span class="s1">&#39;_psiPriorAngle&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">rlnAnglePsi</span>
             <span class="c1"># Add row to the table which will be used to generate the STAR file</span>
             <span class="n">fieldsToAdd</span> <span class="o">=</span> <span class="p">[</span><span class="n">rlnMicrographName</span><span class="p">,</span>
                            <span class="n">rlnCoordinateX</span><span class="p">,</span>
@@ -306,73 +281,108 @@
                            <span class="n">rlnAngleTilt</span><span class="p">,</span>
                            <span class="n">rlnTiltPrior</span><span class="p">,</span>
                            <span class="n">rlnAnglePsi</span><span class="p">,</span>
-                           <span class="n">rlnTiltPsi</span><span class="p">,</span>
+                           <span class="n">rlnPsiPrior</span><span class="p">,</span>
                            <span class="n">rlnOriginX</span><span class="p">,</span>
                            <span class="n">rlnOriginY</span><span class="p">,</span>
                            <span class="n">rlnOriginZ</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">isPyseg</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isPyseg</span><span class="p">:</span>
                 <span class="n">fieldsToAdd</span> <span class="o">=</span> <span class="p">[</span><span class="n">rlnMicrographName</span><span class="p">,</span>
-                              <span class="n">rlnCoordinateX</span><span class="p">,</span>
-                              <span class="n">rlnCoordinateY</span><span class="p">,</span>
-                              <span class="n">rlnCoordinateZ</span><span class="p">,</span>
-                              <span class="n">rlnImageName</span><span class="p">,</span>
-                              <span class="n">rlnCtfImage</span><span class="p">,</span>
-                              <span class="n">rlnAngleRot</span><span class="p">,</span>
-                              <span class="n">rlnAngleTilt</span><span class="p">,</span>
-                              <span class="n">rlnAnglePsi</span><span class="p">,</span>
-                              <span class="n">rlnOriginX</span><span class="p">,</span>
-                              <span class="n">rlnOriginY</span><span class="p">,</span>
-                              <span class="n">rlnOriginZ</span><span class="p">]</span>
+                               <span class="n">rlnCoordinateX</span><span class="p">,</span>
+                               <span class="n">rlnCoordinateY</span><span class="p">,</span>
+                               <span class="n">rlnCoordinateZ</span><span class="p">,</span>
+                               <span class="n">rlnImageName</span><span class="p">,</span>
+                               <span class="n">rlnCtfImage</span><span class="p">,</span>
+                               <span class="n">rlnAngleRot</span><span class="p">,</span>
+                               <span class="n">rlnAngleTilt</span><span class="p">,</span>
+                               <span class="n">rlnAnglePsi</span><span class="p">,</span>
+                               <span class="n">rlnOriginX</span><span class="p">,</span>
+                               <span class="n">rlnOriginY</span><span class="p">,</span>
+                               <span class="n">rlnOriginZ</span><span class="p">]</span>
 
             <span class="n">tomoTable</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="o">*</span><span class="n">fieldsToAdd</span><span class="p">)</span>
 
         <span class="c1"># Write the STAR file</span>
-        <span class="n">tomoTable</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">subtomosStar</span><span class="p">)</span></div>
+        <span class="n">tomoTable</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">subtomosStar</span><span class="p">)</span></div></div>
 
-    <span class="o">@</span> <span class="nb">staticmethod</span>
-    <span class="k">def</span> <span class="nf">_createStarTomoTable</span><span class="p">(</span><span class="n">isPyseg</span><span class="p">):</span>
 
-        <span class="n">cols</span> <span class="o">=</span> <span class="n">RELION_TOMO_LABELS</span>
-        <span class="c1"># Pyseg post-rec only works if the magnification, pixel size and the prior angles aren&#39;t</span>
-        <span class="c1"># present in the star file</span>
-        <span class="k">if</span> <span class="n">isPyseg</span><span class="p">:</span>
-            <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">TOMO_NAME</span><span class="p">,</span>
-                    <span class="n">COORD_X</span><span class="p">,</span>
-                    <span class="n">COORD_Y</span><span class="p">,</span>
-                    <span class="n">COORD_Z</span><span class="p">,</span>
-                    <span class="n">SUBTOMO_NAME</span><span class="p">,</span>
-                    <span class="n">CTF_MISSING_WEDGE</span><span class="p">,</span>
-                    <span class="n">ROT</span><span class="p">,</span>
-                    <span class="n">TILT</span><span class="p">,</span>
-                    <span class="n">PSI</span><span class="p">,</span>
-                    <span class="n">SHIFTX</span><span class="p">,</span>
-                    <span class="n">SHIFTY</span><span class="p">,</span>
-                    <span class="n">SHIFTZ</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">Table</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="n">cols</span><span class="p">)</span>
+<div class="viewcode-block" id="Reader"><a class="viewcode-back" href="../../../api/reliontomo/reliontomo.convert.convert30_tomo.html#reliontomo.convert.convert30_tomo.Reader">[docs]</a><span class="k">class</span> <span class="nc">Reader</span><span class="p">(</span><span class="n">ReaderTomo</span><span class="p">):</span>
 
-    <span class="o">@</span> <span class="nb">staticmethod</span>
-    <span class="k">def</span> <span class="nf">_getCTFFileFromSubtomo</span><span class="p">(</span><span class="n">subtomo</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">starFile</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">starFile</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Reader.read"><a class="viewcode-back" href="../../../api/reliontomo/reliontomo.convert.convert30_tomo.html#reliontomo.convert.convert30_tomo.Reader.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tableName</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">subtomo</span><span class="o">.</span><span class="n">getCoordinate3D</span><span class="p">()</span><span class="o">.</span><span class="n">_3dcftMrcFile</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dataTable</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">starFile</span><span class="p">,</span> <span class="n">tableName</span><span class="o">=</span><span class="n">tableName</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="c1"># If the particles table isn&#39;t present in the introduced star, it means that it isn&#39;t a</span>
+            <span class="c1"># coordinates/particles star, which means that we are in relion4, in which there are other star files for</span>
+            <span class="c1"># tomography, like tomograms or pseudosubtomograms</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dataTable</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">starFile</span><span class="p">)</span></div>
 
-    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">_getTransformInfoFromSubtomo</span><span class="p">(</span><span class="n">subtomo</span><span class="p">,</span> <span class="n">calcInv</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-        <span class="n">angles</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-        <span class="n">shifts</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-        <span class="n">T</span> <span class="o">=</span> <span class="n">subtomo</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span>
+<div class="viewcode-block" id="Reader.gen3dCoordFromStarRow"><a class="viewcode-back" href="../../../api/reliontomo/reliontomo.convert.convert30_tomo.html#reliontomo.convert.convert30_tomo.Reader.gen3dCoordFromStarRow">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">gen3dCoordFromStarRow</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">precedentsSet</span><span class="p">,</span> <span class="n">precedentIdList</span><span class="p">,</span> <span class="n">scaleFactor</span><span class="p">):</span>
+        <span class="n">coordinate3d</span> <span class="o">=</span> <span class="n">Coordinate3D</span><span class="p">()</span>
+        <span class="n">tomoId</span> <span class="o">=</span> <span class="n">removeBaseExt</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">TOMO_NAME_30</span><span class="p">))</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">COORD_X</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">COORD_Y</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">COORD_Z</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">volId</span> <span class="o">=</span> <span class="n">precedentIdList</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">tomoId</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># Set indices begin in 1</span>
+        <span class="n">coordinate3d</span><span class="o">.</span><span class="n">setVolume</span><span class="p">(</span><span class="n">precedentsSet</span><span class="p">[</span><span class="n">volId</span><span class="p">])</span>
+        <span class="n">coordinate3d</span><span class="o">.</span><span class="n">setVolId</span><span class="p">(</span><span class="n">volId</span><span class="p">)</span>
+        <span class="n">ctf3d</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CTF_MISSING_WEDGE</span><span class="p">,</span> <span class="n">FILE_NOT_FOUND</span><span class="p">)</span>
+        <span class="n">coordinate3d</span><span class="o">.</span><span class="n">setTomoId</span><span class="p">(</span><span class="n">tomoId</span><span class="p">)</span>
+        <span class="n">coordinate3d</span><span class="o">.</span><span class="n">setX</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">scaleFactor</span><span class="p">,</span> <span class="n">BOTTOM_LEFT_CORNER</span><span class="p">)</span>
+        <span class="n">coordinate3d</span><span class="o">.</span><span class="n">setY</span><span class="p">(</span><span class="n">y</span> <span class="o">*</span> <span class="n">scaleFactor</span><span class="p">,</span> <span class="n">BOTTOM_LEFT_CORNER</span><span class="p">)</span>
+        <span class="n">coordinate3d</span><span class="o">.</span><span class="n">setZ</span><span class="p">(</span><span class="n">z</span> <span class="o">*</span> <span class="n">scaleFactor</span><span class="p">,</span> <span class="n">BOTTOM_LEFT_CORNER</span><span class="p">)</span>
+        <span class="n">coordinate3d</span><span class="o">.</span><span class="n">_3dcftMrcFile</span> <span class="o">=</span> <span class="n">ctf3d</span>  <span class="c1"># Used for the ctf3d generation in Relion</span>
+        <span class="n">coordinate3d</span><span class="o">.</span><span class="n">setMatrix</span><span class="p">(</span><span class="n">getTransformMatrixFromRow</span><span class="p">(</span><span class="n">row</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="n">T</span><span class="p">:</span>  <span class="c1"># Alignment performed before</span>
-            <span class="n">M</span> <span class="o">=</span> <span class="n">subtomo</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">()</span>
-            <span class="n">shifts</span> <span class="o">=</span> <span class="n">translation_from_matrix</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">calcInv</span><span class="p">:</span>
-                <span class="n">shifts</span> <span class="o">=</span> <span class="o">-</span><span class="n">shifts</span>
-                <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">coordinate3d</span></div>
 
-            <span class="n">angles</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">rad2deg</span><span class="p">(</span><span class="n">euler_from_matrix</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="s1">&#39;szyz&#39;</span><span class="p">))</span>
+<div class="viewcode-block" id="Reader.starFile2Coords3D"><a class="viewcode-back" href="../../../api/reliontomo/reliontomo.convert.convert30_tomo.html#reliontomo.convert.convert30_tomo.Reader.starFile2Coords3D">[docs]</a>    <span class="k">def</span> <span class="nf">starFile2Coords3D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordsSet</span><span class="p">,</span> <span class="n">precedentsSet</span><span class="p">,</span> <span class="n">scaleFactor</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">tableName</span><span class="o">=</span><span class="n">PARTICLES_TABLE</span><span class="p">)</span>
+        <span class="n">precedentIdList</span> <span class="o">=</span> <span class="p">[</span><span class="n">tomo</span><span class="o">.</span><span class="n">getTsId</span><span class="p">()</span> <span class="k">for</span> <span class="n">tomo</span> <span class="ow">in</span> <span class="n">precedentsSet</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dataTable</span><span class="p">:</span>
+            <span class="n">coordsSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gen3dCoordFromStarRow</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">precedentsSet</span><span class="p">,</span> <span class="n">precedentIdList</span><span class="p">,</span> <span class="n">scaleFactor</span><span class="p">))</span></div>
 
-        <span class="k">return</span> <span class="n">angles</span><span class="p">,</span> <span class="n">shifts</span></div>
+<div class="viewcode-block" id="Reader.starFile2Subtomograms"><a class="viewcode-back" href="../../../api/reliontomo/reliontomo.convert.convert30_tomo.html#reliontomo.convert.convert30_tomo.Reader.starFile2Subtomograms">[docs]</a>    <span class="k">def</span> <span class="nf">starFile2Subtomograms</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subtomoSet</span><span class="p">,</span> <span class="n">coordSet</span><span class="p">,</span> <span class="n">linkedSubtomosDir</span><span class="p">,</span> <span class="n">starFilePath</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">tableName</span><span class="o">=</span><span class="n">PARTICLES_TABLE</span><span class="p">)</span>
+        <span class="n">samplingRate</span> <span class="o">=</span> <span class="n">subtomoSet</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">coordinate3d</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataTable</span><span class="p">,</span> <span class="n">coordSet</span><span class="p">):</span>
+            <span class="n">subtomo</span> <span class="o">=</span> <span class="n">SubTomogram</span><span class="p">()</span>
+            <span class="n">transform</span> <span class="o">=</span> <span class="n">Transform</span><span class="p">()</span>
+            <span class="n">origin</span> <span class="o">=</span> <span class="n">Transform</span><span class="p">()</span>
+
+            <span class="c1"># Files</span>
+            <span class="n">tomoName</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">TOMO_NAME_30</span><span class="p">,</span> <span class="n">FILE_NOT_FOUND</span><span class="p">)</span>
+            <span class="n">subtomoName</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">SUBTOMO_NAME</span><span class="p">,</span> <span class="n">FILE_NOT_FOUND</span><span class="p">)</span>
+            <span class="n">linkedSubtomoName</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">linkedSubtomosDir</span><span class="p">,</span> <span class="n">_gen2LevelBaseName</span><span class="p">(</span><span class="n">subtomoName</span><span class="p">))</span>
+            <span class="n">symlink</span><span class="p">(</span><span class="n">getAbsPath</span><span class="p">(</span><span class="n">starFilePath</span><span class="p">,</span> <span class="n">subtomoName</span><span class="p">),</span> <span class="n">linkedSubtomoName</span><span class="p">)</span>  <span class="c1"># Link the subtomos to the extra folder</span>
+
+            <span class="c1"># Subtomograms</span>
+            <span class="n">tiltPrior</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">TILT_PRIOR</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">psiPrior</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">PSI_PRIOR</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">transform</span><span class="o">.</span><span class="n">setMatrix</span><span class="p">(</span><span class="n">coordinate3d</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">())</span>
+
+            <span class="n">subtomo</span><span class="o">.</span><span class="n">setVolName</span><span class="p">(</span><span class="n">tomoName</span><span class="p">)</span>
+            <span class="n">subtomo</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">linkedSubtomoName</span><span class="p">)</span>
+            <span class="n">subtomo</span><span class="o">.</span><span class="n">setCoordinate3D</span><span class="p">(</span><span class="n">coordinate3d</span><span class="p">)</span>
+            <span class="n">subtomo</span><span class="o">.</span><span class="n">setVolId</span><span class="p">(</span><span class="n">coordinate3d</span><span class="o">.</span><span class="n">getVolId</span><span class="p">())</span>
+            <span class="n">subtomo</span><span class="o">.</span><span class="n">setTransform</span><span class="p">(</span><span class="n">transform</span><span class="p">)</span>
+            <span class="n">subtomo</span><span class="o">.</span><span class="n">setAcquisition</span><span class="p">(</span><span class="n">TomoAcquisition</span><span class="p">())</span>
+            <span class="n">subtomo</span><span class="o">.</span><span class="n">setClassId</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">CLASS_NUMBER</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="n">subtomo</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">samplingRate</span><span class="p">)</span>
+            <span class="n">subtomo</span><span class="o">.</span><span class="n">_tiltPriorAngle</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">tiltPrior</span><span class="p">)</span>
+            <span class="n">subtomo</span><span class="o">.</span><span class="n">_psiPriorAngle</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">psiPrior</span><span class="p">)</span>
+            <span class="n">subtomo</span><span class="o">.</span><span class="n">setOrigin</span><span class="p">(</span><span class="n">origin</span><span class="p">)</span>
+
+            <span class="c1"># Add current subtomogram to the output set</span>
+            <span class="n">subtomoSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subtomo</span><span class="p">)</span>
+
+        <span class="c1"># Set the set of coordinates which corresponds to the current set of subtomograms</span>
+        <span class="n">subtomoSet</span><span class="o">.</span><span class="n">setCoordinates3D</span><span class="p">(</span><span class="n">coordSet</span><span class="p">)</span></div></div>
+
+
 </pre></div>
 
            </div>

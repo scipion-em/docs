@@ -212,25 +212,18 @@
 <span class="sd">visualization program.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">exists</span><span class="p">,</span> <span class="n">isfile</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-
-<span class="kn">from</span> <span class="nn">pwem.convert.atom_struct</span> <span class="kn">import</span> <span class="n">cifToPdb</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">replaceBaseExt</span>
-
+<span class="kn">from</span> <span class="nn">joblib</span> <span class="kn">import</span> <span class="n">load</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils.path</span> <span class="kn">import</span> <span class="n">cleanPath</span><span class="p">,</span> <span class="n">makePath</span><span class="p">,</span> <span class="n">cleanPattern</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.viewer</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ProtocolViewer</span><span class="p">,</span> <span class="n">DESKTOP_TKINTER</span><span class="p">,</span> <span class="n">WEB_DJANGO</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="n">StringParam</span><span class="p">,</span> <span class="n">LabelParam</span>
 <span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">SetOfParticles</span>
 <span class="kn">from</span> <span class="nn">pwem.viewers</span> <span class="kn">import</span> <span class="n">VmdView</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.gui.browser</span> <span class="kn">import</span> <span class="n">FileBrowserWindow</span>
-
 <span class="kn">from</span> <span class="nn">continuousflex.protocols.protocol_nma_dimred</span> <span class="kn">import</span> <span class="n">FlexProtDimredNMA</span>
-
 <span class="kn">from</span> <span class="nn">continuousflex.protocols.data</span> <span class="kn">import</span> <span class="n">Point</span><span class="p">,</span> <span class="n">Data</span>
-
 <span class="kn">from</span> <span class="nn">continuousflex.viewers.nma_plotter</span> <span class="kn">import</span> <span class="n">FlexNmaPlotter</span>
-
 <span class="kn">from</span> <span class="nn">continuousflex.viewers.nma_gui</span> <span class="kn">import</span> <span class="n">ClusteringWindow</span><span class="p">,</span> <span class="n">TrajectoriesWindow</span>
 <span class="kn">from</span> <span class="nn">pwem.utils</span> <span class="kn">import</span> <span class="n">runProgram</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol</span> <span class="kn">import</span> <span class="n">params</span>
@@ -518,7 +511,13 @@
 
     <span class="k">def</span> <span class="nf">_generateAnimation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">prot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span>
-        <span class="n">projectorFile</span> <span class="o">=</span> <span class="n">prot</span><span class="o">.</span><span class="n">getProjectorFile</span><span class="p">()</span>
+        <span class="c1"># This is not getting the file correctly, we are workingaround it:</span>
+        <span class="c1"># projectorFile = prot.getProjectorFile()</span>
+        <span class="n">projectorFile</span> <span class="o">=</span> <span class="n">prot</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39;/projector.txt&#39;</span>
+        <span class="k">if</span> <span class="n">isfile</span><span class="p">(</span><span class="n">projectorFile</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Mapping found, the animation is exact inverse of the dimensionality reduction method&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Mapping not found, the animation is an estimation of reversing the dimensionality reduction method&#39;</span><span class="p">)</span>
 
         <span class="n">animation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectoriesWindow</span><span class="o">.</span><span class="n">getAnimationName</span><span class="p">()</span>
         <span class="n">animationPath</span> <span class="o">=</span> <span class="n">prot</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;animation_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">animation</span><span class="p">)</span>
@@ -526,34 +525,53 @@
         <span class="n">cleanPath</span><span class="p">(</span><span class="n">animationPath</span><span class="p">)</span>
         <span class="n">makePath</span><span class="p">(</span><span class="n">animationPath</span><span class="p">)</span>
         <span class="n">animationRoot</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">animationPath</span><span class="p">,</span> <span class="s1">&#39;animation_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">animation</span><span class="p">)</span>
-
         <span class="n">trajectoryPoints</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">trajectoriesWindow</span><span class="o">.</span><span class="n">pathData</span><span class="p">])</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">join</span><span class="p">(</span><span class="n">animationPath</span><span class="p">,</span> <span class="s1">&#39;trajectory.txt&#39;</span><span class="p">),</span> <span class="n">trajectoryPoints</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">projectorFile</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">isfile</span><span class="p">(</span><span class="n">projectorFile</span><span class="p">):</span>
             <span class="n">M</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">projectorFile</span><span class="p">)</span>
-            <span class="n">deformations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">trajectoryPoints</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">M</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">prot</span><span class="o">.</span><span class="n">getMethodName</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;sklearn_PCA&#39;</span><span class="p">:</span>
+                <span class="n">pca</span> <span class="o">=</span> <span class="n">load</span><span class="p">(</span><span class="n">prot</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;pca_pickled.txt&#39;</span><span class="p">))</span>
+                <span class="n">deformations</span> <span class="o">=</span> <span class="n">pca</span><span class="o">.</span><span class="n">inverse_transform</span><span class="p">(</span><span class="n">trajectoryPoints</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">deformations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">trajectoryPoints</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">pinv</span><span class="p">(</span><span class="n">M</span><span class="p">))</span>
+                <span class="n">temp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">prot</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;deformations.txt&#39;</span><span class="p">))</span> <span class="c1"># the original matrix file</span>
+                <span class="n">deformations</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">outer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">deformations</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">temp</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+                <span class="n">temp</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">savetxt</span><span class="p">(</span><span class="n">animationRoot</span> <span class="o">+</span> <span class="s1">&#39;trajectory.txt&#39;</span><span class="p">,</span> <span class="n">trajectoryPoints</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">Y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">prot</span><span class="o">.</span><span class="n">getOutputMatrixFile</span><span class="p">())</span>
             <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">prot</span><span class="o">.</span><span class="n">getDeformationFile</span><span class="p">())</span>
             <span class="c1"># Find closest points in deformations</span>
             <span class="n">deformations</span> <span class="o">=</span> <span class="p">[</span><span class="n">X</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">((</span><span class="n">Y</span> <span class="o">-</span> <span class="n">p</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))]</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">trajectoryPoints</span><span class="p">]</span>
 
-        <span class="n">pdb</span> <span class="o">=</span> <span class="n">prot</span><span class="o">.</span><span class="n">getInputPdb</span><span class="p">()</span>
-        <span class="n">pdbFile</span> <span class="o">=</span> <span class="n">pdb</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">prot</span><span class="o">.</span><span class="n">getDataChoice</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;NMAs&#39;</span><span class="p">:</span>
+            <span class="n">pdb</span> <span class="o">=</span> <span class="n">prot</span><span class="o">.</span><span class="n">getInputPdb</span><span class="p">()</span>
+            <span class="n">pdbFile</span> <span class="o">=</span> <span class="n">pdb</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
+            <span class="n">modesFn</span> <span class="o">=</span> <span class="n">prot</span><span class="o">.</span><span class="n">inputNMA</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;modes.xmd&#39;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">deformations</span><span class="p">):</span>
+                <span class="n">atomsFn</span> <span class="o">=</span> <span class="n">animationRoot</span> <span class="o">+</span> <span class="s1">&#39;atomsDeformed_</span><span class="si">%02d</span><span class="s1">.pdb&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">cmd</span> <span class="o">=</span> <span class="s1">&#39;-o </span><span class="si">%s</span><span class="s1"> --pdb </span><span class="si">%s</span><span class="s1"> --nma </span><span class="si">%s</span><span class="s1"> --deformations &#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">atomsFn</span><span class="p">,</span> <span class="n">pdbFile</span><span class="p">,</span> <span class="n">modesFn</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">d</span><span class="p">:</span>
+                    <span class="n">cmd</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span>
+                <span class="c1"># because it doesn&#39;t have an independent protocol we don&#39;t use self.runJob</span>
+                <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_pdb_nma_deform&#39;</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
 
-        <span class="n">structureEM</span> <span class="o">=</span> <span class="n">prot</span><span class="o">.</span><span class="n">getInputPdb</span><span class="p">()</span><span class="o">.</span><span class="n">getPseudoAtoms</span><span class="p">()</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">structureEM</span><span class="p">:</span>
-            <span class="n">localFn</span> <span class="o">=</span> <span class="n">replaceBaseExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">pdbFile</span><span class="p">),</span> <span class="s1">&#39;pdb&#39;</span><span class="p">)</span>
-            <span class="n">cifToPdb</span><span class="p">(</span><span class="n">pdbFile</span><span class="p">,</span> <span class="n">localFn</span><span class="p">)</span>
-            <span class="n">pdbFile</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">localFn</span><span class="p">)</span>
-
-        <span class="n">modesFn</span> <span class="o">=</span> <span class="n">prot</span><span class="o">.</span><span class="n">inputNMA</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;modes.xmd&#39;</span><span class="p">)</span>
-
-        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">d</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">deformations</span><span class="p">):</span>
-            <span class="n">atomsFn</span> <span class="o">=</span> <span class="n">animationRoot</span> <span class="o">+</span> <span class="s1">&#39;atomsDeformed_</span><span class="si">%02d</span><span class="s1">.pdb&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-            <span class="n">cmd</span> <span class="o">=</span> <span class="s1">&#39;-o </span><span class="si">%s</span><span class="s1"> --pdb </span><span class="si">%s</span><span class="s1"> --nma </span><span class="si">%s</span><span class="s1"> --deformations </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">atomsFn</span><span class="p">,</span> <span class="n">pdbFile</span><span class="p">,</span> <span class="n">modesFn</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">)[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-            <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_pdb_nma_deform&#39;</span><span class="p">,</span> <span class="n">cmd</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">prot</span><span class="o">.</span><span class="n">getDataChoice</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;PDBs&#39;</span><span class="p">:</span>
+            <span class="c1"># There is incompatibility issue with the rest of the code, we have to use the fahterPDB as one of the</span>
+            <span class="c1"># deformed PDBs (the first one)</span>
+            <span class="c1"># fatherPDB = prot._getExtraPath(&#39;pdb_file.pdb&#39;)</span>
+            <span class="n">fatherPDB</span> <span class="o">=</span> <span class="n">prot</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;generated_pdbs/000001.pdb&#39;</span><span class="p">)</span>
+            <span class="n">lines_father</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">readPDB</span><span class="p">(</span><span class="n">fatherPDB</span><span class="p">)</span>
+            <span class="n">list_father</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">PDB2List</span><span class="p">(</span><span class="n">lines_father</span><span class="p">)</span>
+            <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">deformations</span><span class="p">:</span>
+                <span class="c1"># reshaped pdb xyz coordinates</span>
+                <span class="n">list_xyz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">list_father</span><span class="p">))</span>
+                <span class="n">lines_i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list2PDBlines</span><span class="p">(</span><span class="n">list_xyz</span><span class="p">,</span> <span class="n">lines_father</span><span class="p">)</span>
+                <span class="n">atomsFn</span> <span class="o">=</span> <span class="n">animationRoot</span> <span class="o">+</span> <span class="s1">&#39;atomsDeformed_</span><span class="si">%02d</span><span class="s1">.pdb&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">writePDB</span><span class="p">(</span><span class="n">lines_i</span><span class="p">,</span> <span class="n">atomsFn</span><span class="p">)</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">pass</span>
 
         <span class="c1"># Join all deformations in a single pdb</span>
         <span class="c1"># iterating going up and down through all points</span>
@@ -577,7 +595,7 @@
 
         <span class="n">trajFile</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="c1"># Delete temporary atom files</span>
-        <span class="n">cleanPattern</span><span class="p">(</span><span class="n">animationRoot</span> <span class="o">+</span> <span class="s1">&#39;atomsDeformed_??.pdb&#39;</span><span class="p">)</span>
+        <span class="c1"># cleanPattern(animationRoot + &#39;atomsDeformed_??.pdb&#39;)</span>
 
         <span class="c1"># Generate the vmd script</span>
         <span class="n">vmdFn</span> <span class="o">=</span> <span class="n">animationRoot</span> <span class="o">+</span> <span class="s1">&#39;.vmd&#39;</span>
@@ -608,7 +626,48 @@
                                 <span class="n">data</span><span class="o">=</span><span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:],</span>
                                 <span class="n">weight</span><span class="o">=</span><span class="n">particle</span><span class="o">.</span><span class="n">_xmipp_cost</span><span class="o">.</span><span class="n">get</span><span class="p">()))</span>
 
-        <span class="k">return</span> <span class="n">data</span></div></div>
+        <span class="k">return</span> <span class="n">data</span></div>
+
+<div class="viewcode-block" id="FlexDimredNMAViewer.readPDB"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.viewers.viewer_nma_dimred.html#continuousflex.viewers.viewer_nma_dimred.FlexDimredNMAViewer.readPDB">[docs]</a>    <span class="k">def</span> <span class="nf">readPDB</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fnIn</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fnIn</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">lines</span></div>
+
+<div class="viewcode-block" id="FlexDimredNMAViewer.PDB2List"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.viewers.viewer_nma_dimred.html#continuousflex.viewers.viewer_nma_dimred.FlexDimredNMAViewer.PDB2List">[docs]</a>    <span class="k">def</span> <span class="nf">PDB2List</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lines</span><span class="p">):</span>
+        <span class="n">newlines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;ATOM &quot;</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">30</span><span class="p">:</span><span class="mi">38</span><span class="p">])</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">38</span><span class="p">:</span><span class="mi">46</span><span class="p">])</span>
+                    <span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">line</span><span class="p">[</span><span class="mi">46</span><span class="p">:</span><span class="mi">54</span><span class="p">])</span>
+                    <span class="n">newline</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">]</span>
+                    <span class="n">newlines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newline</span><span class="p">)</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">newlines</span></div>
+
+<div class="viewcode-block" id="FlexDimredNMAViewer.list2PDBlines"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.viewers.viewer_nma_dimred.html#continuousflex.viewers.viewer_nma_dimred.FlexDimredNMAViewer.list2PDBlines">[docs]</a>    <span class="k">def</span> <span class="nf">list2PDBlines</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">lines</span><span class="p">):</span>
+        <span class="n">newLines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;ATOM &quot;</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">x</span> <span class="o">=</span> <span class="nb">list</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="nb">list</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="n">z</span> <span class="o">=</span> <span class="nb">list</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="n">newLine</span> <span class="o">=</span> <span class="n">line</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">30</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="si">%8.3f%8.3f%8.3f</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span> <span class="o">+</span> <span class="n">line</span><span class="p">[</span><span class="mi">54</span><span class="p">:]</span>
+                    <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">newLine</span> <span class="o">=</span> <span class="n">line</span>
+            <span class="n">newLines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newLine</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">newLines</span></div>
+
+<div class="viewcode-block" id="FlexDimredNMAViewer.writePDB"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.viewers.viewer_nma_dimred.html#continuousflex.viewers.viewer_nma_dimred.FlexDimredNMAViewer.writePDB">[docs]</a>    <span class="k">def</span> <span class="nf">writePDB</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lines</span><span class="p">,</span> <span class="n">fnOut</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fnOut</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>

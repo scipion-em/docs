@@ -206,15 +206,15 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 
-
-<span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">FileParam</span><span class="p">,</span> <span class="n">IntParam</span>
+<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">isfile</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">FileParam</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">BatchProtocol</span>
-<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">Volume</span><span class="p">,</span> <span class="n">SetOfVolumes</span>
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">Volume</span><span class="p">,</span> <span class="n">SetOfVolumes</span><span class="p">,</span> <span class="n">AtomStruct</span>
 <span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="kn">import</span> <span class="n">writeSetOfVolumes</span>
 <span class="kn">import</span> <span class="nn">pwem.emlib.metadata</span> <span class="k">as</span> <span class="nn">md</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">pwem.utils</span> <span class="kn">import</span> <span class="n">runProgram</span>
-
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 
 <div class="viewcode-block" id="FlexBatchProtNMAClusterVol"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_batch_cluster_vol.html#continuousflex.protocols.protocol_batch_cluster_vol.FlexBatchProtNMAClusterVol">[docs]</a><span class="k">class</span> <span class="nc">FlexBatchProtNMAClusterVol</span><span class="p">(</span><span class="n">BatchProtocol</span><span class="p">):</span>
@@ -226,7 +226,6 @@
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addHidden</span><span class="p">(</span><span class="s1">&#39;inputNmaDimred&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;EMObject&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addHidden</span><span class="p">(</span><span class="s1">&#39;sqliteFile&#39;</span><span class="p">,</span> <span class="n">FileParam</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addHidden</span><span class="p">(</span><span class="s1">&#39;angleYflag&#39;</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">)</span>
 
     <span class="c1">#--------------------------- INSERT steps functions --------------------------------------------</span>
 
@@ -236,6 +235,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;convertInputStep&#39;</span><span class="p">,</span> <span class="n">volumesMd</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;averagingStep&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;centroidPdbStep&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;createOutputStep&#39;</span><span class="p">,</span> <span class="n">outputVol</span><span class="p">)</span>
 
     <span class="c1">#--------------------------- STEPS functions --------------------------------------------</span>
@@ -263,7 +263,6 @@
             <span class="n">id_org</span> <span class="o">=</span> <span class="n">md_file_org</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ITEM_ID</span><span class="p">,</span> <span class="n">objID</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">md_file_nma</span><span class="p">:</span>
                 <span class="n">id_nma</span> <span class="o">=</span> <span class="n">md_file_nma</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ITEM_ID</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
-                <span class="c1">#print(id_nma)</span>
                 <span class="k">if</span> <span class="n">id_org</span> <span class="o">==</span> <span class="n">id_nma</span><span class="p">:</span>
                     <span class="n">displacements</span> <span class="o">=</span> <span class="n">md_file_nma</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_NMA</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
                     <span class="n">md_file_org</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_NMA</span><span class="p">,</span> <span class="n">displacements</span><span class="p">,</span> <span class="n">objID</span><span class="p">)</span>
@@ -273,13 +272,10 @@
 
 
 <div class="viewcode-block" id="FlexBatchProtNMAClusterVol.averagingStep"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_batch_cluster_vol.html#continuousflex.protocols.protocol_batch_cluster_vol.FlexBatchProtNMAClusterVol.averagingStep">[docs]</a>    <span class="k">def</span> <span class="nf">averagingStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">flag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">angleYflag</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-
         <span class="n">volumesMd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;volumes.xmd&#39;</span><span class="p">)</span>
         <span class="n">mdVols</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="n">volumesMd</span><span class="p">)</span>
 
         <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">first</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="k">for</span> <span class="n">objId</span> <span class="ow">in</span> <span class="n">mdVols</span><span class="p">:</span>
             <span class="n">counter</span> <span class="o">=</span> <span class="n">counter</span> <span class="o">+</span> <span class="mi">1</span>
             <span class="n">imgPath</span> <span class="o">=</span> <span class="n">mdVols</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_IMAGE</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
@@ -291,35 +287,15 @@
             <span class="n">y_shift</span> <span class="o">=</span> <span class="n">mdVols</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
             <span class="n">z_shift</span> <span class="o">=</span> <span class="n">mdVols</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
 
-            <span class="c1"># The flip one is used here to determine if we need to use the option --inverse</span>
-            <span class="c1"># with xmipp_transform_geometry</span>
-            <span class="n">flip</span> <span class="o">=</span> <span class="n">mdVols</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
-
             <span class="n">outputVol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;average.vol&#39;</span><span class="p">)</span>
             <span class="n">tempVol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;temp.vol&#39;</span><span class="p">)</span>
             <span class="n">extra</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span>
 
-            <span class="k">if</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">0</span> <span class="p">:</span>
-                <span class="k">if</span> <span class="n">first</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;THERE IS NO COMPENSATION FOR THE MISSING WEDGE&quot;</span><span class="p">)</span>
-                    <span class="n">first</span> <span class="o">=</span> <span class="kc">False</span>
-
-                <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --inverse --rotate_volume euler </span><span class="si">%(rot)s</span><span class="s1"> </span><span class="si">%(tilt)s</span><span class="s1"> </span><span class="si">%(psi)s</span><span class="s1">&#39;</span> \
-                         <span class="s1">&#39; --shift </span><span class="si">%(x_shift)s</span><span class="s1"> </span><span class="si">%(y_shift)s</span><span class="s1"> </span><span class="si">%(z_shift)s</span><span class="s1"> -v 0&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">first</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;THERE IS A COMPENSATION FOR THE MISSING WEDGE&quot;</span><span class="p">)</span>
-                    <span class="n">first</span> <span class="o">=</span> <span class="kc">False</span>
-                <span class="c1"># First got to rotate each volume 90 degrees about the y axis, align it, then rotate back and sum it</span>
-                <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --rotate_volume euler 0 90 0&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-                <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
-                <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(tempVol)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --rotate_volume euler </span><span class="si">%(rot)s</span><span class="s1"> </span><span class="si">%(tilt)s</span><span class="s1"> </span><span class="si">%(psi)s</span><span class="s1">&#39;</span> \
-                         <span class="s1">&#39; --shift </span><span class="si">%(x_shift)s</span><span class="s1"> </span><span class="si">%(y_shift)s</span><span class="s1"> </span><span class="si">%(z_shift)s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
-
+            <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39;-i </span><span class="si">%(imgPath)s</span><span class="s1"> -o </span><span class="si">%(tempVol)s</span><span class="s1"> --inverse --rotate_volume euler </span><span class="si">%(rot)s</span><span class="s1"> </span><span class="si">%(tilt)s</span><span class="s1"> </span><span class="si">%(psi)s</span><span class="s1">&#39;</span> \
+                     <span class="s1">&#39; --shift </span><span class="si">%(x_shift)s</span><span class="s1"> </span><span class="si">%(y_shift)s</span><span class="s1"> </span><span class="si">%(z_shift)s</span><span class="s1"> -v 0&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
             <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_transform_geometry&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="n">counter</span> <span class="o">==</span> <span class="mi">1</span> <span class="p">:</span>
+            <span class="k">if</span> <span class="n">counter</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;mv </span><span class="si">%(tempVol)s</span><span class="s2"> </span><span class="si">%(outputVol)s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span>
 
             <span class="k">else</span><span class="p">:</span>
@@ -331,12 +307,49 @@
         <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s2">&quot;rm -f </span><span class="si">%(tempVol)s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">())</span></div>
 
 
+<div class="viewcode-block" id="FlexBatchProtNMAClusterVol.centroidPdbStep"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_batch_cluster_vol.html#continuousflex.protocols.protocol_batch_cluster_vol.FlexBatchProtNMAClusterVol.centroidPdbStep">[docs]</a>    <span class="k">def</span> <span class="nf">centroidPdbStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">volumesMd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;volumes.xmd&#39;</span><span class="p">)</span>
+        <span class="n">md_file</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="n">volumesMd</span><span class="p">)</span>
+        <span class="n">deformations</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">md_file</span><span class="p">:</span>
+            <span class="n">deformations</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md_file</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_NMA</span><span class="p">,</span> <span class="n">j</span><span class="p">))</span>
+        <span class="n">ampl</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">deformations</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getFnPDB</span><span class="p">())</span>
+
+        <span class="n">fnPDB</span><span class="p">,</span> <span class="n">pseudo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getFnPDB</span><span class="p">()</span>
+        <span class="n">fnModeList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getFnModes</span><span class="p">()</span>
+        <span class="n">fnOutPDB</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;centroid.pdb&#39;</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="s2">&quot; --pdb &quot;</span> <span class="o">+</span> <span class="n">fnPDB</span>
+        <span class="n">params</span> <span class="o">+=</span> <span class="s2">&quot; --nma &quot;</span> <span class="o">+</span> <span class="n">fnModeList</span>
+        <span class="n">params</span> <span class="o">+=</span> <span class="s2">&quot; -o &quot;</span> <span class="o">+</span> <span class="n">fnOutPDB</span>
+        <span class="n">params</span> <span class="o">+=</span> <span class="s2">&quot; --deformations &quot;</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ampl</span><span class="p">)</span>
+        <span class="n">runProgram</span><span class="p">(</span><span class="s1">&#39;xmipp_pdb_nma_deform&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="FlexBatchProtNMAClusterVol.createOutputStep"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_batch_cluster_vol.html#continuousflex.protocols.protocol_batch_cluster_vol.FlexBatchProtNMAClusterVol.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputVol</span><span class="p">):</span>
         <span class="n">vol</span> <span class="o">=</span> <span class="n">Volume</span><span class="p">()</span>
         <span class="n">vol</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">outputVol</span><span class="p">)</span>
-        <span class="c1">#outputParticles</span>
         <span class="n">vol</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">OutputVolumes</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
+        <span class="n">atm</span> <span class="o">=</span> <span class="n">AtomStruct</span><span class="p">()</span>
+        <span class="n">fnPDB</span><span class="p">,</span> <span class="n">pseudo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getFnPDB</span><span class="p">()</span>
+        <span class="n">fnOutPDB</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;centroid.pdb&#39;</span><span class="p">)</span>
+        <span class="n">atm</span><span class="o">.</span><span class="n">setPseudoAtoms</span><span class="p">(</span><span class="n">pseudo</span><span class="p">)</span>
+        <span class="n">atm</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">fnOutPDB</span><span class="p">)</span>
+        <span class="n">atm</span><span class="o">.</span><span class="n">setVolume</span><span class="p">(</span><span class="n">vol</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">centroidPDB</span><span class="o">=</span><span class="n">atm</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputVol</span><span class="o">=</span><span class="n">vol</span><span class="p">)</span></div>
+    <span class="c1">#--------------------------- Utility functions -----------------------------------------</span>
+<div class="viewcode-block" id="FlexBatchProtNMAClusterVol.getFnPDB"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_batch_cluster_vol.html#continuousflex.protocols.protocol_batch_cluster_vol.FlexBatchProtNMAClusterVol.getFnPDB">[docs]</a>    <span class="k">def</span> <span class="nf">getFnPDB</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># This functions returns the path of the structure, false if is atomic, true if pseudoatomic</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputNmaDimred</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">inputNMA</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;atoms.pdb&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">isfile</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">path</span><span class="p">,</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputNmaDimred</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">inputNMA</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;pseudoatoms.pdb&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">path</span><span class="p">,</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="FlexBatchProtNMAClusterVol.getFnModes"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_batch_cluster_vol.html#continuousflex.protocols.protocol_batch_cluster_vol.FlexBatchProtNMAClusterVol.getFnModes">[docs]</a>    <span class="k">def</span> <span class="nf">getFnModes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputNmaDimred</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">inputNMA</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;modes.xmd&#39;</span><span class="p">)</span></div>
 
     <span class="c1">#--------------------------- INFO functions --------------------------------------------</span>
     <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -352,7 +365,6 @@
 
     <span class="k">def</span> <span class="nf">_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[]</span></div>
-
 </pre></div>
 
            </div>

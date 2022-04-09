@@ -212,12 +212,19 @@
 
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.viewer</span> <span class="kn">import</span> <span class="p">(</span><span class="n">ProtocolViewer</span><span class="p">,</span> <span class="n">DESKTOP_TKINTER</span><span class="p">,</span> <span class="n">WEB_DJANGO</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="n">StringParam</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="n">StringParam</span><span class="p">,</span> <span class="n">LEVEL_ADVANCED</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol</span> <span class="kn">import</span> <span class="n">params</span>
 <span class="kn">from</span> <span class="nn">continuousflex.protocols.protocol_nma_alignment_vol</span> <span class="kn">import</span> <span class="n">FlexProtAlignmentNMAVol</span>
+<span class="kn">from</span> <span class="nn">continuousflex.protocols.protocol_subtomogrmas_synthesize</span> <span class="kn">import</span> <span class="n">FlexProtSynthesizeSubtomo</span>
 <span class="kn">from</span> <span class="nn">continuousflex.protocols.data</span> <span class="kn">import</span> <span class="n">Point</span><span class="p">,</span> <span class="n">Data</span>
-<span class="kn">from</span> <span class="nn">pwem.emlib</span> <span class="kn">import</span> <span class="n">MetaData</span><span class="p">,</span> <span class="n">MDL_ORDER</span>
+<span class="kn">from</span> <span class="nn">pwem.emlib</span> <span class="kn">import</span> <span class="n">MetaData</span><span class="p">,</span> <span class="n">MDL_ORDER</span><span class="p">,</span> <span class="n">MDL_ANGLE_ROT</span><span class="p">,</span> <span class="n">MDL_ANGLE_TILT</span><span class="p">,</span> <span class="n">MDL_ANGLE_PSI</span><span class="p">,</span> <span class="n">MDL_SHIFT_X</span><span class="p">,</span> <span class="n">MDL_SHIFT_Y</span><span class="p">,</span> \
+    <span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">MDL_NMA</span>
 <span class="kn">from</span> <span class="nn">.plotter_vol</span> <span class="kn">import</span> <span class="n">FlexNmaVolPlotter</span>
+<span class="kn">from</span> <span class="nn">continuousflex.protocols.convert</span> <span class="kn">import</span> <span class="n">l2</span>
+<span class="kn">from</span> <span class="nn">xmippLib</span> <span class="kn">import</span> <span class="n">SymList</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tkinter.messagebox</span> <span class="k">as</span> <span class="nn">mb</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="n">FIGURE_LIMIT_NONE</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">FIGURE_LIMITS</span> <span class="o">=</span> <span class="mi">1</span>
@@ -229,6 +236,8 @@
 <span class="n">Z_LIMITS_NONE</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">Z_LIMITS</span> <span class="o">=</span> <span class="mi">1</span>
 
+<span class="n">METADATA_PROJECT</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">METADATA_FILE</span> <span class="o">=</span> <span class="mi">1</span>
 
 <div class="viewcode-block" id="FlexAlignmentNMAVolViewer"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.viewers.viewer_nma_alignment_vol.html#continuousflex.viewers.viewer_nma_alignment_vol.FlexAlignmentNMAVolViewer">[docs]</a><span class="k">class</span> <span class="nc">FlexAlignmentNMAVolViewer</span><span class="p">(</span><span class="n">ProtocolViewer</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Visualization of results from the NMA protocol</span>
@@ -301,9 +310,29 @@
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;zlim_high&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                       <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;zlimits_mode==</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">Z_LIMITS</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Upper z-axis limit&#39;</span><span class="p">)</span>
+        <span class="n">group</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">addGroup</span><span class="p">(</span><span class="s1">&#39;Comparing with ground-truth&#39;</span><span class="p">,</span> <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">)</span>
+        <span class="n">group</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;GroundTruth&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span>
+                       <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;From volume synthesis protocol&#39;</span><span class="p">,</span> <span class="s1">&#39;From an external metadata file&#39;</span><span class="p">],</span>
+                       <span class="n">default</span><span class="o">=</span><span class="n">METADATA_PROJECT</span><span class="p">,</span>
+                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Ground-Truth parameters&#39;</span><span class="p">,</span> <span class="n">display</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="o">.</span><span class="n">DISPLAY_COMBO</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Use this is only when testing the method with synthetic data&#39;</span><span class="p">)</span>
+        <span class="n">group</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;SynthesisProject&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;FlexProtSynthesizeSubtomo&#39;</span><span class="p">,</span>
+                       <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;GroundTruth==</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">METADATA_PROJECT</span><span class="p">,</span>
+                       <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Project for volume synthesize&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select a previous run for subtomogram synthesize.&#39;</span><span class="p">)</span>
+        <span class="n">group</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;MetadataFile&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FileParam</span><span class="p">,</span>
+                       <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;params.FileParam&#39;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                       <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;GroundTruth==</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">METADATA_FILE</span><span class="p">,</span>
+                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Metadata file (xmd)&quot;</span><span class="p">,</span>
+                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Choose a metadata file containing angles, shifts and NM amplitudes, typically a metadata&#39;</span>
+                            <span class="s1">&#39; file from synthesizing volumes&#39;</span><span class="p">)</span>
+        <span class="n">group</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;displayStatistics&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">LabelParam</span><span class="p">,</span>
+                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Display error statistics and plots?&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_getVisualizeDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;displayRawDeformation&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_viewRawDeformation</span><span class="p">,</span>
+                <span class="s1">&#39;displayStatistics&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_viewErrorStatistics</span><span class="p">,</span>
                 <span class="p">}</span>
 
 
@@ -370,6 +399,102 @@
             <span class="n">views</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plotter</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">views</span>
+
+    <span class="k">def</span> <span class="nf">_viewErrorStatistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paramName</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">GroundTruth</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="n">METADATA_PROJECT</span><span class="p">:</span>
+            <span class="n">metadata_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">SynthesisProject</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;GroundTruth.xmd&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">metadata_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">MetadataFile</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_doViewErrorStatistics</span><span class="p">(</span><span class="n">metadata_file</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_doViewErrorStatistics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">metadata_file</span><span class="p">):</span>
+        <span class="n">md_gt</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="n">metadata_file</span><span class="p">)</span>
+        <span class="n">md_protocol</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;volumes.xmd&#39;</span><span class="p">))</span>
+        <span class="n">md_protocol</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="c1"># Get the matching modes:</span>
+        <span class="n">md_modes</span> <span class="o">=</span> <span class="n">MetaData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;modes.xmd&#39;</span><span class="p">))</span>
+        <span class="n">modeIds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">objId</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">md_modes</span><span class="p">):</span>
+            <span class="n">modeIds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md_modes</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">MDL_ORDER</span><span class="p">,</span> <span class="n">objId</span><span class="p">))</span>
+        <span class="c1"># print(modeIds)</span>
+        <span class="c1"># Get the parameters from both lists:</span>
+        <span class="n">rtp_protocol</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">xyz_protocol</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">mode_ampl_protocol</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">rtp_gt</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">xyz_gt</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">mode_ampl_gt</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">objId</span> <span class="ow">in</span> <span class="n">md_protocol</span><span class="p">:</span>
+            <span class="n">rtp_protocol</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">md_protocol</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">MDL_ANGLE_ROT</span><span class="p">,</span> <span class="n">objId</span><span class="p">),</span>
+                                 <span class="n">md_protocol</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">MDL_ANGLE_TILT</span><span class="p">,</span> <span class="n">objId</span><span class="p">),</span>
+                                 <span class="n">md_protocol</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">MDL_ANGLE_PSI</span><span class="p">,</span> <span class="n">objId</span><span class="p">)])</span>
+            <span class="n">xyz_protocol</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">md_protocol</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">MDL_SHIFT_X</span><span class="p">,</span> <span class="n">objId</span><span class="p">),</span>
+                                 <span class="n">md_protocol</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">),</span>
+                                 <span class="n">md_protocol</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">objId</span><span class="p">)])</span>
+            <span class="n">mode_ampl_protocol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md_protocol</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">MDL_NMA</span><span class="p">,</span> <span class="n">objId</span><span class="p">))</span>
+
+            <span class="n">rtp_gt</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">md_gt</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">MDL_ANGLE_ROT</span><span class="p">,</span> <span class="n">objId</span><span class="p">),</span>
+                           <span class="n">md_gt</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">MDL_ANGLE_TILT</span><span class="p">,</span> <span class="n">objId</span><span class="p">),</span>
+                           <span class="n">md_gt</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">MDL_ANGLE_PSI</span><span class="p">,</span> <span class="n">objId</span><span class="p">)])</span>
+            <span class="n">xyz_gt</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">md_gt</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">MDL_SHIFT_X</span><span class="p">,</span> <span class="n">objId</span><span class="p">),</span>
+                           <span class="n">md_gt</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">),</span>
+                           <span class="n">md_gt</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">objId</span><span class="p">)])</span>
+            <span class="n">mode_ampl_gt</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">md_gt</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">MDL_NMA</span><span class="p">,</span> <span class="n">objId</span><span class="p">))</span>
+
+        <span class="c1"># Angular and shift distances</span>
+        <span class="n">shift_distance</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">angular_distance</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># The full description of computeDistanceAngles function is:</span>
+        <span class="c1"># A = SymList.computeDistanceAngles(SymList(), rot1, tilt1, psi1, rot2, tilt2, psi2, projdir_mode, check_mirrors, object_rotation)</span>
+        <span class="c1"># By default, they are all set to False. However, check_mirrors should be true in general.</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rtp_protocol</span><span class="p">)):</span>
+            <span class="n">shift_distance</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">l2</span><span class="p">(</span><span class="n">xyz_gt</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">xyz_protocol</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+            <span class="n">angular_distance</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">SymList</span><span class="o">.</span><span class="n">computeDistanceAngles</span><span class="p">(</span><span class="n">SymList</span><span class="p">(),</span>
+                                                                  <span class="n">rtp_protocol</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">rtp_protocol</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">rtp_protocol</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span>
+                                                                  <span class="n">rtp_gt</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">rtp_gt</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">rtp_gt</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">],</span>
+                                                                  <span class="kc">False</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
+        <span class="c1"># Normal mode amplitudes distances: we need to find the subset of normal modes used in alignment in the groundtruth</span>
+        <span class="n">mode_distances</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">mean_amplitudes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">std_amplitudes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dist</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">modeIds</span><span class="p">:</span>
+            <span class="c1"># mode 7 corresponds to zero in the ground truth, so we need to subtract 7</span>
+            <span class="n">A</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mode_ampl_gt</span><span class="p">)[:,</span><span class="n">i</span> <span class="o">-</span> <span class="mi">7</span><span class="p">]</span>
+            <span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">mode_ampl_protocol</span><span class="p">)[:,</span> <span class="n">counter</span><span class="p">]</span>
+            <span class="n">mean_amplitudes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">A</span> <span class="o">-</span> <span class="n">B</span><span class="p">)))</span>
+            <span class="n">std_amplitudes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">A</span> <span class="o">-</span> <span class="n">B</span><span class="p">)))</span>
+            <span class="n">label</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;mode &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+            <span class="n">dist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">A</span> <span class="o">-</span> <span class="n">B</span><span class="p">))</span>
+            <span class="n">counter</span> <span class="o">+=</span><span class="mi">1</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;histogram of normal mode amplitude distances&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">dist</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper right&#39;</span><span class="p">)</span>
+
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">angular_distance</span><span class="p">),</span> <span class="n">bins</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;histogram of angular distance&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">shift_distance</span><span class="p">),</span> <span class="n">bins</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;histogram of shift distance&#39;</span><span class="p">)</span>
+
+        <span class="n">message</span> <span class="o">=</span> <span class="s1">&#39;mean and standard deviation angular distance: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">angular_distance</span><span class="p">)))[:</span><span class="mi">7</span><span class="p">]</span>
+        <span class="n">message</span> <span class="o">+=</span> <span class="s1">&#39; and &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">angular_distance</span><span class="p">)))[:</span><span class="mi">7</span><span class="p">]</span>
+        <span class="n">message</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">mean and standard deviation shift distance: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">shift_distance</span><span class="p">)))[:</span><span class="mi">7</span><span class="p">]</span>
+        <span class="n">message</span> <span class="o">+=</span> <span class="s1">&#39; and &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">shift_distance</span><span class="p">)))[:</span><span class="mi">7</span><span class="p">]</span>
+
+        <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">modeIds</span><span class="p">:</span>
+            <span class="n">message</span> <span class="o">+=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">mean and standard deviation for mode &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;: &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">mean_amplitudes</span><span class="p">[</span><span class="n">counter</span><span class="p">])[:</span><span class="mi">7</span><span class="p">]</span> <span class="o">+</span> \
+                       <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">std_amplitudes</span><span class="p">[</span><span class="n">counter</span><span class="p">])[:</span><span class="mi">7</span><span class="p">]</span>
+            <span class="n">counter</span> <span class="o">+=</span><span class="mi">1</span>
+
+        <span class="n">mb</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span><span class="s1">&#39;Distances compared to the ground truth&#39;</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+        <span class="k">pass</span>
 
 <div class="viewcode-block" id="FlexAlignmentNMAVolViewer.loadData"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.viewers.viewer_nma_alignment_vol.html#continuousflex.viewers.viewer_nma_alignment_vol.FlexAlignmentNMAVolViewer.loadData">[docs]</a>    <span class="k">def</span> <span class="nf">loadData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Iterate over the images and their deformations </span>

@@ -211,26 +211,29 @@
 <span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">getListFromRangeString</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">ProtAnalysis3D</span>
 <span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="kn">import</span> <span class="p">(</span><span class="n">writeSetOfVolumes</span><span class="p">,</span> <span class="n">xmippToLocation</span><span class="p">,</span> <span class="n">createItemMatrix</span><span class="p">,</span>
-                            <span class="n">setXmippAttributes</span><span class="p">,</span> <span class="n">setOfParticlesToMd</span><span class="p">,</span> <span class="n">getImageLocation</span><span class="p">)</span>
-
+                            <span class="n">setXmippAttributes</span><span class="p">,</span> <span class="n">getImageLocation</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">pwem</span> <span class="k">as</span> <span class="nn">em</span>
 <span class="kn">import</span> <span class="nn">pwem.emlib.metadata</span> <span class="k">as</span> <span class="nn">md</span>
 <span class="kn">from</span> <span class="nn">xmipp3</span> <span class="kn">import</span> <span class="n">XmippMdRow</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils.path</span> <span class="kn">import</span> <span class="n">copyFile</span><span class="p">,</span> <span class="n">cleanPath</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="n">NumericRangeParam</span>
-<span class="kn">from</span> <span class="nn">.convert</span> <span class="kn">import</span> <span class="n">modeToRow</span>
-<span class="kn">from</span> <span class="nn">pwem.convert.atom_struct</span> <span class="kn">import</span> <span class="n">cifToPdb</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">replaceBaseExt</span>
-<span class="kn">from</span> <span class="nn">pwem.utils</span> <span class="kn">import</span> <span class="n">runProgram</span>
+<span class="kn">from</span> <span class="nn">.convert</span> <span class="kn">import</span> <span class="n">modeToRow</span><span class="p">,</span> <span class="n">eulerAngles2matrix</span><span class="p">,</span> <span class="n">matrix2eulerAngles</span>
 <span class="kn">from</span> <span class="nn">pwem</span> <span class="kn">import</span> <span class="n">Domain</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="n">WEDGE_MASK_NONE</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">WEDGE_MASK_THRE</span> <span class="o">=</span> <span class="mi">1</span>
 
 
 <div class="viewcode-block" id="FlexProtAlignmentNMAVol"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_nma_alignment_vol.html#continuousflex.protocols.protocol_nma_alignment_vol.FlexProtAlignmentNMAVol">[docs]</a><span class="k">class</span> <span class="nc">FlexProtAlignmentNMAVol</span><span class="p">(</span><span class="n">ProtAnalysis3D</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Protocol for flexible angular alignment. &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Protocol for rigid-body and elastic alignment for volumes using NMA. This protocol is the code module of HEMNMA-3D.</span>
+<span class="sd">     It will take as input a set of normal modes calculated for an input atomic or pseudoatomic structure, and a set of volumes (subtomograms) to analyze.</span>
+<span class="sd">     It fits the input structure using its modes (a subset of the modes need to be selected) into each one of the input volumes while simultaneously looking for rigid-body alignment, with</span>
+<span class="sd">     compensation for missing wedge artefacts.</span>
+<span class="sd">     The result of this protocol are rigid-body and elastic parameters for each input volume.</span>
+<span class="sd">     Those results will be fed for a dimensionality reduction method (nma dimred vol) for further processing.</span>
+<span class="sd">     &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;nma alignment vol&#39;</span>
 
     <span class="c1"># --------------------------- DEFINE param functions --------------------------------------------</span>
@@ -268,12 +271,10 @@
                            <span class="s1">&#39; You can also choose not to compensate if your data is not subtomograms but EM-maps.&#39;</span>
                            <span class="s1">&#39; The missing wedge is assumed to be in the Y-axis direction.&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;tiltLow&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=-</span><span class="mi">60</span><span class="p">,</span>
-                      <span class="c1"># expertLevel=params.LEVEL_ADVANCED,</span>
                       <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;WedgeMode==</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">WEDGE_MASK_THRE</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Lower tilt value&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The lower tilt angle used in obtaining the tilt series&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;tiltHigh&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span>
-                      <span class="c1"># expertLevel=params.LEVEL_ADVANCED,</span>
                       <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;WedgeMode==</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">WEDGE_MASK_THRE</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Upper tilt value&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The upper tilt angle used in obtaining the tilt series&#39;</span><span class="p">)</span>
@@ -288,21 +289,21 @@
                            <span class="s1">&#39;This value should not be changed except by expert users. &#39;</span>
                            <span class="s1">&#39;Larger values (e.g., between 1 and 2) can be tried &#39;</span>
                            <span class="s1">&#39;for larger expected amplitudes of conformational change.&#39;</span><span class="p">)</span>
-        <span class="c1"># form.addParam(&#39;rhoStartBase&#39;, params.FloatParam, default=250.0,</span>
-        <span class="c1">#               expertLevel=params.LEVEL_ADVANCED,</span>
-        <span class="c1">#               label=&#39;CONDOR optimiser parameter rhoStartBase&#39;,</span>
-        <span class="c1">#               help=&#39;rhoStartBase &gt; 0  : (rhoStart = rhoStartBase*trustRegionScale) the lower the better,&#39;</span>
-        <span class="c1">#                    &#39; yet the slower&#39;)</span>
-        <span class="c1"># form.addParam(&#39;rhoEndBase&#39;, params.FloatParam, default=50.0,</span>
-        <span class="c1">#               expertLevel=params.LEVEL_ADVANCED,</span>
-        <span class="c1">#               label=&#39;CONDOR optimiser parameter rhoEndBase &#39;,</span>
-        <span class="c1">#               help=&#39;rhoEndBase &gt; 250  : (rhoEnd = rhoEndBase*trustRegionScale) no specific rule, &#39;</span>
-        <span class="c1">#                    &#39;however it is better to keep it &lt; 1000 if set very high we risk distortions&#39;)</span>
-        <span class="c1"># form.addParam(&#39;niter&#39;, params.IntParam, default=10000,</span>
-        <span class="c1">#               expertLevel=params.LEVEL_ADVANCED,</span>
-        <span class="c1">#               label=&#39;CONDOR optimiser parameter niter&#39;,</span>
-        <span class="c1">#               help=&#39;niter should be big enough to guarantee that the search converges to the &#39;</span>
-        <span class="c1">#                    &#39;right set of nma deformation amplitudes&#39;)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addHidden</span><span class="p">(</span><span class="s1">&#39;rhoStartBase&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">250.0</span><span class="p">,</span>
+                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;CONDOR optimiser parameter rhoStartBase&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;rhoStartBase &gt; 0  : (rhoStart = rhoStartBase*trustRegionScale) the lower the better,&#39;</span>
+                           <span class="s1">&#39; yet the slower&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addHidden</span><span class="p">(</span><span class="s1">&#39;rhoEndBase&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">50.0</span><span class="p">,</span>
+                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;CONDOR optimiser parameter rhoEndBase &#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;rhoEndBase &gt; 250  : (rhoEnd = rhoEndBase*trustRegionScale) no specific rule, &#39;</span>
+                           <span class="s1">&#39;however it is better to keep it &lt; 1000 if set very high we risk distortions&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addHidden</span><span class="p">(</span><span class="s1">&#39;niter&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span>
+                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;CONDOR optimiser parameter niter&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;niter should be big enough to guarantee that the search converges to the &#39;</span>
+                           <span class="s1">&#39;right set of nma deformation amplitudes&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;frm_freq&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span>
                       <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Maximum cross correlation frequency&#39;</span><span class="p">,</span>
@@ -339,9 +340,9 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;convertInputStep&#39;</span><span class="p">,</span> <span class="n">atomsFn</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">copyDeformations</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>  <span class="c1"># SERVES_FOR_DEBUGGING AND COMPUTING ON CLUSTERS</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">copyDeformations</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s2">&quot;performNmaStep&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">atomsFn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">modesFn</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># SERVES FOR DEBUGGING AND COMPUTING ON CLUSTERS</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;copyDeformationsStep&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">copyDeformations</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;createOutputStep&#39;</span><span class="p">)</span>
@@ -354,8 +355,6 @@
         <span class="c1"># to launch the nma alignment programs</span>
         <span class="n">writeSetOfVolumes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputVolumes</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">imgsFn</span><span class="p">)</span>
         <span class="n">writeSetOfVolumes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputVolumes</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">imgsFn_backup</span><span class="p">)</span></div>
-        <span class="c1"># Copy the atoms file to current working dir</span>
-        <span class="c1"># copyFile(atomsFn, self.atomsFn)</span>
 
 <div class="viewcode-block" id="FlexProtAlignmentNMAVol.writeModesMetaData"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_nma_alignment_vol.html#continuousflex.protocols.protocol_nma_alignment_vol.FlexProtAlignmentNMAVol.writeModesMetaData">[docs]</a>    <span class="k">def</span> <span class="nf">writeModesMetaData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Iterate over the input SetOfNormalModes and write</span>
@@ -407,8 +406,39 @@
             <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_IMAGE</span><span class="p">,</span> <span class="n">getImageLocation</span><span class="p">(</span><span class="n">particle</span><span class="p">),</span> <span class="n">objId</span><span class="p">)</span>
             <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ITEM_ID</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">particle</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()),</span> <span class="n">objId</span><span class="p">)</span>
         <span class="n">mdImgs</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ITEM_ID</span><span class="p">)</span>
-        <span class="n">mdImgs</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imgsFn</span><span class="p">)</span></div>
+        <span class="n">mdImgs</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imgsFn</span><span class="p">)</span>
 
+        <span class="c1"># if the volumes were aligned with angle_y=90 degrees, then rotate by 90 and inverse, then set angle y to 0</span>
+        <span class="n">mdImgs</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imgsFn</span><span class="p">)</span>
+
+        <span class="n">flag</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">flag</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_Y</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">if</span> <span class="n">flag</span> <span class="o">==</span> <span class="mi">90</span><span class="p">:</span>
+            <span class="n">mdImgs</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imgsFn</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">objId</span> <span class="ow">in</span> <span class="n">mdImgs</span><span class="p">:</span>
+                <span class="n">rot</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_ROT</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">tilt</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_TILT</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">psi</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_PSI</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_X</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">z</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">T</span> <span class="o">=</span> <span class="n">eulerAngles2matrix</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+                <span class="c1"># Rotate 90 degrees (compensation for missing wedge)</span>
+                <span class="n">T0</span> <span class="o">=</span> <span class="n">eulerAngles2matrix</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">T0</span><span class="p">))</span>
+                <span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">matrix2eulerAngles</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_ROT</span><span class="p">,</span> <span class="n">rot</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_TILT</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_PSI</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_X</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_Y</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+            <span class="n">mdImgs</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imgsFn</span><span class="p">)</span></div>
 
 
 
@@ -419,9 +449,9 @@
         <span class="n">imgFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">imgsFn</span>
         <span class="n">frm_freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">frm_freq</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="n">frm_maxshift</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">frm_maxshift</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="c1"># rhoStartBase = self.rhoStartBase.get()</span>
-        <span class="c1"># rhoEndBase = self.rhoEndBase.get()</span>
-        <span class="c1"># niter = self.niter.get()</span>
+        <span class="n">rhoStartBase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rhoStartBase</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">rhoEndBase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rhoEndBase</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">niter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">niter</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="n">rhoStartBase</span> <span class="o">=</span> <span class="mf">250.0</span>
         <span class="n">rhoEndBase</span> <span class="o">=</span> <span class="mf">50.0</span>
         <span class="n">niter</span> <span class="o">=</span> <span class="mi">10000</span>
@@ -442,8 +472,6 @@
             <span class="n">tiltF</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tiltHigh</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
             <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--tilt_values </span><span class="si">%(tilt0)d</span><span class="s2"> </span><span class="si">%(tiltF)d</span><span class="s2"> &quot;</span>
 
-        <span class="c1"># print(args % locals())</span>
-        <span class="c1"># runProgram(&quot;xmipp_nma_alignment_vol&quot;, args % locals())</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_nma_alignment_vol&quot;</span><span class="p">,</span> <span class="n">args</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">(),</span>
                     <span class="n">env</span><span class="o">=</span><span class="n">Domain</span><span class="o">.</span><span class="n">importFromPlugin</span><span class="p">(</span><span class="s1">&#39;xmipp3&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">())</span>
 
@@ -475,7 +503,31 @@
         <span class="n">mdImgs</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ITEM_ID</span><span class="p">)</span>
         <span class="n">mdImgs</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imgsFn</span><span class="p">)</span>
 
-        <span class="n">mdImgs</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imgsFn</span><span class="p">)</span>
+        <span class="c1"># if WedgeMode was Mask, then update the metadata angles and shifts to be in the same convention of the</span>
+        <span class="c1"># ground truth (rotate 90 degrees) then set angle y to 0</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">WedgeMode</span> <span class="o">==</span> <span class="n">WEDGE_MASK_THRE</span><span class="p">:</span>
+            <span class="n">mdImgs</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imgsFn</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">objId</span> <span class="ow">in</span> <span class="n">mdImgs</span><span class="p">:</span>
+                <span class="n">rot</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_ROT</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">tilt</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_TILT</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">psi</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_PSI</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_X</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">z</span> <span class="o">=</span> <span class="n">mdImgs</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">T</span> <span class="o">=</span> <span class="n">eulerAngles2matrix</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+                <span class="c1"># Rotate 90 degrees (compensation for missing wedge)</span>
+                <span class="n">T0</span> <span class="o">=</span> <span class="n">eulerAngles2matrix</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">T0</span><span class="p">))</span>
+                <span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">matrix2eulerAngles</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_ROT</span><span class="p">,</span> <span class="n">rot</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_TILT</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_PSI</span><span class="p">,</span> <span class="n">psi</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_X</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+                <span class="n">mdImgs</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_Y</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">objId</span><span class="p">)</span>
+            <span class="n">mdImgs</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imgsFn</span><span class="p">)</span>
+
         <span class="n">cleanPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;copy.xmd&#39;</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="FlexProtAlignmentNMAVol.createOutputStep"><a class="viewcode-back" href="../../../api/continuousflex/continuousflex.protocols.protocol_nma_alignment_vol.html#continuousflex.protocols.protocol_nma_alignment_vol.FlexProtAlignmentNMAVol.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -510,22 +562,9 @@
         <span class="k">pass</span>
 
     <span class="c1"># --------------------------- UTILS functions --------------------------------------------</span>
-    <span class="k">def</span> <span class="nf">_printWarnings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">lines</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Print some warning lines to &#39;warnings.xmd&#39;,</span>
-<span class="sd">        the function should be called inside the working dir.&quot;&quot;&quot;</span>
-        <span class="n">fWarn</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;warnings.xmd&quot;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
-            <span class="nb">print</span> <span class="o">&gt;&gt;</span> <span class="n">fWarn</span><span class="p">,</span> <span class="n">l</span>
-        <span class="n">fWarn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-
-    <span class="k">def</span> <span class="nf">_getLocalModesFn</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">modesFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputModes</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getBasePath</span><span class="p">(</span><span class="n">modesFn</span><span class="p">)</span>
-
     <span class="k">def</span> <span class="nf">_updateParticle</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
         <span class="n">setXmippAttributes</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_ROT</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_TILT</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_PSI</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_X</span><span class="p">,</span>
-                           <span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_FLIP</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_NMA</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_COST</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_MAXCC</span><span class="p">,</span>
-                           <span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_Y</span><span class="p">)</span>
+                           <span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Y</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_SHIFT_Z</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_FLIP</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_NMA</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_COST</span><span class="p">,</span> <span class="n">md</span><span class="o">.</span><span class="n">MDL_MAXCC</span><span class="p">)</span>
         <span class="n">createItemMatrix</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">row</span><span class="p">,</span> <span class="n">align</span><span class="o">=</span><span class="n">em</span><span class="o">.</span><span class="n">ALIGN_PROJ</span><span class="p">)</span></div>
 </pre></div>
 
