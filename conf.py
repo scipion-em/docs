@@ -57,8 +57,12 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.githubpages',
     'sphinx.ext.napoleon',
-    'sphinx.ext.autosectionlabel'
+    'sphinx.ext.autosectionlabel',
+    'sphinxcontrib.bibtex',
 ]
+bibtex_bibfiles = ['em.bib']
+bibtex_reference_style = u'author_year'
+numfig = True
 
 napoleon_google_docstring = False
 napoleon_use_param = False
