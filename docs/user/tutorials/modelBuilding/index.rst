@@ -1,5 +1,6 @@
 Model Building
 ==============
+.. _modelBuilding:
 
 Providing a basic introduction to model building, this tutorial shows a workflow aimed at obtaining high-quality atomic models from cryo-EM data by using scipion software framework..
 

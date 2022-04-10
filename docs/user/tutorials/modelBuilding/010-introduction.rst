@@ -8,8 +8,7 @@ Model building is the process that allows getting the atomic
 interpretation of an electron density map. Although a electron density
 volume can be obtained from different methodologies, in this tutorial we
 focus in maps obtained by cryo-EM. As an example of these maps, 
-Fig. :numref:`model_building_example` shows
-the input electron density map (a), as well as the output haemoglobin
+:numref:`model_building_example` shows the input electron density map (a), as well as the output haemoglobin
 tetramer atomic model (b) obtained by the model building process. Since
 high quality atomic structures are essential to accomplish detailed
 mechanistic studies and to seek inhibitor drugs of macromolecules, the
@@ -21,7 +20,6 @@ macromolecules.
    :name: model_building_example
    :align: center
    
-
    a) Haemoglobin tetramer :cite:p:`khoshouei2017`
    Electron density map at 3.2Å resolution obtained by Cryo-EM single
    particle analysis with Volta phase plate. b) Atomic structure model
@@ -46,7 +44,8 @@ Model building workflow
 
 The set of successive tasks aimed to get the atomic interpretation of
 electron density maps is known as model building workflow. Main steps of
-the general workflow are detailed from top to bottom in . Tasks and
+the general workflow are detailed from top to bottom in 
+:numref:`model_building_workflow`. Tasks and
 tools required are highlighted in green (left side). Before starting
 those tasks, a detailed study and recruiting of experimental information
 of the macromolecule itself and similar specimens is recommended.
@@ -73,8 +72,9 @@ reference homologous structure.
 
 .. figure:: Images/Fig2.svg
    :alt: General Model Building Workflow.
-   :name: fig:model_building_workflow
+   :name: model_building_workflow
    :width: 95.0%
    :align: center
 
    General Model Building Workflow.
+
