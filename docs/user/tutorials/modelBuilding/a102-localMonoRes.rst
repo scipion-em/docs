@@ -1,4 +1,4 @@
-.. _`app:localMonoRes`:
+.. _`app_localMonoRes`:
 
 Local MonoRes protocol
 ======================

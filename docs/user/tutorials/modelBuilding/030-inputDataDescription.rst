@@ -8,30 +8,29 @@ Map
   result of our own reconstruction process or can be obtained from a
   database. In this tutorial we use the haemoglobin map *EMD-3488*, that
   can be downloaded from *PDBE*
-  (http://www.ebi.ac.uk/pdbe/entry/emdb/EMD-3488) ().
+  (http://www.ebi.ac.uk/pdbe/entry/emdb/EMD-3488) (:numref:`model_building_PDBE`).
+
 | WARNING in case you use your own map obtained from cryo-EM images:
   Take into account that cryo-EM 3D maps benefit significantly of an
   “optimizing” step, normally referred to as “sharpening” or “density
   improvement“, that tends to increase signal at medium/high resolution.
   Therefore, we recommend to sharp the map before tracing the atomic
-  model. Either two protocols consecutively applied,
-  :raw-latex:`\citep{vilas2018}` and :raw-latex:`\citep{ramirez2018}`,
-  or the protocol :raw-latex:`\citep{Sanchez-Garcia2020.06.12.148296}`,
+  model. Either two *Scipion* protocols consecutively applied, 
+  **xmipp3-local MonoRes** :cite:p:`vilas2018` and **xmipp3-localdeblur sharpening** :cite:p:`ramirez2018`,
+  or the protocol **xmipp3-deepEMhancer** :cite:p:`Sanchez-Garcia2020.06.12.148296`,
   allow map sharpening. Details about the parameters of these protocols
-  are shown in Appendices `[app:localMonoRes] <#app:localMonoRes>`__,
-  `[app:localDeblurSharpening] <#app:localDeblurSharpening>`__ and
-  `[app:deepEMhancerSharpening] <#app:deepEMhancerSharpening>`__,
-  respectively.
+  are shown in Appendices :ref:`Local MonoRes <app_localMonoRes>`, :ref:`Local Deblur <app:localDeblurSharpening>` and :ref:`DeepEMhancer <app:deepEMhancerSharpening>`, respectively.
 
-.. figure:: {Images/Fig3}
+.. figure:: Images/Fig3.svg
    :alt: Downloading the volume from *PDBe*.
-   :name: fig:PDBE
+   :name: model_building_PDBE
+   :align: center
    :width: 95.0%
 
    Downloading the volume from *PDBe*.
 
-Once downloaded the volume, unpack it (command line: *gunzip
-emd-3488.map.gz*) and save it in your tutorial folder.
+Once downloaded the volume, unpack it (command line: ``gunzip
+emd-3488.map.gz``) and save it in your tutorial folder.
 
 Sequences
 ---------
@@ -64,5 +63,5 @@ end of both proteins, we can predict that these are not the polypeptide
 mature forms and *Met* will be removed in the mature ones that are
 present in the atomic structures.
 
-Those two sequences can be retrieved from *UniProtKB* using   protocol,
+Those two sequences can be retrieved from *UniProtKB* using *Scipion* **import sequence**  protocol,
 which allows direct downloading from the database.
