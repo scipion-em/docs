@@ -23,16 +23,16 @@ CCP4 Coot Refinement protocol
 
 -  Requirements to run this protocol and visualize results:
 
-   -  plugin:
+   -  plugin: *scipion-em*
 
-   -  plugin:
+   -  plugin: *scipion-em-ccp4*
 
    -  CCP4 software suite (from version 7.0.056 to 7.1)
 
-   -  plugin:
+   -  plugin: *scipion-em-chimera*
 
 -  | menu:
-   | ( (A))
+   | *Model building -> Flexible fitting* ( (A))
 
 -  Protocol form parameters ( (B)):
 
@@ -43,28 +43,30 @@ CCP4 Coot Refinement protocol
 
       Protocol . A: Protocol location in menu. B: Protocol form.
 
-   -  section
+   -  *Input* section
 
-      -  : At least one or several electron density maps previously
-         downloaded or generated in . The density volume regarding to
-         which an atomic structure has to be modeled has to be included
-         in this volume list.
+      -  *Input Volume/s*: At least one or several electron density maps
+         previously downloaded or generated in . The density volume
+         regarding to which an atomic structure has to be modeled has to
+         be included in this volume list.
 
-      -  : Parameter set to “Yes” by default to perform normalization of
-         map electron density levels according to :math:`Coot`
-         requirements ([0, 1]). This normalization approximates cryo-EM
-         density data to maps obtained from X-ray crystallography
-         because it diminishes Z-score (number of standard deviations)
-         variation of map values.
+      -  *Normalize*: Parameter set to “Yes” by default to perform
+         normalization of map electron density levels according to
+         :math:`Coot` requirements ([0, 1]). This normalization
+         approximates cryo-EM density data to maps obtained from X-ray
+         crystallography because it diminishes Z-score (number of
+         standard deviations) variation of map values.
 
-      -  : Mandatory param to load an atomic structure previously
-         downloaded or generated in . This structure will be fitted and
-         refined according to a particular density volume.
+      -  *Atomic structure to be refined*: Mandatory param to load an
+         atomic structure previously downloaded or generated in . This
+         structure will be fitted and refined according to a particular
+         density volume.
 
-      -  : Additional atomic structures previously downloaded or
-         generated in that may be helpful in the refinement process.
+      -  *Other reference atomic structures*: Additional atomic
+         structures previously downloaded or generated in that may be
+         helpful in the refinement process.
 
-   -  section
+   -  *Help* section
 
       This section contains :math:`Coot` commands to make easier some
       interactive refinement steps and to save refined atomic
@@ -75,94 +77,102 @@ CCP4 Coot Refinement protocol
       -  Automatically moving from one chain to another in an atomic
          structure:
 
-         -  Press in the keyboard to move from one chain to the previous
-            one.
+         -  Press *“x”* in the keyboard to move from one chain to the
+            previous one.
 
-         -  Press to change from one chain to the next one.
+         -  Press *“X”* to change from one chain to the next one.
 
       -  | Initializing global variables:
-         | Press in your keyboard.
+         | Press *“U”* in your keyboard.
 
       -  | Semi-automatic refinement of small groups of residues (10 to
            15):
          | As soon as :math:`Coot` protocol is executed, the text file
-           will be saved in the project folder ( (1, 2)). This file
-           content has to be modified according to our atomic structure
-           model in this way:
+           *coot.ini* will be saved in the project folder
+           */Runs/00XXXX_CootRefine/extra/* ( (1, 2)). This file content
+           has to be modified according to our atomic structure model in
+           this way:
 
-         -  : has to be replaced by the number of the molecule that has
-            to be refined. This number appears detailed in :math:`Coot`
-            main menu ( (B, red arrow)).
+         -  *imol*: *#0* has to be replaced by the number of the
+            molecule that has to be refined. This number appears
+            detailed in :math:`Coot` main menu *Display Manager* ( (B,
+            red arrow)).
 
-         -  : has to be replaced by the name of the molecule chain that
-            has to be refined.
+         -  *aa_main_chain*: *A* has to be replaced by the name of the
+            molecule chain that has to be refined.
 
-         -  : , name of the small chain of 10-15 residues, can be
-            optionally replaced by other name.
+         -  *aa_auxiliary_chain*: *AA*, name of the small chain of 10-15
+            residues, can be optionally replaced by other name.
 
-         -  : has to be replaced by the position of the residue from
-            which the refinement has to start.
+         -  *aaNumber*: *#100* has to be replaced by the position of the
+            residue from which the refinement has to start.
 
-         -  : will be replaced by the desired small step of residues
-            that gets flexible enough to select other conformation of
-            this auxiliary chain.
+         -  *step*: *#10* will be replaced by the desired small step of
+            residues that gets flexible enough to select other
+            conformation of this auxiliary chain.
 
-         Save text file after its modification. Go to the residue
-         position indicated in , initialize global variables with , and
-         pres or in the keyboard to refine those residues upstream or
-         downstream, respectively.
+         Save *coot.ini* text file after its modification. Go to the
+         residue position indicated in *aaNumber*, initialize global
+         variables with *“U”*, and pres *“z”* or *“Z”* in the keyboard
+         to refine those *aaNumber* residues upstream or downstream,
+         respectively.
 
       -  | Printing environment:
-         | Press in the keyboard.
+         | Press *“E”* in the keyboard.
 
       -  | Saving an atomic structure after an interactive working
            session with :math:`Coot`:
-         | window will be opened with :math:`Coot` main menu ( (A)). By
-           writing , molecule will be saved by default in . Molecule
-           number can be checked in :math:`Coot` main menu ( (B, red
+         | *Coot Python Scripting* window will be opened with
+           :math:`Coot` main menu *Calculate -> Scripting... ->
+           Python...* ( (A)). By writing *scipion_write()*, molecule
+           *#0* will be saved by default in . Molecule number can be
+           checked in :math:`Coot` main menu *Display Manager* ( (B, red
            arrow)). Saving the molecule this way is equivalent to press
-           in the keyboard.
-         | The number of the specific molecule has to be written in
-           brackets to save any other molecule than .
-         | Although the name of the saved atomic structure is by default
-           ( is the protocol box number, the :math:`model` number and
-           the number of times that the molecule has been saved), other
-           names/labels of your preference are also allowed. That
-           name/label has to be introduced with command, as it is
-           detailed in the example ( (A)). The addition of extension is
-           not required.
+           *“w”* in the keyboard.
+         | The number *#n* of the specific molecule has to be written in
+           brackets to save any other molecule than *#0*.
+         | Although the name of the saved atomic structure is
+           *coot_XXXXXX_Imol_YYYY_version_ZZZZ.pdb* by default (*XXXXXX*
+           is the protocol box number, *YYYY* the :math:`model` number
+           and *ZZZZ* the number of times that the molecule has been
+           saved), other names/labels of your preference are also
+           allowed. That name/label has to be introduced with
+           *scipion_write()* command, as it is detailed in the example (
+           (A)). The addition of *.pdb* extension is not required.
          | If no more interactive sessions with :math:`Coot` are
            planned, after saving the atomic structure, :math:`Coot` will
-           be definitively closed by pressing in the keyboard.
+           be definitively closed by pressing *“e”* in the keyboard.
 
          .. figure:: Images_appendix/Fig120.pdf
             :alt: Protocol . A: Saving labeled atomic structure with
-            window. B: window.
+            *Coot Python Scripting* window. B: *Display Manager* window.
             :name: fig:app_protocol_coot_2
             :width: 65.0%
 
-            Protocol . A: Saving labeled atomic structure with window.
-            B: window.
+            Protocol . A: Saving labeled atomic structure with *Coot
+            Python Scripting* window. B: *Display Manager* window.
 
 -  Protocol execution:
 
-   | Adding specific map/structure label is recommended in section, at
-     the form top. To add the label, open the protocol form, press the
-     pencil symbol at the right side of box, complete the label in the
-     new opened window, press OK and, finally, close the protocol. This
-     label will be shown in the output summary content (see below). If
-     you want to run again this protocol, do not forget to set to the .
-     However, if you want to restart the protocol *in the last point*
-     that you let it before and continue working with the last file
-     saved in , *set to* the .
-   | Press the red button at the form bottom.
+   | Adding specific map/structure label is recommended in *Run name*
+     section, at the form top. To add the label, open the protocol form,
+     press the pencil symbol at the right side of *Run name* box,
+     complete the label in the new opened window, press OK and, finally,
+     close the protocol. This label will be shown in the output summary
+     content (see below). If you want to run again this protocol, do not
+     forget to set to *Restart* the *Run mode*. However, if you want to
+     restart the protocol *in the last point* that you let it before and
+     continue working with the last file saved in , *set to Continue*
+     the *Run mode*.
+   | Press the *Execute* red button at the form bottom.
    | graphics window will be opened after executing the protocol.
      Electron density maps and atomic structures are shown. Although
      steps to follow depend on the specific operation to carry out, a
      list of basic initial tasks and tools could be helpful:
 
    -  | Check maps and atomic structures definitively loaded in :
-      | By opening window (:math:`Coot` main menu) ( (B)).
+      | By opening *Display Manager* window (:math:`Coot` main menu) (
+        (B)).
 
    -  | Set parameters appropriate to visualize them:
       | Electron density maps are sometimes more difficult to visualize.
@@ -170,50 +180,58 @@ CCP4 Coot Refinement protocol
         reduces, respectively, map contour level. If the volume is still
         invisible, check if map and atomic structures are properly
         fitted. The radius of the density sphere can be modified in
-        :math:`Coot` main menu .
+        :math:`Coot` main menu *Edit -> Map Parameters ... -> Global map
+        properties window*.
 
    -  Check chain names of each atomic structure, and edit them if
-      needed in :math:`Coot` main menu .
+      needed in :math:`Coot` main menu *Edit -> Change Chain IDs...*.
 
-   -  Set the text file ( (2)), edit it and save it if needed.
+   -  Set the text file *coot.ini* ( (2)), edit it and save it if
+      needed.
 
    -  | Set refinement conditions:
-      | Click button (upper right side of graphics window) ( (1)) and
-        select the four restriction types in window (2).
+      | Click *Refine/Regularize control* button (upper right side of
+        graphics window) ( (1)) and select the four restriction types in
+        *Refinement and regularization Parameters* window (2).
 
       .. figure:: Images_appendix/Fig121.pdf
-         :alt: Protocol . window.
+         :alt: Protocol . *Refinement and regularization Parameters*
+         window.
          :name: fig:app_protocol_coot_3
          :width: 70.0%
 
-         Protocol . window.
+         Protocol . *Refinement and regularization Parameters* window.
 
    Once those basic parameters are set, some steps to follow in
    refinement process are:
 
    -  | Check validation parameter windows to have an idea of
         controversial areas and quality of the fitting:
-      | Go to main menu , and . Validation windows have to be checked
-        throughout the refinement process.
+      | Go to main menu *Validation -> Ramachandran Plot*, *Validation
+        -> Density fit analysis* and *Validate -> Rotamer analysis*.
+        Validation windows have to be checked throughout the refinement
+        process.
 
    -  Refine the ends of each chain. Basic interactive refinement
       process requires several steps:
 
       -  | First, go to an atom included in the area that is going to be
            refined:
-         | Go to main menu and select chain and atom.
+         | Go to main menu *Draw -> Go To Atom...* and select chain and
+           atom.
 
       -  Assess electron density in that area, and consider the
          possibility of processing part of the residues.
 
-      -  Click the button (upper right side of graphics window) ( (A)
-         (1)) to put it active. Next, click two residues of the chain (2
-         and 3). A second flexible grey chain overlaps the starting
-         chain. That grey chain can be moved in order to get a different
-         conformation according to the density map (hidden in (A)).
+      -  Click the button *Real Space Refine Zone* (upper right side of
+         graphics window) ( (A) (1)) to put it active. Next, click two
+         residues of the chain (2 and 3). A second flexible grey chain
+         overlaps the starting chain. That grey chain can be moved in
+         order to get a different conformation according to the density
+         map (hidden in (A)).
 
-      -  If refinement parameters get acceptable values, press in window
-         ( (B)).
+      -  If refinement parameters get acceptable values, press *Accept*
+         in *Accept Refinement?* window ( (B)).
 
          .. figure:: Images_appendix/Fig122.pdf
             :alt: Protocol . (A) Interactive refinement of the chain
@@ -227,37 +245,39 @@ CCP4 Coot Refinement protocol
 
    -  Refine each chain following instructions from Help section:
 
-      -  Go to the residue (main menu ).
+      -  Go to the residue *aaNumber* (main menu *Draw -> Go To
+         Atom...*).
 
       -  Initialize global variables.
 
       -  | Repeat this loop until reaching the end of the chain:
-         | 1.- Press in the keyboard.
+         | 1.- Press *“z”* in the keyboard.
          | 2.- Inspect one by one, and fit to the volume density, every
            residue from the small auxiliary chain.
          | 3.- Accept the refinement.
 
       -  Check validation parameters to focus refinement in specific
-         chain areas (main menu ).
+         chain areas (main menu *Validate -> Density fit analysis*).
 
    -  After finishing refinement of every chain, save the structure
-      (press if has to be definitively closed and not interactive
+      (press *“e”* if has to be definitively closed and not interactive
       anymore).
 
    -  Close graphics window.
 
 -  Visualization of protocol results:
 
-   After executing the protocol, press and graphics window will be
-   opened by default. Atomic structures and volumes are referred to the
-   origin of coordinates in . To show the relative position of atomic
-   structures and electron density volumes, the three coordinate axes
-   are represented; X axis (red), Y axis (yellow), and Z axis (blue) ().
-   Coordinate axes, volume, and first atomic structure are model numbers
-   , , , respectively, in . Every atomic structure saved during
-   refinement process will appear in (). If you want to *visualize
-   results in graphics window* you only have to open the protocol *in
-   the last point* that you let it before and *set to* the . Close the
+   After executing the protocol, press *Analyze Results* and graphics
+   window will be opened by default. Atomic structures and volumes are
+   referred to the origin of coordinates in . To show the relative
+   position of atomic structures and electron density volumes, the three
+   coordinate axes are represented; X axis (red), Y axis (yellow), and Z
+   axis (blue) (). Coordinate axes, volume, and first atomic structure
+   are model numbers *#1*, *#2*, *#3*, respectively, in *Model Panel*.
+   Every atomic structure saved during refinement process will appear in
+   *Model Panel* (). If you want to *visualize results in graphics
+   window* you only have to open the protocol *in the last point* that
+   you let it before and *set to Continue* the *Run mode*. Close the
    protocol without saving anything in this case.
 
    .. figure:: Images_appendix/Fig123.pdf
@@ -293,17 +313,22 @@ CCP4 Coot Refinement protocol
 
    -  Protocol output (below framework):
 
-      -  | Each intermediate atomic structure partially refined ():
-         | label name selected by the user or common output name ();
-         | .
-         | Pseudoatoms is set to because the structure is made of atoms
-           instead of pseudoatoms. Volume is set to because no electron
-           density map is associated to the atomic structure.
+      -  | Each intermediate atomic structure partially refined (*#n*):
+         | *ccp4 - coot refinement ->* label name selected by the user
+           or common output name
+           (*coot_XXXXXX_Imol_YYYY_version_ZZZZ.pdb*);
+         | *AtomStruct (pseudoatoms=False, volume=False)*.
+         | Pseudoatoms is set to *False* because the structure is made
+           of atoms instead of pseudoatoms. Volume is set to *False*
+           because no electron density map is associated to the atomic
+           structure.
 
       -  | Each input map (saved by default):
-         | ;
-         | .
+         | *ccp4 - coot refinement -> output3DMap_XXXX*;
+         | *Volume (x, y, and z dimensions, sampling rate)*.
 
-      -  | box for each intermediate atomic structure partially refined:
-         | label name selected by the user or common output name ()
+      -  | *SUMMARY* box for each intermediate atomic structure
+           partially refined:
+         | label name selected by the user or common output name
+           (*coot_XXXXXX_Imol_YYYY_version_ZZZZ.pdb*)
          | Idem for maps.

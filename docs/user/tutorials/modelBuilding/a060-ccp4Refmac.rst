@@ -28,15 +28,15 @@ CCP4 Refmac protocol
 
 -  Requirements to run this protocol and visualize results:
 
-   -  plugin:
+   -  plugin: *scipion-em*
 
-   -  plugin:
+   -  plugin: *scipion-em-ccp4*
 
    -  CCP4 software suite (from version 7.0.056 to 7.1)
 
-   -  plugin:
+   -  plugin: *scipion-em-chimera*
 
--  menu: ( (A))
+-  menu: *Model building -> Flexible fitting* ( (A))
 
 -  Protocol form parameters ( (B)):
 
@@ -47,58 +47,67 @@ CCP4 Refmac protocol
 
       Protocol . A: Protocol location in menu. B: Protocol form.
 
-   -  : An electron density map previously downloaded or generated in .
-      An atomic structure should be refined regarding to this volume.
+   -  *Input Volume/s*: An electron density map previously downloaded or
+      generated in . An atomic structure should be refined regarding to
+      this volume.
 
-   -  : Atomic structure previously downloaded or generated in . This
-      structure will be refined according to the electron density
-      volume.
+   -  *Atomic structure to be refined*: Atomic structure previously
+      downloaded or generated in . This structure will be refined
+      according to the electron density volume.
 
-   -  : Upper limit of resolution used for refinement, in Angstroms.
-      Using double value of sampling rate is recommendable.
+   -  *Max. Resolution (Å)*: Upper limit of resolution used for
+      refinement, in Angstroms. Using double value of sampling rate is
+      recommendable.
 
-   -  : Lower limit of resolution used for refinement, in Angstroms.
+   -  *Min. Resolution (Å)*: Lower limit of resolution used for
+      refinement, in Angstroms.
 
-   -  : Parameter set to “Yes” by default. With this option, structure
-      factors will be computed for the map around model atomic
-      structure. Otherwise (option “No”), structure factors will be
-      computed for the whole map.
+   -  *Generate masked volume*: Parameter set to “Yes” by default. With
+      this option, structure factors will be computed for the map around
+      model atomic structure. Otherwise (option “No”), structure factors
+      will be computed for the whole map.
 
-   -  : Advanced parameter that indicates how much around the model
-      atomic structure should be cut. 3Å is the default value.
+   -  *SFCALC mapradius*: Advanced parameter that indicates how much
+      around the model atomic structure should be cut. 3Å is the default
+      value.
 
-   -  : Radius to compute the mask around the model atomic structure.
-      3Å is the default value.
+   -  *SFCALC mradius*: Radius to compute the mask around the model
+      atomic structure. 3Å is the default value.
 
-   -  : Cycles of refinement. 30 cycles is the default value.
+   -  *Number of refinement iterations*: Cycles of refinement. 30 cycles
+      is the default value.
 
-   -  : Weight parameter between electron density map (experimental
-      data) and model atomic structure geometry. Increase this value if
-      you want to give more weight to experimental data. If the value is
-      set to 0.0, bond root mean square deviation from optimal values
-      will be between 0.015 and 0.025.
+   -  *Matrix refinement weight*: Weight parameter between electron
+      density map (experimental data) and model atomic structure
+      geometry. Increase this value if you want to give more weight to
+      experimental data. If the value is set to 0.0, bond root mean
+      square deviation from optimal values will be between 0.015 and
+      0.025.
 
-   -  : Geometrical restriction applied to bonded and nonbonded atom
-      pairs. This B factor value set the initial B values.
+   -  *B factor*: Geometrical restriction applied to bonded and
+      nonbonded atom pairs. This B factor value set the initial B
+      values.
 
-   -  : This parameter gives the opportunity to add some extra
-      parameters. Use “:math:`|`” to separate the next parameter from
-      the previous one.
+   -  *Extra parameters*: This parameter gives the opportunity to add
+      some extra parameters. Use “:math:`|`” to separate the next
+      parameter from the previous one.
 
 -  Protocol execution:
 
-   | Adding specific map/structure label is recommended in section, at
-     the form top. To add the label, open the protocol form, press the
-     pencil symbol at the right side of box, complete the label in the
-     new opened window, press OK and, finally, close the protocol. This
-     label will be shown in the output summary content (see below). If
-     you want to run again this protocol, do not forget to set to the .
-   | Press the red button at the form bottom.
+   | Adding specific map/structure label is recommended in *Run name*
+     section, at the form top. To add the label, open the protocol form,
+     press the pencil symbol at the right side of *Run name* box,
+     complete the label in the new opened window, press OK and, finally,
+     close the protocol. This label will be shown in the output summary
+     content (see below). If you want to run again this protocol, do not
+     forget to set to *Restart* the *Run mode*.
+   | Press the *Execute* red button at the form bottom.
 
 -  Visualization of protocol results:
 
-   After executing the protocol, press and a window panel will be opened
-   (). Results can be visualized by selecting each menu element.
+   After executing the protocol, press *Analyze Results* and a window
+   panel will be opened (). Results can be visualized by selecting each
+   menu element.
 
    .. figure:: Images_appendix/Fig127.pdf
       :alt: Protocol . Menu to visualize results.
@@ -178,43 +187,44 @@ CCP4 Refmac protocol
 
       -  Percentage of free reflections: Percentage of reflections
          observed and not included in the refinement process. These
-         reflections are used to compute the .
+         reflections are used to compute the *R factor free*.
 
-      -  | Overall : Fraction of total differences between observed and
-           computed amplitudes of structure factors, previously scaled,
-           regarding total observed amplitudes of structure factors.
+      -  | Overall *R factor*: Fraction of total differences between
+           observed and computed amplitudes of structure factors,
+           previously scaled, regarding total observed amplitudes of
+           structure factors.
          | :math:`     R factor = \frac{\sum||F_o|-|F_c||}{\sum|F_o|} 
                 `
          | where :math:`|F_o|` is the observed amplitude of the
            structure factor and :math:`|F_c|` is the calculated
            amplitude of the structure factor.
 
-      -  Average Fourier shell correlation: , cross-correlation between
-         shells of two 3D volumes in Fourier space, calculated using
-         complex Fourier coefficients, divided by the number of
+      -  Average Fourier shell correlation: *FSC*, cross-correlation
+         between shells of two 3D volumes in Fourier space, calculated
+         using complex Fourier coefficients, divided by the number of
          structure factors in a particular frequency (resolution) shell.
-         :math:`FSC_{average}` has the advantage over of being
+         :math:`FSC_{average}` has the advantage over *FSC* of being
          independent on weight (related with inverse variances of
          cryo-EM density maps) whenever resolution shells are thin
          enough that the number of structure factors in each shell is
          almost equal :raw-latex:`\citep{brown2015}`.
 
-      -  | Overall weighted : Overall that applies a weight factor to
-           differences between observed and computed amplitudes of
-           structure factors, and also applies that weight factor to the
-           observed amplitudes of structure factors. As in the
-           :math:`FSC_{average}`, the weight is related with inverse
+      -  | Overall weighted *R factor*: Overall *R factor* that applies
+           a weight factor to differences between observed and computed
+           amplitudes of structure factors, and also applies that weight
+           factor to the observed amplitudes of structure factors. As in
+           the :math:`FSC_{average}`, the weight is related with inverse
            variances of cryo-EM density maps.
          | :math:`           weighted R factor = \frac{\sum(w |F_o|-|F_c||)}{\sum(w |F_o|)}
                 `
-         | where is the weight factor.
+         | where *w* is the weight factor.
 
-      -  | Overall weighted : Also known as generalised , this factor is
-           computed as the root square of the fraction of total squares
-           of weighted differences between observed and computed
-           amplitudes of structure factors, previously scaled, regarding
-           the total of weighted squares of observed amplitudes of
-           structure factors.
+      -  | Overall weighted *R2 factor*: Also known as generalised *R
+           factor*, this factor is computed as the root square of the
+           fraction of total squares of weighted differences between
+           observed and computed amplitudes of structure factors,
+           previously scaled, regarding the total of weighted squares of
+           observed amplitudes of structure factors.
          | :math:`           weighted R^2 factor = \frac{\sum(w (|F_o|-|F_c||)^2)}{\sum(w (|F_o|)^2)}
                 `
 
@@ -224,46 +234,47 @@ CCP4 Refmac protocol
          and calculated structure factor amplitudes, taking into account
          only reflections included in the refinement process.
 
-      -  Cruickshank’s for coordinate error: Diffraction precision
+      -  Cruickshank’s *DPI* for coordinate error: Diffraction precision
          index, useful to estimate atomic placement precision. This
          factor is a function of the number of atoms and reflections
-         included in the refinement, of the overall , of the maximum
-         resolutions of reflections included in the refinement, as well
-         as the completeness of the observed data.
+         included in the refinement, of the overall *R factor*, of the
+         maximum resolutions of reflections included in the refinement,
+         as well as the completeness of the observed data.
 
       -  Overall figure of merit: :math:`Cosine` of the error of phases
          in radians; 1 indicates no error.
 
-      -  based su of positional parameters: Comprehensive standard
+      -  *ML* based su of positional parameters: Comprehensive standard
          uncertainties of positional parameters based on the maximum
          likelihood function.
 
-      -  based su of thermal parameters: Comprehensive standard
+      -  *ML* based su of thermal parameters: Comprehensive standard
          uncertainties of thermal parameters (B values) based on the
          maximum likelihood function.
 
-   -  vs. iteration: Plot to visualize and regarding iterations ():
+   -  *R factor* vs. iteration: Plot to visualize *R factor* and *R
+      factor free* regarding iterations ():
 
       .. figure:: Images_appendix/Fig133.pdf
-         :alt: Protocol . vs. cycle plot.
+         :alt: Protocol . *R factor* vs. cycle plot.
          :name: fig:app_protocol_refmac_8
          :width: 50.0%
 
-         Protocol . vs. cycle plot.
+         Protocol . *R factor* vs. cycle plot.
 
-   -  vs. iteration: Plot to visualize Figure Of Merit regarding
+   -  *FOM* vs. iteration: Plot to visualize Figure Of Merit regarding
       iterations ():
 
       .. figure:: Images_appendix/Fig134.pdf
-         :alt: Protocol . vs. cycle plot.
+         :alt: Protocol . *Figure Of Merit* vs. cycle plot.
          :name: fig:app_protocol_refmac_9
          :width: 50.0%
 
-         Protocol . vs. cycle plot.
+         Protocol . *Figure Of Merit* vs. cycle plot.
 
-   -  vs. iteration: Plot to visualize the log(Likelihood) regarding
-      iterations. Likelihood indicates the probability of a refined
-      model, given the specific observed data ():
+   -  *-LL* vs. iteration: Plot to visualize the log(Likelihood)
+      regarding iterations. Likelihood indicates the probability of a
+      refined model, given the specific observed data ():
 
       .. figure:: Images_appendix/Fig135.pdf
          :alt: Protocol . log(Likelihood) vs. cycle plot.
@@ -272,8 +283,9 @@ CCP4 Refmac protocol
 
          Protocol . log(Likelihood) vs. cycle plot.
 
-   -  vs. iteration: Same definition as -LL vs. iteration, although
-      considering only “free” reflections not included in refinement ():
+   -  *-LLfree* vs. iteration: Same definition as -LL vs. iteration,
+      although considering only “free” reflections not included in
+      refinement ():
 
       .. figure:: Images_appendix/Fig136.pdf
          :alt: Protocol . log(Likelihood) for “free“ reflections vs.
@@ -294,35 +306,37 @@ CCP4 Refmac protocol
 
          Protocol . Geometry parameter statistics vs. cycle plot.
 
-      -  : Root mean square of structure atom covalent bond lengths,
-         computed in Å, regarding ideal values of bond lengths.
-         Selecting default weighting, values will be around 0.02.
+      -  *rmsBOND*: Root mean square of structure atom covalent bond
+         lengths, computed in Å, regarding ideal values of bond lengths.
+         Selecting default weighting, *rmsBOND* values will be around
+         0.02.
 
-      -  : Number of standard deviations from the mean of covalent bond
-         lengths. Selecting default weighting, values will be between
-         0.2 and 1.0.
+      -  *zBOND*: Number of standard deviations from the mean of
+         covalent bond lengths. Selecting default weighting, *zBOND*
+         values will be between 0.2 and 1.0.
 
-      -  : Root mean square of bond angles from refined structure,
-         computed in degrees, regarding their ideal values. values
-         should converge around 0.1.
+      -  *rmsANGL*: Root mean square of bond angles from refined
+         structure, computed in degrees, regarding their ideal values.
+         *rmsANGL* values should converge around 0.1.
 
-      -  : Number of standard deviations from the mean of bond angles.
+      -  *zANGL*: Number of standard deviations from the mean of bond
+         angles.
 
-      -  : Root mean square of chiral volumes from refined structure
-         regarding their ideal values. Chiral volumes are determined by
-         four atoms that form a piramid, and may show positive or
-         negative values.
+      -  *rmsCHIRAL*: Root mean square of chiral volumes from refined
+         structure regarding their ideal values. Chiral volumes are
+         determined by four atoms that form a piramid, and may show
+         positive or negative values.
 
 -  Summary content:
 
    -  | Protocol output (below framework):
-      | ;
-      | .
-      | Pseudoatoms is set to when the structure is made of pseudoatoms
-        instead of atoms. Volume is set to when an electron density map
-        is associated to the atomic structure.
+      | *ccp4 - refmac -> ouputPdb*;
+      | *PdbFile(pseudoatoms=True/ False, volume=True/ False)*.
+      | Pseudoatoms is set to *True* when the structure is made of
+        pseudoatoms instead of atoms. Volume is set to *True* when an
+        electron density map is associated to the atomic structure.
 
-   -  | box:
+   -  | *SUMMARY* box:
       | Statistics included in the above Final Results Table ():
 
       .. figure:: Images_appendix/Fig138.pdf

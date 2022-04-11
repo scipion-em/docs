@@ -3,8 +3,8 @@
 Building the asymmetric unit
 ============================
 
-| Once we have selected the :math:`models` for :math:`\alpha` and
-  :math:`\beta` subunits (see the workflow branches to have
+| Once we have selected the :math:`models` for *metHgb* :math:`\alpha`
+  and :math:`\beta` subunits (see the workflow branches to have
   :math:`\alpha` and :math:`\beta` subunits ), we can regenerate the
   smallest asymmetrical element of the starting map. With this aim we
   are going to use protocols to operate with atomic structures ( or ),
@@ -24,69 +24,80 @@ Building the asymmetric unit
    map asymmetric unit (blue arrow) and the whole atomic structure (red
    arrow).
 
--  | Protocol to join the :math:`\alpha` and :math:`\beta` subunits in a
-     unique atomic structure:
+-  | Protocol to join the *metHgb* :math:`\alpha` and :math:`\beta`
+     subunits in a unique atomic structure:
    | Two protocols can be used in for this purpose ( or ) and the result
      should be identical.
    | Before starting, nevertheless, be sure that you have two atomic
-     structures and each one includes an only chain with a different .
-     Remember that chain may be changed for other chain in and .
+     structures and each one includes an only chain with a different
+     *id*. Remember that chain *ids* may be changed for other chain
+     *ids* in and .
    | Secondly, it could be very convenient to change the output label of
      each subunit, in order to follow them easily in . According to the
      go to the Summary of the two final protocols that allow to generate
      those atomic structures and press the black arrow (C) to select the
-     option . Type the new output name of the structures ( (D) and (E),
-     respectively).
+     option *Edit*. Type the new output name of the structures
+     (*HBA_refined* (D) and *HBB_refined* (E), respectively).
 
    .. figure:: Images/Fig75.pdf
-      :alt: A. Zoom in on . B. Summary of the protocol box from
-      (:math:`\alpha` in (A)). Red arrow points at the output name. C.
-      Menu opened pressing the output black arrow of the Summary. D. New
-      name of the output in the Summary. E. Summary from the protocol
-      box (:math:`\beta`) after applying the same edition process.
+      :alt: A. Zoom in on . B. Summary of the protocol box from *real
+      space refine* (:math:`\alpha` in (A)). Red arrow points at the
+      output name. C. Menu opened pressing the output black arrow of the
+      Summary. D. New name of the output in the Summary. E. Summary from
+      the protocol box *real space refine* (:math:`\beta`) after
+      applying the same edition process.
       :name: fig:scipion_workflow_edition
       :width: 100.0%
 
-      A. Zoom in on . B. Summary of the protocol box from
-      (:math:`\alpha` in (A)). Red arrow points at the output name. C.
-      Menu opened pressing the output black arrow of the Summary. D. New
-      name of the output in the Summary. E. Summary from the protocol
-      box (:math:`\beta`) after applying the same edition process.
+      A. Zoom in on . B. Summary of the protocol box from *real space
+      refine* (:math:`\alpha` in (A)). Red arrow points at the output
+      name. C. Menu opened pressing the output black arrow of the
+      Summary. D. New name of the output in the Summary. E. Summary from
+      the protocol box *real space refine* (:math:`\beta`) after
+      applying the same edition process.
 
-   | Then, open again :math:`ChimeraX` protocol and following the
-     already indicated instructions, include the :math:`models` of
-     :math:`\alpha` and :math:`\beta` subunits in params and ,
-     respectively ( (A)). Firstly, check that both are perfectly fitted
-     in the map asymmetric unit. Otherwise, apply the command , as it
-     was previously shown. Next, create a single atomic structure by
-     joining models and in :math:`ChimeraX` panel. To generate a
-     combined write in the command line:
-   | The new model is shown in :math:`ChimeraX` panel (). Finally, save
-     this fitted structure writing in :math:`ChimeraX` command line:
+   | Then, open again :math:`ChimeraX` *operate* protocol and following
+     the already indicated instructions, include the :math:`models` of
+     *metHgb* :math:`\alpha` and :math:`\beta` subunits in params
+     *Atomic structure* and *Other atomic structures*, respectively (
+     (A)). Firstly, check that both *models* are perfectly fitted in the
+     map asymmetric unit. Otherwise, apply the command *fit inMap*, as
+     it was previously shown. Next, create a single atomic structure by
+     joining models *#3* and *#4* in :math:`ChimeraX` *Models* panel. To
+     generate a combined *model* write in the command line:
+   | *scipioncombine #3,4*
+   | The new model *#5* is shown in :math:`ChimeraX` *Models* panel ().
+     Finally, save this fitted structure writing in :math:`ChimeraX`
+     command line:
+   | *scipionwrite #5 prefix asymmetric_unit_model\_*
 
    .. figure:: Images/Fig76.pdf
-      :alt: A. Completing the protocol with the atomic structures and .
-      B. graphics window showing the combined .
+      :alt: A. Completing the protocol with the atomic structures
+      *HBA_refined* and *HBB_refined* . B. graphics window showing the
+      combined *model #5*.
       :name: fig:chimerax_asymm_unit_1
       :width: 100.0%
 
-      A. Completing the protocol with the atomic structures and . B.
-      graphics window showing the combined .
+      A. Completing the protocol with the atomic structures
+      *HBA_refined* and *HBB_refined* . B. graphics window showing the
+      combined *model #5*.
 
 -  | Protocols to refine the new combined structure generated:
    | At this point refinements could cover specially the overlapping
-     area between the two chains. Help yourself with the tools of in the
-     main menu, as well as the visualization tools of protocol.
+     area between the two chains. Help yourself with the tools of
+     *Validate* in the main menu, as well as the visualization tools of
+     *real space refine* protocol.
 
 -  | Validation protocols to select the best :math:`model` of the human
-     unit cell:
+     *metHgb* unit cell:
    | Validate the new combined structure generated is recommendable
      before continuing with the next steps in the
      workflow.\ :math:`EMRinger` and
      :math:`Validation CryoEM (MolProbity)` validation statistics should
-     be computed for the new :math:`model` of human asymmetric unit,
-     generated by combining :math:`\alpha` and :math:`\beta` subunits.
-     Appendix `[app:solutions] <#app:solutions>`__
+     be computed for the new :math:`model` of human *metHgb* asymmetric
+     unit, generated by combining *metHgb* :math:`\alpha` and
+     :math:`\beta` subunits. Appendix
+     `[app:solutions] <#app:solutions>`__
      (**Question**\ `1 <#buildingunitcell>`__\ **\ \_1**) contains a
      statistics table for the unit cell :math:`model` (). We can try to
      improve those statistics by additional refinement processes. By
@@ -94,8 +105,9 @@ Building the asymmetric unit
      statistics could result improved. contains also RMSD values
      computed in a similar way as we have seen for :math:`\alpha` and
      :math:`\beta` subunits, considering as fixed structure chains A and
-     B from atomic structure. To continue with the modeling process we
-     can select the unit cell :math:`model` generated by :math:`Phenix`
-     because most of its validation statistics show the best values (,
-     :math:`EMRinger` and :math:`MolProbity` values). Exceptionally,
-     RMSD regarding the published structure yields the worst value.
+     B from *5NI1* atomic structure. To continue with the modeling
+     process we can select the unit cell :math:`model` generated by
+     :math:`Phenix` *real space refine* because most of its validation
+     statistics show the best values (, :math:`EMRinger` *score* and
+     :math:`MolProbity` values). Exceptionally, RMSD regarding the
+     published structure yields the worst value.

@@ -5,8 +5,8 @@ ChimeraX Restore Session protocol
 
 Protocol designed to restore session, provided that this session has
 been saved previously in . Currently, four protocols save sessions when
-commands , or are used, , , and (Appendices
-`[app:chimeraRigidFit] <#app:chimeraRigidFit>`__,
+commands *scipionwrite*, *scipionss* or *scipioncombine* are used, , ,
+and (Appendices `[app:chimeraRigidFit] <#app:chimeraRigidFit>`__,
 `[app:chimeraOperate] <#app:chimeraOperate>`__,
 `[app:modelFromTemplate] <#app:modelFromTemplate>`__ and
 `[app:chimeraMapSubtraction] <#app:chimeraMapSubtraction>`__,
@@ -16,12 +16,12 @@ atomic structures.
 
 -  Requirements to run this protocol and visualize results:
 
-   -  plugin:
+   -  plugin: *scipion-em*
 
-   -  plugin:
+   -  plugin: *scipion-em-chimera*
 
 -  | menu:
-   | ( (A))
+   | *Model building -> Tools-Calculators* ( (A))
 
 -  Protocol form parameters ( (B)):
 
@@ -32,29 +32,33 @@ atomic structures.
 
       Protocol . A: Protocol location in menu. B: Protocol form.
 
-   -  section
+   -  *Input* section
 
-      -  : Parameter that allows to select a particular protocol in
-         which session has been saved in . As it was mentioned before,
-         four protocols support this possibility (, , and ).
+      -  *Input protocols*: Parameter that allows to select a particular
+         protocol in which session has been saved in . As it was
+         mentioned before, four protocols support this possibility
+         (*rigid fit*, *operate*, *model from template* and *map
+         subtraction*).
 
-   -  section
+   -  *Help* section
 
       This section contains commands required to save :math:`models`
       according to their reference volumes, which can also be saved if
-      required. Remark that using command, session will be saved by
-      default, without prejudice that it may be saved with command.
-      sessions can be restored again by using this same protocol.
+      required. Remark that using *scipionwrite* command, session will
+      be saved by default, without prejudice that it may be saved with
+      *scipionss* command. sessions can be restored again by using this
+      same protocol.
 
 -  Protocol execution:
 
-   | Adding specific protocol label is recommended in section, at the
-     form top. To add the label, open the protocol form, press the
-     pencil symbol at the right side of box, complete the label in the
-     new opened window, press OK and, finally, close the protocol. This
-     label will be shown in the output summary content (see below). If
-     you want to run again this protocol, do not forget to set to the .
-   | Press the red button at the form bottom.
+   | Adding specific protocol label is recommended in *Run name*
+     section, at the form top. To add the label, open the protocol form,
+     press the pencil symbol at the right side of *Run name* box,
+     complete the label in the new opened window, press OK and, finally,
+     close the protocol. This label will be shown in the output summary
+     content (see below). If you want to run again this protocol, do not
+     forget to set to *Restart* the *Run mode*.
+   | Press the *Execute* red button at the form bottom.
    | graphics window will be opened after executing the protocol showing
      the complete list of elements that appeared in graphics window when
      the session was saved, coordinate axes, electron density maps, and
@@ -64,43 +68,46 @@ atomic structures.
 
    -  | To combine two or more atomic structures:
       | Write in command line:
-      | and are the respective :math:`model` numbers of two different
-        atomic structures. Optionally you can set the :math:`model`
-        number of the output combined structure :
+      | *scipioncombine #n1,n2*
+      | *#n1* and *#n2* are the respective :math:`model` numbers of two
+        different atomic structures. Optionally you can set the
+        :math:`model` number of the output combined structure *#n3*:
+      | *scipioncombine #n1,n2 modelid n3*
 
    -  | To save a map or an atomic structure generated with this
         protocol: Write in command line:
-      | .
-      | Replace by model numbers shown in panel. + string preferred by
-        the user to easily identify the atomic structure is optional,
-        although quite recomendable.
-      | Replace by model numbers shown in panel.
+      | *scipionwrite #n prefix userString\_*.
+      | Replace *#n* by model numbers shown in *Models* panel. *prefix*
+        + string preferred by the user to easily identify the atomic
+        structure is optional, although quite recomendable.
+      | Replace *#n* by model numbers shown in *Models* panel.
 
    -  Close graphics window.
 
 -  Visualization of protocol results:
 
-   After executing the protocol, press and graphics window will be
-   opened by default. Atomic structures and volumes are referred to the
-   origin of coordinates in . To show the relative position of atomic
-   structures and electron density volumes, the three coordinate axes
-   are represented; X axis (red), Y axis (yellow), and Z axis (blue) ().
-   In this particular case a graphics window identical to the input
-   session will be opened and it will include every element saved
-   lately.
+   After executing the protocol, press *Analyze Results* and graphics
+   window will be opened by default. Atomic structures and volumes are
+   referred to the origin of coordinates in . To show the relative
+   position of atomic structures and electron density volumes, the three
+   coordinate axes are represented; X axis (red), Y axis (yellow), and Z
+   axis (blue) (). In this particular case a graphics window identical
+   to the input session will be opened and it will include every element
+   saved lately.
 
 -  Summary content:
 
    -  If an atomic structure is generated:
 
       -  | Protocol output (below framework):
-         | ;
-         | .
-         | Pseudoatoms is set to when the structure is made of
-           pseudoatoms instead of atoms. Volume is set to when an
+         | *chimerax - operate -> output atomic structure name, starting
+           with the prefix*;
+         | *AtomStruct (pseudoatoms=True/ False, volume=True/ False)*.
+         | Pseudoatoms is set to *True* when the structure is made of
+           pseudoatoms instead of atoms. Volume is set to *True* when an
            electron density map is associated to the atomic structure.
 
-      -  | box:
+      -  | *SUMMARY* box:
          | Produced files:
          | output atomic structure name, starting with the prefix (.cif
            file)
@@ -109,9 +116,10 @@ atomic structures.
    -  If a volume is generated:
 
       -  | Protocol output (below framework):
-         | ; .
+         | *chimerax - operate -> output 3D map name*; *Volume (x, y,
+           and z dimensions, sampling rate)*.
 
-      -  | box:
+      -  | *SUMMARY* box:
          | Produced files:
          | output 3D map name, starting with the prefix (.mrc file)
          | we have some result
