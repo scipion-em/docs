@@ -12,6 +12,7 @@ Contents
    :maxdepth: 1
    :numbered:
 
+   005-versionhistory
    010-introduction
    020-problem2solve
    030-inputDataDescription
