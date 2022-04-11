@@ -12,10 +12,6 @@ Revision History
      - 11.15.2018
      - MM|RM
      - Tutorial created for first model building workshop
-   * - 1.0
-     - 11.15.2018
-     - MM|RM
-     - created for first model building workshop
    * - 1.1
      - 01.30.2019
      - MM
