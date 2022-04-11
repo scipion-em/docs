@@ -1,67 +1,66 @@
 Import Input data
 =================
 
-Taking advantage of software framework, we are going to import the above
-indicated input data using protocols and . Details about the parameters
-of these two protocols are shown in Appendices
-`[app:importVolume] <#app:importVolume>`__ and
-`[app:importSequence] <#app:importSequence>`__, respectively.
+Taking advantage of *Scipion* software framework, we are going to import the above
+indicated input data using protocols **import volumes** and **import sequence**. Details about the parameters
+of these two protocols are shown in Appendices :ref:`Import volumes <app:importVolume>` and :ref:`Import sequence <app:importSequence>`, respectively.
 
-.. figure:: Images/Fig61.pdf
-   :alt: framework with import workflow.
-   :name: fig:scipion_workflow_import_1
+.. figure:: Images/Fig61.svg
+   :alt: *Scipion* framework with import workflow.
+   :name: model_building_scipion_workflow_import_1
+   :align: center
    :width: 95.0%
 
-   framework with import workflow.
+   *Scipion* framework with import workflow.
 
-(Note: The notation means that the step is shown in figure number X and
+(Note: The notation **Fig. X (a)** means that the step is shown in figure number X and
 there will be an arrow labeled with “a” marking the region of interest.)
 
 Volume
 ------
 
-First open the protocol ( (1)), fill in the form and execute it (2), and
+First open the **import volumes** protocol (:numref:`model_building_import_volume` (1)), fill in the form and execute it (2), and
 finally you may visualize the volume (3).
 
 As you can see, when we import a map we directly assign its sampling
 rate and its origin of coordinates. If for any reason we have to work
 with other maps previously generated during the reconstruction process
 that do not have the desired sampling and origin, we can use the
-auxiliar protocol , detailed in Appendix
-`[app:asignOrigAndSampling] <#app:asignOrigAndSampling>`__, to assign
-them.
+auxiliar protocol **assign orig & sampling**, detailed in Appendix :ref:`Assign origin and sampling <app:asignOrigAndSampling>`, to assign them.
 
-.. figure:: Images/Fig4.pdf
-   :alt: Importing the volume in .
-   :name: fig:import_volume
+.. figure:: Images/Fig4.svg
+   :alt: Importing the volume in *Scipion*.
+   :name: model_building_import_volume
+   :align: center
    :width: 95.0%
 
-   Importing the volume in .
+   Importing the volume in *Scipion*.
 
-By default :raw-latex:`\citep{Goddard2018}` is used for visualization.
-Clicking in the viewer menu ( (1)), shows the 3D map and the :math:`x`
+By default *ChimeraX* :cite:p:`Goddard2018` is used for visualization.
+Clicking in the viewer menu (:numref:`model_building_visualization_volume` (1)), shows the 3D map and the :math:`x`
 (red), :math:`y` (yellow) and :math:`z` (blue) axes.
 
-.. figure:: Images/Fig5.pdf
-   :alt: Volume visualized with .
-   :name: fig:chimera_visualization_volume
+.. figure:: Images/Fig5.svg
+   :alt: Volume visualized with *ChimeraX*.
+   :name: model_building_visualization_volume
+   :align: center
    :width: 95.0%
 
-   Volume visualized with .
+   Volume visualized with *ChimeraX*.
 
 Sequences
 ---------
 
-The sequences of :math:`\alpha` and :math:`\beta` subunits will be
-independently downloaded from . First of all, open the form of protocol
-( (1)), then complete the form to download protein with accession code ,
+The sequences of *Hgb* :math:`\alpha` and :math:`\beta` subunits will be
+independently downloaded from *UniprotKB*. First of all, open the form of **import sequence** protocol (:numref:`model_building_import_sequence` (1)), then complete the form to download *HBA_HUMAN* protein with *UniprotKB* accession code *P69905*,
 execute the process (2), and finally visualize the sequence (3) in a
-text editor. The sequence will appear in format as it has been written
-above. Follow the same protocol to download with accession code .
+text editor. The sequence will appear in *fasta* format as it has been written
+above. Follow the same protocol to download *HBB_HUMAN* with accession code *P68871*.
 
-.. figure:: Images/Fig6.pdf
-   :alt: Importing a sequence in .
-   :name: fig:import_sequence
+.. figure:: Images/Fig6.svg
+   :alt: Importing a *UniprotKB* sequence in *Scipion*.
+   :name: model_building_import_sequence
+   :align: center
    :width: 95.0%
 
-   Importing a sequence in .
+   Importing a sequence in *Scipion*.

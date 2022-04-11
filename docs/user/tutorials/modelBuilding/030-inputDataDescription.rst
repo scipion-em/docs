@@ -10,7 +10,7 @@ Map
   can be downloaded from *PDBE*
   (http://www.ebi.ac.uk/pdbe/entry/emdb/EMD-3488) (:numref:`model_building_PDBE`).
 
-| WARNING in case you use your own map obtained from cryo-EM images:
+| ``WARNING`` In case you use your own map obtained from cryo-EM images:
   Take into account that cryo-EM 3D maps benefit significantly of an
   “optimizing” step, normally referred to as “sharpening” or “density
   improvement“, that tends to increase signal at medium/high resolution.

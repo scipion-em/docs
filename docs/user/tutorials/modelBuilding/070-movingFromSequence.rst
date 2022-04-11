@@ -1,97 +1,89 @@
 Moving from sequence to atomic structure scenario
 =================================================
 
-In this section we are going to obtain the initial of our sequence, in
-this case the :math:`\alpha` subunit. To perform this task we are going
-to use the protocol . Although this protocol offers several different
-possibilities to get the right result (see Appendix
-`[app:modelFromTemplate] <#app:modelFromTemplate>`__ for details and use
-cases), we are going to consider that we already have a , that we have
+In this section we are going to obtain the initial *model* of our *target* sequence, in
+this case the *Hgb* :math:`\alpha` subunit. To perform this task we are going
+to use the *Scipion* protocol **chimerax-model from template**. Although this protocol offers several different
+possibilities to get the right result (see Appendix :ref:`Model from template <app:modelFromTemplate>` for details and use cases), we are going to consider that we already have a *template*, that we have
 found in the previous step and that will be used as protocol input. In
 addition, although the protocol also allows to get a model including two
-chains modeled simultaneously using the same (multichain modeling), in
-our example we are going to model only one chain, the :math:`\alpha`
-subunit. shows the workflow that we are going to detail in this section.
-Other possibilities of the protocol usage will be suggested at the end
+chains modeled simultaneously using the same *template* (multichain modeling), in
+our example we are going to model only one chain, the *Hgb* :math:`\alpha`
+subunit. :numref:`model_building_scipion_workflow_from_sequence` shows the workflow that we are going to detail in this section. Other possibilities of the protocol usage will be suggested at the end
 of the chapter.
 
-.. figure:: Images/Fig66.pdf
-   :alt: framework detailing the workflow to generate the first model of
-   the human :math:`\alpha` subunit.
-   :name: fig:scipion_workflow_from_sequence
+.. figure:: Images/Fig66.svg
+   :alt: *Scipion* framework detailing the workflow to generate the first model of the human *Hgb* :math:`\alpha` subunit.
+   :name: model_building_scipion_workflow_from_sequence
+   :align: center
    :width: 100.0%
 
-   framework detailing the workflow to generate the first model of the
-   human :math:`\alpha` subunit.
+   *Scipion* framework detailing the workflow to generate the first model of the human *Hgb* :math:`\alpha` subunit.
 
 Downloading the atomic structure
 --------------------------------
 
-Once identified the that we are going to use as structural skeleton of
-our sequence, we import it into with the protocol (see (1) and Appendix
-`[app:importAtomicStructure] <#app:importAtomicStructure>`__). Select
-the option for importing the atomic structure from ID (2), write the
+Once identified the *template* that we are going to use as structural skeleton of
+our sequence, we import it into *Scipion* with the protocol **import atomic structure** (see :numref:`model_building_import_atomic_structure` (1) and Appendix :ref:`Import atomic structure <app:importAtomicStructure>`). Select the option for importing the atomic structure from ID (2), write the *PDB*
 accession code (3) and execute the protocol (4).
 
-.. figure:: Images/Fig10.pdf
-   :alt: Importing the atomic structure .
-   :name: fig:import_atomic_structure
+.. figure:: Images/Fig10.svg
+   :alt: Importing the atomic structure *1PBX*.
+   :name: model_building_import_atomic_structure
+   :align: center
    :width: 100.0%
 
-   Importing the atomic structure .
+   Importing the atomic structure *1PBX*.
 
-You can visualize the imported structure (5) in (). By selecting chain
-in the upper menu (1) you can distinguish the :math:`\alpha` subunit
+You can visualize the imported structure (5) in *ChimeraX* (:numref:`model_building_chimera_visualization_structure`). By selecting chain *A*
+in the upper menu (1) you can distinguish the *Hgb* :math:`\alpha` subunit
 (2).
 
-.. figure:: Images/Fig11.pdf
-   :alt: Atomic structure visualized with :math:`ChimeraX`.
-   :math:`\alpha` subunit (selected chain ) is shown green-highlighted.
-   :name: fig:chimera_visualization_structure
+.. figure:: Images/Fig11.svg
+   :alt: Atomic structure *1PBX* visualized with :math:`ChimeraX`. *Hgb* :math:`\alpha` subunit (selected chain *A*) is shown green-highlighted.
+   :name: model_building_chimera_visualization_structure
+   :align: center
    :width: 80.0%
 
-   Atomic structure visualized with :math:`ChimeraX`. :math:`\alpha`
+   Atomic structure *1PBX* visualized with :math:`ChimeraX`. *Hgb* :math:`\alpha`
    subunit (selected chain ) is shown green-highlighted.
 
-Structural models of human metHgb subunits from templates
+Structural models of human *metHgb* subunits from templates
 ---------------------------------------------------------
 
-:raw-latex:`\citep{sali1993}` is one of the computational web services
-used by , which provides the interface to run the program. Working with
+*Modeller* :cite:p:`sali1993` is one of the computational web services
+used by *ChimeraX*, which provides the interface to run the program. Working with *Modeller*
 requires a license key, which is provided free of charge for academic
-users. allows two types of modeling computations to generate theoretical
-models, -based (sequence homology) and -free (, only for missing
+users. *Modeller* allows two types of modeling computations to generate theoretical
+models, *template*-based (sequence homology) and *template*-free (*de novo*, only for missing
 segments). In this tutorial we are going to consider the first one:
 structure prediction by sequence homology. Requirements for this type of
-modeling are the structure and a sequence alignment including sequences
-of and .
+modeling are the *template* structure and a sequence alignment including sequences
+of *target* and *template*.
 
-: We are going to use a -derived protocol for the first time in this
-tutorial (, Appendix
-`[app:modelFromTemplate] <#app:modelFromTemplate>`__). Remark that this
-use of is completely different from the use of as a visualization tool,
-as we have done previously. By using the graphics window, opening it
-from the button we can observe protocol results but we CANNOT save
-anything. However, using as a tool, as it is the case in -derived
+``NOTE before starting:`` We are going to use a *ChimeraX*-derived protocol for the first time in this
+tutorial (**chimerax-model from template**, Appendix :ref:`Model from template <app:modelFromTemplate>`). Remark that this use of *ChimeraX* is completely different from the use of *ChimeraX* as a visualization tool,
+as we have seen previously. By using the *ChimeraX* graphics window, opening it
+from the *Scipion* button *Analyze Results* we can observe protocol results but we CANNOT save
+anything. However, using *ChimeraX* as a tool, as it is the case in *Scipion* *ChimeraX*-derived
 protocols, we can perform different tasks, taking advantage of the
-available tools and, finally, we CAN save the obtained results and the
+available *ChimeraX* tools and, finally, we CAN save the obtained results and the
 working session.
 
 -  | Preparing your sequence alignment:
-   | In addition to the ways to obtain the sequence alignment using ,
-     this alignment can be also generated in the protocol (Appendix
-     `[app:modelFromTemplate] <#app:modelFromTemplate>`__). This
+   | In addition to the ways to obtain the sequence alignment using *ChimeraX*,
+     this alignment can be also generated in the *Scipion* protocol **chimerax-model from template** (Appendix :ref:`Model from template <app:modelFromTemplate>`). This
      protocol allows selecting between pairwise and multiple sequence
      alignments. Besides producing more reliable alignments, especially
      for more distantly related sequences, multiple sequence alignments
      provide more structural information than pairwise alignments; they
      locate conserved regions in the molecule, thus improving
      predictions of structural arrangements due to mutant residues or
-     residues that differ between and sequences
-     :raw-latex:`\citep{pearson2013}`. For this reason, in this tutorial
+     residues that differ between *template* and *target* sequences :cite:p:`pearson2013`. For this reason, in this tutorial
      we are going to perform a multiple sequence alignment.
      Additionally, you can also test the available tools to perform
      pairwise alignments.
+
    | Besides and sequences, other sequences are needed to accomplish a
      multiple sequence alignment. The type and number of the sequences
      included depends on the sequence conservation, although they have
