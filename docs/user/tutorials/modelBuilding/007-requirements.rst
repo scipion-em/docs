@@ -22,5 +22,6 @@ editions, by writing to scipion@cnb.csic.es.
 Requirements
 ------------
 
-This tutorial requires, in addition to *Scipion*, the *CCP4* suite
-(http://www.ccp4.ac.uk/download/#os=linux) including *refmac*, and *Coot*, and the *PHENIX suite* (https://www.phenix-online.org/download/). 
+This tutorial requires, in addition to *Scipion*, the `CCP4 suite
+<http://www.ccp4.ac.uk/download/#os=linux>`_ including *refmac*, and *Coot*, 
+and the `PHENIX suite <https://www.phenix-online.org/download/>`_. 
