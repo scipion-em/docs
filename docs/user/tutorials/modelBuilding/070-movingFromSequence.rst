@@ -61,131 +61,128 @@ structure prediction by sequence homology. Requirements for this type of
 modeling are the *template* structure and a sequence alignment including sequences
 of *target* and *template*.
 
-``NOTE before starting:`` We are going to use a *ChimeraX*-derived protocol for the first time in this
+``NOTE before starting:`` We are going to use a *ChimeraX*-derived *Scipion* protocol for the first time in this
 tutorial (**chimerax-model from template**, Appendix :ref:`Model from template <app:modelFromTemplate>`). Remark that this use of *ChimeraX* is completely different from the use of *ChimeraX* as a visualization tool,
 as we have seen previously. By using the *ChimeraX* graphics window, opening it
 from the *Scipion* button *Analyze Results* we can observe protocol results but we CANNOT save
 anything. However, using *ChimeraX* as a tool, as it is the case in *Scipion* *ChimeraX*-derived
 protocols, we can perform different tasks, taking advantage of the
 available *ChimeraX* tools and, finally, we CAN save the obtained results and the
-working session.
+working session in *Scipion*.
 
 -  | Preparing your sequence alignment:
    | In addition to the ways to obtain the sequence alignment using *ChimeraX*,
      this alignment can be also generated in the *Scipion* protocol **chimerax-model from template** (Appendix :ref:`Model from template <app:modelFromTemplate>`). This
      protocol allows selecting between pairwise and multiple sequence
      alignments. Besides producing more reliable alignments, especially
-     for more distantly related sequences, multiple sequence alignments
+     for more distantly related sequences, multiple sequence alignments *(MSA)*
      provide more structural information than pairwise alignments; they
      locate conserved regions in the molecule, thus improving
      predictions of structural arrangements due to mutant residues or
      residues that differ between *template* and *target* sequences :cite:p:`pearson2013`. For this reason, in this tutorial
-     we are going to perform a multiple sequence alignment.
+     we are going to perform a *MSA*.
      Additionally, you can also test the available tools to perform
      pairwise alignments.
 
-   | Besides and sequences, other sequences are needed to accomplish a
-     multiple sequence alignment. The type and number of the sequences
+   | Besides *target* and *template* sequences, other sequences are needed to accomplish a
+     *MSA*. The type and number of the sequences
      included depends on the sequence conservation, although they have
      to allow differentiating conserved regions. As an example, our
-     multiple sequence alignment will include four more :math:`\alpha`
+     *MSA* will include four more *Hgb* :math:`\alpha`
      subunit sequences from organisms located between human and fish in
-     the evolutionary scale: (Horse), (Rabbit), (Wild turkey), (Aldabra
-     giant tortoise). Download these sequences one by one from database
-     filling in the protocol form with the appropriate accession codes,
-     , and , respectively (). A similar process has to be followed for
-     :math:`\beta` subunit, importing sequences and .
+     the evolutionary scale: *Equus caballus* (Horse), *Oryctolagus cuniculus* (Rabbit), *Meleagris gallopavo* (Wild turkey), *Aldabrachelys gigantea* (Aldabra
+     giant tortoise). Download these sequences one by one from *UniProtKB* database
+     filling in the **import sequence** protocol form with the appropriate accession codes, *P01958*, *P01948*, *P01948*, and *P83134*, respectively (:numref:`model_building_multialignment_sequences`). A similar process has to be followed for *Hgb*
+     :math:`\beta` subunit, importing *UniProtKB* sequences *P02062 (HBB HORSE)*, *P02057(HBB RABIT)*, *G1U9Q8 (G1U9Q8 MELGA)* and *P83133 (HBB ALDGI)*.
 
-   .. figure:: Images/Fig12.pdf
-      :alt: Importing additional sequences to perform the multiple
-      sequence alignment.
-      :name: fig:multialignment_sequences
+   .. figure:: Images/Fig12.svg
+      :alt: Importing additional sequences to perform the *MSA*.
+      :name: model_building_multialignment_sequences
+      :align: center
       :width: 95.0%
 
-      Importing additional sequences to perform the multiple sequence
-      alignment.
+      Importing additional sequences to perform the *MSA*.
 
--  | Access to in :
-   | The protocol allows direct opening of the multiple sequence
-     alignment in and then, access to via web service. Fill in the
-     protocol form ( (1)), including the previously imported (2), the
+-  | Access to *Modeller* in *ChimeraX*:
+   | The protocol **chimerax-model from template** allows direct opening of the *MSA* in *ChimeraX* and then, access to *Modeller* via web service. Fill in the
+     protocol form (:numref:`model_building_model_from_template_protocol` (1)), including the *template 1PBX*  previously imported (2), the
      particular chain of interest (use the wizard to select it (3)) and
-     the sequence of human :math:`\alpha` subunit (4). Since we plan to
+     the *target* sequence of human *Hgb* :math:`\alpha` subunit (4). Since we plan to
      improve the alignment by including additional sequences to align
      (5), they will have to be added next (6). Finally, select one of
      the multiple sequence alignment tools (7).
 
-   .. figure:: Images/Fig13.pdf
-      :alt: Importing the multiple sequence alignment in .
-      :name: fig:model_from_template_protocol
+   .. figure:: Images/Fig13.svg
+      :alt: Importing the multiple sequence alignment in *ChimeraX*.
+      :name: model_building_model_from_template_protocol
+      :align: center
       :width: 100.0%
 
-      Importing the multiple sequence alignment in .
+      Importing the multiple sequence alignment in *ChimeraX*.
 
-   will be opened including this time the multiple sequence alignment
-   together with the graphics window (). The selected chain is shown
+   *ChimeraX* will be opened including this time the *MSA*
+   together with the *ChimeraX* graphics window (:numref:`model_building_chimera_alignment`). The *template* selected chain is shown
    green-highlighted in both windows. As you may observe in the
-   alignment, :math:`\alpha` subunit is a quite conserved macromolecule;
-   there is only one gap in the alignment because (Proline) 47 residue
+   alignment, *Hgb* :math:`\alpha` subunit is a quite conserved macromolecule;
+   there is only one gap in the alignment because *PRO* (Proline) 47 residue
    disappeared throughout the evolutionary process.
 
-   .. figure:: Images/Fig14.pdf
-      :alt: Opening the multiple sequence alignment in .
-      :name: fig:chimera_alignment
+   .. figure:: Images/Fig14.svg
+      :alt: Opening the multiple sequence alignment in *ChimeraX*.
+      :name: model_building_chimera_alignment
+      :align: center
       :width: 80.0%
 
-      Opening the multiple sequence alignment in .
+      Opening the multiple sequence alignment in *ChimeraX*.
 
 | To complete the form that will allow us to get some atomic models of
-  the sequence in web service, we have two possibilities: a) to select
-  (, red arrow) , or b) clicking with the right mouse inside the box (,
-  green arrow) and selecting in the pop up window. A new window of will
-  be open ( (A)), that we have to fill in. (1) should include the
-  sequence. In the section (2) we should include the sequence that we
-  would like to model, in this particular case. license key has to be
+  the *target* sequence in *Modeller* web service, we have two possibilities: a) to select *Tools*
+  (:numref:`model_building_chimera_alignment`, red arrow) *-> Sequence -> Modeller Comparative* , or b) clicking with the right mouse inside the *Seqview* box (:numref:`model_building_chimera_alignment`,
+  green arrow) and selecting *Structure -> Modeller Comparative* in the pop up window. A new window of *Modeller Comparative* will be opened (:numref:`model_building_modeller` (A)), that we have to fill in. *Sequence alignments* (1) should include the *template*
+  sequence. In the *Target sequences* section (2) we should include the *target* sequence that we
+  would like to model, *HBA_HUMAN_P69905* in this particular case. *Modeller* license key has to be
   included here (3). The number of output models, 5 by default, can be
   also specified (4). Since the target sequence that we would like to
-  model should include ( group) we are going to select this choice as
-  (5). Finally, press (6) to start the computation of potential models
-  for your sequence.
+  model should include *non-water HETATM residues* *(HEME* group) we are going to select this choice as *Advanced option* 
+  (5). Finally, press *OK* (6) to start the computation of potential models
+  for your *target* sequence.
 
-.. figure:: Images/Fig15.pdf
-   :alt: (A) Completing the form to access to homology modeling with .
-   (B) Resulting . (C) panel.
-   :name: fig:modeller
+.. figure:: Images/Fig15.svg
+   :alt: *(A)* Completing the form to access to homology modeling with *Modeller*. (B) Resulting *model scores*. (C) *ChimeraX Models* panel.
+   :name: model_building_modeller
+   :align: center
    :width: 70.0%
 
-   (A) Completing the form to access to homology modeling with . (B)
-   Resulting . (C) panel.
+   *(A)* Completing the form to access to homology modeling with *Modeller*. (B) Resulting *model scores*. (C) *ChimeraX Models* panel.
 
-In main graphics window, lower left corner, you may see the status of
+In *ChimeraX* main graphics window, lower left corner, you may see the status of
 your job. After a while, five possible atomic structures, from now ahead
-, are retrieved for the sequence ( (B)) together with their assessment
-scores. Column of indicates the score derived from statistical
-potentials (values in ; for reliable ). Column (normalized Discrete
+*models*, are retrieved for the *target* sequence (:numref:`model_building_modeller` (B)) together with their assessment
+scores. Column *GA341* of *Modeller Results* indicates the score derived from statistical
+potentials (values in *[0, 1]*; *> 0,7* for reliable *models*). Column *zDOPE* (normalized Discrete
 Optimized Protein Energy) score depends on the atomic distance (negative
-values for the better ). You can check every model numbers in ’s main
-menu ( (C)).
+values for the better *models*). You can check every model number in *ChimeraX*’s main
+menu (*Tools -> Models* (C)).
 
-For this tutorial we are going to select ( (B), green arrow). Renaming
+For this tutorial we are going to select *model #3.2* (:numref:`model_building_modeller` (B), green arrow). Renaming
 this model is the first step to save it. We can rename the model by
-typing in the command line:
+typing in the *ChimeraX* command line:
 
 ::
 
         rename #3.2 id #4
 
-The renamed atomic structure will appear in the panel ( (C), green
-arrow). To track this new atomic structure in the workflow, we can write
-in the command line:
+The renamed atomic structure will appear in the *Models* panel (:numref:`model_building_modeller` (C), green
+arrow). To track this new atomic structure in the *Scipion* workflow, we can write
+in the *ChimeraX* command line:
 
 ::
 
         scipionwrite #4 prefix model_from_modeller_3_2_
 
-In case that the (( (A, 5)) didn’t include the group in the retrieved
-models, an alternative option to have the model with the group (residue
-144 from the atomic structure chain A) could be:
+In case that the *Advanced option "Include non-water HETATM residues from template"* (:numref:`model_building_modeller` (A, 5)) didn’t include the *HEME* group in the retrieved
+models, an alternative option to have the model with the *HEME* group (residue
+144 from the atomic structure *#2* chain A) could be:
 
 ::
 
@@ -199,31 +196,30 @@ models, an alternative option to have the model with the group (residue
 
         scipionwrite #6 prefix Hgb_alpha_
 
-: We have saved the group of the in a new file that will be opened as .
-Finally, the combination of (retrieved aminoacid of the sequence) and (
-group of the ) generates a new model that will be saved in . A different
-could be selected by the user adding to the last command line .
+``NOTE:`` We have saved the *HEME* group of the *template chain A* in a new file that will be opened as *model #5*.
+Finally, the combination of *models #4* (retrieved aminoacid *model* of the *target* sequence) and *#5 (HEME* 
+group of the *template chain A*) generates a new model *#6* that will be saved in *Scipion*. A different *model ID* could be selected by the user adding to the last command line *modelid n*.
 
-After closing , you can visualize ( (8)) your full predicted () that
-includes the group (1). The string that we have included as in the
-command line will allow us to follow the atomic structure in a more
-simple manner. You can check the in the the name of the saved atomic
-structure () in the panel of (1). Interestingly, the suffix number of
-the saved atomic structure () stands for the ID protocol number.
+After closing *ChimeraX*, you can visualize (:numref:`model_building_model_from_template_protocol` (8)) your full predicted *model* (:numref:`model_building_chimera_model`) that
+includes the *HEME* group (1). The string that we have included as *prefix* in the
+command line *scipionwrite* will allow us to follow the atomic structure in a more
+simple manner. You can check the *prefix* in the name of the saved atomic
+structure *(Hgb_alpha_Atom__struct_6_006815)* in the *Models* panel of :numref:`model_building_chimera_model` (1). Interestingly, the suffix number of
+the saved atomic structure *(006815)* stands for the ID protocol number.
 
-.. figure:: Images/Fig16.pdf
-   :alt: Initial of human :math:`\alpha` subunit, including the group
-   (blue).
-   :name: fig:chimera_model
+.. figure:: Images/Fig16.svg
+   :alt: Initial *model* of human *metHgb* :math:`\alpha` subunit, including the *HEME* group (blue).
+   :name: model_building_chimera_model
+   :align: center
    :width: 80.0%
 
-   Initial of human :math:`\alpha` subunit, including the group (blue).
+   Initial *model* of human *metHgb* :math:`\alpha` subunit, including the *HEME* group (blue).
 
 In a similar process, you can also obtain the initial atomic structure
-of the human :math:`\beta` subunit. Take into account that in this last
-case the HEME group is the residue of the chain . The command lines are
-similar to the previous case of the :math:`\alpha` subunit if you also
-select the .
+of the human *metHgb* :math:`\beta` subunit. Take into account that in this last
+case the HEME group is the residue *148* of the chain *B*. The command lines are
+similar to the previous case of the *metHgb* :math:`\alpha` subunit if you also
+select the *model #3.2*.
 
 ::
 
@@ -235,10 +231,10 @@ select the .
         open /tmp/HEME_B.cif
         scipioncombine #4,5
         setattr #6/A c chain_id B
-        scipionwrite #6 prefix Hgb_alpha_
+        scipionwrite #6 prefix Hgb_beta_
 
-In addition, we have included a command to change the chain of the
-second polypeptide from to . In general, to change the chain you have to
+In addition, we have included a command to change the chain *id* of the
+second polypeptide from *A* to *B*. In general, to change the chain *ID* you have to
 write:
 
 ::
@@ -249,33 +245,33 @@ write:
 Additional exercises for practising
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-| Since the protocol allows to use other options, inspect by your own
+| Since the protocol **chimerax-model from template** allows to use other options, inspect by your own
   the possible result obtained by:
 
-#. Using as input only the sequence of the human :math:`\alpha` subunit.
+#. Using as input only the *target* sequence of the human *metHgb* :math:`\alpha` subunit.
 
-#. Using as input the same atomic structure and the sequences of both
-   the human :math:`\alpha` and :math:`\beta` subunits. Improve the
-   alignment of the human :math:`\alpha` subunit with additional
-   sequences and improve the alignment of the human :math:`\beta`
+#. Using as input the same atomic structure *template* and the *target* sequences of both
+   the human *metHgb* :math:`\alpha` and :math:`\beta` subunits. Improve the
+   alignment of the human *metHgb* :math:`\alpha` subunit with additional
+   sequences and improve the alignment of the human *metHgb* :math:`\beta`
    subunit with your own sequence alignment that contains about 30
    sequences.
 
-Option of recovering the session
+Option of recovering the *ChimeraX* session
 --------------------------------
 
-If for any reason you decide to go back and check a different from the
-five initially provided by , you can do it by using protocol (Appendix
-`[app:chimeraRestoreSession] <#app:chimeraRestoreSession>`__). This
+If for any reason you decide to go back and check a different *model* from the
+five *models* initially provided by *Modeller*, you can do it by using **chimerax-restore session** protocol (Appendix :ref:`ChimeraX restore session <app:chimeraRestoreSession>`). This
 protocol may be used whenever session had been saved, specifically after
-using protocols , , and . In addition to the command line , command
-lines and also save session by default. So, if you want to restore a
-previous session just open the form (, 1), and include the session that
+using protocols **chimerax-rigid fit**, **chimerax-model from template**, and **chimerax-map subtraction**. In addition to the *ChimeraX* command line ``scipionss``, command
+lines ``scipionwrite`` and ``scipioncombine`` also save *ChimeraX* session by default. So, if you want to restore a
+previous session just open the form (:numref:`model_building_restore_session_protocol`, 1), and include the session that
 you’d like to restore (2).
 
-.. figure:: Images/Fig17.pdf
-   :alt: Restoring session in .
-   :name: fig:restore_session_protocol
+.. figure:: Images/Fig17.svg
+   :alt: Restoring session in *ChimeraX*.
+   :name: model_building_restore_session_protocol
+   :align: center
    :width: 90.0%
 
-   Restoring session in .
+   Restoring session in *ChimeraX*.

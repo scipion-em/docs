@@ -55,7 +55,7 @@ read the information related with the *template*, do it so and answer the
 following questions: (Answers in appendix :ref:`Solutions <app:solutions>`;
 **Question**\ `1 <sec:structurePrediction>`_\ **\ \_1**)
 
-.. container:: framed
+::
 
    -  How was this structure obtained (X-ray diffraction, EM, NMR)?
 

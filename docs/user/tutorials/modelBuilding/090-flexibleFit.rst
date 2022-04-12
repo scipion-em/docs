@@ -3,64 +3,59 @@
 Refinement: Flexible fitting
 ============================
 
-Although the rigid fitting approximates and atomic , a detailed visual
-inspection of and reveals that some residues are not perfectly fitted.
+Although the rigid fitting approximates *map* and atomic *model*, a detailed visual
+inspection of *map* and *model* reveals that some residues are not perfectly fitted.
 In order to get a better fit, not only of the carbon skeleton but also
 of residue side chains, a flexible fitting or refinement has to be
 accomplished. Refinement can thus be defined as the optimization process
-of fitting parameters to experimental data. Different strategies,
+of fitting *model* parameters to experimental data. Different strategies,
 categorized as refinement in the real space and refinement in the
-Fourier space, can be followed. Implemented in are two protocols for
-real space refinement, (Appendix
-`[app:ccp4CootRefinement] <#app:ccp4CootRefinement>`__,
-:raw-latex:`\citep{emsley2010}`) and (Appendix
-`[app:realSpaceRefineProtocol] <#app:realSpaceRefineProtocol>`__,
-:raw-latex:`\citep{afonine2018a}`, manual and automatic, respectively,
-and one automatic protocol to refine the in the reciprocal space,
-(Appendix `[app:ccp4Refmac] <#app:ccp4Refmac>`__,
-:raw-latex:`\citep{vagin2004}`).
+Fourier space, can be followed. Implemented in *Scipion* are two protocols for
+real space refinement, **ccp4-coot refinement** (Appendix :ref:`Coot refinement <app:ccp4CootRefinement>`, :cite:p:`emsley2010`) and **phenix-real space refine** (Appendix :ref:`Real space refine <app:realSpaceRefineProtocol>`, :cite:p:`afonine2018a`), interactive and automatic, respectively,
+and one automatic protocol to refine the *model* in the reciprocal space, **ccp4-refmac** 
+(Appendix :ref:`Refmac <app:ccp4Refmac>`, :cite:p:`vagin2004`).
 
-Observe the new steps in the modeling workflow in .
+Observe the new steps in the modeling *Scipion* workflow in :numref:`model_building_scipion_workflow_flexiblefit`.
 
-.. figure:: Images/Fig68.pdf
-   :alt: framework detailing the workflow to refine the model of the
-   human :math:`\alpha` subunit in the map asymmetric unit.
-   :name: fig:scipion_workflow_flexiblefit
+.. figure:: Images/Fig68.svg
+   :alt: *Scipion* framework detailing the workflow to refine the model of the human *Hgb* :math:`\alpha` subunit in the map asymmetric unit.
+   :name: model_building_scipion_workflow_flexiblefit
+   :align: center
    :width: 100.0%
 
-   framework detailing the workflow to refine the model of the human
-   :math:`\alpha` subunit in the map asymmetric unit.
+   *Scipion* framework detailing the workflow to refine the model of the human *Hgb* :math:`\alpha` subunit in the map asymmetric unit.
 
-CCP4 Refinement
+CCP4 *Coot* Refinement
 ---------------
 
 Initially devoted to atomic models obtained by X-ray crystallography
-methods, (from Crystallopgraphic Object-Oriented Toolkit) is a 3D
-computer graphics tool that allows simultaneous display of and fitted to
+methods, *Coot* (from Crystallopgraphic Object-Oriented Toolkit) is a 3D
+computer graphics tool that allows simultaneous display of *map* and fitted *model* to
 accomplish mostly interactive modeling operations. Although this
-tutorial does not try to show every functionality of , but indicate how
-to open, close and save partial and final refined structures in , some
-of basic relevant commands will be shown. Initially, we are going to
-refine our with . First of all, open the protocol ( (1)), load the map
-asymmetric units (2), with electron density normalized to 1 (performs
-this step by default), and the fitted structure :math:`model` (3). To
+tutorial does not try to show every functionality of *Coot*, but indicate how
+to open, close and save partial and final refined structures in *Scipion*, some
+of *Coot* basic relevant commands will be shown. Initially, we are going to
+refine our *model* with *Coot*. First of all, open the **ccp4-coot refinement** protocol (:numref:`model_building_coot_refinement_protocol` (1)), load the map
+asymmetric units (2), with electron density normalized to 1 (*Coot* performs
+this step by default), and the fitted structure *model* (3). To
 read the protocol Help is recommended. After executing the protocol (4),
-the graphics window will appear to start working.
+the *Coot* graphics window will appear to start working.
 
-.. figure:: Images/Fig24.pdf
-   :alt: Filling in refinement protocol.
-   :name: fig:coot_refinement_protocol
+.. figure:: Images/Fig24.svg
+   :alt: Filling in the *Coot* refinement protocol.
+   :name: model_building_coot_refinement_protocol
+   :align: center
    :width: 100.0%
 
-   Filling in refinement protocol.
+   Filling in the *Coot* refinement protocol.
 
-| To check the objects downloaded in , go to the second bar of the main
-  menu and select . Maps (numbers , and ) and model (number ) are
-  displayed on the left ( (A)). Remark that you have buttons to display
+| To check the objects downloaded in *Coot*, go to the second bar of the main
+  menu and select *Display Manager*. Maps (numbers *#1*, *#2* and *#3*) and model *Hgb_alpha_Atom_struct__3_007124.cif* (number *#0*) are
+  displayed on the left (:numref:`model_building_coot_density_fit_analysis` (A)). Remark that you have buttons to display
   a particular map (1) and to increase or reduce map density scrolling
   it (2). In this case, since we have selected the display of the
-  unsharpened map asymmetric unit, we can only observe this together
-  with the . If you want to check any of the sharpened maps, select it
+  unsharpened map asymmetric unit, we can only observe this *map* together
+  with the *model*. If you want to check any of the sharpened maps, select it
   and scroll it. Note that all maps should be aligned. Try to see
   differences in details and connectivity of the map to assess if the
   sharpened maps really optimize the map density compared to the
@@ -71,216 +66,222 @@ the graphics window will appear to start working.
   several sharpening maps you can also take advantage of the different
   map optimizations that you could have in the distinct areas of the
   map.
+
 | To start with the refinement process, we are going to identify the
-  part of :math:`model` misfitted to the density map. Visual inspection
+  part of *model* misfitted to the density map. Visual inspection
   would clarify this point in some cases, although direct observation of
-  the might be a shorter way. With this aim, go to the main menu of
-  graphical window and select . The density fit will be analyzed
-  regarding a specific map. To select any of them, go to the right side
-  menu ( (B)(3)) and open the window (C). This density analysis, that
-  you can see for the three map asymmetric units in ( (D)) shows that
+  the *Density fit analysis* might be a shorter way. With this aim, go to the main menu of *Coot*
+  graphical window and select *Validate -> Densisty fit analysis*. The density fit will be analyzed
+  regarding a specific map. To select any of them, go to the *Coot* right side
+  menu (:numref:`model_building_coot_density_fit_analysis` (B)(3)) and open the *Select Map for Fitting* window (C). This density analysis, that
+  you can see for the three map asymmetric units in :numref:`model_building_coot_density_fit_analysis` (D) shows that
   residues 1, 51, 73, 138-142 do not fit perfectly to the density map.
-  The color range scale goes from green color (good fit) to red color
+  The color range scale varies from green color (good fit) to red color
   (bad fit). There are some differences among maps and, as it was
   expected, the sharpened maps display higher restraints and show
   additional residues partially misfitted.
 
-.. figure:: Images/Fig25.pdf
-   :alt: A. . B. right side menu. C. window. D. Map density fit analysis
-   of the in regarding the unsharpened map (upper), :math:`LocalDeblur`
-   sharpened map (middle) and :math:`DeepEMhancer` sharpened map
-   (lower).
-   :name: fig:coot_density_fit_analysis
+.. figure:: Images/Fig25.svg
+   :alt: A. *Coot Display Manager*. B. *Coot* right side menu. C. *Coot Select Map for Fitting* window. D. Map density fit analysis of the *model* in *Coot* regarding the unsharpened map (upper), :math:`LocalDeblur` sharpened map (middle) and :math:`DeepEMhancer` sharpened map (lower).
+   :name: model_building_coot_density_fit_analysis
+   :align: center
    :width: 75.0%
 
-   A. . B. right side menu. C. window. D. Map density fit analysis of
-   the in regarding the unsharpened map (upper), :math:`LocalDeblur`
-   sharpened map (middle) and :math:`DeepEMhancer` sharpened map
-   (lower).
+   *A*. *Coot Display Manager*. B. *Coot* right side menu. C. *Coot Select Map for Fitting* window. D. Map density fit analysis of the *model* in *Coot* regarding the unsharpened map (upper), :math:`LocalDeblur` sharpened map (middle) and :math:`DeepEMhancer` sharpened map (lower).
 
-According to (B), residue of the new chain does not fit to the map
+According to :numref:`model_building_coot_density_fit_analysis` (B), *MET* residue of the new chain *A* does not fit to the map
 density. Maybe this residue has been processed post-translationally, as
-we have anticipated in **Starting Input data** section. To solve this
-question, go to main menu and select ( (A)). residue will be located in
-the center of graphics window. Check if this residue is surrounded by
-any electron density. As (B)(1) shows, no density associates to the
-first chain residue. will thus be deleted. Then go to the lower right
-side menu and select the symbol to delete items (B)(2). Select in the
-opened window, and click the residue that you want to delete. Go again
-to and check if the orange bar shown in residue (B) disappeared.
+we have anticipated in `Input data description <file:///home/marta/software/docs/_build/html/docs/user/tutorials/modelBuilding/030-inputDataDescription.html>`_ section. To solve this
+question, go to *Coot* main menu and select *Draw -> Go to Atom... -> Chain A -> A 1 MET* (:numref:`model_building_coot_go_to_atom` (A)). *MET* residue will be located in
+the center of *Coot* graphics window. Check if this residue is surrounded by
+any electron density. As :numref:`model_building_coot_go_to_atom` (B)(1) shows, no density associates to the
+first chain residue. *MET* will thus be deleted. Then go to the lower right
+side menu and select the symbol to delete items (B)(2). Select *Residue/Monomer* in the
+opened *Delete item* window, and click the *MET* residue that you want to delete. Go again
+to *Validate -> Density fit analysis* and check if the orange bar shown in *MET* residue :numref:`model_building_coot_density_fit_analysis` (D) has disappeared.
 
-.. figure:: Images/Fig27.pdf
-   :alt: Removing post-translationally processed Methionine residue in .
-   Note that the icons shown in the image right side may be partially
-   hidden if the screen is small.
-   :name: fig:coot_go_to_atom
+.. figure:: Images/Fig27.svg
+   :alt: Removing post-translationally processed Methionine residue in *Coot*. Note that the icons shown in the image right side may be partially hidden if the screen is small.
+   :name: model_building_coot_go_to_atom
+   :align: center
    :width: 80.0%
 
-   Removing post-translationally processed Methionine residue in . Note
-   that the icons shown in the image right side may be partially hidden
-   if the screen is small.
+   Removing post-translationally processed Methionine residue in *Coot*. Note that the icons shown in the image right side may be partially hidden if the screen is small.
 
-| Although in this particular example the most interesting manual
+| Although in this particular example the most interesting
   refinement strategy could be repair only the misfitted residues
   because they are very few, in a more general case, in which we could
   have many misfitted residues, an initial quick refinement may be
   accomplished. With this purpose, first of all, go to the upper right
-  side menu ( (B)(3)) and select all four restrictions for in the
-  respective window of parameters. Secondly, open the browser ( (1)) and
-  navigate to the directory, open the text file (2), and modify the file
+  side menu (:numref:`model_building_coot_go_to_atom` (B)(3)) and select all four restrictions for *Regularization and Refinement* in the
+  respective window of parameters. Secondly, open the *Scipion* browser (:numref:`model_building_cootini` (1)) and
+  navigate to the *extra* directory, open the *coot.ini* text file (2), and modify the file
   so it matches the information shown below (3).
+::
 
-.. figure:: Images/cootini.pdf
-   :alt: Edit coot.ini file.
-   :name: fig:cootini
+     [myvars]
+     imol: 0
+     aa main chain: A
+     aa auxiliary chain: AA
+     aaNumber: 4
+     step: 10
+
+
+.. figure:: Images/cootini.svg
+   :alt: Editing coot.ini file.
+   :name: model_building_cootini
+   :align: center
    :width: 80.0%
 
-   Edit coot.ini file.
+   Editing coot.ini file.
 
-| Finally, go back to window and press “U” to initiate global variables
+| Finally, go back to *Coot* window and press “U” to initiate global variables
   and “z” to refine the next upstream 10 residues. Go through those
   residues, one by one, and accept refinement if you agree with it. If
   you disagree with the refinement of any residue, perform the
   interactive refinement, visualizing the residue side chain. Repeat the
   refinement process with “z” until the end of the molecule. Check that
-  the red bar of residue number 53 () goes missing at the end of this
-  process.
+  the red bar of residue number 53 (:numref:`model_building_coot_density_fit_analysis`) goes missing at the end of this process.
+
 | After this partially automatic and partially interactive processing,
-  go to ( is now the first residue of the :math:`\alpha` subunit) and
-  start the detailed interactive refinement of the initial residues of
+  go to *Draw -> Go To Atom... -> Chain A -> A 2 VAL (VAL* is now the first residue of the *metHbg* :math:`\alpha` subunit) and start the detailed interactive refinement of the initial residues of
   chain A. To accomplish this interactive refinement of a small group of
   5 to 10 residues, select the blue circle in the upper right side menu
   and click the initial and final residues of the small group of
-  residues ( (B)(4)). The group of selected residues gets flexible
+  residues (:numref:`model_building_coot_go_to_atom` (B)(4)). The group of selected residues gets flexible
   enough to look manually for another spatial distribution. Following
-  these instructions, try to solve the misfit that you can find in 141
+  these instructions, try to solve the misfit that you can find in *TYR* 141
   residue at the end of the molecule. Specifically, try to improve the
-  result of the , as you can see from (A) to (B) in , moving 141
+  result of the *Validate -> Density fit analysis*, as you can see from (A) to (B) in :numref:`model_building_coot_density_fit_analysis2`, moving *TYR* 141
   ((A)(1)) to the nearest empty map density ((A)(2)). Accept the
-  refinement parameters after the displacement of ((B)(3)). Finally,
-  check the .
+  refinement parameters after the displacement of *TYR* ((B)(3)). Finally,
+  check the *Density Fit Graph*.
 
-.. figure:: Images/Fig28.pdf
-   :alt: fit in the map density of residue 141.
-   :name: fig:coot_density_fit_analysis2
+.. figure:: Images/Fig28.svg
+   :alt: *Coot* fit in the map density of residue *TYR* 141.
+   :name: model_building_coot_density_fit_analysis2
+   :align: center
    :width: 85.0%
 
-   fit in the map density of residue 141.
+   *Coot* fit in the map density of residue *TYR* 141.
 
-| Rotamer refinement is another refinement tool available in . You can
-  try to improve your current :math:`model` modifying rotamers reported
-  as incorrect in . Otherwise, the next refinement program in modeling
-  workflow () will perform rotamer refinement.
-| At the end of this interactive refinement with , the refined atomic
-  structure has to be saved in . You can save the atomic structure with
-  its default name/label by pressing . If you want to add a special
-  label to identify the atomic structure in the workflow you can save
-  that label in main menu and the window will be opened and you can
-  write there your label name, for example . This label will appear in
-  the window of the framework ( (A)). Assuming that is your number,
+| Rotamer refinement is another refinement tool available in *Coot*. You can
+  try to improve your current *model* modifying rotamers reported
+  as incorrect in *Validate -> Rotamer analysis*. Otherwise, the next refinement program in modeling
+  workflow (*PHENIX real space refine*) will perform rotamer refinement.
+
+| At the end of this interactive refinement with *Coot*, the refined atomic
+  structure has to be saved in *Scipion*. You can save the atomic structure with
+  its default name/label by pressing ``w``. If you want to add a special
+  label to identify the atomic structure in the *Scipion* workflow you can save
+  that label in *Coot* main menu *Calculate -> Scripting -> Python* and the *Coot Python Scripting* window will be opened and you can
+  write there your label name, for example *label1_HBA_HUMAN*. This label will appear in
+  the *Summary* window of the *Scipion* framework (:numref:`model_building_coot_summary` (A)). Assuming that *#0* is your *model* number,
   write in Command:
+::
 
-.. figure:: Images/Fig26.pdf
-   :alt: A. showing label names of each independent saved atomic
-   structure (1, 3: user’s chosen labels; 2: default label). B. (1, 2,
-   3) Respective atomic structure file names in the folder.
-   :name: fig:coot_summary
+     scipion write (0, ’label1_HBA_HUMAN’)
+
+
+.. figure:: Images/Fig26.svg
+   :alt: A. *Coot Summary* showing label names of each independent saved atomic structure (1, 3: user’s chosen labels; 2: default label). B. (1, 2, 3) Respective atomic structure file names in the *"extra"* folder.
+   :name: model_building_coot_summary
+   :align: center
    :width: 85.0%
 
-   A. showing label names of each independent saved atomic structure (1,
-   3: user’s chosen labels; 2: default label). B. (1, 2, 3) Respective
-   atomic structure file names in the folder.
+   *A*. *Coot Summary* showing label names of each independent saved atomic structure (1, 3: user’s chosen labels; 2: default label). B. (1, 2, 3) Respective atomic structure file names in the *"extra"* folder.
 
-| In its interactive way, protocol can be launched again whenever you
-  want in , and the last atomic structure saved will be loaded in
-  graphics window. This functionality of allows to stop the interactive
+| In its interactive way, **ccp4-coot refinement** protocol can be launched again whenever you
+  want in *Scipion*, and the last atomic structure saved will be loaded in *Coot*
+  graphics window. This functionality of *Scipion* allows to stop the interactive
   refinement and continue the process in the last refinement step,
   maintaining each one of the intermediate refined structures saved in
-  order in the tutorial folder ( (B)). Remark that if you want to
-  continue with the refinement process you have to select the option
-  when you edit the refinement protocol. In this way, to go again to
+  order in the *Scipion* tutorial folder */Runs/000XXX_CootRefine/extra* (:numref:`model_building_coot_summary` (B)). Remark that if you want to
+  continue with the refinement process you have to select the *Run mode* option *Continue*
+  when you edit the *Coot* refinement protocol. In this way, to go again to
   intermediate refined structures is also possible. Finally, when you
-  reach the final refined structure, save it, and you may press to fully
-  stop the protocol.
-| A similar refinement process to that followed in for :math:`\alpha`
-  subunit chain , has to be carried out for the :math:`\beta` subunit.
-| : Check the of each chain. Although you have the possibility of
-  changing this in , as we have seen in the subsection “Structural
-  models of human metHgb subunits from templates“ ( :math:`\beta`
-  subunit), you also have the possibility of performing this task in ,
-  as it is shown in the next example in which we change the chain from
-  to . To change the name of the chain, go to the main menu and select
-  the option ( (A)(1)) and then and select the current name of the chain
-  ( (B)(2)) by the new one, (3).
+  reach the final refined structure, save it, and you may press ``e`` to fully
+  stop the *Coot* protocol.
 
-.. figure:: Images/Fig74.pdf
-   :alt: A. main menu. B. window to change chain IDs.
-   :name: fig:chimerax_asymm_unit_2
+| A similar refinement process to that followed in *Coot* for *metHgb* :math:`\alpha`
+  subunit chain *A*, has to be carried out for the *metHgb* :math:`\beta` subunit.
+
+| ``NOTE`` about *chain IDs*: Check the *id* of each chain. Although you have the possibility of
+  changing this *id* in *ChimeraX*, as we have seen in the subsection `Structural
+  models of human metHgb subunits from templates <file:///home/marta/software/docs/_build/html/docs/user/tutorials/modelBuilding/070-movingFromSequence.html>`_ (*metHgb* :math:`\beta`
+  subunit), you also have the possibility of performing this task in *Coot*,
+  as it is shown in the next example in which we change the chain *id* from *A*
+  to *B*. To change the name of the chain, go to the *Coot* main menu and select
+  the option *Edit* (:numref:`model_building_chimerax_asymm_unit_2` (A)(1)) and then *Change chain IDs* and select the current name of the chain *A*
+  (:numref:`model_building_chimerax_asymm_unit_2` (B)(2)) by the new one, *B* (3).
+
+.. figure:: Images/Fig74.svg
+   :alt: A. *Coot* main menu. B. *Coot* window to change chain IDs.
+   :name: model_building_chimerax_asymm_unit_2
+   :align: center
    :width: 50.0%
 
-   A. main menu. B. window to change chain IDs.
+   *A*. *Coot* main menu. B. *Coot* window to change chain IDs.
 
-Real Space Refine
+*PHENIX* Real Space Refine
 -----------------
 
-| In order to compare the previous interactive refinement with an
-  automatic refinement, we are going to use the protocol in parallel, as
-  indicated in (1). In addition, we can assess if the automatic
-  refinement obtained with the protocol is able to complement and
-  improve the result of the manual refinement ( (2)). Protocol
-  implements in the program developed to address cryo-EM
-  structure-refinement requirements. Following a workflow similar to the
-  reciprocal-space refinement program , basically devoted to
-  crystallography, program, mainly used in cryo-EM, is able to refine in
+| In order to compare the previous *Coot* interactive refinement with an
+  automatic refinement, we are going to use the **phenix-real space refine** protocol in parallel, as
+  indicated in :numref:`model_building_scipion_workflow_flexiblefit` (1). In addition, we can assess if the automatic refinement obtained with the protocol **phenix-real space refine** is able to complement and
+  improve the result of the *Coot* manual refinement (:numref:`model_building_scipion_workflow_flexiblefit` (2)). Protocol **phenix-real space refine**
+  implements in *Scipion* the *phenix.real_space_refine* program developed to address cryo-EM
+  structure-refinement requirements. Following a workflow similar to the *PHENIX*
+  reciprocal-space refinement program *phenix.refine*, basically devoted to
+  crystallography, *phenix.real_space_refine* program, mainly used in cryo-EM, is able to refine in
   real space atomic models against maps, which are the experimental
   data.
-| Start working by opening protocol ( (1)), load as input volume the map
-  asymmetric unit saved in that you consider the most optimized one (2,
-  the :math:`deepEMhancer` sharpened map in this case), write the volume
-  resolution (3), and load the atomic structure (:math:`model` in the
-  case 1 of or :math:`model` in the case 2 (4)). After executing the
-  protocol (6), results can be checked (7). Try to compare the that you
-  can see in the of the framework after changing the parameter (5) from
-  to (default value).
 
-.. figure:: Images/Fig29.pdf
-   :alt: Completing Real Space Refine protocol (Case 2 of ).
-   :name: fig:phenix_real_space_refine_protocol
+| Start working by opening **phenix-real space refine** protocol (:numref:`model_building_phenix_real_space_refine_protocol` (1)), load as input volume the map
+  asymmetric unit saved in *Coot* that you consider the most optimized one (2,
+  the :math:`deepEMhancer` sharpened map in this case), write the volume
+  resolution (3), and load the atomic structure (*model Hgb_alpha_atom_struct_3_007124* in the
+  case 1 of :numref:`model_building_scipion_workflow_flexiblefit` or *model new_label_HBA_HUMAN* in the case 2 (4)). After executing the
+  protocol (6), results can be checked (7). Try to compare the *MolProbity statistics* that you
+  can see in the *Summary* of the *Scipion* framework after changing the *Advanced* parameter *Local grid search* (5) from *Yes*
+  to *No* (default value).
+
+.. figure:: Images/Fig29.svg
+   :alt: Completing *PHENIX* Real Space Refine protocol (Case 2 of :numref:`model_building_scipion_workflow_flexiblefit`).
+   :name: model_building_phenix_real_space_refine_protocol
+   :align: center
    :width: 100.0%
 
-   Completing Real Space Refine protocol (Case 2 of ).
+   Completing *PHENIX* Real Space Refine protocol (Case 2 of :numref:`model_building_scipion_workflow_flexiblefit`).
 
-The first tab of results shows the initial :math:`model` atomic
-structure ( (pink)) as well as the refined one (green), both fitted to
-the normalized map asymmetric unit saved in .
+The first tab of results shows the initial *model* atomic
+structure (:numref:`model_building_phenix_real_space_refine_chimera` (pink)) as well as the refined one (green), both fitted to
+the normalized map asymmetric unit saved in *Coot*.
 
-.. figure:: Images/Fig30.pdf
-   :alt: visualization of refined :math:`model` of :math:`\alpha`
-   subunit by Real Space Refine protocol (Case 2 of ).
-   :name: fig:phenix_real_space_refine_chimera
+.. figure:: Images/Fig30.svg
+   :alt: *ChimeraX* visualization of refined *model* of *metHgb* :math:`\alpha` subunit by *PHENIX* Real Space Refine protocol (Case 2 of :numref:`model_building_scipion_workflow_flexiblefit`).
+   :name: model_building_phenix_real_space_refine_chimera
+   :align: center
    :width: 65.0%
 
-   visualization of refined :math:`model` of :math:`\alpha` subunit by
-   Real Space Refine protocol (Case 2 of ).
+   *ChimeraX* visualization of refined *model* of *metHgb* :math:`\alpha` subunit by *PHENIX* Real Space Refine protocol (Case 2 of :numref:`model_building_scipion_workflow_flexiblefit`).
 
 | The rest of tabs detail different statistics useful to compare the
   quality of distinct :math:`models` such as :math:`MolProbity`
-  statistics and correlations. :math:`MolProbity` results will be
-  discussed in the next section of validation and comparison. Regarding
-  correlations, different :math:`models` can be compared by using the
-  global number of , which indicates the correlation
-  :math:`model`-to-:math:`map` calculated considering the map region
-  masked around the :math:`model`. You can check also individual
+  statistics and *Real-space* correlations. :math:`MolProbity` results will be
+  discussed in the next section of validation and comparison. Regarding *Real-space*
+  correlations, different *models* can be compared by using the
+  global number of *CC(mask)*, which indicates the correlation *model*-to-*map* calculated considering the map region
+  masked around the *model*. You can check also individual
   correlation values for each residue. Remark that residues with lower
   correlation values might be susceptible to improve by additional
-  refinement in . Have a look to those correlation values in the case 1
-  of and answer the following questions: (Answers in appendix
-  `[app:solutions] <#app:solutions>`__;
+  refinement in *Coot*. Have a look to those correlation values in the case 1 of Fig. :numref:`model_building_scipion_workflow_flexiblefit`
+  and answer the following questions: (Answers in appendix :ref:`Solutions <app:solutions>`;
   **Question**\ `1 <#refinementFlexibleFitting>`__\ **\ \_1**)
 
-.. container:: framed
+::
 
-   -  What is the value?
+   -  What is the *CC(mask)* value?
 
    -  Which one is the residue that shows the lower correlation value?
       Why?
@@ -292,7 +293,7 @@ the normalized map asymmetric unit saved in .
 
    -  What is that correlation value?
 
-   -  What is the correlation value of group?
+   -  What is the correlation value of *HEME* group?
 
 | 
 | Now, compare these results with those obtained in the case 2 of , in
