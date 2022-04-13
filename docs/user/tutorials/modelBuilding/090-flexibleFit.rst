@@ -277,7 +277,7 @@ the normalized map asymmetric unit saved in *Coot*.
   correlation values might be susceptible to improve by additional
   refinement in *Coot*. Have a look to those correlation values in the case 1 of Fig. :numref:`model_building_scipion_workflow_flexiblefit`
   and answer the following questions: (Answers in appendix :ref:`Solutions <app:solutions>`;
-  **Question**\ `1 <#refinementFlexibleFitting>`__\ **\ \_1**)
+  **Question**\ `1 <refinementFlexibleFitting>`__\ **\ \_1**)
 
 ::
 
@@ -296,212 +296,218 @@ the normalized map asymmetric unit saved in *Coot*.
    -  What is the correlation value of *HEME* group?
 
 | 
-| Now, compare these results with those obtained in the case 2 of , in
-  which we have run after . Have the above values of correlation
-  changed? (Answer in appendix `[app:solutions] <#app:solutions>`__;
-  **Question**\ `1 <#refinementFlexibleFitting>`__\ **\ \_2**)
-| The conclusion of this part of refinement in real space is that and
+| Now, compare these results with those obtained in the case 2 of :numref:`model_building_scipion_workflow_flexiblefit`, in
+  which we have run *PHENIX real space refine* after *Coot*. Have the above values of correlation
+  changed? (Answer in appendix :ref:`Solutions <app:solutions>`; **Question**\ `1 <refinementFlexibleFitting>`__\ **\ \_2**)
+
+| The conclusion of this part of refinement in real space is that *Coot* and *PHENIX real space refine* 
   might perform complementary tasks. The usage of both protocols may
   improve the result, especially when partial processing or big
   rearrangements of molecules are involved.
-| Before finishing our refinement workflow with , we can ask ourselves
-  how can we improve correlations in real space by modifying the
+
+| Before finishing our refinement workflow with *Refmac*, we can ask ourselves
+  how we can improve correlations in real space by modifying the *Advanced*
   parameters in the protocol form. Will the correlation values change if
   we set to “yes” optimization parameters previously set to “no”, and
   increase the number of macro cycles from 5 to 30? Take into account
   that this process takes much more time (around 6 times more) than the
-  previous one. (Answer in appendix
-  `[app:solutions] <#app:solutions>`__;
-  **Question**\ `1 <#refinementFlexibleFitting>`__\ **\ \_3**)
-| : An interesting application of the visualization tools is the
-  possibility of load from the viewer and correct the structure of
-  outliers residues and classhes. A recurively use of and protocols is
+  previous one. (Answer in appendix :ref:`Solutions <app:solutions>`; **Question**\ `1  <refinementFlexibleFitting>`__\ **\ \_3**)
+
+| ``NOTE:`` An interesting application of the *PHENIX real space refine* visualization tools is the
+  possibility of load *Coot* from the *PHENIX* viewer and correct the structure of
+  outliers residues and clashes. A recurively use of *PHENIX real space refine* and *Coot* protocols is
   thus possible.
 
-Search Fit
+*PHENIX* Search Fit
 ----------
 
-An extension of Real Space Refine is , a protocol implemented in to fit
+An extension of *PHENIX* Real Space Refine is **phenix-search fit**, a protocol implemented in *Scipion* to fit
 a small sequence of residues in a certain density of the map and,
 afterwards, perform the subsequent refinement in the real space
-(Appendix `[app:searchFit] <#app:searchFit>`__). Let us to illustrate
-the applicability of this protocol with the workflow described in the .
+(Appendix :ref:`Search fit <app:searchFit>`). Let us to illustrate
+the applicability of this protocol with the workflow described in the :numref:`model_building_phenix_search_fit_1`.
 
-.. figure:: Images/Fig_search_fit_1.pdf
-   :alt: workflow including the protocol.
-   :name: fig:phenix_search_fit_1
+.. figure:: Images/Fig_search_fit_1.svg
+   :alt: *Scipion* workflow including the **phenix-search fit** protocol.
+   :name: model_building_phenix_search_fit_1
+   :align: center
    :width: 65.0%
 
-   workflow including the protocol.
+   *Scipion* workflow including the **phenix-search fit** protocol.
 
-This example shows a small fraction of residues from the :math:`\alpha`
+This example shows a small fraction of residues from the *metHgb* :math:`\alpha`
 subunit that was not completely modeled, except for the skeleton of
 :math:`\alpha` carbons. The sequence of the chain is perfectly known,
 but for certain residues we were unable of tracing the lateral side
-chains of those residues and only residues appear in our atomic
-structure. A detail of the small fragment of residues can be observed in
-the (red arrows). The protocol might help us to replace the residues by
+chains of those residues and only *ALA* residues appear in our atomic
+structure. A detail of the small fragment of *ALA* residues can be observed in
+the :numref:`model_building_phenix_search_fit_2` (red arrows). The protocol **phenix-search fit** might help us to replace the *ALA* residues by
 the appropriate aminoacids.
 
-.. figure:: Images/Fig_search_fit_2.pdf
-   :alt: Fragment of residues fitted in the human asymmetric unit, as
-   can be visualized in the protocol ( (2)).
-   :name: fig:phenix_search_fit_2
+.. figure:: Images/Fig_search_fit_2.svg
+   :alt: Fragment of *ALA* residues fitted in the human *metHgb* asymmetric unit, as can be visualized in the protocol *ChimeraX rigid fit*(:numref:`model_building_phenix_search_fit_1` (2)).
+   :name: model_building_phenix_search_fit_2
+   :align: center
    :width: 65.0%
 
-   Fragment of residues fitted in the human asymmetric unit, as can be
-   visualized in the protocol ( (2)).
+   Fragment of *ALA* residues fitted in the human *metHgb* asymmetric unit, as can be visualized in the protocol *ChimeraX rigid fit* (:numref:`model_building_phenix_search_fit_1` (2)).
 
-As the indicates, the protocol (4) requires three different inputs (1, 2
-and 3):
+As the :numref:`model_building_phenix_search_fit_1` indicates, the protocol **phenix-search fit** (4) requires three different inputs (1, 2 and 3):
 
-#. Initial map that contains the density of the :math:`\alpha` subunit.
-   In this case we use the asymmetric unit map extracted previously
-   (section "Extraction of the asymmetric unit map", ).
+#. Initial map that contains the density of the *metHgb* :math:`\alpha` subunit.
+   In this case we use the asymmetric unit map extracted previously (subsection `Extraction of the asymmetric unit map <file:///home/marta/software/docs/_build/html/docs/user/tutorials/modelBuilding/050-volumeScenario.html>`_, :numref:`model_building_extract_unit_cell`).
 
-#. | Small fragment of atomic structure that contains the small chain.
+
+#. | Small fragment of atomic structure that contains the *ALA* small chain.
      To create this fragment we start from the published atomic
-     structure of the human :math:`\alpha` subunit (included in the
-     model of the ID , which can be downloaded from the database using
-     the protocol . Next, we use the protocol to isolate the chain of
-     the structure. The atomic structure is the only one input of the
-     protocol . After the opening of , write in the command line:
-   | After saving the chain of the atomic structure , run the protocol
-     () to fit the chain from the atomic structure 5NI1 in the
-     asymmetric unit map density. Next, open again the protocol protocol
-     and, following the previous instructions and the next command
+     structure of the human *metHgb* :math:`\alpha` subunit (included in the
+     model of the *PDB* ID *5NI1*, which can be downloaded from the database using
+     the protocol **import atomic structure**. Next, we use the protocol **chimerax-operate** to isolate the chain *A* of
+     the structure. The atomic structure *5NI1* is the only one input of the
+     protocol **chimerax-operate**. After the opening of *ChimeraX*, write in the command line:
+
+     ::
+
+         sel 2 & ~ #2/A
+         del sel
+         scipionwrite #2 prefix 5ni1_chainA_
+
+   | After saving the chain *A* of the atomic structure *5NI1*, run the protocol **phenix-dock in map**
+     (:numref:`model_building_dockInMap_protocol`) to fit the chain *A* from the atomic structure 5NI1 in the *metHgb* asymmetric unit map density. Next, open again the protocol **chimerax-rigid fit** (:numref:`model_building_chimera_rigid_fit`)
+     and, following the previous instructions and the next *ChimeraX* command
      lines, finish the fitting, mutate the sequence between residues 94
-     and 118 to generate the chain, and finally save the small mutated
+     and 118 to generate the *ALA* chain, and finally save the small mutated
      fragment:
 
-#. Sequence of the :math:`\alpha` subunit imported previously in section
-   “Sequences” ().
+     ::
 
-With these three previous inputs we can complete the protocol form ().
-Open it in the left menu (1) and include the asymmetric unit map (2)
+         fitmap #3 inMap #2
+         scipionwrite #3 prefix 5ni1 chainA_fitted_
+         select #3 & ~ #3/A:94-118
+         del sel
+         swapaa #3/A:94-118 ALA
+         scipionwrite #3 prefix 5ni1_chainA_94_118_MutALA_
+
+
+#. Sequence of the *metHgb* :math:`\alpha` subunit imported previously in subsection `Sequences <file:///home/marta/software/docs/_build/html/docs/user/tutorials/modelBuilding/040-importInputData.html>`_ (:numref:`model_building_import_sequence`).
+
+With these three previous inputs we can complete the **phenix-search fit** protocol form (:numref:`model_building_phenix_search_fit_3`).
+Open it in the *Scipion* left menu (1) and include the asymmetric unit map (2)
 detailing its resolution (3), as well as the small fragment of mutated
 structure previously saved (4), the sequence downloaded (5) and take
 advantage of the two wizards on the right (6 and 7) to select the
 initial and final residues that delimite the sequence to search.
 
-.. figure:: Images/Fig_search_fit_3.pdf
-   :alt: Completing the protocol in .
-   :name: fig:phenix_search_fit_3
+.. figure:: Images/Fig_search_fit_3.svg
+   :alt: Completing the **phenix-search fit** protocol in *Scipion*.
+   :name: model_building_phenix_search_fit_3
+   :align: center
    :width: 95.0%
 
-   Completing the protocol in .
+   Completing the **phenix-search fit** protocol in *Scipion*.
 
-After executing the protocol ((8)) we can have a look to the results. By
-pressing ((9)) a window with the Viewer menu is opened ((A)). This menu
+After executing the **phenix-search fit** protocol (:numref:`model_building_phenix_search_fit_3` (8)) we can have a look to the results. By
+pressing *Analyze Results* (:numref:`model_building_phenix_search_fit_3` (9)) a window with the Viewer menu is opened (:numref:`model_building_phenix_search_fit_4` (A)). This menu
 allows to visualize a certain number of atomic structures, according to
 their ranking scores, with lateral side chains fitted in the map density
-(1). Those structures will be opened in (2) surrounded by the density
-located at 3.0Å of the structure (3). The number shown by default in (1)
-allows displaying all atomic structures. By pressing (4) a pop up window
+(1). Those structures will be opened in *ChimeraX* (2) surrounded by the density
+located at 3.0 Å of the structure (3). The number *1000* shown by default in (1)
+allows displaying all atomic structures. By pressing *Summary Plot* (4) a pop up window
 will open and show the score values of each structure, as well as the
-average and standard deviation of those values ((B)). If we select the
+average and standard deviation of those values (:numref:`model_building_phenix_search_fit_4` (B)). If we select the
 visualization of a certain number of atomic structures, 5 for example,
-as points the red arrow in ((C)), the five best score values will appear
-remarked in red in the Summary Plot.
+as points the red arrow in :numref:`model_building_phenix_search_fit_4` (C), the five best score values will appear
+remarked in red in the *Summary Plot*.
 
-.. figure:: Images/Fig_search_fit_4.pdf
-   :alt: Visualization of protocol results in . A. Results menu. B.
-   Map-model fit score plot (total number of atomic structures). C.
-   Upper part of the Map-model fit score plot (5 best atomic
-   structures). D. Model panel in showing the 5 best atomic structures
-   selected. E. Models 3 to 8 displayed inside the map density. F.
-   Models and . G. Model compared with the same fragment of the atomic
-   structure .
-   :name: fig:phenix_search_fit_4
+.. figure:: Images/Fig_search_fit_4.svg
+   :alt: Visualization of **phenix-search fit** protocol results in *Scipion*. A. Results menu. B. Map-model fit score plot (total number of atomic structures). C. Upper part of the Map-model fit score plot (5 best atomic structures). D. Model panel in *ChimeraX* showing the 5 best atomic structures selected. E. Models 3 to 8 displayed inside the map density. F. Models *#3* and *#4*. G. Model *#4* compared with the same fragment of the atomic structure *5NI1*.
+   :name: model_building_phenix_search_fit_4
+   :align: center
    :width: 85.0%
 
-   Visualization of protocol results in . A. Results menu. B. Map-model
-   fit score plot (total number of atomic structures). C. Upper part of
-   the Map-model fit score plot (5 best atomic structures). D. Model
-   panel in showing the 5 best atomic structures selected. E. Models 3
-   to 8 displayed inside the map density. F. Models and . G. Model
-   compared with the same fragment of the atomic structure .
+   Visualization of **phenix-search fit** protocol results in *Scipion*. A. Results menu. B. Map-model fit score plot (total number of atomic structures). C. Upper part of the Map-model fit score plot (5 best atomic structures). D. Model panel in *ChimeraX* showing the 5 best atomic structures selected. E. Models 3 to 8 displayed inside the map density. F. Models *#3* and *#4*. G. Model *#4* compared with the same fragment of the atomic structure *5NI1*.
 
-| Panel D of the shows the model panel with the five best selected
-  structures, , , , and . The red arrow points the position of these
-  indexes. The respective score values are observed in red in (C). (E)
-  details the view of the five structures in the GUI of (models to ), as
-  well as the input fragment of ALA (model ). Remark that lateral side
-  chains are not shown by default. (F) compares this input model with
-  the best score structure (model ). To display the lateral side chains
+| Panel D of the :numref:`model_building_phenix_search_fit_4` shows the model panel with the five best selected
+  structures, *4, 9, 11, 20* and *23*. The red arrow points the position of these
+  indexes. The respective score values are observed in red in :numref:`model_building_phenix_search_fit_4` (C). :numref:`model_building_phenix_search_fit_4` (E)
+  details the view of the five structures in the GUI of *ChimeraX* (models *#4* to *#8*), as
+  well as the input fragment of *ALA* (model *#3*). Remark that lateral side
+  chains are not shown by default. :numref:`model_building_phenix_search_fit_4` (F) compares this input model *#3* with
+  the best score structure (model *#4*). To display the lateral side chains
   select each model and press “Show” in “Atoms” section of the toolbar.
-  In the same way, (F) compares this input model with the respective
-  fragment of the structure. To open it as model and align it with the
-  rest of the structures, write in the comand line:
+  In the same way, :numref:`model_building_phenix_search_fit_4` (F) compares this input model *#3* with the respective
+  fragment of the *PDB ID 5NI1* structure. To open it as model *#9* and align it with
+  rest of structures, write in *ChimeraX* comand line:
+::
+
+         open 5ni1
+         select #9 & ~ #9/A:94-118
+         del sel
+         mmaker #9 to #4
+
+
 | In spite of some small differences, most of lateral side chains align
-  quite well with the ones of the model traced on the experimental map.
-  Then, the best approximation of the atomic structure retrieved (model
-  ) can be selected to help with the tracing of a small fraction of the
-  density map since the model seems to be quite close to the actual
-  atomic structure used as control ().
+  quite well with the ones of the model *5NI1* traced on the experimental map.
+  Then, the best approximation of the atomic structure retrieved (model *#4*) can be selected to help with the tracing of a small fraction of the density map since the model *#4* seems to be quite close to the actual
+  atomic structure used as control (*PDB ID 5NI1*).
 
  
--
+*CCP4 Refmac* 
+----------
 
-As in the case of , (from maximum-likelihood Refinement of
+As in the case of *Coot*, *Refmac* (from maximum-likelihood Refinement of
 Macromolecules) was initially developed to optimize models obtained by
-X-ray crystallography methods but, unlike , automatically and in
-reciprocal space. The :math:`models` refined in the real space with and
-, successively, will be used as inputs to perform a second refinement
-step in the Fourier space with protocol . Firstly, open the protocol
-form ( (1)), load the volume generated by (2), the atomic structure
-obtained with (case 3 of ) (3) or with after (case 4 of ), and the
+X-ray crystallography methods but, unlike *Coot*, automatically and in
+reciprocal space. The *models* refined in the real space with *Coot* and
+*PHENIX real space refine*, successively, will be used as inputs to perform a second refinement
+step in the Fourier space with *Refmac* protocol **ccp4-refmac**. Firstly, open the *Refmac* protocol
+form (:numref:`model_building_refmac_protocol` (1)), load the volume generated by *Coot* (2), the atomic structure
+obtained with *Coot* (case 3 of :numref:`model_building_scipion_workflow_flexiblefit`) (3) or with *PHENIX real space refine* after *Coot* (case 4 of :numref:`model_building_scipion_workflow_flexiblefit`), and the
 volume resolution as maximum resolution (4). Execute the protocol (5)
 and when it finishes, analyze the results (6).
 
-.. figure:: Images/Fig31.pdf
-   :alt: Filling in protocol (Case 3 of ).
-   :name: fig:refmac_protocol
+.. figure:: Images/Fig31.svg
+   :alt: Filling in *Refmac* protocol (Case 3 of :numref:`model_building_scipion_workflow_flexiblefit`).
+   :name: model_building_refmac_protocol
+   :align: center
    :width: 100.0%
 
-   Filling in protocol (Case 3 of ).
+   Filling in *Refmac* protocol (Case 3 of :numref:`model_building_scipion_workflow_flexiblefit`).
 
-Clicking the first item in the display menu of results ( (1)), graphics
-window will be opened showing the input volume, the initial
-:math:`model` ( obtained with (, pink), and the final refined
-:math:`model` (, green). By clicking the third item in the display menu
-of results ( (2)), a summary of results are shown. Check if values of
-and have improved with this refinement process in these three cases:
+Clicking the first item in the display menu of results (:numref:`model_building_refmac_display_results` (1)), *ChimeraX* graphics
+window will be opened showing the input volume, the initial *model (new_label_HBA_HUMAN)* obtained with *Coot* (:numref:`model_building_refmac_chimera`, pink), and the final *Refmac* refined *model* (:numref:`model_building_refmac_chimera`, green). By clicking the third item in the display menu
+of results (:numref:`model_building_refmac_display_results` (2)), a summary of results are shown. Check if values of *R factor*
+and *Rms BondLength* have improved with this refinement process in these three cases:
 
--  | Running after :
-   | Can you see an improvement running immediately after , thus
-     ignoring :math:`model` improvements generated by ? (Answers in
-     appendix `[app:solutions] <#app:solutions>`__;
-     **Question**\ `1 <#refinementFlexibleFitting>`__\ **\ \_4**)
+-  | Running *Refmac* after *Coot*:
+   | Can you see an improvement running *Refmac* immediately after *Coot*, thus
+     ignoring *model* improvements generated by **phenix-real space refine**? (Answers in
+     appendix :ref:`Solutions <app:solutions>`; **Question**\ `1 <refinementFlexibleFitting>`__\ **\ \_4**)
 
--  | Running after after :
-   | Why the improvement seems to be very small? (Answers in appendix
-     `[app:solutions] <#app:solutions>`__;
-     **Question**\ `1 <#refinementFlexibleFitting>`__\ **\ \_5**)
+-  | Running *Refmac* after **phenix-real space refine** after *Coot*:
+   | Why the improvement seems to be very small? (Answers in appendix :ref:`Solutions <app:solutions>`; **Question**\ `1 <refinementFlexibleFitting>`__\ **\ \_5**)
 
--  | Running after without a mask:
-   | Compare previous results (after and ) with those obtained selecting
-     the option in the protocol form parameter . Use two different
-     volumes, the one generated by protocol, and the one generated by
-     the protocol. Are there any differences? Why? (Answers in appendix
-     `[app:solutions] <#app:solutions>`__;
-     **Question**\ `1 <#refinementFlexibleFitting>`__\ **\ \_6**)
+-  | Running *Refmac* after **phenix-real space refine** without a mask:
+   | Compare previous *Refmac* results (after *Coot* and **phenix-real space refine**) with those obtained selecting
+     the option *No* in the protocol form parameter *Generate masked volume*. Use two different
+     volumes, the one generated by *Coot* protocol, and the one generated by
+     the *extract asymmetric unit* protocol. Are there any differences? Why? (Answers in appendix :ref:`Solutions <app:solutions>`; **Question**\ `1 <refinementFlexibleFitting>`__\ **\ \_6**)
 
-.. figure:: Images/Fig32.pdf
-   :alt: Display menu of results.
-   :name: fig:refmac_display_results
+.. figure:: Images/Fig32.svg
+   :alt: Display menu of *Refmac* results.
+   :name: model_building_refmac_display_results
+   :align: center
    :width: 65.0%
 
-   Display menu of results.
+   Display menu of *Refmac* results.
 
-.. figure:: Images/Fig33.pdf
-   :alt: visualization of refined :math:`model` of :math:`\alpha`
-   subunit by (Case 3 of ).
-   :name: fig:refmac_chimera
+.. figure:: Images/Fig33.svg
+   :alt: *ChimeraX* visualization of refined *model* of *metHgb* :math:`\alpha` subunit by *Refmac* (Case 3 of :numref:`model_building_scipion_workflow_flexiblefit`).
+   :name: model_building_refmac_chimera
+   :align: center
    :width: 50.0%
 
-   visualization of refined :math:`model` of :math:`\alpha` subunit by
-   (Case 3 of ).
+   *ChimeraX* visualization of refined *model* of *metHgb* :math:`\alpha` subunit by *Refmac* (Case 3 of :numref:`model_building_scipion_workflow_flexiblefit`).
 
 Have a look to the rest of items in the display window of results.
 
@@ -509,11 +515,11 @@ The best refinement workflow
 ----------------------------
 
 At this point we wonder about the optimal steps to follow in the
-refinement process. Should we have to use first, then , then ?, or
-maybe, with a different and , should we start with the automatic
-refinement and then go to the manual one? The right answer is that there
+refinement process. Should we have to use *Coot* first, then *PHENIX*, then *Refmac*?, or
+maybe, with a different *map* and *model*, should we start with the automatic
+refinement and then go to the interactive one? The right answer is that there
 is no a unique answer. The strategies and the number of steps of
 refinement might differ and the only requirement is that the next step
 in refinement should generate a better structure than the previous one.
 This premise requires to apply common validation criteria to assess the
-progressive improvement of our .
+progressive improvement of our *model*.
