@@ -3,7 +3,7 @@
 ChimeraX Map Subtraction protocol
 =================================
 
--based protocol designed to subtract two maps. These two maps can be two
+*ChimeraX*-based protocol designed to subtract two maps. These two maps can be two
 density maps experimentally obtained or derived from different
 computations, including the generation of a density map from an atomic
 structure. In the context of the modeling workflow this protocol helps
@@ -14,54 +14,50 @@ density map.
 
 -  Requirements to run this protocol and visualize results:
 
-   -  plugin: *scipion-em*
+   -  *Scipion* plugin: **scipion-em**
 
-   -  plugin: *scipion-em-chimera*
+   -  *Scipion* plugin: **scipion-em-chimera**
 
--  menu: *Model building -> Tools-Calculators* ( (A))
 
-   .. figure:: Images_appendix/Fig309.pdf
-      :alt: Protocol . A: Protocol location in menu. B: Protocol form to
-      subtract two maps. C: Param option *Mask*. D: Protocol form to
-      subtract an atomic structure from a map. All possible params are
-      shown.
-      :name: fig:app_protocol_map_subtract_1
+-  *Scipion* menu: *Model building -> Tools-Calculators* (:numref:`model_building_app_protocol_map_subtract_1` (A))
+
+   .. figure:: Images_appendix/Fig309.svg
+      :alt: Protocol **chimerax-map subtraction**. A: Protocol location in *Scipion* menu. B: Protocol form to subtract two maps. C: Param option *Mask*. D: Protocol form to subtract an atomic structure from a map. All possible params are shown.
+      :name: model_building_app_protocol_map_subtract_1
+      :align: center
       :width: 85.0%
 
-      Protocol . A: Protocol location in menu. B: Protocol form to
-      subtract two maps. C: Param option *Mask*. D: Protocol form to
-      subtract an atomic structure from a map. All possible params are
-      shown.
+      Protocol **chimerax-map subtraction**. A: Protocol location in *Scipion* menu. B: Protocol form to subtract two maps. C: Param option *Mask*. D: Protocol form to subtract an atomic structure from a map. All possible params are shown.
 
--  | Protocol form parameters ( (B,C,D)):
+-  | Protocol form parameters (:numref:`model_building_app_protocol_map_subtract_1` (B,C,D)):
    | *Input* section:
 
    -  *Input 3D Map*: Include here any map previously downloaded or
-      generated in that you would like to use as minuend of the
+      generated in *Scipion* that you would like to use as minuend of the
       subtraction operation.
 
    -  *Select the operation to perform*: Two possibilities are allowed:
 
       -  *Subtraction*: Between minuend and subtrahend maps, and you’ll
-         obtain the difference. WARNING: Both maps have to be perfectly
+         obtain the difference. ``WARNING:`` Both maps have to be perfectly
          aligned.
 
       -  *Mask*: The voxel region of the subtrahend greater than a
-         certain level will be masked ( (C)). The default level is
+         certain level will be masked (:numref:`model_building_app_protocol_map_subtract_1` (C)). The default level is
          *0.001* although can be modified with the *Advanced* param
-         *Contour level (subtrahend)*. If no level is supplied, will
+         *Contour level (subtrahend)*. If no level is supplied, *ChimeraX* will
          compute that level value.
 
    -  *Subtraction/Mask of*: Select the subtrahend of the subtraction
       operation. Two possibilities are allowed:
 
-      -  *3D map*: Any map previously downloaded or generated in .
-         WARNING: The sampling rate of this map should be identical to
+      -  *3D map*: Any map previously downloaded or generated in *Scipion*.
+         ``WARNING:`` The sampling rate of this map should be identical to
          the subtrahend’s.
 
-      -  *atomic structure*: Previously downloaded or generated in . By
+      -  *atomic structure*: Previously downloaded or generated in *scipion*. By
          selecting this option many new params will interrogate about
-         the structure-derived map that you would like to generate (
+         the structure-derived map that you would like to generate (:numref:`model_building_app_protocol_map_subtract_1`
          (D)).
 
          -  *Map resolution (Å)*: This is a tricky param and a uniform
@@ -91,20 +87,21 @@ density map.
          -  | *Remove residues from the atomic structure?*: Select *Yes*
               to answer this question in case you’d like to count on a
               control of density levels to identify the differential
-              density. The aim of this control is identify the density
+              density. The aim of this control is to identify the density
               of the removed residues in the differential map. However,
               be cautious about discarding other densities that could
               appear in lower resolution areas and have density levels
-              slightly different that the control one. After running the
-              program the graphics window will open and the atomic
+              slightly different to the control one. After running the
+              program, the *ChimeraX* graphics window will open and the atomic
               structure won’t show the removed residues. To make easier
               the localization of this area, ten residues both upstream
               and downstream of the removed aminoacids will be
               highlighted.
+
             | Additional params to interrogate about the residues to be
               removed are *Chain*, *First residue to remove* and *Last
               residue to remove*. A wizard on the right helps to select
-              this three elements. WARNING: In case you have already
+              this three elements. ``WARNING:`` In case you have already
               selected a specific chain of the structure to generate the
               *3D Map*, this chain will appear by default in the param
               *Chain* since the selection of a different chain wouldn’t
@@ -116,7 +113,7 @@ density map.
             the whole atomic structure or at least several adjacent
             asymmetric units together with the input one, select the
             option *Yes*. Otherwise, the subtrahend derived map will
-            only correspond to the asymmetric unit. All symmetries will
+            only correspond to the asymmetric unit. All *ChimeraX* symmetries will
             be available
             (https://www.cgl.ucsf.edu/chimerax/docs/user/commands/sym.html).
             In case you select symmetries cyclic or dihedral, an
@@ -137,10 +134,10 @@ density map.
             will be much easier. An additional param, *Atom radius (Å)*
             asks you about the distance around the input structure used
             to crop the input *3D Map*. *15* is the default value. The
-            -generated map is called *zone_Map*.
+            *ChimeraX*-generated map is called *zone_Map*.
 
       -  *Other atomic structures*: Additional atomic structures
-         previously downloaded or obtained in can be included here to
+         previously downloaded or obtained in *Scipion* can be included here to
          help you identify particular areas of the map or structure.
          Then, those structures are only informative and won’t be used
          to generate the subtrahend map.
@@ -150,7 +147,7 @@ density map.
          filter in order to maximize the differences between the minuend
          and the subtrahend maps, since the differential map usually
          results quite blurry. This *filtered_Map* will always appear
-         together with the *difference_Map* when the graphics window
+         together with the *difference_Map* when the *ChimeraX* graphics window
          opens. To filter the differential map you can choose between
          two different filters, *Gaussian* (with variable width) and
          based on the *Fourier Transform*.
@@ -164,33 +161,36 @@ density map.
      protocol. This label will be shown in the output summary content
      (see below). If you want to run again this protocol, do not forget
      to set to *Restart* the *Run mode*.
+
    | Press the *Execute* red button at the form bottom.
-   | After executing the protocol the graphics window will open and show
+
+   | After executing the protocol the *ChimeraX* graphics window will open and show
      the different inputs (maps and atomic structures), as well as the
-     maps generated by the commands such as *molmap_Map*, *zone_Map*,
+     maps generated by the *ChimeraX* commands such as *molmap_Map*, *zone_Map*,
      *difference_Map* and *filtered_Map*. Most of the outputs are
-     already saved in , however you can perform any operation of your
-     preference and save the new results before closing . Common
-     commands of -communication are allowed in this case:
+     already saved in *Scipion*, however you can perform any operation of your
+     preference and save the new results before closing *ChimeraX*. Common
+     commands of *ChimeraX*-*Scipion* communication are allowed in this case:
      *scipionwrite*, *scipionss* and *scipioncombine*.
 
 -  Visualization of protocol results:
 
    | After exiting the protocol, press *Analyze Results* and the
-     :math:`ChimeraX` graphics window will open with every saved
+     *ChimeraX* graphics window will open with every saved
      elements, inputs and outputs, which might be distinct acording to
      the inputs. In addition to items mentioned in the previous
      paragraph, the atomic structure without the removed residues used
      as a control, called *mutated_Atom_structure* will be also shown
      overlapping the input structure.
+
    | By pressing the left black arrow shown in the *Summary Output* the
-     saved maps can be also opened with :math:`ShowJ`, the default
+     saved maps can be also opened with :math:`ShowJ`, the default *Scipion*
      viewer that shows each map’s *slices*
-     (https://github.com/I2PC/scipion/wiki/ShowJ).
+     (`ShowJ <https://github.com/I2PC/scipion/wiki/ShowJ>`_).
 
 -  Summary content:
 
-   -  | Protocol output (below framework):
+   -  | Protocol output (below *Scipion* framework):
       | For each map: *chimerax - map subtraction -> ouput map name*;
       | *Volume (x, y, and z dimensions, sampling rate)*.
       | For each atomic structure: *chimerax - map subtraction -> output

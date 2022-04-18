@@ -12,18 +12,18 @@ this protocol to perform rigid fitting in by using (Appendix
 
 -  Requirements to run this protocol and visualize results:
 
-   -  plugin: *scipion-em*
+   -  *Scipion* plugin: **scipion-em**
 
-   -  plugin: *scipion-em-chimera*
+   -  *Scipion* plugin: **scipion-em-chimera**
 
--  | menu:
-   | *Model building -> Tools-Calculators* ( (A))
+-  | *Scipion* menu: *Model building -> Tools-Calculators* ( (A))
+
 
 -  Protocol form parameters ( (B)):
 
-   .. figure:: Images_appendix/Fig117.pdf
-      :alt: Protocol . A: Protocol location in menu. B: Protocol form.
-      :name: fig:app_protocol_chimera_2
+   .. figure:: Images_appendix/Fig117.svg
+      :alt: Protocol **chimerax-operate**. A: Protocol location in *Scipion* menu. B: Protocol form.
+      :name: model_building_app_protocol_chimera_2
       :width: 90.0%
 
       Protocol . A: Protocol location in menu. B: Protocol form.
@@ -98,19 +98,19 @@ this protocol to perform rigid fitting in by using (Appendix
    If no volumes have been included, coordinate axes and each atomic
    structure are model numbers *#1* and *#2*, respectively.
 
-   .. figure:: Images_appendix/Fig102.pdf
-      :alt: Default :math:`ChimeraX` graphics window with coordinate
-      axes.
-      :name: fig:app_protocol_volume_3
+   .. figure:: Images_appendix/Fig102.svg
+      :alt: Default *ChimeraX* graphics window with coordinate axes.
+      :name: model_building_app_protocol_volume_3
+      :align: center
       :width: 50.0%
 
-      Default :math:`ChimeraX` graphics window with coordinate axes.
+      Default *ChimeraX* graphics window with coordinate axes.
 
 -  | Summary content:
 
    -  If an atomic structure is generated:
 
-      -  | Protocol output (below framework):
+      -  | Protocol output (below *Scipion* framework):
          | *chimerax - operate -> output atomic structure name, starting
            with the prefix*;
          | *AtomStruct (pseudoatoms=True/ False, volume=True/ False)*.
@@ -126,7 +126,7 @@ this protocol to perform rigid fitting in by using (Appendix
 
    -  If a volume is generated:
 
-      -  | Protocol output (below framework):
+      -  | Protocol output (below *Scipion* framework):
          | *chimerax - operate -> output 3D map name*; *Volume (x, y,
            and z dimensions, sampling rate)*.
 
