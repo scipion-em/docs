@@ -25,9 +25,9 @@ Map sharpening
   deep learning-based sharpening approach (:cite:p:`Sanchez-Garcia2020.06.12.148296` (Appendix
   :ref:`DeepEMhancer <app:deepEMhancerSharpening>`)).
   Although both sharpening methods display good results, these are not
-  identical but complementary since :math:`LocalDeblur` maximizes
+  identical but complementary since *LocalDeblur* maximizes
   specially details like the secondary structure, whereas
-  :math:`DeepEMhancer` maximizes connectivity, favoring the fair tracing
+  *DeepEMhancer* maximizes connectivity, favoring the fair tracing
   of the molecule skeleton.
 | Although the common first rule in both sharpening strategies is
   counting on half maps to get the best performance of the methods, or
@@ -50,7 +50,7 @@ a) Sharpening with :math:`LocalDeblur`
   local resolution estimation process. Open the protocol form (:numref:`model_building_create3Dmask_1` (1)) and
   fill in the tap *Mask generation* (2) with the input volume (3) and the density
   threshold (4). By default, the level value observed in *ChimeraX* main graphics
-  window (:numref:`model_building_visualization_volume`) *Tools -> Volume Data -> Volume Viewer -> Level* can be selected as threshold. In the *Postprocessing* tap (:numref:`model_building_create3Dmask_1` (5)), select *Yes* in *Apply morphological operation* (6) and maintain the rest of options by default. After executing this
+  window (:numref:`model_building_visualization_volume`) *Tools →  Volume Data → Volume Viewer → Level* can be selected as threshold. In the *Postprocessing* tap (:numref:`model_building_create3Dmask_1` (5)), select *Yes* in *Apply morphological operation* (6) and maintain the rest of options by default. After executing this
   protocol (:numref:`model_building_create3Dmask_1` (7)), the morphology of the mask generated can be checked
   in slices by clicking *Analyze Results* (8).
 
@@ -132,8 +132,8 @@ parameters (4, 5).
    Filling in the protocol to compute the sharpened map.
 
 After two iterations, the sharpening algorithm reached the convergence
-criterion, :math:`i.e.` a difference between two successive iterations
-lower than 1 %, and stopped. The two maps obtained in the respective
+criterion, *i.e.* a difference between two successive iterations
+lower than 1%, and stopped. The two maps obtained in the respective
 iterations can be observed with :math:`ShowJ` by clicking the black
 arrow shown in :numref:`model_building_localdeblur_1` (7) with the right mouse botton and selecting *Open with DataViewer*. Resulting
 map for each iteration will be shown, as indicated in :numref:`model_building_localdeblur_2`. Visualization in *ChimeraX* is also possible selecting *Open* in the menu option *File* (:numref:`model_building_localdeblur_2` (1)).
@@ -147,7 +147,7 @@ map for each iteration will be shown, as indicated in :numref:`model_building_lo
    Sharpened maps generated after two iterations.
 
 Additionally, by clicking *Analyze Results* (:numref:`model_building_localdeblur_1` (6)) the sharpened map obtained after the
-second iteration, :math:`i.e.` the *last* map, can be also visualized and
+second iteration, *i.e.* the *last* map, can be also visualized and
 compared with the initial one in *ChimeraX* (:numref:`model_building_localdeblur_3`).
 
 .. figure:: Images/Fig64.svg
