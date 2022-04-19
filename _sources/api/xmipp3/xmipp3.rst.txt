@@ -5,15 +5,17 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    xmipp3.convert
-    xmipp3.protocols
-    xmipp3.viewers
+   xmipp3.convert
+   xmipp3.protocols
+   xmipp3.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    xmipp3.base
    xmipp3.bibtex
@@ -26,6 +28,6 @@ Module contents
 ---------------
 
 .. automodule:: xmipp3
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

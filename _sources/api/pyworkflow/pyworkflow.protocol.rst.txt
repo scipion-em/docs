@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pyworkflow.protocol.bibtex
    pyworkflow.protocol.constants
@@ -19,6 +20,6 @@ Module contents
 ---------------
 
 .. automodule:: pyworkflow.protocol
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

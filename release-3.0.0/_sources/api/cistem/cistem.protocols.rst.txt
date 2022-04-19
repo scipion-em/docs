@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    cistem.protocols.program_ctffind
    cistem.protocols.protocol_ctffind
@@ -17,6 +18,6 @@ Module contents
 ---------------
 
 .. automodule:: cistem.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

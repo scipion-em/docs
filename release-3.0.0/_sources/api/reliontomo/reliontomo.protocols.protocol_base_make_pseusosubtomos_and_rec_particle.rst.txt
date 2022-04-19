@@ -2,6 +2,6 @@ reliontomo.protocols.protocol\_base\_make\_pseusosubtomos\_and\_rec\_particle mo
 ====================================================================================
 
 .. automodule:: reliontomo.protocols.protocol_base_make_pseusosubtomos_and_rec_particle
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

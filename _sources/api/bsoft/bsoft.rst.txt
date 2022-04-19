@@ -5,14 +5,16 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    bsoft.protocols
-    bsoft.viewers
+   bsoft.protocols
+   bsoft.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    bsoft.bibtex
    bsoft.constants
@@ -23,6 +25,6 @@ Module contents
 ---------------
 
 .. automodule:: bsoft
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -5,14 +5,16 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    localrec.protocols
-    localrec.viewers
+   localrec.protocols
+   localrec.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    localrec.bibtex
    localrec.constants
@@ -24,6 +26,6 @@ Module contents
 ---------------
 
 .. automodule:: localrec
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

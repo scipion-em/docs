@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    xmipp3.protocols.protocol_preprocess.geometrical_mask
    xmipp3.protocols.protocol_preprocess.protocol_add_noise
@@ -22,6 +23,6 @@ Module contents
 ---------------
 
 .. automodule:: xmipp3.protocols.protocol_preprocess
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

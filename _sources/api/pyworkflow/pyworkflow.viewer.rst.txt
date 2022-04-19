@@ -2,6 +2,6 @@ pyworkflow.viewer module
 ========================
 
 .. automodule:: pyworkflow.viewer
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

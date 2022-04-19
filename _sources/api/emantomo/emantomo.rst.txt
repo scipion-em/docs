@@ -5,15 +5,17 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    emantomo.convert
-    emantomo.protocols
-    emantomo.viewers
+   emantomo.convert
+   emantomo.protocols
+   emantomo.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    emantomo.bibtex
    emantomo.constants
@@ -25,6 +27,6 @@ Module contents
 ---------------
 
 .. automodule:: emantomo
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

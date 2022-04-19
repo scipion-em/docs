@@ -5,13 +5,15 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    tomoj.protocols
+   tomoj.protocols
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    tomoj.bibtex
    tomoj.constants
@@ -20,6 +22,6 @@ Module contents
 ---------------
 
 .. automodule:: tomoj
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

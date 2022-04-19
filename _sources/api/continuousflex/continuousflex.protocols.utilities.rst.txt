@@ -5,14 +5,16 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    continuousflex.protocols.utilities.mwr
-    continuousflex.protocols.utilities.spider_matlab
+   continuousflex.protocols.utilities.mwr
+   continuousflex.protocols.utilities.spider_matlab
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    continuousflex.protocols.utilities.OF_plots
    continuousflex.protocols.utilities.bm4d
@@ -28,6 +30,6 @@ Module contents
 ---------------
 
 .. automodule:: continuousflex.protocols.utilities
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

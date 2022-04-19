@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    spider.viewers.viewer
    spider.viewers.viewer_capca
@@ -15,6 +16,6 @@ Module contents
 ---------------
 
 .. automodule:: spider.viewers
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

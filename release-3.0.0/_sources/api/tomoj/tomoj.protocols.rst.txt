@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    tomoj.protocols.protocol_xCorrPrealignment
 
@@ -12,6 +13,6 @@ Module contents
 ---------------
 
 .. automodule:: tomoj.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

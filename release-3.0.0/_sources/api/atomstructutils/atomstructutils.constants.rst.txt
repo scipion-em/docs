@@ -2,6 +2,6 @@ atomstructutils.constants module
 ================================
 
 .. automodule:: atomstructutils.constants
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

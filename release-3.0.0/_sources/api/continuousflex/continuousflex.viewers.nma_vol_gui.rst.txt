@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    continuousflex.viewers.nma_vol_gui.PointPathVol
    continuousflex.viewers.nma_vol_gui.PointSelectorVol
@@ -15,6 +16,6 @@ Module contents
 ---------------
 
 .. automodule:: continuousflex.viewers.nma_vol_gui
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

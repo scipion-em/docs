@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    atomstructutils.protocols.protocol_atomStructs_rmsd
    atomstructutils.protocols.protocol_average_subunits
@@ -15,6 +16,6 @@ Module contents
 ---------------
 
 .. automodule:: atomstructutils.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

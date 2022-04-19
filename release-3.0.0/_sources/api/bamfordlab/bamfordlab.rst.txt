@@ -5,13 +5,15 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    bamfordlab.protocols
+   bamfordlab.protocols
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    bamfordlab.bibtex
    bamfordlab.constants
@@ -21,6 +23,6 @@ Module contents
 ---------------
 
 .. automodule:: bamfordlab
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

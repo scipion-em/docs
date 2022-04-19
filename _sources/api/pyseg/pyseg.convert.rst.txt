@@ -2,6 +2,6 @@ pyseg.convert module
 ====================
 
 .. automodule:: pyseg.convert
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -5,13 +5,14 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    continuousflex.protocols.utilities.mwr.utils.freezeColors.demo.html
+   continuousflex.protocols.utilities.mwr.utils.freezeColors.demo.html
 
 Module contents
 ---------------
 
 .. automodule:: continuousflex.protocols.utilities.mwr.utils.freezeColors.demo
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    xmipptomo.protocols.protocol_align_transform
    xmipptomo.protocols.protocol_applyAlignmentTS
@@ -19,6 +20,7 @@ Submodules
    xmipptomo.protocols.protocol_half_maps_subtomos
    xmipptomo.protocols.protocol_misalignTS
    xmipptomo.protocols.protocol_phantom_subtomo
+   xmipptomo.protocols.protocol_phantom_tomo
    xmipptomo.protocols.protocol_project_top
    xmipptomo.protocols.protocol_resizeTS
    xmipptomo.protocols.protocol_resize_tomograms
@@ -35,6 +37,6 @@ Module contents
 ---------------
 
 .. automodule:: xmipptomo.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -5,15 +5,17 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    deepfinder.convert
-    deepfinder.protocols
-    deepfinder.viewers
+   deepfinder.convert
+   deepfinder.protocols
+   deepfinder.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    deepfinder.bibtex
    deepfinder.constants
@@ -23,6 +25,6 @@ Module contents
 ---------------
 
 .. automodule:: deepfinder
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

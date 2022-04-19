@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    relion.convert.convert30
    relion.convert.convert31
@@ -18,6 +19,6 @@ Module contents
 ---------------
 
 .. automodule:: relion.convert
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

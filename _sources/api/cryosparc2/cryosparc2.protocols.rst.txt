@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    cryosparc2.protocols.protocol_base
    cryosparc2.protocols.protocol_cryorefine
@@ -29,6 +30,6 @@ Module contents
 ---------------
 
 .. automodule:: cryosparc2.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

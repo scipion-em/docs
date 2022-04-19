@@ -2,6 +2,6 @@ gctf.wizards module
 ===================
 
 .. automodule:: gctf.wizards
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -5,14 +5,16 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    atomstructutils.protocols
-    atomstructutils.viewers
+   atomstructutils.protocols
+   atomstructutils.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    atomstructutils.bibtex
    atomstructutils.constants
@@ -22,6 +24,6 @@ Module contents
 ---------------
 
 .. automodule:: atomstructutils
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

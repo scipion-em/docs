@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    reliontomo.protocols.protocol_3d_classify_subtomograms
    reliontomo.protocols.protocol_base_import_from_star
@@ -26,6 +27,6 @@ Module contents
 ---------------
 
 .. automodule:: reliontomo.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

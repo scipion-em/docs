@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    sphire.protocols.protocol_cryolo_import
    sphire.protocols.protocol_cryolo_picking
@@ -16,6 +17,6 @@ Module contents
 ---------------
 
 .. automodule:: sphire.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

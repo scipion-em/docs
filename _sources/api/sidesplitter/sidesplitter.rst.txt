@@ -5,13 +5,15 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    sidesplitter.protocols
+   sidesplitter.protocols
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    sidesplitter.bibtex
    sidesplitter.constants
@@ -21,6 +23,6 @@ Module contents
 ---------------
 
 .. automodule:: sidesplitter
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

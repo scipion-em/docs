@@ -5,13 +5,15 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    fsc3d.protocols
+   fsc3d.protocols
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    fsc3d.bibtex
    fsc3d.constants
@@ -21,6 +23,6 @@ Module contents
 ---------------
 
 .. automodule:: fsc3d
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

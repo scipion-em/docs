@@ -5,13 +5,15 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    cryocare.protocols
+   cryocare.protocols
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    cryocare.bibtex
    cryocare.constants
@@ -23,6 +25,6 @@ Module contents
 ---------------
 
 .. automodule:: cryocare
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

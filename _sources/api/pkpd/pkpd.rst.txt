@@ -5,16 +5,18 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    pkpd.data
-    pkpd.models
-    pkpd.protocols
-    pkpd.viewers
+   pkpd.data
+   pkpd.models
+   pkpd.protocols
+   pkpd.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pkpd.bibtex
    pkpd.biopharmaceutics
@@ -29,6 +31,6 @@ Module contents
 ---------------
 
 .. automodule:: pkpd
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

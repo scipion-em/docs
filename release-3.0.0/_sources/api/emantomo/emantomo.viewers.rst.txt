@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    emantomo.viewers.viewers
    emantomo.viewers.viewers_data
@@ -14,6 +15,6 @@ Module contents
 ---------------
 
 .. automodule:: emantomo.viewers
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

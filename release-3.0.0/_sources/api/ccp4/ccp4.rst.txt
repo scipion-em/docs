@@ -5,14 +5,16 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    ccp4.protocols
-    ccp4.viewers
+   ccp4.protocols
+   ccp4.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    ccp4.bibtex
    ccp4.constants
@@ -22,6 +24,6 @@ Module contents
 ---------------
 
 .. automodule:: ccp4
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

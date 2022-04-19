@@ -5,13 +5,15 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    gautomatch.protocols
+   gautomatch.protocols
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    gautomatch.bibtex
    gautomatch.constants
@@ -24,6 +26,6 @@ Module contents
 ---------------
 
 .. automodule:: gautomatch
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

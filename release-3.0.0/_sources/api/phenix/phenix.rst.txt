@@ -5,14 +5,16 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    phenix.protocols
-    phenix.viewers
+   phenix.protocols
+   phenix.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    phenix.bibtex
    phenix.constants
@@ -22,6 +24,6 @@ Module contents
 ---------------
 
 .. automodule:: phenix
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

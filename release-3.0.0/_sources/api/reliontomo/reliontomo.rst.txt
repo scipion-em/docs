@@ -5,14 +5,16 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    reliontomo.convert
-    reliontomo.protocols
+   reliontomo.convert
+   reliontomo.protocols
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    reliontomo.bibtex
    reliontomo.constants
@@ -23,6 +25,6 @@ Module contents
 ---------------
 
 .. automodule:: reliontomo
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    emantomo.protocols.protocol_align_ts
    emantomo.protocols.protocol_estimate_ctf
@@ -24,6 +25,6 @@ Module contents
 ---------------
 
 .. automodule:: emantomo.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    emfacilities.protocols.getnifs
    emfacilities.protocols.protocol_monitor
@@ -23,6 +24,6 @@ Module contents
 ---------------
 
 .. automodule:: emfacilities.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

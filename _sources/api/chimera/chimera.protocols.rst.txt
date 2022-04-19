@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    chimera.protocols.protocol_alphafold
    chimera.protocols.protocol_base
@@ -19,6 +20,6 @@ Module contents
 ---------------
 
 .. automodule:: chimera.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

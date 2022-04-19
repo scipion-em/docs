@@ -5,15 +5,17 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    tomo.convert
-    tomo.protocols
-    tomo.viewers
+   tomo.convert
+   tomo.protocols
+   tomo.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    tomo.constants
    tomo.objects
@@ -24,6 +26,6 @@ Module contents
 ---------------
 
 .. automodule:: tomo
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

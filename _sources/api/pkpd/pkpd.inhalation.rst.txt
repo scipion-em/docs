@@ -2,6 +2,6 @@ pkpd.inhalation module
 ======================
 
 .. automodule:: pkpd.inhalation
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

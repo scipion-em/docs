@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    dynamo.protocols.protocol_bin_tomograms
    dynamo.protocols.protocol_boxing
@@ -20,6 +21,6 @@ Module contents
 ---------------
 
 .. automodule:: dynamo.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

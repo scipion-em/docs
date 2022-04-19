@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    localrec.protocols.protocol_filter_subparticles
    localrec.protocols.protocol_localized
@@ -17,6 +18,6 @@ Module contents
 ---------------
 
 .. automodule:: localrec.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

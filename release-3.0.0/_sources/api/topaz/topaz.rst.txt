@@ -5,13 +5,15 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    topaz.protocols
+   topaz.protocols
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    topaz.bibtex
    topaz.constants
@@ -22,6 +24,6 @@ Module contents
 ---------------
 
 .. automodule:: topaz
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    topaz.protocols.protocol_base
    topaz.protocols.protocol_topaz_import
@@ -15,6 +16,6 @@ Module contents
 ---------------
 
 .. automodule:: topaz.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

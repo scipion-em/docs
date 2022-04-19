@@ -5,15 +5,17 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    cistem.convert
-    cistem.protocols
-    cistem.viewers
+   cistem.convert
+   cistem.protocols
+   cistem.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    cistem.bibtex
    cistem.constants
@@ -23,6 +25,6 @@ Module contents
 ---------------
 
 .. automodule:: cistem
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

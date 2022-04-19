@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    spider.protocols.protocol_align_apsr
    spider.protocols.protocol_align_base
@@ -24,6 +25,6 @@ Module contents
 ---------------
 
 .. automodule:: spider.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

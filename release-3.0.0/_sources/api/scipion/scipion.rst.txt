@@ -5,14 +5,16 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    scipion.install
-    scipion.scripts
+   scipion.install
+   scipion.scripts
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    scipion.constants
    scipion.guiplugin
@@ -22,6 +24,6 @@ Module contents
 ---------------
 
 .. automodule:: scipion
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

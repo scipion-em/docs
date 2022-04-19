@@ -5,15 +5,17 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    relion.convert
-    relion.protocols
-    relion.viewers
+   relion.convert
+   relion.protocols
+   relion.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    relion.bibtex
    relion.constants
@@ -24,6 +26,6 @@ Module contents
 ---------------
 
 .. automodule:: relion
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

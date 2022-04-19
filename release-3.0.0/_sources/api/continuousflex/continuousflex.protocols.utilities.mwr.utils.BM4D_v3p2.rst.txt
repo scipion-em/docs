@@ -5,6 +5,6 @@ Module contents
 ---------------
 
 .. automodule:: continuousflex.protocols.utilities.mwr.utils.BM4D_v3p2
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

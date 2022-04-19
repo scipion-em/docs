@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    reliontomo.convert.convert30_tomo
    reliontomo.convert.convert40_tomo
@@ -14,6 +15,6 @@ Module contents
 ---------------
 
 .. automodule:: reliontomo.convert
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

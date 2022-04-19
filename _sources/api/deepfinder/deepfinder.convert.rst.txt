@@ -5,6 +5,6 @@ Module contents
 ---------------
 
 .. automodule:: deepfinder.convert
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

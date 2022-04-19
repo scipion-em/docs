@@ -5,14 +5,16 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    continuousflex.protocols
-    continuousflex.viewers
+   continuousflex.protocols
+   continuousflex.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    continuousflex.bibtex
    continuousflex.constants
@@ -22,6 +24,6 @@ Module contents
 ---------------
 
 .. automodule:: continuousflex
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

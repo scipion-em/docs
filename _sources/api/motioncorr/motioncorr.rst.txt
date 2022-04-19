@@ -5,13 +5,15 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    motioncorr.protocols
+   motioncorr.protocols
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    motioncorr.bibtex
    motioncorr.constants
@@ -22,6 +24,6 @@ Module contents
 ---------------
 
 .. automodule:: motioncorr
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -5,14 +5,16 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    continuousflex.protocols.pdb
-    continuousflex.protocols.utilities
+   continuousflex.protocols.pdb
+   continuousflex.protocols.utilities
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    continuousflex.protocols.convert
    continuousflex.protocols.data
@@ -45,6 +47,6 @@ Module contents
 ---------------
 
 .. automodule:: continuousflex.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

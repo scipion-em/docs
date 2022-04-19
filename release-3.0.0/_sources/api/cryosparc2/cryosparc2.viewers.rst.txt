@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    cryosparc2.viewers.viewer_2Dclassify
    cryosparc2.viewers.viewer_initialmodel
@@ -15,6 +16,6 @@ Module contents
 ---------------
 
 .. automodule:: cryosparc2.viewers
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

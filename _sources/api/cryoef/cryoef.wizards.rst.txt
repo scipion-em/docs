@@ -2,6 +2,6 @@ cryoef.wizards module
 =====================
 
 .. automodule:: cryoef.wizards
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

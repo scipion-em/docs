@@ -5,14 +5,16 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    xmipp3.protocols.protocol_preprocess
-    xmipp3.protocols.protocol_projmatch
+   xmipp3.protocols.protocol_preprocess
+   xmipp3.protocols.protocol_projmatch
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    xmipp3.protocols.protocol_align_volume
    xmipp3.protocols.protocol_align_volume_and_particles
@@ -127,6 +129,6 @@ Module contents
 ---------------
 
 .. automodule:: xmipp3.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

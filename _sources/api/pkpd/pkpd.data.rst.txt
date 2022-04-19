@@ -5,6 +5,6 @@ Module contents
 ---------------
 
 .. automodule:: pkpd.data
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

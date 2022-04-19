@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    eman2.protocols.protocol_autopick_boxer
    eman2.protocols.protocol_boxing
@@ -21,6 +22,6 @@ Module contents
 ---------------
 
 .. automodule:: eman2.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
