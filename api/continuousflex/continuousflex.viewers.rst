@@ -5,14 +5,16 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    continuousflex.viewers.nma_gui
-    continuousflex.viewers.nma_vol_gui
+   continuousflex.viewers.nma_gui
+   continuousflex.viewers.nma_vol_gui
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    continuousflex.viewers.nma_plotter
    continuousflex.viewers.plotter
@@ -35,6 +37,6 @@ Module contents
 ---------------
 
 .. automodule:: continuousflex.viewers
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

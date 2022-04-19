@@ -5,13 +5,15 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    cryoef.protocols
+   cryoef.protocols
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    cryoef.bibtex
    cryoef.constants
@@ -23,6 +25,6 @@ Module contents
 ---------------
 
 .. automodule:: cryoef
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

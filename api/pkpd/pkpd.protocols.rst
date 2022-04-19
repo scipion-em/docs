@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pkpd.protocols.import_experiment
    pkpd.protocols.protocol_batch_create_experiment
@@ -109,6 +110,6 @@ Module contents
 ---------------
 
 .. automodule:: pkpd.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -2,6 +2,6 @@ pkpd.protocols.protocol\_pkpd\_pdgeneric\_fit module
 ====================================================
 
 .. automodule:: pkpd.protocols.protocol_pkpd_pdgeneric_fit
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

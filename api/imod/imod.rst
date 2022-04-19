@@ -5,14 +5,16 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    imod.protocols
-    imod.viewers
+   imod.protocols
+   imod.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    imod.bibtex
    imod.constants
@@ -23,6 +25,6 @@ Module contents
 ---------------
 
 .. automodule:: imod
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

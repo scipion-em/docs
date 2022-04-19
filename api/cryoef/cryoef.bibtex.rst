@@ -2,6 +2,6 @@ cryoef.bibtex module
 ====================
 
 .. automodule:: cryoef.bibtex
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pkpd.models.dissolution_models
    pkpd.models.pd_models
@@ -15,6 +16,6 @@ Module contents
 ---------------
 
 .. automodule:: pkpd.models
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -5,13 +5,15 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    sphire.protocols
+   sphire.protocols
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    sphire.bibtex
    sphire.constants
@@ -22,6 +24,6 @@ Module contents
 ---------------
 
 .. automodule:: sphire
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

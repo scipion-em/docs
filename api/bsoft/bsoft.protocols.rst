@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    bsoft.protocols.protocol_bfilter
    bsoft.protocols.protocol_blocres
@@ -14,6 +15,6 @@ Module contents
 ---------------
 
 .. automodule:: bsoft.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

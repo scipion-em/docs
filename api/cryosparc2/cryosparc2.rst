@@ -5,15 +5,17 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    cryosparc2.convert
-    cryosparc2.protocols
-    cryosparc2.viewers
+   cryosparc2.convert
+   cryosparc2.protocols
+   cryosparc2.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    cryosparc2.bibtex
    cryosparc2.constants
@@ -24,6 +26,6 @@ Module contents
 ---------------
 
 .. automodule:: cryosparc2
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -5,14 +5,16 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    pyseg.protocols
-    pyseg.viewers
+   pyseg.protocols
+   pyseg.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pyseg.bibtex
    pyseg.constants
@@ -23,6 +25,6 @@ Module contents
 ---------------
 
 .. automodule:: pyseg
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

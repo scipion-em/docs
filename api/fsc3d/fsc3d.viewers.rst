@@ -2,6 +2,6 @@ fsc3d.viewers module
 ====================
 
 .. automodule:: fsc3d.viewers
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    relion.protocols.protocol_assign_optic_groups
    relion.protocols.protocol_autopick
@@ -42,6 +43,6 @@ Module contents
 ---------------
 
 .. automodule:: relion.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

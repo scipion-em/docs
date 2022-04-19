@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    tomo.viewers.viewer_split_evenodd
    tomo.viewers.viewer_tomograms
@@ -16,6 +17,6 @@ Module contents
 ---------------
 
 .. automodule:: tomo.viewers
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

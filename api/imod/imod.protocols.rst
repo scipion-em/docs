@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    imod.protocols.protocol_applyTransformationMatrix
    imod.protocols.protocol_auto3d
@@ -33,6 +34,6 @@ Module contents
 ---------------
 
 .. automodule:: imod.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

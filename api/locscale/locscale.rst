@@ -5,13 +5,15 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    locscale.protocols
+   locscale.protocols
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    locscale.bibtex
    locscale.constants
@@ -21,6 +23,6 @@ Module contents
 ---------------
 
 .. automodule:: locscale
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pyworkflow.utils.dataset
    pyworkflow.utils.echo
@@ -24,6 +25,6 @@ Module contents
 ---------------
 
 .. automodule:: pyworkflow.utils
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

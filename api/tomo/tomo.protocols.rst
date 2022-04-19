@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    tomo.protocols.protocol_alignment_assign
    tomo.protocols.protocol_assignTransformationTS
@@ -31,6 +32,6 @@ Module contents
 ---------------
 
 .. automodule:: tomo.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

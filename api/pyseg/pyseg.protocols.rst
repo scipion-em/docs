@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pyseg.protocols.protocol_2d_classification
    pyseg.protocols.protocol_fils
@@ -17,6 +18,6 @@ Module contents
 ---------------
 
 .. automodule:: pyseg.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

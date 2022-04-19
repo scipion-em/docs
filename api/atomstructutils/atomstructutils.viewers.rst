@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    atomstructutils.viewers.viewer
    atomstructutils.viewers.viewer_protocol_convertsymmetry
@@ -14,6 +15,6 @@ Module contents
 ---------------
 
 .. automodule:: atomstructutils.viewers
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

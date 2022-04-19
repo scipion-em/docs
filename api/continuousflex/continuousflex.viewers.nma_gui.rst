@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    continuousflex.viewers.nma_gui.matplotlib_point_path
    continuousflex.viewers.nma_gui.matplotlib_point_selector
@@ -15,6 +16,6 @@ Module contents
 ---------------
 
 .. automodule:: continuousflex.viewers.nma_gui
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

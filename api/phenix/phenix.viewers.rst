@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    phenix.viewers.viewer_dock_in_map
    phenix.viewers.viewer_emringer
@@ -19,6 +20,6 @@ Module contents
 ---------------
 
 .. automodule:: phenix.viewers
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

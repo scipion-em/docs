@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pyworkflow.apps.pw_manager
    pyworkflow.apps.pw_plot
@@ -23,6 +24,6 @@ Module contents
 ---------------
 
 .. automodule:: pyworkflow.apps
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

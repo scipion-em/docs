@@ -5,14 +5,16 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    chimera.protocols
-    chimera.viewers
+   chimera.protocols
+   chimera.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    chimera.bibtex
    chimera.constants
@@ -27,6 +29,6 @@ Module contents
 ---------------
 
 .. automodule:: chimera
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    cryocare.protocols.protocol_load_model
    cryocare.protocols.protocol_predict
@@ -15,6 +16,6 @@ Module contents
 ---------------
 
 .. automodule:: cryocare.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

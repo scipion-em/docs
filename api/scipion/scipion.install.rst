@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    scipion.install.change_rpath
    scipion.install.clean
@@ -22,6 +23,6 @@ Module contents
 ---------------
 
 .. automodule:: scipion.install
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

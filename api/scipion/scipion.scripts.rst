@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    scipion.scripts.config
    scipion.scripts.fontbrowser
@@ -15,6 +16,6 @@ Module contents
 ---------------
 
 .. automodule:: scipion.scripts
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

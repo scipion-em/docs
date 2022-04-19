@@ -13,8 +13,8 @@ of these two protocols are shown in Appendices :ref:`Import volumes <app:importV
 
    *Scipion* framework with import workflow.
 
-(Note: The notation **Fig. X (a)** means that the step is shown in figure number X and
-there will be an arrow labeled with “a” marking the region of interest.)
+(Note: In the following we will use the notation **Fig. X (a)** to reffer to the figure number X and
+there will be an arrow labeled with “a” pointing to the region of interest.)
 
 Volume
 ------
@@ -52,7 +52,7 @@ Sequences
 ---------
 
 The sequences of *Hgb* :math:`\alpha` and :math:`\beta` subunits will be
-independently downloaded from *UniprotKB*. First of all, open the form of **import sequence** protocol (:numref:`model_building_import_sequence` (1)), then complete the form to download *HBA_HUMAN* protein with *UniprotKB* accession code *P69905*,
+independently downloaded from `UniprotKB <https://www.uniprot.org>`_. First of all, open the form of **import sequence** protocol (:numref:`model_building_import_sequence` (1)), then complete the form to download *HBA_HUMAN* protein with *UniprotKB* accession code *P69905*,
 execute the process (2), and finally visualize the sequence (3) in a
 text editor. The sequence will appear in *fasta* format as it has been written
 above. Follow the same protocol to download *HBB_HUMAN* with accession code *P68871*.

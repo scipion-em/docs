@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    ccp4.protocols.protocol_coot
    ccp4.protocols.protocol_refmac
@@ -15,6 +16,6 @@ Module contents
 ---------------
 
 .. automodule:: ccp4.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

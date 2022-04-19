@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pkpd.viewers.tk_experiment
    pkpd.viewers.tk_ode
@@ -23,6 +24,6 @@ Module contents
 ---------------
 
 .. automodule:: pkpd.viewers
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

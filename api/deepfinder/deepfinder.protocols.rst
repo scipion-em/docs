@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    deepfinder.protocols.protocol_annotation
    deepfinder.protocols.protocol_base
@@ -20,6 +21,6 @@ Module contents
 ---------------
 
 .. automodule:: deepfinder.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

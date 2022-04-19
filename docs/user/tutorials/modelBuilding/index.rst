@@ -65,5 +65,3 @@ Appendices
    a160-dockInMapProtocol
    a170-exportToEMDB
 
-
-TODO: put back revison History, Intended audience, We’d like to hear from you, Requirements

@@ -7,8 +7,7 @@ Map
 | Modeling means atomic interpretation of a map. This map can be the
   result of our own reconstruction process or can be obtained from a
   database. In this tutorial we use the haemoglobin map *EMD-3488*, that
-  can be downloaded from *PDBE*
-  (http://www.ebi.ac.uk/pdbe/entry/emdb/EMD-3488) (:numref:`model_building_PDBE`).
+  can be downloaded from `PDBE <http://www.ebi.ac.uk/pdbe/entry/emdb/EMD-3488>`_ (:numref:`model_building_PDBE`).
 
 | ``WARNING`` In case you use your own map obtained from cryo-EM images:
   Take into account that cryo-EM 3D maps benefit significantly of an
@@ -29,8 +28,7 @@ Map
 
    Downloading the volume from *PDBe*.
 
-Once downloaded the volume, unpack it (command line: ``gunzip
-emd-3488.map.gz``) and save it in your tutorial folder.
+Once downloaded the volume, unpack it (command line: ``gunzip emd-3488.map.gz``) and save it in your tutorial folder.
 
 Sequences
 ---------

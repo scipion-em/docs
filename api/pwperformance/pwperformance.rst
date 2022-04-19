@@ -5,13 +5,15 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    pwperformance.loggers
+   pwperformance.loggers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pwperformance.StaticVsInstanceMethod
    pwperformance.hassAttrVsTry
@@ -21,6 +23,6 @@ Module contents
 ---------------
 
 .. automodule:: pwperformance
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

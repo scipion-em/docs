@@ -5,15 +5,17 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    xmipp2.convert
-    xmipp2.protocols
-    xmipp2.viewers
+   xmipp2.convert
+   xmipp2.protocols
+   xmipp2.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    xmipp2.bibtex
    xmipp2.constants
@@ -23,6 +25,6 @@ Module contents
 ---------------
 
 .. automodule:: xmipp2
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -5,6 +5,7 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    phenix.protocols.protocol_dock_in_map
    phenix.protocols.protocol_emringer
@@ -19,6 +20,6 @@ Module contents
 ---------------
 
 .. automodule:: phenix.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

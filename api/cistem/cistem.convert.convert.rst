@@ -2,6 +2,6 @@ cistem.convert.convert module
 =============================
 
 .. automodule:: cistem.convert.convert
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

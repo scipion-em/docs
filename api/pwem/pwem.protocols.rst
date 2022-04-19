@@ -5,14 +5,16 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    pwem.protocols.protocol_export
-    pwem.protocols.protocol_import
+   pwem.protocols.protocol_export
+   pwem.protocols.protocol_import
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    pwem.protocols.parallel
    pwem.protocols.protocol
@@ -44,6 +46,6 @@ Module contents
 ---------------
 
 .. automodule:: pwem.protocols
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

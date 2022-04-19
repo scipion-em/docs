@@ -5,14 +5,16 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    spider.protocols
-    spider.viewers
+   spider.protocols
+   spider.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    spider.bibtex
    spider.constants
@@ -25,6 +27,6 @@ Module contents
 ---------------
 
 .. automodule:: spider
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

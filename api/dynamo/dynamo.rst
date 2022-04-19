@@ -5,15 +5,17 @@ Subpackages
 -----------
 
 .. toctree::
+   :maxdepth: 4
 
-    dynamo.convert
-    dynamo.protocols
-    dynamo.viewers
+   dynamo.convert
+   dynamo.protocols
+   dynamo.viewers
 
 Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    dynamo.bibtex
    dynamo.constants
@@ -23,6 +25,6 @@ Module contents
 ---------------
 
 .. automodule:: dynamo
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
