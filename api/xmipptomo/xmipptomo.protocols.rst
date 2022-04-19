@@ -19,6 +19,7 @@ Submodules
    xmipptomo.protocols.protocol_half_maps_subtomos
    xmipptomo.protocols.protocol_misalignTS
    xmipptomo.protocols.protocol_phantom_subtomo
+   xmipptomo.protocols.protocol_phantom_tomo
    xmipptomo.protocols.protocol_project_top
    xmipptomo.protocols.protocol_resizeTS
    xmipptomo.protocols.protocol_resize_tomograms

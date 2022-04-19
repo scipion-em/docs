@@ -8,6 +8,7 @@ Submodules
 
    xmipptomo.viewers.monotomo_tree_provider
    xmipptomo.viewers.viewer_cltomo
+   xmipptomo.viewers.viewer_phantom_create
    xmipptomo.viewers.viewer_resolution_local_monotomo
 
 Module contents
