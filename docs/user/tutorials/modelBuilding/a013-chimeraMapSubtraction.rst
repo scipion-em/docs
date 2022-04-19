@@ -206,25 +206,30 @@ USE CASES
 ~~~~~~~~~
 
 -  | *Use Case 1: Detection of remnant density in the penton region of
-     the human adenovirus HAdV-F41 density map (EMDB ID EMD-10768,
-     :raw-latex:`\citep{PerezIllana2020}`)*
-   | Aim: Run the workflow depicted in (A). The output of protocols 1, 2
-     and 3 can be seen in the viewer by pressing *Analyze Results*.
+     the human adenovirus HAdV-F41 density map (EMDB ID EMD-10768*, :cite:p:`PerezIllana2021`)
 
-   -  | In the (B) appears the whole adenovirus map, output of protocol
-        1. To visualize this map write in the command line:
-      | *volume #2 region all showOutline false*
-      | and adjust level densities according to level indicated in the
-        shown *Volume Viewer*.
+   | Aim: Run the workflow depicted in :numref:`model_building_app_usecase_mapsubtract_1` (A). The output of protocols 1, 2 and 3 can be seen in the *ChimeraX* viewer by pressing *Analyze Results*.
 
-   -  | In the (C) the extracted asymmetric unit is shown, overlapped to
+   -  | In :numref:`model_building_app_usecase_mapsubtract_1` (B) appears the whole adenovirus map, output of protocol 1. To visualize this map write in *ChimeraX* command line:
+
+       ::
+
+            volume #2 region all showOutline false
+
+
+      | and adjust level densities according to level indicated in the *Volume Viewer* shown.
+
+   -  | In :numref:`model_building_app_usecase_mapsubtract_1` (C) the extracted asymmetric unit is shown, overlapped to
         the whole map, as output of protocol 2. To visualize these maps,
-        in addition to the previous command line and the adjustment of
+        in addition to the previous *ChimeraX* command line and the adjustment of
         map levels indicated below, modify the transparency of the whole
         map writing:
-      | *volume #2 transparency 0.8*
 
-   -  | Finally, the (D) details the atomic structure of the biological
+       ::
+
+            volume #2 transparency 0.8
+
+   -  | Finally, :numref:`model_building_app_usecase_mapsubtract_1` (D) details the atomic structure of the biological
         asymmetric unit obtained by modeling as output of protocol 3
         (*PDB ID 6YBA*). Select *Atoms -> Hide* and *Cartoons -> Show*
         to change to ribbons the view of the structure. The overlapping
@@ -232,47 +237,44 @@ USE CASES
         to observe the area (5, dotted blue circle) where the penton is
         located and we will try to see a remnant density. To visualize
         the map, write in the command line:
-      | *volume #2 transparency 0.9*
 
-   .. figure:: Images_appendix/Fig310.pdf
-      :alt: (A) workflow showing protocols 1, 2, 3 and 4. (B) Adenovirus
-      HAdV-F41 map image. (C) Map geometrical asymmetric unit extracted
-      from the adenovirus map. (D) Adenovirus atomic structure of the
-      biological asymmetric unit overlapped to the geometrical map unit.
-      :name: fig:app_usecase_mapsubtract_1
+        ::
 
-      (A) workflow showing protocols 1, 2, 3 and 4. (B) Adenovirus
-      HAdV-F41 map image. (C) Map geometrical asymmetric unit extracted
-      from the adenovirus map. (D) Adenovirus atomic structure of the
-      biological asymmetric unit overlapped to the geometrical map unit.
+           volume #2 transparency 0.9
+
+   .. figure:: Images_appendix/Fig310.svg
+      :alt: (A) *Scipion* workflow showing protocols 1, 2, 3 and 4. (B) Adenovirus HAdV-F41 map image. (C) Map geometrical asymmetric unit extracted from the adenovirus map. (D) Adenovirus atomic structure of the biological asymmetric unit overlapped to the geometrical map unit.
+      :name: model_building_app_usecase_mapsubtract_1
+      :align: center
+
+      *(A) Scipion* workflow showing protocols 1, 2, 3 and 4. (B) Adenovirus HAdV-F41 map image. (C) Map geometrical asymmetric unit extracted from the adenovirus map. (D) Adenovirus atomic structure of the biological asymmetric unit overlapped to the geometrical map unit.
 
    To look for remnant densities in the penton area we have to complete
-   the protocol with the indicated params (. Remark that in this case we
+   the protocol with the indicated params (:numref:`model_building_app_usecase_mapsubtract_2`). Remark that in this case we
    have selected half of input *3D Map* resolution (4 Å) although other
    values could be tested. The only chain of the penton in the atomic
    structure of the asymmetric structure is the chain *M*, inside the
-   dotted blue circle of (D), and 8 residues will be removed as a
+   dotted blue circle of :numref:`model_building_app_usecase_mapsubtract_1` (D), and 8 residues will be removed as a
    control of density levels. In addition, icosahedral *I222r* symmetry
    will be applied to the selected chain in order to complete the five
    units of the penton. In order to visualize better the map difference,
    a map fraction around the atomic structure is selected.
 
-   .. figure:: Images_appendix/Fig311.pdf
-      :alt: Completing the protocol to find renmant densities in the
-      penton area of the adenovirus map.
-      :name: fig:app_usecase_mapsubtract_2
+   .. figure:: Images_appendix/Fig311.svg
+      :alt: Completing the protocol **chimerax-subtraction** to find renmant densities in the penton area of the adenovirus map.
+      :name: model_building_app_usecase_mapsubtract_2
+      :align: center
 
-      Completing the protocol to find renmant densities in the penton
-      area of the adenovirus map.
+      Completing the protocol **chimerax-subtraction** to find renmant densities in the penton area of the adenovirus map.
 
    Protocol execution: Follow the general procedure shown above
-   (Protocol execution section) and the graphics window will open. At
+   (Protocol execution section) and *ChimeraX* graphics window will open. At
    this point several maps and atomic structures will be shown, as the
-   *Models* panel indicates ( (C, top)). Have a look to each map and
+   *Models* panel indicates (:numref:`model_building_app_usecase_mapsubtract_3` (C, top)). Have a look to each map and
    structure to identify them and play with the density levels to
    maximize the differences between the input *3D Map* restricted to the
    penton area (*zone_Map*) and the penton atomic structure-derived map
-   (*molmap_chainM_Map*). The images A and B show the difference
+   (*molmap_chainM_Map*). The :numref:`model_building_app_usecase_mapsubtract_3` images A and B show the difference
    *filtered_Map* in the penton side (A) and upper (B) views,
    respectively, according to the density level observed on the *Volume
    Viewer* panel (C, middle). Red arrows point at the densities
@@ -284,51 +286,52 @@ USE CASES
    remnant density in the upper part of the penton, if exits, it is not
    so evident.
 
-   .. figure:: Images_appendix/Fig312.pdf
-      :alt: (A) Side view of the adenovirus penton atomic structure
-      (magenta) and the gaussian filtered difference map (grey). (B)
-      Upper view. (C) From top to bottom, *Models* panel, *Volume
-      Viewer* panel, specified for the gaussian filtered difference map,
-      and *Side View* panel, respectively.
-      :name: fig:app_usecase_mapsubtract_3
+   .. figure:: Images_appendix/Fig312.svg
+      :alt: (A) Side view of the adenovirus penton atomic structure (magenta) and the gaussian filtered difference map (grey). (B) Upper view. (C) From top to bottom, *ChimeraX Models* panel, *Volume Viewer* panel, specified for the gaussian filtered difference map, and *Side View* panel, respectively.
+      :name: model_building_app_usecase_mapsubtract_3
+      :align: center
 
-      (A) Side view of the adenovirus penton atomic structure (magenta)
-      and the gaussian filtered difference map (grey). (B) Upper view.
-      (C) From top to bottom, *Models* panel, *Volume Viewer* panel,
-      specified for the gaussian filtered difference map, and *Side
-      View* panel, respectively.
+      *(A)* Side view of the adenovirus penton atomic structure (magenta) and the gaussian filtered difference map (grey). (B) Upper view. (C) From top to bottom, *ChimeraX Models* panel, *Volume Viewer* panel, specified for the gaussian filtered difference map, and *Side View* panel, respectively.
 
    With the exception of the input adenovirus biological asymmetric unit
-   atomic structure, the rest of elements shown in the graphics window
-   will also appear in the viewer that opens pressing *Analyze results*.
+   atomic structure, the rest of elements shown in *ChimeraX* graphics window
+   will also appear in the *ChimeraX* viewer that opens pressing *Analyze results*.
    Consider then the possibility of performing additional operations and
    saving them with the *scipionwrite* command before closing the
    graphics window. After exiting the protocol you can visualize your
    results.
+
+   |
 
 -  | *Use Case 2: Since the asymmetric unit of the human adenovirus
      HAdV-C5 atomic structure contains a small chain called X (PDB ID
      6B1T), we’d like to check if there is a remnant density in the
      previous human adenovirus HAdV-F41 density map (EMDB ID EMD-10768)
      that could be interpreted as the HAdV-C5’s chain X.*
-   | Aim: Run the workflow depicted in (A) to inspect for remnant
+
+
+   | Aim: Run the workflow depicted in :numref:`model_building_app_usecase_mapsubtract_4` (A) to inspect for remnant
      densities around the area covered by the hexons in the biological
      asymmetric unit area of the adenovirus map (A, 6). The output of
-     all protocols can be seen in the viewer by pressing *Analyze
+     all protocols can be seen in *ChimeraX* viewer by pressing *Analyze
      Results*.
 
-   -  In the (B, C, D) you also have the output of protocols 1, 2 and 3.
+   -  | In :numref:`model_building_app_usecase_mapsubtract_1` (B, C, D) you also have the output of protocols 1, 2 and 3.
 
    -  | The output of the protocol 4 shows the atomic structure of human
         adenovirus HAdV-C5. Select *Atoms -> Hide* and *Cartoons ->
         Show* to change to ribbons the view of the structure. This
         structure was fitted to the map asymmetric unit of adenovirus
-        HAdV-F41 by using the protocol (6) and the result of this
+        HAdV-F41 by using the protocol **chimerax-operator** (6) and the result of this
         oputput, overlapped to the geometrical map asymmetric unit, is
-        shown in (B). To visualize this map write in the command line:
-      | *volume #2 transparency 0.8*
+        shown in :numref:`model_building_app_usecase_mapsubtract_4` (B). To visualize this map write in the command line:
+
+        ::
+
+           volume #2 transparency 0.8
+
       | and adjust level densities according to level indicated in the
-        shown *Volume Viewer* ( (D)). Select *Atoms -> Hide* and
+        shown *Volume Viewer* (:numref:`model_building_app_usecase_mapsubtract_4` (D)). Select *Atoms -> Hide* and
         *Cartoons -> Show* to change to ribbons the view of the
         structure.
 
@@ -337,33 +340,21 @@ USE CASES
       adenovirus HAdV-F41. They are used as a control to be sure that we
       identify new densities previously unmodeled. Since they are very
       small we have depicted them selecting *Styles -> Stick* and
-      overlapped to the geometrical map asymmetric unit ( (C) with the
+      overlapped to the geometrical map asymmetric unit (:numref:`model_building_app_usecase_mapsubtract_4` (C) with the
       same transparency and map adjustment shown in (B).
 
-   .. figure:: Images_appendix/Fig314.pdf
-      :alt: (A) workflow showing protocols 1-7. (B) HAdV-F41 adenovirus
-      geometrical map asymmetric unit (grey) and, fitted to it, the
-      atomic structure of the biological asymmetric unit atomic
-      structure of HAdV-C5 adenovirus (colored). (C) HAdV-F41 adenovirus
-      geometrical map asymmetric unit (grey) and some small aminoacid
-      chains previously traced in the remnant density, imported in the
-      protocol 5 (colored). (D) Level of density selected to visualize
-      the map in B and C.
-      :name: fig:app_usecase_mapsubtract_4
+   .. figure:: Images_appendix/Fig314.svg
+      :alt: (A) *Scipion* workflow showing protocols 1-7. (B) HAdV-F41 adenovirus geometrical map asymmetric unit (grey) and, fitted to it, the atomic structure of the biological asymmetric unit atomic structure of HAdV-C5 adenovirus (colored). (C) HAdV-F41 adenovirus geometrical map asymmetric unit (grey) and some small aminoacid chains previously traced in the remnant density, imported in the protocol 5 (colored). (D) Level of density selected to visualize the map in B and C.
+      :name: model_building_app_usecase_mapsubtract_4
+      :align: center
 
-      (A) workflow showing protocols 1-7. (B) HAdV-F41 adenovirus
-      geometrical map asymmetric unit (grey) and, fitted to it, the
-      atomic structure of the biological asymmetric unit atomic
-      structure of HAdV-C5 adenovirus (colored). (C) HAdV-F41 adenovirus
-      geometrical map asymmetric unit (grey) and some small aminoacid
-      chains previously traced in the remnant density, imported in the
-      protocol 5 (colored). (D) Level of density selected to visualize
-      the map in B and C.
+      *(A) Scipion* workflow showing protocols 1-7. (B) HAdV-F41 adenovirus geometrical map asymmetric unit (grey) and, fitted to it, the atomic structure of the biological asymmetric unit atomic structure of HAdV-C5 adenovirus (colored). (C) HAdV-F41 adenovirus geometrical map asymmetric unit (grey) and some small aminoacid chains previously traced in the remnant density, imported in the protocol 5 (colored). (D) Level of density selected to visualize the map in B and C.
 
    | To look for remnant densities in the area of hexons we have to
-     complete the protocol with the indicated params (. As in the
+     complete the **chimerax-subtraction** protocol with the indicated params (:numref:`model_building_app_usecase_mapsubtract_5`). As in the
      previous use case, we have selected half of input *3D Map*
      resolution (4 Å) although other values could be tested.
+
    | Taking into account that the remnant densitities could be quite
      inconspicuous we are going to use two different controls this time.
      One of them will be, as in the previous use case, the deletion of 5
@@ -371,64 +362,53 @@ USE CASES
      to the remnant density that we are looking for. The second control
      will be some small aminoacid chains previously traced in the
      remnant density since we’d like to discriminate between this
-     density and other new one and unmodeled. These extra small chains
+     density and other new one and unmodeled density. These extra small chains
      have to be included in the form param *Other atomic structures*.
+
    | Although this time we do not have to consider a specific chain or
      applying symmetry, since we have to look for a chain similar to
      HAdV-C5 adenovirus chain *X*, it is quite recommendable to include
      in the form param *Other atomic structures* the structure 6B1T
-     fitted to the geometrical map asymmetric unit, as shown in (B), and
+     fitted to the geometrical map asymmetric unit, as shown in :numref:`model_building_app_usecase_mapsubtract_4` (B), and
      obtained from protocol 6 (A).
 
-   .. figure:: Images_appendix/Fig313.pdf
-      :alt: Completing the protocol to find renmant densities in the
-      biological asymmetric unit area of the adenovirus map.
-      :name: fig:app_usecase_mapsubtract_5
+   .. figure:: Images_appendix/Fig313.svg
+      :alt: Completing the protocol **chimerax-subtraction** to find renmant densities in the biological asymmetric unit area of the adenovirus map.
+      :name: model_building_app_usecase_mapsubtract_5
+      :align: center
 
-      Completing the protocol to find renmant densities in the
-      biological asymmetric unit area of the adenovirus map.
+      Completing the protocol **chimerax-subtraction** to find renmant densities in the biological asymmetric unit area of the adenovirus map.
 
    | Protocol execution: Follow the general procedure shown above
-     (Protocol execution section) and the graphics window will open. At
+     (Protocol execution section) and *ChimeraX* graphics window will open. At
      this point several maps and atomic structures will be shown, as the
-     *Models* panel indicates ( (A, bottom)), except the *model* *#6*.
+     *Models* panel indicates (:numref:`model_building_app_usecase_mapsubtract_6` (A, bottom)), except the *model* *#6*.
      Have a look to each map and structure to identify them and play
      with the density levels to maximize the differences between the
      input *3D Map* (*output_volume.mrc*) and the *6YBA* atomic
-     structure-derived map (*molmap_Map*). The (A) show the difference
+     structure-derived map (*molmap_Map*). :numref:`model_building_app_usecase_mapsubtract_6` (A) shows the difference
      *filtered_Map* obtained. The zoom in on the framed area displays in
      detail the difference considering two different map levels (B and
      C). To have this view, besides select the molecules to show
-     according to the *Models* panel (A, bottom), write in command line:
-   | *volume #2 transparency 0.8*
-   | *select #4/X*
-   | *save /tmp/6b1t_chainX.cif format mmcif models #4 selectedOnly
-     true*
-   | *open /tmp/6b1t_chainX.cif*
+     according to the *Models* panel (A, bottom), write in *ChimeraX* command line:
+
+        ::
+
+           volume #2 transparency 0.8
+           select #4/X
+           save /tmp/6b1t_chainX.cif format mmcif models #4 selectedOnly true
+           open /tmp/6b1t_chainX.cif
+
    | HAdV-C5 adenovirus chain *X* can be visualized as *model* *#6*.
 
-   The result, described in , doesn’t demonstrate a clear continuous
+   The result, described in :numref:`model_building_app_usecase_mapsubtract_6`, doesn’t demonstrate a clear continuous
    density in the proximity of the HAdV-C5 adenovirus chain *X*.
    Although not very evident, it could be there. Then we cannot conclude
    that it doesn’t exit, only that we were unable to identify it.
 
-   .. figure:: Images_appendix/Fig315.pdf
-      :alt: (A) Gaussian filtered difference map (grey) of adenovirus
-      HAdV-F41 asymmetric unit (top) and *Models* panel of items loaded
-      in including the *model* *#6* (bottom). (B) Zoom in on the
-      subtracted area with the map density level indicated in the
-      *Volume Viewer* below . (C) Idem with a higher cleaning of the
-      background. The red arrow points at the control density. The green
-      arrow points at the HAdV-C5 adenovirus chain *X*. The purple arrow
-      points at one of the adenovirus HAdV-F41 small chains previously
-      traced.
-      :name: fig:app_usecase_mapsubtract_6
+   .. figure:: Images_appendix/Fig315.svg
+      :alt: (A) Gaussian filtered difference map (grey) of adenovirus HAdV-F41 asymmetric unit (top) and *Models* panel of items loaded in *ChimeraX* including the *model* *#6* (bottom). (B) Zoom in on the subtracted area with the map density level indicated in the *Volume Viewer* below . (C) Idem with a higher cleaning of the background. The red arrow points at the control density. The green arrow points at the HAdV-C5 adenovirus chain *X*. The purple arrow points at one of the adenovirus HAdV-F41 small chains previously traced.
+      :name: model_building_app_usecase_mapsubtract_6
+      :align: center
 
-      (A) Gaussian filtered difference map (grey) of adenovirus HAdV-F41
-      asymmetric unit (top) and *Models* panel of items loaded in
-      including the *model* *#6* (bottom). (B) Zoom in on the subtracted
-      area with the map density level indicated in the *Volume Viewer*
-      below . (C) Idem with a higher cleaning of the background. The red
-      arrow points at the control density. The green arrow points at the
-      HAdV-C5 adenovirus chain *X*. The purple arrow points at one of
-      the adenovirus HAdV-F41 small chains previously traced.
+      *(A)* Gaussian filtered difference map (grey) of adenovirus HAdV-F41 asymmetric unit (top) and *Models* panel of items loaded in *ChimeraX* including the *model* *#6* (bottom). (B) Zoom in on the subtracted area with the map density level indicated in the *Volume Viewer* below . (C) Idem with a higher cleaning of the background. The red arrow points at the control density. The green arrow points at the HAdV-C5 adenovirus chain *X*. The purple arrow points at one of the adenovirus HAdV-F41 small chains previously traced.
