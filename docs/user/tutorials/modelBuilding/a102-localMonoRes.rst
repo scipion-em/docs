@@ -3,35 +3,36 @@
 Local MonoRes protocol
 ======================
 
-Protocol designed to apply the :math:`MonoRes` method
-:raw-latex:`\citep{vilas2018}` in . :math:`MonoRes` is an automatic
+Protocol designed to apply the :math:`MonoRes` method :cite:p:`vilas2018`
+in *Scipion*. :math:`MonoRes` is an automatic
 accurate method developed to compute the local resolution of a 3D map
 based on the calculation of the amplitude of the monogenic signal after
 filtering the map at different frequencies.
 
 -  Requirements to run this protocol and visualize results:
 
-   -  plugin: *scipion-em*
+   -  *Scipion* plugin: **scipion-em**
 
-   -  plugin: *scipion-em-xmipp*
+   -  *Scipion* plugin: **scipion-em-xmipp**
 
-   -  plugin: *scipion-em-chimera*
+   -  *Scipion* plugin: **scipion-em-chimera**
 
--  | menu:
-   | *Model building -> Preprocess map* ( (A))
+-  | *Scipion* menu:
+   | *Model building -> Preprocess map* (:numref:`model_building_app_localMonoRes_1` (A))
 
--  Protocol form parameters ( (B)):
-
-   .. figure:: Images_appendix/Fig207.pdf
-      :alt: Protocol . A: Protocol location in menu. B: Protocol form.
-      :name: fig:app_localMonoRes_1
+   .. figure:: Images_appendix/Fig207.svg
+      :alt: Protocol **xmipp3-local MonoRes**. A: Protocol location in *Scipion* menu. B: Protocol form.
+      :name: model_building_app_localMonoRes_1
+      :align: center
       :width: 90.0%
 
-      Protocol . A: Protocol location in menu. B: Protocol form.
+      Protocol **xmipp3-local MonoRes**. A: Protocol location in *Scipion* menu. B: Protocol form.
+
+-  Protocol form parameters (:numref:`model_building_app_localMonoRes_1` (B)):
 
    -  *Would you like to use half volumes?*: Option “No” has been
       selected by default, with the box *Input Volume* to fill in with
-      the volume, imported or generated in . However, since the noise
+      the volume, imported or generated in *Scipion*. However, since the noise
       estimation needed to determine the local resolution is based on
       half volumes, select “Yes” whenever half volumes are available. A
       couple of boxes will thus be opened to select both half volumes,
@@ -75,6 +76,7 @@ filtering the map at different frequencies.
          follows a gaussian distribution.
 
 -  | Protocol execution:
+
    | Adding specific map/structure label is recommended in *Run name*
      section, at the form top. To add the label, open the protocol form,
      press the pencil symbol at the right side of *Run name* box,
@@ -82,26 +84,28 @@ filtering the map at different frequencies.
      close the protocol. This label will be shown in the output summary
      content (see below). If you want to run again this protocol, do not
      forget to set to *Restart* the *Run mode*.
+
    | Press the *Execute* red button at the form bottom.
 
 -  Visualization of protocol results:
 
    After executing the protocol, press *Analyze Results* and a menu
-   window will be opened ():
+   window will be opened (:numref:`model_building_app_localMonoRes_2`):
 
-   .. figure:: Images_appendix/Fig209.pdf
-      :alt: Protocol . Menu to visualize results.
-      :name: fig:app_localMonoRes_2
+   .. figure:: Images_appendix/Fig209.svg
+      :alt: Protocol **xmipp3-local MonoRes**. Menu to visualize results.
+      :name: model_building_app_localMonoRes_2
+      :align: center
       :width: 70.0%
 
-      Protocol . Menu to visualize results.
+      Protocol **xmipp3-local MonoRes**. Menu to visualize results.
 
    -  *Show resolution slices*: Map resolution slices are opened with
-      :math:`ShowJ` (https://github.com/I2PC/scipion/wiki/ShowJ), the
-      default viewer.
+      `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_, the
+      default *Scipion* viewer.
 
    -  *Show original volume slices*: Original map slices are opened with
-      :math:`ShowJ`.
+      `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_.
 
    -  *Show resolution histogram*: Number of map voxels that show a
       certain resolution.
@@ -118,16 +122,14 @@ filtering the map at different frequencies.
 
       -  *Show selected slice*: Advanced parameter to show by default
          the 51 local resolution slide, or any other selected along the
-         axis selected previously.
+         axis previously selected.
 
       -  *Show slice number*: Advanced parameter to select the slice
          number to be shown by *Show selected slice*.
 
       -  *Show Resolution map in ChimeraX*: The resolution map is shown
-         using :math:`ChimeraX`. Left hand bar indicates resolution
+         using *ChimeraX*. Left hand bar indicates resolution
          colour code.
-
-      -  
 
          -  *Color scale options*: Highest value of the resolution
             range.
@@ -137,15 +139,14 @@ filtering the map at different frequencies.
          -  *Intervals*: Number of resolution intervals from the highest
             to the lowest range value.
 
-         -  *Color set*: Color to apply to the local resolution map
-            (http://matplotlib.org/1.3.0/examples/color/colormaps_reference.html).
+         -  *Color set*: `Color <http://matplotlib.org/1.3.0/examples/color/colormaps_reference.html>`_ to apply to the local resolution map.
 
-         *Note*: Remark that on the right side you have a wizard to
+         ``NOTE:`` Remark that on the right side you have a wizard to
          control color params.
 
 -  Summary content:
 
-   -  | Protocol output (below framework):
+   -  | Protocol output (below *Scipion* framework):
       | *xmipp3 - local MonoRes -> resolution_Volume*;
       | Volume (x, y, and z dimensions, sampling rate).
 

@@ -3,35 +3,30 @@
 Model from Template protocol
 ============================
 
-| Protocol designed to obtain a structure model for a target sequence in
-  . Target structure is predicted by sequence homology using
-  :raw-latex:`\citep{sali1993}` web service in .
-| WARNING: Working with requires a license key, which can be requested
+| Protocol designed to obtain a structure model for a target sequence in *Scipion*. Target structure is predicted by sequence homology using *Modeller* :cite:p:`sali1993` web service in *ChimeraX*.
+| ``WARNING:`` Working with *Modeller* requires a license key, which can be requested
   free of charge for academic users. Try to have this license key before
   starting the protocol execution.
 
 -  Requirements to run this protocol and visualize results:
 
-   -  plugin: *scipion-em*
+   -  *Scipion* plugin: **scipion-em**
 
-   -  plugin: *scipion-em-chimera*
+   -  *Scipion* plugin: **scipion-em-chimera**
 
-   -  Multiple sequence alignment tools: *Clustal Omega*, *MUSCLE*
+   -  Multiple sequence alignment tools: **Clustal Omega**, **MUSCLE**
 
--  menu: *Model building -> Initial model* ( (A))
+-  *Scipion* menu: *Model building -> Initial model* (:numref:`model_building_app_protocol_seqHomology_1` (A))
 
--  Protocol form parameters ( (B)):
-
-   .. figure:: Images_appendix/Fig111.pdf
-      :alt: Protocol . A: Protocol location in menu. B: Protocol form:
-      Option “template available”. C: Protocol form: Option “looking for
-      template”.
-      :name: fig:app_protocol_seqHomology_1
+   .. figure:: Images_appendix/Fig111.svg
+      :alt: Protocol **chimerax-model from template**. A: Protocol location in *Scipion* menu. B: Protocol form: Option “template available”. C: Protocol form: Option “looking for template”.
+      :name: model_building_app_protocol_seqHomology_1
+      :align: center
       :width: 90.0%
 
-      Protocol . A: Protocol location in menu. B: Protocol form: Option
-      “template available”. C: Protocol form: Option “looking for
-      template”.
+      Protocol **chimerax-model from template**. A: Protocol location in *Scipion* menu. B: Protocol form: Option “template available”. C: Protocol form: Option “looking for template”.
+
+-  Protocol form parameters (:numref:`model_building_app_protocol_seqHomology_1` (B)):
 
    -  *Input* section
 
@@ -40,10 +35,10 @@ Model from Template protocol
          Select *“No”* if you do not have any *template* to start the
          homology modeling and you would like to search for one.
 
-      -  Option *“Yes”* ( (B))
+      -  Option *“Yes”* (:numref:`model_building_app_protocol_seqHomology_1` (B))
 
          -  *Atomic structure used as template*: Atomic structure
-            previously downloaded in . This structure was selected by
+            previously downloaded in *Scipion*. This structure was selected by
             sequence homology, i.e. by looking for the structurally
             characterized sequence more similar (with higher identity)
             to the target sequence.
@@ -53,7 +48,7 @@ Model from Template protocol
             Use the wizard on the right side of *Chain* parameter to
             select that chain.
 
-         -  *Target sequence*: Sequence previously downloaded in . This
+         -  *Target sequence*: Sequence previously downloaded in *Scipion*. This
             sequence has to be modeled following the structure skeleton
             of the selected *template*.
 
@@ -65,33 +60,33 @@ Model from Template protocol
 
             #. | *None*: No more sequences are going to be included in
                  the alignment except *model* and *target* sequences.
-                 Correlative param:
+               |  Correlative param:
                | \**\* *Alignment tool for two sequences*: Select one of
                  the three available alignment methods, *Bio.parirwise2*
                  (by default), *Clustal Omega*, *MUSCLE*.
 
             #. | *Additional sequences to align* if you want to perform
-                 a multiple sequence alignment adding other sequences
-                 already downloaded in . Additional sequences, others
+                 a multiple sequence alignment (MSA) adding other sequences
+                 already downloaded in *Scipion*. Additional sequences, others
                  than *template* and *target* sequences, are required to
-                 accomplish this multiple alignment. Correlative params:
+                 accomplish this MSA. 
+               | Correlative params:
                | \**\* *Other sequences to align*: Box to complete with
                  the additional sequences used to perform the multiple
                  sequence alignment. All of them were previously
-                 downloaded in .
+                 downloaded in *Scipion*.
                | \**\* *Multiple alignment tool*: Select between
                  *Clustal Omega* and *MUSCLE* methods.
 
             #. | *Provide your own sequence alignment*: If you want to
                  include other sequences in the alignment by providing
-                 your own sequence alignment. Correlative param:
+                 your own sequence alignment. 
+               | Correlative param:
                | \**\* *Sequence alignment input*: Complete this box
                  with the help of the right side browser including the
                  sequence alignment file that you already have saved in
-                 your computer. Different alignment formats are
-                 available
-                 (https://www.cgl.ucsf.edu/chimerax/docs/user/commands/open.html).
-                 An example of alignment in *fasta* format can be seen
+                 your computer. Different `alignment formats <https://www.cgl.ucsf.edu/chimerax/docs/user/commands/open.html>`_ are
+                 available. An example of alignment in *fasta* format can be seen
                  below (Use case 3).
 
          -  *Additional target sequence to include?*: Select *“Yes”* if
@@ -103,9 +98,9 @@ Model from Template protocol
             those params will appear in case you select *“No”* in order
             to obtain a *model* by using only one *target* sequence.
 
-      -  Option *“No”* ( (C))
+      -  Option *“No”* (:numref:`model_building_app_protocol_seqHomology_1` (C))
 
-         -  *Target sequence*: Sequence previously downloaded in . This
+         -  *Target sequence*: Sequence previously downloaded in *Scipion*. This
             sequence has to be modeled following the structure skeleton
             of the *template* that you are going to select among the
             retrieved entries found by the similarity searching tool.
@@ -118,9 +113,7 @@ Model from Template protocol
             do not provide *templates*, could be useful to build a
             better sequence alignment.
 
-         -  *Similarity matrix*: Select one of the “substitution matrix”
-            to assign a score to any couple of residues in the alignment
-            (https://www.ncbi.nlm.nih.gov/blast/html/sub_matrix.html).
+         -  *Similarity matrix*: Select one of the `“substitution matrix” <https://www.ncbi.nlm.nih.gov/blast/html/sub_matrix.html>`_ to assign a score to any couple of residues in the alignment.
 
          -  *cutoff evalue*: Maximum statistic value required to include
             a retrieved element in the hit list.
@@ -131,7 +124,7 @@ Model from Template protocol
    -  *Help* section
 
       Follow this section steps to run :math:`Modeller` via web service
-      in and to select and save one of the retrieved models in
+      in *ChimeraX* and to select and save one of the retrieved models in *Scipion*
       framework.
 
 -  Protocol execution:
@@ -143,42 +136,42 @@ Model from Template protocol
      close the protocol. This label will be shown in the output summary
      content (see below). If you want to run again this protocol, do not
      forget to set to *Restart* the *Run mode*.
+
    | Press the *Execute* red button at the form bottom.
-   | Several windows will be opened after executing the protocol with
+
+   | Several *ChimeraX* windows will be opened after executing the protocol with
      different contents according to the distinct form param options.
      Although we are going to detail some of them through several use
      cases (see below), designed to ilustrate different applications of
      this protocol, as well as the procedure to follow in each case, in
-     general we can predict the opening of graphics window and a
+     general we can predict the opening of *ChimeraX* graphics window and a
      sequence alignment window. Usually, in both windows the *template*
-     sequence is green highlighted (see an example of these windows in
-     ). Main steps to follow ahead are:
+     sequence is green highlighted (see an example of these windows in :numref:`model_building_chimera_alignment`). Main steps to follow ahead are:
 
    -  Ask for model(s) to :math:`Modeller` by selecting *Tools ->
-      Sequence -> Modeller Comparative* in the main menu of graphics
+      Sequence -> Modeller Comparative* in the main menu of *ChimeraX* graphics
       window.
 
    -  Complete the new window opened for *Modeller Comparative* with the
       sequence alignment that includes the *template* and with the
-      *target*\ (s) sequence(s), :math:`Modeller` license key,
-      multichain model, number of models retrieved by , and *Advanced*
+      *target*(s) sequence(s), :math:`Modeller` license key,
+      multichain model, number of models retrieved by *Modeller*, and *Advanced*
       options like the building of models with hydrogens, as well as
-      :math:`model` inclusion of heteroatoms or water molecules. An
-      example of completed :math:`Modeller` window can be observed in
+      *model* inclusion of heteroatoms or water molecules. An
+      example of completed :math:`Modeller` window can be observed in :numref:`model_building_modeller`
       (A). By pressing *OK* the computation starts. The status of the
-      job can be checked in the lower left corner of graphics window.
+      job can be checked in the lower left corner of *ChimeraX* graphics window.
 
    -  After a while a new panel window will show the retrieved models of
-      the *target* sequence ( (B)). Two statistics assess these models:
+      the *target* sequence (:numref:`model_building_modeller` (B)). Two statistics assess these models:
       *GA341*, statistical potentials derived-score, and *zDOPE*,
       normalized Discrete Optimized Protein Energy, atomic distance
-      depending-score. Reliable models show *GA341* values higher than
-      0.7, and negative *zDOPE* values correspond to better models.
-      Retrieved models can be checked in *Tools -> Models*. One of them
-      should be selected ( (C)).
+      depending-score. Reliable models show *GA341* values higher than 0.7, and negative *zDOPE* values correspond to better models.
+      Retrieved models can be checked in *ChimeraX Tools -> Models*. One of them
+      should be selected (:numref:`model_building_modeller` (C)).
 
    -  | Rename the selected model, for example *#n_initial* to
-        *#n_final* with the command line:
+        *#n_final* with *ChimeraX* command line:
       | *rename #n_initial id #n_final*
 
    -  | Save the retrieved model selected according to the new model

@@ -12,7 +12,7 @@ CCP4 Coot Refinement protocol
 
 | *COOT*, acronym of Crystallopgraphic Object-Oriented Toolkit,
   gathers several tools useful to perform mostly interactive modeling
-  procedures and is integrated in CCP4 software suite (`CCP4 <https://www.ccp4.ac.uk/?page_id=878>`_).
+  procedures and is integrated in CCP4 software suite (`CCP4 <https://www.ccp4.ac.uk/?page_id=204>`_).
   Initially applicable to X-ray data, some modifications of *Coot*
   also allow to model atomic structures regarding electron density maps
   obtained from cryo-EM :cite:p:`brown2015`. Additional
