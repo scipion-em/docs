@@ -17,32 +17,31 @@ following the improvement of models along the refinement process.
 Validation :math:`MolProbity` scores are shown at the end of the
 evaluation process.
 
--  Requirements to run this protocol and visualize results:
+-  | Requirements to run this protocol and visualize results:
 
-   -  plugin: *scipion-em*
+   -  | *Scipion* plugin: **scipion-em**
 
-   -  plugin: *scipion-em-phenix*
+   -  | *Scipion* plugin: **scipion-em-phenix**
 
-   -  PHENIX software suite (v. higher than 1.13, tested for versions
-      1.16-3549, 1.17.1-3660 and 1.18.2-3874)
+   -  | **PHENIX software suite** (tested for versions 1.13-2998, 1.16-3549, 1.17.1-3660 and 1.18.2-3874)
 
-   -  plugin: *scipion-em-ccp4*
+   -  | *Scipion* plugin: **scipion-em-ccp4**
 
-   -  CCP4 software suite
+   -  | **CCP4 software suite**
 
-   -  plugin: *scipion-em-chimera*
+   -  | *Scipion* plugin: **scipion-em-chimera**
+   
+-  | *Scipion* menu: *Model building -> Validation* (:numref:`model_building_validationCryoEM_protocol_1` (A))
 
--  | menu:
-   | *Model building -> Validation* ( (A))
-
--  Protocol form parameters ( (B)):
-
-   .. figure:: Images_appendix/Fig157.pdf
-      :alt: Protocol . A: Protocol location in menu. B: Protocol form.
-      :name: fig:validationCryoEM_protocol_1
+   .. figure:: Images_appendix/Fig157.svg
+      :alt: Protocol **phenix-validation_cryoem**. A: Protocol location in *Scipion* menu. B: Protocol form.
+      :name: model_building_validationCryoEM_protocol_1
+      :align: center
       :width: 90.0%
 
-      Protocol . A: Protocol location in menu. B: Protocol form.
+      Protocol **phenix-validation_cryoem**. A: Protocol location in *Scipion* menu. B: Protocol form.
+
+-  Protocol form parameters (:numref:`model_building_validationCryoEM_protocol_1 (B)):
 
    -  *Input Volume*: Electron density map previously downloaded or
       generated in .
@@ -72,12 +71,13 @@ evaluation process.
    After executing the protocol, press *Analyze Results* and the results
    window will be opened ().
 
-   .. figure:: Images_appendix/Fig200.pdf
-      :alt: Protocol . Taps to visualize *Validation CryoEM* results.
-      :name: fig:validationCryoEM_protocol_2
+   .. figure:: Images_appendix/Fig200.svg
+      :alt: Protocol **phenix-validation_cryoem**. Taps to visualize *Validation CryoEM* results.
+      :name: model_building_validationCryoEM_protocol_2
+      :align: center
       :width: 50.0%
 
-      Protocol . Taps to visualize *Validation CryoEM* results.
+      Protocol **phenix-validation_cryoem**. Taps to visualize *Validation CryoEM* results.
 
    Five taps are shown in the upper part of the results window:
 
@@ -95,23 +95,24 @@ evaluation process.
       values of resolution computed with or without a mask. *Model vs.
       Data* details main real-space correlation coefficients.
 
-      .. figure:: Images_appendix/Fig201.pdf
-         :alt: Protocol . Summary tables of main\ *validation_cryoem*
-         results.
-         :name: fig:validationCryoEM_protocol_3
+      .. figure:: Images_appendix/Fig201.svg
+         :alt: Protocol **phenix-validation_cryoem**. Summary tables of main *PHENIX validation_cryoem* results.
+         :name: model_building_validationCryoEM_protocol_3
+         :align: center
          :width: 50.0%
 
-         Protocol . Summary tables of main\ *validation_cryoem* results.
+         Protocol **phenix-validation_cryoem**. Summary tables of main *PHENIX validation_cryoem* results.
 
    -  *MolProbity*: Statistics concerning the atomic model, most of them
       obtained from ().
 
-      .. figure:: Images_appendix/Fig202.pdf
-         :alt: Protocol . and other statistics of the atomic model.
+      .. figure:: Images_appendix/Fig202.svg
+         :alt: Protocol **phenix-validation_cryoem**. *MolProbity* and other statistics of the atomic model.
          :name: fig:validationCryoEM_protocol_4
+         :align: center
          :width: 50.0%
 
-         Protocol . and other statistics of the atomic model.
+         Protocol **phenix-validation_cryoem**. *MolProbity* and other statistics of the atomic model.
 
       -  *Clashes: All-atom contact analysis*: List that contains all
          severe clashes (non-H atoms overlaping more than 0.4 Å) found
@@ -201,9 +202,10 @@ evaluation process.
    -  *Model vs. Data*: Real-space correlation coefficients between map
       and model-derived map ().
 
-      .. figure:: Images_appendix/Fig203.pdf
-         :alt: Protocol . Real-space correlation results.
-         :name: fig:validationCryoEM_protocol_5
+      .. figure:: Images_appendix/Fig203.svg
+         :alt: Protocol **phenix-validation_cryoem**. Real-space correlation results.
+         :name: model_building_validationCryoEM_protocol_5
+         :align: center
          :width: 50.0%
 
          Protocol . Real-space correlation results.
@@ -259,9 +261,10 @@ evaluation process.
 
    -  *Data* (): Computation of Resolution and FSC.
 
-      .. figure:: Images_appendix/Fig204.pdf
-         :alt: Protocol . Experimental data results.
-         :name: fig:validationCryoEM_protocol_6
+      .. figure:: Images_appendix/Fig204.svg
+         :alt: Protocol **phenix-validation_cryoem**. Experimental data results.
+         :name: model_building_validationCryoEM_protocol_6
+         :align: center
          :width: 50.0%
 
          Protocol . Experimental data results.
