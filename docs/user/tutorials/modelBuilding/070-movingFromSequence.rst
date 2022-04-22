@@ -65,7 +65,7 @@ of *target* and *template*.
 tutorial (**chimerax-model from template**, Appendix :ref:`Model from template <app:modelFromTemplate>`). Remark that this use of *ChimeraX* is completely different from the use of *ChimeraX* as a visualization tool,
 as we have seen previously. By using the *ChimeraX* graphics window, opening it
 from the *Scipion* button *Analyze Results* we can observe protocol results but we CANNOT save
-anything. However, using *ChimeraX* as a tool, as it is the case in *Scipion* *ChimeraX*-derived
+anything in *Scipion*. However, using *ChimeraX* as a tool, as it is the case in *Scipion* *ChimeraX*-derived
 protocols, we can perform different tasks, taking advantage of the
 available *ChimeraX* tools and, finally, we CAN save the obtained results and the
 working session in *Scipion*.
@@ -241,6 +241,13 @@ write:
 
      setattr #model_number/old_ID c chain_id new_ID
      setattr #model_number/old_ID r chain_id new_ID
+
+Note that in the new version of *ChimeraX* you have to remove *c* from *setattr 6/A c chain id B*:
+
+::
+
+     setattr #model_number/old_ID chain_id new_ID
+
 
 Additional exercises for practising
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

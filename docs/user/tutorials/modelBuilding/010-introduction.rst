@@ -56,7 +56,7 @@ to save computational resources and facilitate the modeling.
 
 In addition to the map ASU, the workflow considers as input the sequence
 of each individual structural element (from 1 to n). This sequence is
-used to get the initial model, or by prediction based in structures of
+used to get the initial model, *de novo* or by prediction based in structures of
 homologous sequences. Initial model of each structure element has to be
 fitted to the volume ASU, and then refined according to the density of
 this map fraction. Refinement in real and/or reciprocal spaces are

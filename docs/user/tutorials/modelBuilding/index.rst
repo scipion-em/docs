@@ -63,5 +63,7 @@ Appendices
    a140-realSpaceRefineProtocol
    a150-superposePdbsProtocol
    a160-dockInMapProtocol
+   a161-searcFitProtocol
+   a162-asignOrigAndSampling
    a170-exportToEMDB
 
