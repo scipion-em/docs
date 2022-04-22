@@ -4,7 +4,7 @@ Merging 3D Maps and Atomic Structures: Rigid Fitting
 Once we have the predicted *model* of any structural element included in our
 map, to fit that *model* in the volume constitutes the next step in the modeling
 workflow. Two protocols have been included in *Scipion* with this purpose, **phenix-dock in map**
-(Appendix :ref:`Dock in map <app:dockInMapProtocol>`, :cite:p:`Liebschner2019`) and **chimerax-rigid fit** (Appendix :ref:`Rigid fit <app:chimeraRigidFit>`). The first one allows
+(Appendix :ref:`PHENIX Dock in map <app:dockInMapProtocol>` :cite:p:`Liebschner2019`) and **chimerax-rigid fit** (Appendix :ref:`CHIMERAX Rigid fit <app:chimeraRigidFit>`). The first one allows
 automatic fitting of *models* in *maps*, while the second one only does it when *model* and *map* are
 quite close, thus requiring manual fitting in advance. Although there is
 no a general rule to fit *map* and *model*, because it will depend on the particular
@@ -60,7 +60,7 @@ Completing rigid fit with *CHIMERAX rigid fit*
 ---------------------------
 
 | ``NOTE before starting!!!:`` As we already advised previously, we are going to use a *ChimeraX*-derived
-  protocol (**chimerax-rigid fit**, Appendix :ref:`Rigid fit <app:chimeraRigidFit>`). Remark that this
+  protocol (**chimerax-rigid fit**, Appendix :ref:`CHIMERA Rigid fit <app:chimeraRigidFit>`). Remark that this
   use of *ChimeraX* is completely different from the use of *ChimeraX* as a visualization
   tool. By using the *ChimeraX* graphics window, opening it from the *Scipion* button *Analyze Results*, we
   can observe protocol results but we CANNOT save anything in *Scipion*. However,

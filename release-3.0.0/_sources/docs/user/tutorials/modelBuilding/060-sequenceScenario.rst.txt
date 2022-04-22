@@ -23,6 +23,8 @@ recognition and *template*-free methods (*ab initio*), as well as :math:`de\ nov
 tools, which besides sequences use the volume itself, have still to be
 included in the *Scipion* framework.
 
+.. _`requestion1`:
+
 How to identify *templates* of the *target sequence*
 ~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -52,8 +54,7 @@ respective *Hgb* subunits (identity 49.3% and 45.21%) of the antarctic fish *Pag
 this *template* has *PDB* accession code *1PBX*. Information about the structure can be checked
 in `1PBX <https://www.rcsb.org/structure/1PBX>`_. In general, it is a good idea to
 read the information related with the *template*, do it so and answer the
-following questions: (Answers in appendix :ref:`Solutions <app:solutions>`;
-**Question**\ `1 <sec:structurePrediction>`_\ **\ \_1**)
+following questions: (Answers in appendix :ref:`Solutions <app:solutions>`; :ref:`Question1 <question1>`)
 
 ::
 

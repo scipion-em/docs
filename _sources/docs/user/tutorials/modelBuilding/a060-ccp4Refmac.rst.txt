@@ -4,55 +4,54 @@ CCP4 Refmac protocol
 ====================
 
 | Protocol designed to refine atomic structures, in reciprocal space,
-  regarding electron density maps in by using
-  :raw-latex:`\citep{vagin2004}`, :raw-latex:`\citep{kovalevskiy2018}`.
-  This protocol integrates functionality in , supporting accession to
-  input and output data in the general model building workflow.
-| , Refinement of Macromolecular Structures by the Maximum-Likelihood
+  regarding electron density maps in by using *Refmac* :cite:p:`vagin2004`, :cite:p:`kovalevskiy2018`.
+  This protocol integrates *Refmac* functionality in *Scipion*, supporting accession to *Refmac* input and output data in the general model building workflow.
+| *Refmac*, Refinement of Macromolecular Structures by the Maximum-Likelihood
   method, allows the refinement of atomic models against experimental
   data, and is integrated in CCP4 software suite
-  (`www.ccp4.ac.uk/ccp4_projects.php <www.ccp4.ac.uk/ccp4_projects.php>`__).
-  Initially applicable to X-ray data, some modifications of also support
+  (`CCP4 <https://www.ccp4.ac.uk/?page_id=878>`_).
+  Initially applicable to X-ray data, some modifications of *Refmac* also support
   optimal fitting of atomic structures into electron density maps
-  obtained from cryo-EM :raw-latex:`\citep{brown2015}`. Particullarly,
+  obtained from cryo-EM :cite:p:`brown2015`. Particullarly, *Refmac*
   considers a five-Gaussian approximation for electron scatttering
-  factors because, unlike of X-rays crystallography, cryo-EM scattering
+  factors because, unlike X-ray crystallography, cryo-EM scattering
   is modified by each atom electric charge and ionization state. In
-  addition, computes structure factors only for the model-explained part
+  addition, *Refmac* computes structure factors only for the model-explained part
   of the map. These structure factors are complex because they include,
-  not only amplitude data, but also phase information. will try to
+  not only amplitude data, but also phase information. *Refmac* will try to
   minimize the difference between the “observed” and calculated
   structure factors, computed from cryo-EM maps and from atom
   coordinates (structure), respectively. Additional instructions to use
-  can be found in http://www.ysbl.york.ac.uk/refmac/.
+  can be found in `REFMAC <http://www.ysbl.york.ac.uk/refmac/>`_.
 
 -  Requirements to run this protocol and visualize results:
 
-   -  plugin: *scipion-em*
+   -  *Scipion* plugin: **scipion-em**
 
-   -  plugin: *scipion-em-ccp4*
+   -  *Scipion* plugin: **scipion-em-ccp4**
 
    -  CCP4 software suite (from version 7.0.056 to 7.1)
 
-   -  plugin: *scipion-em-chimera*
+   -  *Scipion* plugin: **scipion-em-chimera**
 
--  menu: *Model building -> Flexible fitting* ( (A))
+-  *Scipion* menu: *Model building -> Flexible fitting* (:numref:`model_building_app_protocol_refmac_1` (A))
 
--  Protocol form parameters ( (B)):
+-  Protocol form parameters (:numref:`model_building_app_protocol_refmac_1` (B)):
 
-   .. figure:: Images_appendix/Fig126.pdf
-      :alt: Protocol . A: Protocol location in menu. B: Protocol form.
-      :name: fig:app_protocol_refmac_1
+   .. figure:: Images_appendix/Fig126.svg
+      :alt: Protocol **ccp4-refmac**. A: Protocol location in *Scipion* menu. B: Protocol form.
+      :name: model_building_app_protocol_refmac_1
+      :align: center
       :width: 90.0%
 
-      Protocol . A: Protocol location in menu. B: Protocol form.
+      Protocol **ccp4-refmac**. A: Protocol location in *Scipion* menu. B: Protocol form.
 
-   -  *Input Volume/s*: An electron density map previously downloaded or
-      generated in . An atomic structure should be refined regarding to
+   -  *Input Volume*: An electron density map previously downloaded or
+      generated in *Scipion*. An atomic structure should be refined regarding to
       this volume.
 
    -  *Atomic structure to be refined*: Atomic structure previously
-      downloaded or generated in . This structure will be refined
+      downloaded or generated in *Scipion*. This structure will be refined
       according to the electron density volume.
 
    -  *Max. Resolution (Å)*: Upper limit of resolution used for
@@ -101,77 +100,84 @@ CCP4 Refmac protocol
      close the protocol. This label will be shown in the output summary
      content (see below). If you want to run again this protocol, do not
      forget to set to *Restart* the *Run mode*.
+
    | Press the *Execute* red button at the form bottom.
 
 -  Visualization of protocol results:
 
    After executing the protocol, press *Analyze Results* and a window
-   panel will be opened (). Results can be visualized by selecting each
+   panel will be opened (:numref:`model_building_app_protocol_refmac_2`). Results can be visualized by selecting each
    menu element.
 
-   .. figure:: Images_appendix/Fig127.pdf
-      :alt: Protocol . Menu to visualize results.
-      :name: fig:app_protocol_refmac_2
+   .. figure:: Images_appendix/Fig127.svg
+      :alt: Protocol **ccp4-refmac**. Menu to visualize *Refmac* results.
+      :name: model_building_app_protocol_refmac_2
+      :align: center
       :width: 50.0%
 
-      Protocol . Menu to visualize results.
+      Protocol **ccp4-refmac**. Menu to visualize *Refmac* results.
 
    Options to visualize results:
 
-   -  Volume and models: graphics window displays coordinate axes,
-      selected input volume, starting atomic structure generated by ,
-      and final refined structure ().
+   -  Volume and models: *ChimeraX* graphics window displays coordinate axes,
+      selected input volume, starting atomic structure generated by *Coot*,
+      and final *Refmac* refined structure (:numref:`model_building_app_protocol_refmac_3`).
 
-      .. figure:: Images_appendix/Fig128.pdf
-         :alt: Protocol . Map and models visualized with .
-         :name: fig:app_protocol_refmac_3
+      .. figure:: Images_appendix/Fig128.svg
+         :alt: Protocol **ccp4-refmac**. Map and models visualized with *ChimeraX*.
+         :name: model_building_app_protocol_refmac_3
+         :align: center
          :width: 80.0%
 
-         Protocol . Map and models visualized with .
+         Protocol **ccp4-refmac**. Map and models visualized with *ChimeraX*.
 
-   -  Display Mask: graphics window displays the mask generated around
-      the model atomic structure that has to be refined ().
+   -  Display Mask: *ChimeraX* graphics window displays the mask generated around
+      the model atomic structure that has to be refined (:numref:`model_building_app_protocol_refmac_4`).
 
-      .. figure:: Images_appendix/Fig129.pdf
-         :alt: Protocol . Mask visualized with .
-         :name: fig:app_protocol_refmac_4
+      .. figure:: Images_appendix/Fig129.svg
+         :alt: Protocol **ccp4-refmac**. Mask visualized with *ChimeraX*.
+         :name: model_building_app_protocol_refmac_4
+         :align: center
          :width: 80.0%
 
-         Protocol . Mask visualized with .
+         Protocol **ccp4-refmac**. Mask visualized with *ChimeraX*.
 
-   -  Final Results Table: Table showing the basic statistics of
+   -  Final Results Table: Table showing the basic statistics of *Refmac*
       results. Comparison between initial and final refinement values
       allows to follow the refinement process. Lower final values than
       initial ones indicate that discrepancy indices between
       experimental data and ideal values are disminishing with
       refinement, which is desirable. R factor and Rms BondLength fair
-      values should be around 0.3 and 0.02, respectively ().
+      values should be around 0.3 and 0.02, respectively (:numref:`model_building_app_protocol_refmac_5`).
 
-      .. figure:: Images_appendix/Fig130.pdf
-         :alt: Protocol . final results table.
-         :name: fig:app_protocol_refmac_5
+      .. figure:: Images_appendix/Fig130.svg
+         :alt: Protocol **ccp4-refmac**. *Refmac* final results table.
+         :name: model_building_app_protocol_refmac_5
+         :align: center
          :width: 40.0%
 
-         Protocol . final results table.
+         Protocol **ccp4-refmac**. *Refmac* final results table.
 
-   -  Show log file: -generated text file containing statistics of every
-      running cycle ().
+   -  Show log file: *Refmac*-generated text file containing statistics of every
+      running cycle (:numref:`model_building_app_protocol_refmac_6`).
 
-      .. figure:: Images_appendix/Fig131.pdf
-         :alt: Protocol . raw log file.
-         :name: fig:app_protocol_refmac_6
+      .. figure:: Images_appendix/Fig131.svg
+         :alt: Protocol **ccp4-refmac**. *Refmac* raw log file.
+         :name: model_building_app_protocol_refmac_6
+         :align: center
          :width: 80.0%
 
-         Protocol . raw log file.
+         Protocol **ccp4-refmac**. *Refmac* raw log file.
 
-   -  Results Table (last iteration) ():
+   -  Results Table (last iteration) (:numref:`model_building_app_protocol_refmac_7`):
 
-      .. figure:: Images_appendix/Fig132.pdf
-         :alt: Protocol . last iteration results table.
-         :name: fig:app_protocol_refmac_7
+      .. figure:: Images_appendix/Fig132.svg
+         :alt: Protocol **ccp4-refmac**. *Refmac* last iteration results table.
+         :name: model_building_app_protocol_refmac_7
+         :align: center
          :width: 45.0%
 
-         Protocol . last iteration results table.
+         Protocol **ccp4-refmac**. *Refmac* last iteration results table.
 
       -  Resolution limits: 0.0 and the resolution value provided as
          input.
@@ -193,21 +199,24 @@ CCP4 Refmac protocol
            observed and computed amplitudes of structure factors,
            previously scaled, regarding total observed amplitudes of
            structure factors.
-         | :math:`     R factor = \frac{\sum||F_o|-|F_c||}{\sum|F_o|} 
-                `
+     
+           .. math::
+
+                   R factor = \frac{\sum||F_o|-|F_c||}{\sum|F_o|} 
+                
          | where :math:`|F_o|` is the observed amplitude of the
            structure factor and :math:`|F_c|` is the calculated
            amplitude of the structure factor.
 
-      -  Average Fourier shell correlation: *FSC*, cross-correlation
+      -  Average Fourier shell correlation: :math:`FSC`, cross-correlation
          between shells of two 3D volumes in Fourier space, calculated
          using complex Fourier coefficients, divided by the number of
          structure factors in a particular frequency (resolution) shell.
-         :math:`FSC_{average}` has the advantage over *FSC* of being
+         :math:`FSC_{average}` has the advantage over :math:`FSC` of being
          independent on weight (related with inverse variances of
          cryo-EM density maps) whenever resolution shells are thin
          enough that the number of structure factors in each shell is
-         almost equal :raw-latex:`\citep{brown2015}`.
+         almost equal :cite:p:`brown2015`.
 
       -  | Overall weighted *R factor*: Overall *R factor* that applies
            a weight factor to differences between observed and computed
@@ -215,9 +224,12 @@ CCP4 Refmac protocol
            factor to the observed amplitudes of structure factors. As in
            the :math:`FSC_{average}`, the weight is related with inverse
            variances of cryo-EM density maps.
-         | :math:`           weighted R factor = \frac{\sum(w |F_o|-|F_c||)}{\sum(w |F_o|)}
-                `
-         | where *w* is the weight factor.
+
+           .. math::
+
+                   weighted R factor = \frac{\sum(w |F_o|-|F_c|)}{\sum(w |F_o|)}
+                
+         | where :math:`w` is the weight factor.
 
       -  | Overall weighted *R2 factor*: Also known as generalised *R
            factor*, this factor is computed as the root square of the
@@ -225,8 +237,10 @@ CCP4 Refmac protocol
            observed and computed amplitudes of structure factors,
            previously scaled, regarding the total of weighted squares of
            observed amplitudes of structure factors.
-         | :math:`           weighted R^2 factor = \frac{\sum(w (|F_o|-|F_c||)^2)}{\sum(w (|F_o|)^2)}
-                `
+
+           .. math::
+
+                   weighted R^2 factor = \frac{\sum(w (|F_o|-|F_c|)^2)}{\sum(w (|F_o|)^2)}
 
       -  Average correlation coefficient:
 
@@ -253,63 +267,65 @@ CCP4 Refmac protocol
          maximum likelihood function.
 
    -  *R factor* vs. iteration: Plot to visualize *R factor* and *R
-      factor free* regarding iterations ():
+      factor free* regarding iterations (:numref:`model_building_app_protocol_refmac_8`):
 
-      .. figure:: Images_appendix/Fig133.pdf
-         :alt: Protocol . *R factor* vs. cycle plot.
-         :name: fig:app_protocol_refmac_8
+      .. figure:: Images_appendix/Fig133.svg
+         :alt: Protocol **ccp4-refmac**. *R factor* vs. cycle plot.
+         :name: model_building_app_protocol_refmac_8
+         :align: center
          :width: 50.0%
 
-         Protocol . *R factor* vs. cycle plot.
+         Protocol **ccp4-refmac**. *R factor* vs. cycle plot.
 
    -  *FOM* vs. iteration: Plot to visualize Figure Of Merit regarding
-      iterations ():
+      iterations (:numref:`model_building_app_protocol_refmac_9`):
 
-      .. figure:: Images_appendix/Fig134.pdf
-         :alt: Protocol . *Figure Of Merit* vs. cycle plot.
-         :name: fig:app_protocol_refmac_9
+      .. figure:: Images_appendix/Fig134.svg
+         :alt: Protocol **ccp4-refmac**. *Figure Of Merit* vs. cycle plot.
+         :name: model_building_app_protocol_refmac_9
+         :align: center
          :width: 50.0%
 
-         Protocol . *Figure Of Merit* vs. cycle plot.
+         Protocol **ccp4-refmac**. *Figure Of Merit* vs. cycle plot.
 
    -  *-LL* vs. iteration: Plot to visualize the log(Likelihood)
       regarding iterations. Likelihood indicates the probability of a
-      refined model, given the specific observed data ():
+      refined model, given the specific observed data (:numref:`model_building_app_protocol_refmac_10`):
 
-      .. figure:: Images_appendix/Fig135.pdf
-         :alt: Protocol . log(Likelihood) vs. cycle plot.
-         :name: fig:app_protocol_refmac_10
+      .. figure:: Images_appendix/Fig135.svg
+         :alt: Protocol **ccp4-refmac**. log(Likelihood) vs. cycle plot.
+         :name: model_building_app_protocol_refmac_10
+         :align: center
          :width: 50.0%
 
-         Protocol . log(Likelihood) vs. cycle plot.
+         Protocol **ccp4-refmac**. log(Likelihood) vs. cycle plot.
 
    -  *-LLfree* vs. iteration: Same definition as -LL vs. iteration,
       although considering only “free” reflections not included in
-      refinement ():
+      refinement (:numref:`model_building_app_protocol_refmac_11`):
 
-      .. figure:: Images_appendix/Fig136.pdf
-         :alt: Protocol . log(Likelihood) for “free“ reflections vs.
-         cycle plot.
-         :name: fig:app_protocol_refmac_11
+      .. figure:: Images_appendix/Fig136.svg
+         :alt: Protocol **ccp4-refmac**. log(Likelihood) for “free“ reflections vs. cycle plot.
+         :name: model_building_app_protocol_refmac_11
+         :align: center
          :width: 50.0%
 
-         Protocol . log(Likelihood) for “free“ reflections vs. cycle
-         plot.
+         Protocol **ccp4-refmac**. log(Likelihood) for “free“ reflections vs. cycle plot.
 
    -  Geometry vs. iteration: Plot to visualize geometry parameter
-      statistics regarding iterations ():
+      statistics regarding iterations (:numref:`model_building_app_protocol_refmac_12`):
 
-      .. figure:: Images_appendix/Fig137.pdf
-         :alt: Protocol . Geometry parameter statistics vs. cycle plot.
-         :name: fig:app_protocol_refmac_12
+      .. figure:: Images_appendix/Fig137.svg
+         :alt: Protocol **ccp4-refmac**. Geometry parameter statistics vs. cycle plot.
+         :name: model_building_app_protocol_refmac_12
+         :align: center
          :width: 50.0%
 
-         Protocol . Geometry parameter statistics vs. cycle plot.
+         Protocol **ccp4-refmac**. Geometry parameter statistics vs. cycle plot.
 
       -  *rmsBOND*: Root mean square of structure atom covalent bond
          lengths, computed in Å, regarding ideal values of bond lengths.
-         Selecting default weighting, *rmsBOND* values will be around
-         0.02.
+         Selecting default weighting, *rmsBOND* values will be around 0.02.
 
       -  *zBOND*: Number of standard deviations from the mean of
          covalent bond lengths. Selecting default weighting, *zBOND*
@@ -329,7 +345,7 @@ CCP4 Refmac protocol
 
 -  Summary content:
 
-   -  | Protocol output (below framework):
+   -  | Protocol output (below *Scipion* framework):
       | *ccp4 - refmac -> ouputPdb*;
       | *PdbFile(pseudoatoms=True/ False, volume=True/ False)*.
       | Pseudoatoms is set to *True* when the structure is made of
@@ -337,13 +353,14 @@ CCP4 Refmac protocol
         electron density map is associated to the atomic structure.
 
    -  | *SUMMARY* box:
-      | Statistics included in the above Final Results Table ():
+      | Statistics included in the above Final Results Table (:numref:`model_building_app_protocol_refmac_13`):
 
-      .. figure:: Images_appendix/Fig138.pdf
-         :alt: Protocol . Summary.
-         :name: fig:app_protocol_refmac_13
+      .. figure:: Images_appendix/Fig138.svg
+         :alt: Protocol **ccp4-refmac**. Summary.
+         :name: model_building_app_protocol_refmac_13
+         :align: center
          :width: 80.0%
 
-         Protocol . Summary.
+         Protocol **ccp4-refmac**. Summary.
 
-      | .
+

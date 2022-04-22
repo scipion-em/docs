@@ -87,23 +87,6 @@ demonstrates the combination of different EM-packages with high focus on Xmipp h
 You may download a fully solved compressed project (Example_10248_Scipion3.tgz) of this tutorial from
 `here <http://scipion.cnb.csic.es/downloads/documentation>`__.
 
-Model Building
---------------
-.. figure:: /docs/images/modelbuilding.png
-   :align: right
-   :height: 96
-   :alt: 00.ReconstructedVolume.png
-
-The recent development of single-particle electron
-cryo-microscopy (cryo-EM) allows structures to be solved at almost
-atomic resolutions. Providing a basic introduction to model building,
-this tutorial shows a workflow aimed at obtaining high-quality atomic
-models from cryo-EM data by using scipion software
-framework..
-
-*Guide*:
-`scipion\_tutorial\_modelBuilding.pdf <https://github.com/scipion-em/docs/raw/release-3.0.0/docs/pdfs/tutorial_model_building_basic.pdf>`__\
-
 *Workflow*:
 `download <http://workflows.scipion.i2pc.es/workflow_detail/36/atom-struct-modeling-demo/>`__\
 

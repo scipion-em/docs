@@ -13,11 +13,11 @@ Structure validation and comparison
   correlations; *Refmac R factor* and *Rms BondLength*), in this tutorial
   section, three assessment tools will be described to obtain
   comparative validation values after using any protocol in the
-  workflow: Protocols *EMRinger* (**phenix-emringer**, Appendix :ref:`EMRinger <app:emRingerProtocol>`, :cite:p:`barad2015`), *MolProbity* (**phenix-molprobity**, Appendix :ref:`MolProbity <app:molprobityProtocol>`, :cite:p:`davis2004`), and *Validation CryoEM* (**phenix-validation cryoem**, Appendix :ref:`Validation CryoEM <app:valCryoEMProtocol>`, :cite:p:`afonine2018b`). *Validation CryoEM* protocol will show *MolProbity* validation
+  workflow: Protocols *EMRinger* (**phenix-emringer**, Appendix :ref:`PHENIX EMRinger <app:emRingerProtocol>` :cite:p:`barad2015`), *MolProbity* (**phenix-molprobity**, Appendix :ref:`PHENIX MolProbity <app:molprobityProtocol>` :cite:p:`davis2004`), and *Validation CryoEM* (**phenix-validation cryoem**, Appendix :ref:`PHENIX Validation CryoEM <app:valCryoEMProtocol>` :cite:p:`afonine2018b`). *Validation CryoEM* protocol will show *MolProbity* validation
   values as well as correlation coefficients in real space. Old versions
   of *PHENIX* (v. 1.13) do not include this tool. Correlation values in real
   space will thus be computed if a map is provided in *MolProbity* protocol.
-  Additionally, we are going to introduce the protocol **phenix-superpose pdbs** (Appendix :ref:`Superpose PDBs <app:superposePdbsProtocol>`, :cite:p:`zwartUrl`) useful to compare visually the geometry
+  Additionally, we are going to introduce the protocol **phenix-superpose pdbs** (Appendix :ref:`PHENIX Superpose PDBs <app:superposePdbsProtocol>` :cite:p:`zwartUrl`) useful to compare visually the geometry
   of two atomic structures.
 
 | Observe the first validation steps in the modeling *Scipion* workflow in :numref:`model_building_scipion_workflow_validation`
@@ -39,7 +39,9 @@ certain range if you want to submit the atomic structure to databases.
 These final validation scores should be computed regarding the density
 map that you submit as main map, although during the recursive process
 you might have used the sharpened maps for refinement/validation.
-
+ 
+.. _`requestion4`:
+ 
 *EMRinger*
 ---------
 
@@ -90,7 +92,7 @@ especially the *EMRinger* score, will also be written in the protocol *SUMMARY*
   after *Coot*, and *Refmac* refinement with MASK before and after *PHENIX real space refine*.
   Considering *EMRinger score*, does our *metHgb* :math:`\alpha` subunit
   *models* seem to be OK or, at least, did they improve? (Answers
-  in appendix :ref:`Solutions <app:solutions>`; **Question**\ `1 <seq:structurevalidation>`__\ **\ \_1**). Try the same validation with :math:`\beta` subunit *models*.
+  in appendix :ref:`Solutions <app:solutions>`; :ref:`Question8 <question8>`). Try the same validation with :math:`\beta` subunit *models*.
 
 *MolProbity*
 ---------
@@ -126,6 +128,8 @@ especially the *EMRinger* score, will also be written in the protocol *SUMMARY*
 Run *MolProbity* protocol to obtain its statistics after running *ChimeraX rigid fit*, *Coot refinement*, *PHENIX real space refine* (form parameters indicated in :numref:`model_building_phenix_real_space_refine_protocol`) after *Coot*,
 and *Refmac* refinement with MASK before and after *PHENIX real space refine*.
 
+.. _`requestion5`:
+
 *Validation CryoEM*
 ---------
 
@@ -150,7 +154,7 @@ and *Refmac* refinement with MASK before and after *PHENIX real space refine*.
 | In order to compare validation results of :*models* obtained
   along the modeling workflow, fill in the next table (*Table 2*) including, in
   addition to *MolProbity* statistics, *EMRinger* scores and *CC(mask)* values obtained before. (Answers in
-  appendix :ref:`Solutions <app:solutions>`; **Question**\ `10 <seq:structurevalidation>`__\ **\ \_2**). The same table (*Table 2*) can be completed for *metHgb* :math:`\beta` subunit (Appendix :ref:`Solutions <app:solutions>`; **Question**\ `10 <seq:structurevalidation>`__\ **\ \_3**)
+  appendix :ref:`Solutions <app:solutions>`; :ref:`Question9 <question9>`). The same table (*Table 2*) can be completed for *metHgb* :math:`\beta` subunit (Appendix :ref:`Solutions <app:solutions>`; :ref:`Question10 <question10>`)
 
 .. figure:: Images/Table2.svg
    :alt: Table2: Validation statistics of human *metHgb* :math:`\alpha` subunit *model*. *RSRAC* stands for *Real Space Refine* after *Coot*. *Rama* stands for *Ramachandran*.
@@ -201,7 +205,7 @@ to follow the workflow remarked in :numref:`model_building_scipion_workflow_vali
 -  | Protocol **import atomic structure**:
    | Download from *PDB* structure *5NI1*
 
--  | Protocol **chimerax-operate** (Appendix :ref:`ChimeraX operate <app:chimeraOperate>`):
+-  | Protocol **chimerax-operate** (Appendix :ref:`CHIMERAX operate <app:chimeraOperate>`):
    | Similar to *ChimeraX rigid fit*, *ChimeraX operate* protocol allows to perform
      operations with atomic structures. We are going to use this
      protocol to save independently in *Scipion* the *metHgb* :math:`\alpha`
@@ -277,8 +281,7 @@ to follow the workflow remarked in :numref:`model_building_scipion_workflow_vali
    values in the previous table (Table 2), and compare them with the statistics
    of our *models*.
 
-   | Considering results shown in appendix :ref:`Solutions <app:solutions>`; **Question**\ `10 <seq:structurevalidation>`__\ **\ \_2**) for
-     *metHgb* :math:`\alpha` subunit, we can conclude that published
+   | Considering results shown in appendix :ref:`Solutions <app:solutions>`; :ref:`Question9 <question9>`) for *metHgb* :math:`\alpha` subunit, we can conclude that published
      structures are not perfect and we are not very far from this
      published one. In fact, we have overcome every statistic except *CC(mask)*.
      Nevertheless, the different *models* generated after *Coot*
@@ -303,7 +306,7 @@ to follow the workflow remarked in :numref:`model_building_scipion_workflow_vali
    by automatic refinement with *PHENIX real space refine* protocol (pink). By opening these
    structures in you can see the differences between them. Finally,
    complete the Table 2 with the value of *RMSD (final)* (6) obtained for each
-   *model*. (Answers in appendix :ref:`Solutions <app:solutions>`; **Question**\ `10 <seq:structurevalidation>`__\ **\ \_2**).
+   *model*. (Answers in appendix :ref:`Solutions <app:solutions>`; :ref:`Question9 <question9>`).
 
    .. figure:: Images/Fig37.svg
       :alt: Completing **phenix-superpose pdbs** protocol form.
@@ -323,9 +326,9 @@ to follow the workflow remarked in :numref:`model_building_scipion_workflow_vali
 
 | A *model* for *metHgb* :math:`\alpha` subunit has to be selected
   at the end of the validation process. According to the statistics of Table 6
-  (Appendix :ref:`Solutions <app:solutions>`; **Question**\ `10 <seq:structurevalidation>`__\ **\ \_2**), select the *model* obtained in modeling workflow showing the smallest RMSD
+  (Appendix :ref:`Solutions <app:solutions>`; :ref:`Question9 <question9>`), select the *model* obtained in modeling workflow showing the smallest RMSD
   value, high value of *EMRinger score*, quite high value of *CC(mask)* and acceptable *MolProbity*
-  statistics. Follow a similar process to validate and select the *model* generated for *metHgb* :math:`\beta` subunit. Appendix :ref:`Solutions <app:solutions>`; **Question**\ `10 <seq:structurevalidation>`__\ **\ \_3** contains a statistics table for *metHgb* :math:`\beta` subunit, similar to that obtained for *metHgb* :math:`\alpha` subunit.
+  statistics. Follow a similar process to validate and select the *model* generated for *metHgb* :math:`\beta` subunit. Appendix :ref:`Solutions <app:solutions>`; :ref:`Question10 <question10>` contains a statistics table for *metHgb* :math:`\beta` subunit, similar to that obtained for *metHgb* :math:`\alpha` subunit.
 
 | In the real world the selected *models* usually are the starting
   point to improve specific validation parameters by additional

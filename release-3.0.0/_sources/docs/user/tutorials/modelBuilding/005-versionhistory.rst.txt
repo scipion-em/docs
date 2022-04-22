@@ -33,7 +33,7 @@ Revision History
      - MM
      - added phenix search fit protocol
    * - 2.0
-     - XX.04.2022
+     - 25.04.2022
      - MM|RM
-     - convert documentation from latex to rst. 
+     - convert documentation from latex to rst 
 

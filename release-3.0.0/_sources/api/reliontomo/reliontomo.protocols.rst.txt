@@ -14,9 +14,11 @@ Submodules
    reliontomo.protocols.protocol_base_refine
    reliontomo.protocols.protocol_ctf_refine
    reliontomo.protocols.protocol_de_novo_initial_model
+   reliontomo.protocols.protocol_edit_particles_star
    reliontomo.protocols.protocol_import_coordinates_from_star
    reliontomo.protocols.protocol_import_subtomograms_from_star
    reliontomo.protocols.protocol_make_pseudo_subtomos
+   reliontomo.protocols.protocol_post_process
    reliontomo.protocols.protocol_prepare_data
    reliontomo.protocols.protocol_rec_particle_from_subtomograms
    reliontomo.protocols.protocol_reconstruc_particle_from_ts

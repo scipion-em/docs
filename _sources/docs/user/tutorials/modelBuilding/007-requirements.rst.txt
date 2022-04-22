@@ -8,7 +8,7 @@ The recent rapid development of single-particle electron cryo-microscopy
 (cryo-EM) allows structures to be solved by this method at almost atomic
 resolutions. Providing a basic introduction to model building, this
 tutorial shows the initial workflow aimed at obtaining high-quality
-atomic models from cryo-EM data by using software framework.
+atomic models from cryo-EM maps by using the *Scipion* software framework.
 
 We'd like to hear from you
 --------------------------
@@ -23,5 +23,5 @@ Requirements
 ------------
 
 This tutorial requires, in addition to *Scipion*, the `CCP4 suite
-<http://www.ccp4.ac.uk/download/#os=linux>`_ including *refmac*, and *Coot*, 
+<http://www.ccp4.ac.uk/download/#os=linux>`_ including *Refmac*, and *Coot*, 
 and the `PHENIX suite <https://www.phenix-online.org/download/>`_. 

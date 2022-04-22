@@ -3,25 +3,26 @@
 Import sequence protocol
 ========================
 
-Protocol designed to import aminoacid or nucleotide sequences in from
+Protocol designed to import aminoacid or nucleotide sequences in *Scipion* from
 four possible origins (plain text, atomic structures from PDB database
 or a file in your computer, text file of the user’s computer, and
 *UniProtKB/ GeneBank* databases).
 
 -  Requirements to run this protocol and visualize results:
 
-   -  plugin: *scipion-em*
+   -  *Scipion* plugin: **scipion-em**
 
--  menu: *Model building -> Imports* ( (A))
+-  *Scipion* menu: *Model building -> Imports* (:numref:`model_building_app_protocol_sequence_1` (A))
 
--  Protocol form parameters ( (B)):
-
-   .. figure:: Images_appendix/Fig104.pdf
-      :alt: Protocol . A: Protocol location in menu. B: Protocol form.
-      :name: fig:app_protocol_sequence_1
+   .. figure:: Images_appendix/Fig104.svg
+      :alt: Protocol **import sequence**. A: Protocol location in *Scipion* menu. B: Protocol form.
+      :name: model_building_app_protocol_sequence_1
+      :align: center
       :width: 90.0%
 
-      Protocol . A: Protocol location in menu. B: Protocol form.
+      Protocol **import sequence**. A: Protocol location in *Scipion* menu. B: Protocol form.
+
+-  Protocol form parameters (:numref:`model_building_app_protocol_sequence_1` (B)):
 
    -  *Sequence ID*: Optional short name to identify your sequence
       (acronym or number, e. g. *Q05769*). If no ID is assigned by the
@@ -30,18 +31,14 @@ or a file in your computer, text file of the user’s computer, and
       selected as *Sequence ID* (Read *Help* section (question mark) to
       see some examples). Otherwise, *Sequence name* will be set as
       *Sequence ID*. The *Sequence ID* will be included in sequence
-      alignments in to identify the sequence.
+      alignments in *ChimeraX* to identify the sequence.
 
    -  *Sequence name*: Compulsory short name to identify your sequence
       (example: *PGH2_MOUSE*). Names with certain meaning are
       recommended. The *Sequence name* will appear in the summary box of
       the protocol.
 
-   -  *Sequence description*: Optional description of your sequence. It
-      can include functionality, organism, size, etc... (e.g.
-      *Prostaglandin G/H synthase 2*). If no description is assigned by
-      the user, and the sequence has been downloaded from
-      *GeneBank/UniProtKB/PDB* database, the database description will
+   -  *Sequence description*: Optional description of your sequence. It can include functionality, organism, size, etc. (example: *Prostaglandin G/H synthase 2*). If no description is assigned by the user, and the sequence has been downloaded from *GeneBank/UniProtKB/PDB* database, the database description will
       be selected as *Sequence description*. Otherwise, no description
       will be included.
 
@@ -65,7 +62,7 @@ or a file in your computer, text file of the user’s computer, and
             single letter aminoacid sequence has to be written or paste.
 
          -  *atomic structure*: Select this option if you want to
-            download the sequence from an atomic structure ( (A)).
+            download the sequence from an atomic structure (:numref:`model_building_app_protocol_sequence_2` (A)).
             Select *id* to download your sequence from *PDB* database.
             Then, write the *PDB ID* (*Atomic structure ID*) and select
             the chain sequence of your preference (*Chain*). Use the
@@ -77,34 +74,29 @@ or a file in your computer, text file of the user’s computer, and
             browser will help you to find the structure file.
 
          -  *file*: Select this option if your sequence is written in a
-            text file that you already have in your computer ( (B)). By
+            text file that you already have in your computer (:numref:`model_building_app_protocol_sequence_2` (B)). By
             pressing the folder symbol, a browser will help you to find
             the sequence file.
 
          -  *UniProtID*: Select this option if you want to download the
-            sequence from *UniProtKB* database ( (C)). Write the name/ID
+            sequence from *UniProtKB* database (:numref:`model_building_app_protocol_sequence_2` (C)). Write the name/ID
             of the respective sequence in the parameter box *UniProt
             name/ID*. An error message appears in case you introduce a
             wrong ID.
 
-            .. figure:: Images_appendix/Fig105.pdf
-               :alt: Protocol . Protocol form to import aminoacid
-               sequences from the *PDB* database by indicating its
-               respective *ID* (A), from a file (B), or from *UniProtKB*
-               by writing the database *ID/name* (C).
-               :name: fig:app_protocol_sequence_2
+            .. figure:: Images_appendix/Fig105.svg
+               :alt: Protocol **import sequence**. Protocol form to import aminoacid sequences from the *PDB* database by indicating its respective *ID* (A), from a file (B), or from *UniProtKB* by writing the database *ID/name* (C).
+               :name: model_building_app_protocol_sequence_2
+               :align: center
                :width: 70.0%
 
-               Protocol . Protocol form to import aminoacid sequences
-               from the *PDB* database by indicating its respective *ID*
-               (A), from a file (B), or from *UniProtKB* by writing the
-               database *ID/name* (C).
+               Protocol **import sequence**. Protocol form to import aminoacid sequences from the *PDB* database by indicating its respective *ID* (A), from a file (B), or from *UniProtKB* by writing the database *ID/name* (C).
 
       -  *nucleotides*: Analogously to *aminoacids* parameter, select
          one of these four options:
 
          -  *plain text*: Parameter to introduce your own single letter
-            nucleotide sequence ( (A)). Since your sequence will be
+            nucleotide sequence (:numref:`model_building_app_protocol_sequence_3` (A)). Since your sequence will be
             cleaned according to the standard nucleic acid alphabet, you
             have to select one of the next five alphabets. The first
             three are DNA alphabets and the last two ones are RNA
@@ -116,27 +108,22 @@ or a file in your computer, text file of the user’s computer, and
             etc...
 
          -  *atomic structure*: Information described for aminoacids is
-            valid for nucleotides ( (B)).
+            valid for nucleotides (:numref:`model_building_app_protocol_sequence_3` (B)).
 
          -  *file*: Information described for aminoacids is valid for
-            nucleotides ( (C)).
+            nucleotides (:numref:`model_building_app_protocol_sequence_3` (C)).
 
          -  *GeneBank*: Information described for aminoacids is valid
             for nucleotides, this time replacing *UniProtKB* by
-            *GeneBank* ( (D)).
+            *GeneBank* (:numref:`model_building_app_protocol_sequence_3` (D)).
 
-            .. figure:: Images_appendix/Fig106.pdf
-               :alt: Protocol . Protocol form to write (A) or import
-               nucleotide sequences from *PDB* database by indicating
-               its respective *ID* (B), from a file (C), or from
-               *GeneBank* by writing the database accession number (D).
-               :name: fig:app_protocol_sequence_3
+            .. figure:: Images_appendix/Fig106.svg
+               :alt: Protocol **import sequence**. Protocol form to write (A) or import nucleotide sequences from *PDB* database by indicating its respective *ID* (B), from a file (C), or from *GeneBank* by writing the database accession number (D).
+               :name: model_building_app_protocol_sequence_3
+               :align: center
                :width: 70.0%
 
-               Protocol . Protocol form to write (A) or import
-               nucleotide sequences from *PDB* database by indicating
-               its respective *ID* (B), from a file (C), or from
-               *GeneBank* by writing the database accession number (D).
+               Protocol **import sequence**. Protocol form to write (A) or import nucleotide sequences from *PDB* database by indicating its respective *ID* (B), from a file (C), or from *GeneBank* by writing the database accession number (D).
 
 -  Protocol execution:
 
@@ -158,7 +145,7 @@ or a file in your computer, text file of the user’s computer, and
 
 -  Summary content:
 
-   -  | Protocol output (below framework):
+   -  | Protocol output (below *Scipion* framework):
       | *pwem - import sequence -> ouputSequence*;
       | *Sequence name*
 

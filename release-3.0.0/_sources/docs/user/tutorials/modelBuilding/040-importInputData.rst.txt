@@ -13,8 +13,7 @@ of these two protocols are shown in Appendices :ref:`Import volumes <app:importV
 
    *Scipion* framework with import workflow.
 
-(Note: In the following we will use the notation **Fig. X (a)** to reffer to the figure number X and
-there will be an arrow labeled with “a” pointing to the region of interest.)
+(``NOTE:`` In the following we will use the notation **Fig. X (a)** to reffer to the figure number X and there will be an arrow labeled with “a” pointing to the region of interest.)
 
 Volume
 ------
@@ -36,7 +35,7 @@ auxiliar protocol **assign orig & sampling**, detailed in Appendix :ref:`Assign 
 
    Importing the volume in *Scipion*.
 
-By default *ChimeraX* :cite:p:`Goddard2018` is used for visualization.
+*ChimeraX* :cite:p:`Goddard2018` is used for visualization by default .
 Clicking in the viewer menu (:numref:`model_building_visualization_volume` (1)), shows the 3D map and the :math:`x`
 (red), :math:`y` (yellow) and :math:`z` (blue) axes.
 

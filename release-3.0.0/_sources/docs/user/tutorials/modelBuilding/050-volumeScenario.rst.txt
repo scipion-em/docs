@@ -9,8 +9,7 @@ The :numref:`model_building_scipion_workflow_import_2` shows the workflow that w
    :align: center
    :width: 95.0%
 
-   *Scipion* framework detailing the workflow generated after 3D map
-   preprocessing.
+   *Scipion* framework detailing the workflow generated after 3D map preprocessing.
 
 Map sharpening
 --------------
@@ -18,17 +17,18 @@ Map sharpening
 | As we have indicated before, since map sharpening contributes to
   increase signal at medium/high resolution, we recommend to perform
   this map preprocessing step before tracing the atomic model of cryo-EM
-  3D maps :cite:p:`ramirez2018`. To accomplish this task a
-  couple of automatic alternatives are available in : a) local
+  3D maps :cite:p:`ramirez2018`. To accomplish this task, a
+  couple of automatic alternatives are available in *Scipion*: 1) local
   sharpening method independent of initial model, based on local
-  resolution estimation (:cite:p:`ramirez2018` (Appendix :ref:`Local Deblur <app:localDeblurSharpening>`)), b)
+  resolution estimation (:cite:p:`ramirez2018` (Appendix :ref:`Local Deblur Sharpening <app:localDeblurSharpening>`)), 2)
   deep learning-based sharpening approach (:cite:p:`Sanchez-Garcia2020.06.12.148296` (Appendix
-  :ref:`DeepEMhancer <app:deepEMhancerSharpening>`)).
+  :ref:`DeepEMhancer Sharpening <app:deepEMhancerSharpening>`)).
   Although both sharpening methods display good results, these are not
   identical but complementary since *LocalDeblur* maximizes
   specially details like the secondary structure, whereas
   *DeepEMhancer* maximizes connectivity, favoring the fair tracing
   of the molecule skeleton.
+
 | Although the common first rule in both sharpening strategies is
   counting on half maps to get the best performance of the methods, or
   the average raw map otherwise, exceptionally in this case, to
@@ -36,7 +36,7 @@ Map sharpening
   map deposited in the database, where no half maps have been submitted
   together with the final map.
 
-a) Sharpening with :math:`LocalDeblur`
+Sharpening with :math:`LocalDeblur`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 | Since :math:`LocalDeblur` takes advantage of map local resolution to
@@ -45,6 +45,7 @@ a) Sharpening with :math:`LocalDeblur`
   different algorithms could be used to compute local resolution, we
   have selected :math:`MonoRes` :cite:p:`vilas2018`,
   implemented in in the protocol **xmipp-local MonoRes** (Appendix :ref:`Local MonoRes <app_localMonoRes>`).
+
 | Since a map binary mask has optionally to be included as a parameter
   in this protocol, we will build a mask by using the *Scipion* protocol **xmipp-create 3d mask** (Appendix :ref:`Create 3D mask <app:create3DMask>`) as starting step in the
   local resolution estimation process. Open the protocol form (:numref:`model_building_create3Dmask_1` (1)) and
@@ -117,8 +118,8 @@ resolution values.
    Resolution map in *ChimeraX*.
 
 Local resolution values of the input map allow to compute the sharpened
-map by the **xmipp3-localdeblur sharpening** protocol, which implements an iterative steep descending
-method that doesn't require initial model. To accomplish this step, open
+map by the **xmipp3-localdeblur sharpening** protocol, which implements an iterative step descending
+method that doesn't require initial model. To run this method, open
 the protocol (:numref:`model_building_localdeblur_1` (1)) and include the starting map (2) and the map of
 resolution values (3), maintaining the default values for the rest of
 parameters (4, 5).
@@ -159,11 +160,11 @@ compared with the initial one in *ChimeraX* (:numref:`model_building_localdeblur
    :math:`LocalDeblur` *last* iteration sharpened map (yellow surface) and
    input map (grey mesh) in *ChimeraX*.
 
-b) Sharpening with :math:`DeepEMhancer`
+Sharpening with :math:`DeepEMhancer`
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 :math:`DeepEMhancer` is an alternative automatic sharpening method based
-on deep learning :cite:p:`Sanchez-Garcia2020.06.12.148296`, implemented in *Scipion* in the protocol **xmipp3-deepEMhancer** (Appendix :ref:`DeepEMhancer <app:deepEMhancerSharpening>`). Open
+on deep learning :cite:p:`Sanchez-Garcia2020.06.12.148296`, implemented in *Scipion* in the protocol **xmipp3-deepEMhancer** (Appendix :ref:`DeepEMhancer Sharpening <app:deepEMhancerSharpening>`). Open
 this protocol (:numref:`model_building_deepEMHancer_1` (1)) and complete it as indicated. Since only the
 refined map is available, we are not going to use half maps (2). Include
 your map (3), the type of normalization desired (4) and the deep
@@ -202,7 +203,7 @@ atomic structure should include as many details and connections as
 possible and, at the same time, preserve the density areas of the
 initial map. In other words, we can use the best sharpened map (with
 higher resolution) corroborating that it does not make up new densities,
-absent in the starting map. Nevertheless, choose “the best” sharpened
+absent in the starting map. Nevertheless, selecting “the best” sharpened
 map could be difficult sometimes, especially if the map is very big or
 there are some regions optimized in one of the sharpened maps and other
 areas optimized in the other one. In that case, you can use several maps

@@ -3,7 +3,7 @@
 Create 3D Mask protocol
 =======================
 
-Protocol designed to create a mask, :math:`i.e.`, a wrapping surface
+Protocol designed to create a mask, *i.e.*, a wrapping surface
 able to delimit a volume or subunit of interest, in order to modify the
 density values within or outside it. This mask can be created with a
 given geometrical shape (sphere, cube, cylinder...) or obtained from
@@ -11,22 +11,22 @@ operating on a 3D volume or a previous mask.
 
 -  Requirements to run this protocol and visualize results:
 
-   -  plugin: *scipion-em*
+   -  *Scipion* plugin: **scipion-em**
 
-   -  plugin: *scipion-em-xmipp*
+   -  *Scipion* plugin: **scipion-em-xmipp**
 
--  | menu:
-   | *Model building -> Preprocess map* ( (A))
+-  | *Scipion* menu:
+   | *Model building -> Preprocess map* (:numref:`model_building_create3DMask_1` (A))
 
-   .. figure:: Images_appendix/Fig206.pdf
-      :alt: Protocol . A: Protocol location in menu. B, C: Protocol
-      form.
-      :name: fig:create3DMask_1
+   .. figure:: Images_appendix/Fig206.svg
+      :alt: Protocol **xmipp-create 3d mask**. A: Protocol location in *Scipion* menu. B, C: Protocol form.
+      :name: model_building_create3DMask_1
+      :align: center
       :width: 90.0%
 
-      Protocol . A: Protocol location in menu. B, C: Protocol form.
+      Protocol **xmipp-create 3d mask**. A: Protocol location in *Scipion* menu. B, C: Protocol form.
 
--  Protocol form parameters ( (B: Mask generation; C: Postprocessing)):
+-  Protocol form parameters (:numref:`model_building_create3DMask_1` (B: Mask generation; C: Postprocessing)):
 
    -  *Mask generation*
 
@@ -37,7 +37,7 @@ operating on a 3D volume or a previous mask.
          #. *Volume*
 
             -  *Input volume*: Electron density map previously
-               downloaded or generated in .
+               downloaded or generated in *Scipion*.
 
             -  *Operation*: Approach applied to generate the mask:
 
@@ -46,20 +46,20 @@ operating on a 3D volume or a previous mask.
 
                #. *Segment*: Segmentation process according to:
 
-               #. \*\* *Number of voxels*\ (write here that value).
+                  - *Number of voxels*\  (write here that value).
 
-               #. \*\* *Number of aminoacids*\ (write here that value).
+                  - *Number of aminoacids*\  (write here that value).
 
-               #. \*\* *Dalton mass*\ (write here that value).
+                  - *Dalton mass*\  (write here that value).
 
-               #. \*\* *Automatic*
+                  - *Automatic*
 
             -  *Only postprocess*: Use only the methods described in the
                tap *Postprocessing* (see below).
 
          #. *Geometry*
 
-            -  *Sampling Rate (Åpx)*: Size of voxel dimensions in Å.
+            -  *Sampling Rate (Å/px)*: Size of voxel dimensions in Å.
 
             -  *Mask size (px)*: Mask dimensions in number of pixels.
 
@@ -91,7 +91,7 @@ operating on a 3D volume or a previous mask.
 
       -  *Symmetrize mask*: By selecting “Yes” a symmetrized mask will
          be generated according to a specific symmetry group (look at
-         http://xmipp.cnb.csic.es/twiki/bin/view/Xmipp/Symmetry). *c1*
+         `XMIPP Symmetry <https://github.com/I2PC/xmipp-portal/wiki/Symmetry>`_). *c1*
          symmetry indicates no symmetry, by default.
 
       -  *Apply morphological operation*: Slight modifications of the
@@ -116,19 +116,20 @@ operating on a 3D volume or a previous mask.
      protocol. This label will be shown in the output summary content
      (see below). If you want to run again this protocol, do not forget
      to set to *Restart* the *Run mode*.
+
    | Press the *Execute* red button at the form bottom.
 
 -  Visualization of protocol results:
 
    After executing the protocol, press *Analyze Results* and
-   :math:`ShowJ` (https://github.com/I2PC/scipion/wiki/ShowJ), the
-   default viewer, will open the mask by slices (). The :math:`ShowJ`
+   `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_, the
+   default viewer, will open the mask by slices (:numref:`model_building_create3Dmask_2`). *ShowJ*
    window menu (*File -> Open with ChimeraX*) allows to open the mask
-   volume in :math:`ChimeraX` graphics window.
+   volume in *ChimeraX* graphics window.
 
 -  Summary content:
 
-   -  | Protocol output (below framework):
+   -  | Protocol output (below *Scipion* framework):
       | *xmipp3 - create 3d mask -> ouputMask*;
       | VolumeMask (x, y, and z dimensions, sampling rate).
 

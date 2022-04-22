@@ -13,10 +13,10 @@ Submission to public databases
 
 Although submission of cryoEM maps and derived atomic structures to
 databases has to be done by direct online request
-(`wwPDB OneDep System <https//deposit-pdbe.wwpdb.org/deposition/>`_), *Scipion* may contribute to organize the submission records. The protocol **export to EMDB** allows to perform this task
-(Appendix :ref:`Export to Databases <app:exportToEMDB>`). By using this
+(`wwPDB OneDep System <https//deposit-pdbe.wwpdb.org/deposition/>`_), *Scipion* may contribute to organize the submission records. The protocol **export to DB** allows to perform this task
+(Appendix :ref:`Submission to wwPDB <app:exportToEMDB>`). By using this
 protocol we can save the files that you have/want to submit to databases
-in a labelled folder and in the appropriate format. :numref:`model_building_scipion_workflow_submission` details the
+in a labelled folder and in the appropriate format for submission. :numref:`model_building_scipion_workflow_submission` details the
 protocols of the modeling workflow involved in this task.
 
 .. figure:: Images/Fig78.svg
@@ -53,7 +53,7 @@ The *zip* folder contains the *FSC* file (*emd_3488_fsc.xml*) and the
 Then, you can use any two half maps and compute the *FSC* file, just to
 submit it with the rest of the files.
 
-To save all the relevant files in a single labelled folder, open the **export to EMDB**
+To save all the relevant files in a single labelled folder, open the **export to DB**
 protocol (:numref:`model_building_export_to_EMDB_protocol` (1)), and complete the form with the *Scipion* elements to export: *Main map* (2), *Additional maps: “Yes”* (3), the two sharpened maps as
 additional maps (4), the *FSC* file if you count on it (5), *Atomic
 structure* (6) and *Image* (7), previously saved in a known folder.
@@ -89,7 +89,7 @@ Publication of results
   favorable interaction distances. Unfavourable contacts or severe
   clashes, in which atoms are too close together, although discarded by
   default in the final list of ‘contacts’’, may also be shown by using
-  appropriate advanced parameters, as you can see in Appendix :ref:`Contacts <app:chimeraContactsProtocol>`.
+  appropriate advanced parameters, as you can see in Appendix :ref:`CHIMERAX Contacts <app:chimeraContactsProtocol>`.
 
 | As an example, in this tutorial we are going to learn how to get atom
   contacts of human haemoglobin *metHgb* atomic structure *5NI1*,

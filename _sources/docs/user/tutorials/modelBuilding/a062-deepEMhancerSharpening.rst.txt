@@ -5,30 +5,29 @@ DeepEMhancer Sharpening protocol
 
 Protocol designed to apply :math:`DeepEMhancer`, the automatic map
 postprocessing method that sharpens and masks part of the noise at
-medium/high resolution
-:raw-latex:`\citep{Sanchez-Garcia2020.06.12.148296}`, in . Detailed
-information of this method can be also obtained in
-https://github.com/rsanchezgarc/deepEMhancer.
+medium/high resolution :cite:p:`Sanchez-Garcia2020.06.12.148296`, in *Scipion*. Detailed
+information of this method can be also obtained `here <https://github.com/rsanchezgarc/deepEMhancer>`_.
 
 -  Requirements to run this protocol and visualize results:
 
-   -  plugin: *scipion-em*
+   -  *Scipion* plugin: **scipion-em**
 
-   -  plugin: *scipion-em-xmipp*
+   -  *Scipion* plugin: **scipion-em-xmipp**
 
-   -  plugin: *scipion-em-chimera*
+   -  *Scipion* plugin: **scipion-em-chimera**
 
--  | menu:
-   | *Model building -> Preprocess map* ( (A))
+-  | *Scipion* menu:
+   | *Model building -> Preprocess map* (:numref:`model_building_app_deepEMhancer_1` (A))
 
--  Protocol form parameters ( (B)):
-
-   .. figure:: Images_appendix/Fig303.pdf
-      :alt: Protocol . A: Protocol location in menu. B: Protocol form.
-      :name: fig:app_deepEMhancer_1
+   .. figure:: Images_appendix/Fig303.svg
+      :alt: Protocol **xmipp3-deepEMhancer**. A: Protocol location in *Scipion* menu. B: Protocol form.
+      :name: model_building_app_deepEMhancer_1
+      :align: center
       :width: 90.0%
 
-      Protocol . A: Protocol location in menu. B: Protocol form.
+      Protocol **xmipp3-deepEMhancer**. A: Protocol location in *Scipion* menu. B: Protocol form.
+
+-  Protocol form parameters (:numref:`model_building_app_deepEMhancer_1` (B)):
 
    -  *Would you like to use half maps?*: Although the result will be
       the same if you decide to use half maps or a non-sharpened
@@ -57,7 +56,7 @@ https://github.com/rsanchezgarc/deepEMhancer.
          -  *Volume Half 2*
 
    -  *Input Volume*: Unsharpened unmasked electron density map
-      previously downloaded or generated in .
+      previously downloaded or generated in *Scipion*.
 
    -  *Input normalization*: We need apply normalization to accomodate
       the intensity values of the map to the specific range of values of
@@ -65,9 +64,7 @@ https://github.com/rsanchezgarc/deepEMhancer.
       are suggested:
 
       -  *Automatic normalization*: Default normalization mode that
-         forces the noise average to be zero and the standard deviation
-         0.1 in an spheric shell around the specimen. Since then the
-         noise always displays a similar distribution, the network gets
+         forces the noise average to be zero and the standard deviation 0.1 in an spheric shell around the specimen. Since then noise always displays a similar distribution, the network gets
          easier to distinguish noise from signal. This method usually
          works correctly in almost any case. Exceptions could be very
          long specimens (fiber proteins) or those having big empty
@@ -75,12 +72,11 @@ https://github.com/rsanchezgarc/deepEMhancer.
 
       -  *Normalization from statistics*: Similar to the first one,
          though in this case users provide their own statistics of the
-         noise (average and standard deviation). Using :math:`ChimeraX`
+         noise (average and standard deviation). Using *ChimeraX*
          could be a good option to compute statistics of the noise such
          as min and max values, mean, standard deviation from the mean
-         (SD) and root-mean-square deviation from zero (RMS) (command
-         line *measure mapstats* with the option *subregion*;
-         https://www.cgl.ucsf.edu/chimerax/docs/user/commands/measure.html#mapstats).
+         (SD) and root-mean-square deviation from zero (RMS) (*Chimera* command
+         line ``measure mapstats`` with the option ``subregion`` as indicated in `CHIMERAX commands <https://www.cgl.ucsf.edu/chimerax/docs/user/commands/measure.html#mapstats>`_.
 
       -  *Normalization from binary mask*: Select this option only if
          your input map is a masked map, which otherwise is not
@@ -92,14 +88,10 @@ https://github.com/rsanchezgarc/deepEMhancer.
 
       -  *tight target*: This default model is a equidistant balanced
          solution that works properly for maps that show resolution
-         areas between 3.8 and 6 Å(wide range of resolution values).
+         areas between 3.8 and 6 Å (wide range of resolution values).
 
-      -  | *highRes*: This model allows a deep sharpening and it is
-           recommended for high resolution maps (lower than 4 Å).
-         | (Note: In case your map shows a high heterogeneity with parts
-           of high resolution, as well as areas of low resolution, using
-           *tight target* and *highRes* is recommendable, studying which
-           areas are better sharpened by each model).
+      -  *highRes*: This model allows a deep sharpening and it is recommended for high resolution maps (lower than 4 Å).
+         (``NOTE:`` In case your map shows a high heterogeneity with parts of high resolution, as well as areas of low resolution, using *tight target* and *highRes* is recommendable, studying which areas are better sharpened by each model).
 
       -  *wide target*: This is the most conservative model. It is
          recommended when you have areas in which signal and noise are
@@ -127,31 +119,30 @@ https://github.com/rsanchezgarc/deepEMhancer.
      close the protocol. This label will be shown in the output summary
      content (see below). If you want to run again this protocol, do not
      forget to set to *Restart* the *Run mode*.
-   | (Remark: In this case you have the option *GPU IDs* that you have
-     to complete according to your GPU core indexes.) Press the
-     *Execute* red button at the form bottom.
+
+   | ``REMARK:`` In this case you have the option *GPU IDs* that you have
+     to complete according to your GPU core indexes. 
+
+   | Press the *Execute* red button at the form bottom.
 
 -  Visualization of protocol results:
 
-   | After executing the protocol, press *Analyze Results* and graphics
+   | After executing the protocol, press *Analyze Results* and *ChimeraX* graphics
      window will be opened by default. Both the input map(s) and the
      sharpened map generated by :math:`DeepEMhancer`
      (*deepPostProcess.mrc*) are referred to the origin of coordinates
-     in . To show the relative position of atomic structure and electron
+     in *ChimeraX*. To show the relative position of atomic structure and electron
      density volume, the three coordinate axes are represented; X axis
      (red), Y axis (yellow), and Z axis (blue). Coordinate axes, input
      volume, and sharpened map are model numbers *#1*, *#2* , and *#3*,
-     respectively, in *Model Panel*. In case that half maps have been
+     respectively, in *ChimeraX Model Panel*. In case that half maps have been
      included, the respective additional model numbers will be applied.
-   | The possibility of visualizing the sharpened map by slices with
-     :math:`ShowJ` (https://github.com/I2PC/scipion/wiki/ShowJ) is also
-     opened as commonly in , selecting in the *Output* of the *Summary*
-     box, black arrow *xmipp3 - deepEMhancer -> Volume*, the right mouse
-     option *Open with DataViewer*.
+
+   | The possibility of visualizing the sharpened map by slices with `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_ is also opened as commonly in *Scipion*, selecting in the *Output* of the *Summary* box, black arrow *xmipp3 - deepEMhancer -> Volume*, the right mouse option *Open with DataViewer*.
 
 -  Summary content:
 
-   -  | Protocol output (below framework):
+   -  | Protocol output (below *Scipion* framework):
       | *xmipp3 - deepEMhancer -> Volume*;
       | Volume (x, y, and z dimensions, sampling rate).
 

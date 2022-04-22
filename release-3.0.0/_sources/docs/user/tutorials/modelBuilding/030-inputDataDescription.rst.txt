@@ -7,7 +7,7 @@ Map
 | Modeling means atomic interpretation of a map. This map can be the
   result of our own reconstruction process or can be obtained from a
   database. In this tutorial we use the haemoglobin map *EMD-3488*, that
-  can be downloaded from `PDBE <http://www.ebi.ac.uk/pdbe/entry/emdb/EMD-3488>`_ (:numref:`model_building_PDBE`).
+  can be downloaded from `PDBe <http://www.ebi.ac.uk/pdbe/entry/emdb/EMD-3488>`_ (:numref:`model_building_PDBE`).
 
 | ``WARNING`` In case you use your own map obtained from cryo-EM images:
   Take into account that cryo-EM 3D maps benefit significantly of an
@@ -18,7 +18,7 @@ Map
   **xmipp3-local MonoRes** :cite:p:`vilas2018` and **xmipp3-localdeblur sharpening** :cite:p:`ramirez2018`,
   or the protocol **xmipp3-deepEMhancer** :cite:p:`Sanchez-Garcia2020.06.12.148296`,
   allow map sharpening. Details about the parameters of these protocols
-  are shown in Appendices :ref:`Local MonoRes <app_localMonoRes>`, :ref:`Local Deblur <app:localDeblurSharpening>` and :ref:`DeepEMhancer <app:deepEMhancerSharpening>`, respectively.
+  are shown in Appendices :ref:`Local MonoRes <app_localMonoRes>`, :ref:`Local Deblur Sharpening <app:localDeblurSharpening>` and :ref:`DeepEMhancer Sharpening <app:deepEMhancerSharpening>`, respectively.
 
 .. figure:: Images/Fig3.svg
    :alt: Downloading the volume from *PDBe*.
@@ -34,7 +34,7 @@ Sequences
 ---------
 
 The sequences of *Hgb* :math:`\alpha` and :math:`\beta` subunits are
-included in *UniProtKB*. Accession numbers are *P69905* and *P68871*,
+included in *UniProtKB*. Accession numbers are `P69905 <https://www.uniprot.org/uniprot/P69905>`_ and `P68871 <https://www.uniprot.org/uniprot/P68871>`_,
 respectively. Next, we show both sequences in fasta format:
 
    ::

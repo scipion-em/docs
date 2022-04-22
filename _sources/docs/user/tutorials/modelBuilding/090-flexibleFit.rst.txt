@@ -11,9 +11,9 @@ accomplished. Refinement can thus be defined as the optimization process
 of fitting *model* parameters to experimental data. Different strategies,
 categorized as refinement in the real space and refinement in the
 Fourier space, can be followed. Implemented in *Scipion* are two protocols for
-real space refinement, **ccp4-coot refinement** (Appendix :ref:`Coot refinement <app:ccp4CootRefinement>`, :cite:p:`emsley2010`) and **phenix-real space refine** (Appendix :ref:`Real space refine <app:realSpaceRefineProtocol>`, :cite:p:`afonine2018a`), interactive and automatic, respectively,
+real space refinement, **ccp4-coot refinement** (Appendix :ref:`Coot refinement <app:ccp4CootRefinement>` :cite:p:`emsley2010`) and **phenix-real space refine** (Appendix :ref:`PHENIX Real space refine <app:realSpaceRefineProtocol>` :cite:p:`afonine2018a`), interactive and automatic, respectively,
 and one automatic protocol to refine the *model* in the reciprocal space, **ccp4-refmac** 
-(Appendix :ref:`Refmac <app:ccp4Refmac>`, :cite:p:`vagin2004`).
+(Appendix :ref:`CCP4 Refmac <app:ccp4Refmac>` :cite:p:`vagin2004`).
 
 Observe the new steps in the modeling *Scipion* workflow in :numref:`model_building_scipion_workflow_flexiblefit`.
 
@@ -109,7 +109,7 @@ to *Validate -> Density fit analysis* and check if the orange bar shown in *MET*
    Removing post-translationally processed Methionine residue in *Coot*. Note that the icons shown in the image right side may be partially hidden if the screen is small.
 
 | Although in this particular example the most interesting
-  refinement strategy could be repair only the misfitted residues
+  refinement strategy could be repairing only the misfitted residues
   because they are very few, in a more general case, in which we could
   have many misfitted residues, an initial quick refinement may be
   accomplished. With this purpose, first of all, go to the upper right
@@ -223,6 +223,8 @@ to *Validate -> Density fit analysis* and check if the orange bar shown in *MET*
 
    *A*. *Coot* main menu. B. *Coot* window to change chain IDs.
 
+.. _`requestion2`:
+
 *PHENIX* Real Space Refine
 -----------------
 
@@ -276,8 +278,7 @@ the normalized map asymmetric unit saved in *Coot*.
   correlation values for each residue. Remark that residues with lower
   correlation values might be susceptible to improve by additional
   refinement in *Coot*. Have a look to those correlation values in the case 1 of Fig. :numref:`model_building_scipion_workflow_flexiblefit`
-  and answer the following questions: (Answers in appendix :ref:`Solutions <app:solutions>`;
-  **Question**\ `1 <refinementFlexibleFitting>`__\ **\ \_1**)
+  and answer the following questions: (Answers in appendix :ref:`Solutions <app:solutions>`; :ref:`Question2 <question2>`)
 
 ::
 
@@ -298,7 +299,7 @@ the normalized map asymmetric unit saved in *Coot*.
 | 
 | Now, compare these results with those obtained in the case 2 of :numref:`model_building_scipion_workflow_flexiblefit`, in
   which we have run *PHENIX real space refine* after *Coot*. Have the above values of correlation
-  changed? (Answer in appendix :ref:`Solutions <app:solutions>`; **Question**\ `1 <refinementFlexibleFitting>`__\ **\ \_2**)
+  changed? (Answer in appendix :ref:`Solutions <app:solutions>`; :ref:`Question3 <question3>`)
 
 | The conclusion of this part of refinement in real space is that *Coot* and *PHENIX real space refine* 
   might perform complementary tasks. The usage of both protocols may
@@ -311,11 +312,11 @@ the normalized map asymmetric unit saved in *Coot*.
   we set to “yes” optimization parameters previously set to “no”, and
   increase the number of macro cycles from 5 to 30? Take into account
   that this process takes much more time (around 6 times more) than the
-  previous one. (Answer in appendix :ref:`Solutions <app:solutions>`; **Question**\ `1  <refinementFlexibleFitting>`__\ **\ \_3**)
+  previous one. (Answer in appendix :ref:`Solutions <app:solutions>`; :ref:`Question4 <question4>`)
 
 | ``NOTE:`` An interesting application of the *PHENIX real space refine* visualization tools is the
   possibility of load *Coot* from the *PHENIX* viewer and correct the structure of
-  outliers residues and clashes. A recurively use of *PHENIX real space refine* and *Coot* protocols is
+  outliers residues and clashes. A recursively use of *PHENIX real space refine* and *Coot* protocols is
   thus possible.
 
 *PHENIX* Search Fit
@@ -324,7 +325,7 @@ the normalized map asymmetric unit saved in *Coot*.
 An extension of *PHENIX* Real Space Refine is **phenix-search fit**, a protocol implemented in *Scipion* to fit
 a small sequence of residues in a certain density of the map and,
 afterwards, perform the subsequent refinement in the real space
-(Appendix :ref:`Search fit <app:searchFit>`). Let us to illustrate
+(Appendix :ref:`PHENIX Search fit <app:searchFit>`). Let us to illustrate
 the applicability of this protocol with the workflow described in the :numref:`model_building_phenix_search_fit_1`.
 
 .. figure:: Images/Fig_search_fit_1.svg
@@ -354,8 +355,7 @@ the appropriate aminoacids.
 
 As the :numref:`model_building_phenix_search_fit_1` indicates, the protocol **phenix-search fit** (4) requires three different inputs (1, 2 and 3):
 
-#. Initial map that contains the density of the *metHgb* :math:`\alpha` subunit.
-   In this case we use the asymmetric unit map extracted previously (subsection `Extraction of the asymmetric unit map <file:///home/marta/software/docs/_build/html/docs/user/tutorials/modelBuilding/050-volumeScenario.html>`_, :numref:`model_building_extract_unit_cell`).
+#. | Initial map that contains the density of the *metHgb* :math:`\alpha` subunit. In this case we use the asymmetric unit map extracted previously (subsection `Extraction of the asymmetric unit map <file:///home/marta/software/docs/_build/html/docs/user/tutorials/modelBuilding/050-volumeScenario.html>`_, :numref:`model_building_extract_unit_cell`).
 
 
 #. | Small fragment of atomic structure that contains the *ALA* small chain.
@@ -451,6 +451,7 @@ remarked in red in the *Summary Plot*.
   Then, the best approximation of the atomic structure retrieved (model *#4*) can be selected to help with the tracing of a small fraction of the density map since the model *#4* seems to be quite close to the actual
   atomic structure used as control (*PDB ID 5NI1*).
 
+.. _`requestion3`:
  
 *CCP4 Refmac* 
 ----------
@@ -482,16 +483,16 @@ and *Rms BondLength* have improved with this refinement process in these three c
 -  | Running *Refmac* after *Coot*:
    | Can you see an improvement running *Refmac* immediately after *Coot*, thus
      ignoring *model* improvements generated by **phenix-real space refine**? (Answers in
-     appendix :ref:`Solutions <app:solutions>`; **Question**\ `1 <refinementFlexibleFitting>`__\ **\ \_4**)
+     appendix :ref:`Solutions <app:solutions>`; :ref:`Question5 <question5>`)
 
 -  | Running *Refmac* after **phenix-real space refine** after *Coot*:
-   | Why the improvement seems to be very small? (Answers in appendix :ref:`Solutions <app:solutions>`; **Question**\ `1 <refinementFlexibleFitting>`__\ **\ \_5**)
+   | Why the improvement seems to be very small? (Answers in appendix :ref:`Solutions <app:solutions>`; :ref:`Question6 <question6>`)
 
 -  | Running *Refmac* after **phenix-real space refine** without a mask:
    | Compare previous *Refmac* results (after *Coot* and **phenix-real space refine**) with those obtained selecting
      the option *No* in the protocol form parameter *Generate masked volume*. Use two different
      volumes, the one generated by *Coot* protocol, and the one generated by
-     the *extract asymmetric unit* protocol. Are there any differences? Why? (Answers in appendix :ref:`Solutions <app:solutions>`; **Question**\ `1 <refinementFlexibleFitting>`__\ **\ \_6**)
+     the *extract asymmetric unit* protocol. Are there any differences? Why? (Answers in appendix :ref:`Solutions <app:solutions>`; :ref:`Question7 <question7>`)
 
 .. figure:: Images/Fig32.svg
    :alt: Display menu of *Refmac* results.

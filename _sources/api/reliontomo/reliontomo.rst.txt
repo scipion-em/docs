@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   reliontomo.cmd
    reliontomo.convert
    reliontomo.protocols
 
@@ -20,6 +21,7 @@ Submodules
    reliontomo.constants
    reliontomo.objects
    reliontomo.utils
+   reliontomo.wizards
 
 Module contents
 ---------------
