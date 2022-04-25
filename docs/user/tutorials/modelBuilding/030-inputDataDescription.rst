@@ -30,6 +30,8 @@ Map
 
 Once downloaded the volume, unpack it (command line: ``gunzip emd-3488.map.gz``) and save it in your tutorial folder.
 
+.. _`section_input_seq`: 
+
 Sequences
 ---------
 
@@ -48,6 +50,7 @@ respectively. Next, we show both sequences in fasta format:
       MVHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPK
       VKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFG
       KEFTPPVQAAYQKVVAGVANALAHKYH
+
 
 These protein sequences were determined by direct translation from the
 experimental sequence obtained from complementary *DNA (cDNA)*, i.e.,

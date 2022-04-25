@@ -47,7 +47,7 @@ the *Coot* graphics window will appear to start working.
    :align: center
    :width: 100.0%
 
-   Filling in the *Coot* refinement protocol.
+   | Filling in the *Coot* refinement protocol.
 
 | To check the objects downloaded in *Coot*, go to the second bar of the main
   menu and select *Display Manager*. Maps (numbers *#1*, *#2* and *#3*) and model *Hgb_alpha_Atom_struct__3_007124.cif* (number *#0*) are
@@ -91,7 +91,7 @@ the *Coot* graphics window will appear to start working.
 
 According to :numref:`model_building_coot_density_fit_analysis` (B), *MET* residue of the new chain *A* does not fit to the map
 density. Maybe this residue has been processed post-translationally, as
-we have anticipated in `Input data description <file:///home/marta/software/docs/_build/html/docs/user/tutorials/modelBuilding/030-inputDataDescription.html>`_ section. To solve this
+we have anticipated in **Input data description** (:ref:`Sequences <section_input_seq>` section). To solve this
 question, go to *Coot* main menu and select *Draw -> Go to Atom... -> Chain A -> A 1 MET* (:numref:`model_building_coot_go_to_atom` (A)). *MET* residue will be located in
 the center of *Coot* graphics window. Check if this residue is surrounded by
 any electron density. As :numref:`model_building_coot_go_to_atom` (B)(1) shows, no density associates to the
@@ -207,8 +207,8 @@ to *Validate -> Density fit analysis* and check if the orange bar shown in *MET*
   subunit chain *A*, has to be carried out for the *metHgb* :math:`\beta` subunit.
 
 | ``NOTE`` about *chain IDs*: Check the *id* of each chain. Although you have the possibility of
-  changing this *id* in *ChimeraX*, as we have seen in the subsection `Structural
-  models of human metHgb subunits from templates <file:///home/marta/software/docs/_build/html/docs/user/tutorials/modelBuilding/070-movingFromSequence.html>`_ (*metHgb* :math:`\beta`
+  changing this *id* in *ChimeraX*, as we have seen in the subsection :ref:`Structural
+  models of human metHgb subunits from templates <section_structural_models>` (*metHgb* :math:`\beta`
   subunit), you also have the possibility of performing this task in *Coot*,
   as it is shown in the next example in which we change the chain *id* from *A*
   to *B*. To change the name of the chain, go to the *Coot* main menu and select
@@ -355,7 +355,7 @@ the appropriate aminoacids.
 
 As the :numref:`model_building_phenix_search_fit_1` indicates, the protocol **phenix-search fit** (4) requires three different inputs (1, 2 and 3):
 
-#. | Initial map that contains the density of the *metHgb* :math:`\alpha` subunit. In this case we use the asymmetric unit map extracted previously (subsection `Extraction of the asymmetric unit map <file:///home/marta/software/docs/_build/html/docs/user/tutorials/modelBuilding/050-volumeScenario.html>`_, :numref:`model_building_extract_unit_cell`).
+#. | Initial map that contains the density of the *metHgb* :math:`\alpha` subunit. In this case we use the asymmetric unit map extracted previously (subsection :ref:`Extraction of the asymmetric unit map <section_extraction_asym_unit>`, :numref:`model_building_extract_unit_cell`).
 
 
 #. | Small fragment of atomic structure that contains the *ALA* small chain.
@@ -389,7 +389,7 @@ As the :numref:`model_building_phenix_search_fit_1` indicates, the protocol **ph
          scipionwrite #3 prefix 5ni1_chainA_94_118_MutALA_
 
 
-#. Sequence of the *metHgb* :math:`\alpha` subunit imported previously in subsection `Sequences <file:///home/marta/software/docs/_build/html/docs/user/tutorials/modelBuilding/040-importInputData.html>`_ (:numref:`model_building_import_sequence`).
+#. Sequence of the *metHgb* :math:`\alpha` subunit imported previously in subsection :ref:`Sequences <section_import_seq>` (:numref:`model_building_import_sequence`).
 
 With these three previous inputs we can complete the **phenix-search fit** protocol form (:numref:`model_building_phenix_search_fit_3`).
 Open it in the *Scipion* left menu (1) and include the asymmetric unit map (2)

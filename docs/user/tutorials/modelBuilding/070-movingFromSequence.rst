@@ -48,6 +48,8 @@ in the upper menu (1) you can distinguish the *Hgb* :math:`\alpha` subunit
    Atomic structure *1PBX* visualized with :math:`ChimeraX`. *Hgb* :math:`\alpha`
    subunit (selected chain ) is shown green-highlighted.
 
+.. _`section_structural_models`:
+
 Structural models of human *metHgb* subunits from templates
 ---------------------------------------------------------
 

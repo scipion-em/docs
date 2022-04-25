@@ -7,17 +7,11 @@ Protocol designed to import a mask in *Scipion* from a file of user’s computer
 Modifying the size of a previous mask is possible simply by changing the
 mask’s sampling rate.
 
--  Requirements to run this protocol and visualize results:
+-  | Requirements to run this protocol and visualize results:
 
-   -  *Scipion* plugin: **scipion-em**
+   -  | *Scipion* plugin: **scipion-em**
 
--  *Scipion* menu: It does not appear in *Model building* view. Press ``Ctrl`` + ``f`` and the
-   pop up window to search a protocol will be opened (:numref:`model_building_app_protocol_import_mask` (A)). Write any
-   word related with the title of the protocol that you are looking for
-   in the *Search* box. In this particular case we have written *mask*.
-   Several protocols have been found related with this searching word.
-   Select the first one dessigned for the purpose that we are interested
-   in (*pwem - import mask*).
+-  | *Scipion* menu: It does not appear in *Model building* view. Press ``Ctrl`` + ``f`` and the pop up window to search a protocol will be opened (:numref:`model_building_app_protocol_import_mask` (A)). Write any word related with the title of the protocol that you are looking for in the *Search* box. In this particular case we have written *mask*. Several protocols have been found related with this searching word. Select the first one dessigned for the purpose that we are interested in (*pwem - import mask*).
 
    .. figure:: Images_appendix/Fig304.svg
       :alt: Protocol **import mask**. A: Window to search the protocol. B: Protocol form.
@@ -27,17 +21,15 @@ mask’s sampling rate.
 
       Protocol **import mask**. A: Window to search the protocol. B: Protocol form.
 
--  Protocol form parameters (:numref:`model_building_app_protocol_import_mask` (B)):
+-  | Protocol form parameters (:numref:`model_building_app_protocol_import_mask` (B)):
 
--  *Import* section
+-  | *Import* section
 
-   -  *Mask path*: Open the browser on the right to select in your
-      computer the path to the previously saved mask.
+   -  | *Mask path*: Open the browser on the right to select in your computer the path to the previously saved mask.
 
-   -  *Pixel size (“sampling rate”)* (Å/px): Write the new sampling rate
-      rate value in the box.
+   -  | *Pixel size (“sampling rate”)* (Å/px): Write the new sampling rate value in the box.
 
--  Protocol execution:
+-  | Protocol execution:
 
    | Adding specific mask label is recommended in *Run name* section, at
      the form top. To add the label, open the protocol form, press the
@@ -49,15 +41,13 @@ mask’s sampling rate.
 
    | Press the *Execute* red button at the form bottom.
 
--  Visualization of protocol results:
+-  | Visualization of protocol results:
 
-   After executing the protocol, press *Analyze Results* and *ShowJ*, the default *Scipion* viewer, will allow you to visualize the
-   *slices* window of the mask (:numref:`model_building_create3Dmask_2`). The *ShowJ* window menu *(File
-   -> Open with ChimeraX)* allows to open the selected map in *ChimeraX* graphics window.
+   | After executing the protocol, press *Analyze Results* and *ShowJ*, the default *Scipion* viewer, will allow you to visualize the *slices* window of the mask (:numref:`model_building_create3Dmask_2`). The *ShowJ* window menu *(File -> Open with ChimeraX)* allows to open the selected map in *ChimeraX* graphics window.
 
-   -  *slices*: `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_
+   -  | *slices*: `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_
 
--  Summary content:
+-  | Summary content:
 
    -  | Protocol output (below *Scipion* framework):
       | *pwem - import mask -> ouputMask*;

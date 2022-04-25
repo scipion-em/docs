@@ -16,7 +16,7 @@ to install the following packages:
 
 -  **Phenix**: Connect to `PHENIX <https://www.phenix-online.org/download/>`_ and
    follow instructions. Protocols have been tested for versions
-   1.13-2998, 1.16-3549, 1.17.1-3660 and 1.18.2-3874.
+   1.13-2998, 1.16-3549, 1.17.1-3660, 1.18.2-3874, 1.19.2-4158 and 1.20.1-4487.
 
 -  **Clustal Omega**: Run *sudo apt-get install clustalo* (in ubuntu).
 

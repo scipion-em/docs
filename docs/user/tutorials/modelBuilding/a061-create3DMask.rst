@@ -9,11 +9,11 @@ density values within or outside it. This mask can be created with a
 given geometrical shape (sphere, cube, cylinder...) or obtained from
 operating on a 3D volume or a previous mask.
 
--  Requirements to run this protocol and visualize results:
+-  | Requirements to run this protocol and visualize results:
 
-   -  *Scipion* plugin: **scipion-em**
+   -  | *Scipion* plugin: **scipion-em**
 
-   -  *Scipion* plugin: **scipion-em-xmipp**
+   -  | *Scipion* plugin: **scipion-em-xmipp**
 
 -  | *Scipion* menu:
    | *Model building -> Preprocess map* (:numref:`model_building_create3DMask_1` (A))
@@ -26,89 +26,60 @@ operating on a 3D volume or a previous mask.
 
       Protocol **xmipp-create 3d mask**. A: Protocol location in *Scipion* menu. B, C: Protocol form.
 
--  Protocol form parameters (:numref:`model_building_create3DMask_1` (B: Mask generation; C: Postprocessing)):
+-  | Protocol form parameters (:numref:`model_building_create3DMask_1` (B: Mask generation; C: Postprocessing)):
 
-   -  *Mask generation*
+   -  | *Mask generation*
 
-      -  *Mask source*: Selection of one of the next three possible
-         types of sources for the mask, the map volume provided by the
-         user, a specific geometrical design or a feature file.
+      -  | *Mask source*: Selection of one of the next three possible types of sources for the mask, the map volume provided by the user, a specific geometrical design or a feature file.
 
-         #. *Volume*
+         #. | *Volume*
 
-            -  *Input volume*: Electron density map previously
-               downloaded or generated in *Scipion*.
+            -  | *Input volume*: Electron density map previously downloaded or generated in *Scipion*.
 
-            -  *Operation*: Approach applied to generate the mask:
+            -  | *Operation*: Approach applied to generate the mask:
 
-               #. *Threshold*: By establishing a particular density
-                  *Threshold* (write here this threshold value).
+               #. | *Threshold*: By establishing a particular density *Threshold* (write here this threshold value).
 
-               #. *Segment*: Segmentation process according to:
+               #. | *Segment*: Segmentation process according to:
 
-                  - *Number of voxels*\  (write here that value).
+                  - | *Number of voxels*\  (write here that value).
 
-                  - *Number of aminoacids*\  (write here that value).
+                  - | *Number of aminoacids*\  (write here that value).
 
-                  - *Dalton mass*\  (write here that value).
+                  - | *Dalton mass*\  (write here that value).
 
-                  - *Automatic*
+                  - | *Automatic*
 
-            -  *Only postprocess*: Use only the methods described in the
-               tap *Postprocessing* (see below).
+            -  | *Only postprocess*: Use only the methods described in the tap *Postprocessing* (see below).
 
-         #. *Geometry*
+         #. | *Geometry*
 
-            -  *Sampling Rate (Å/px)*: Size of voxel dimensions in Å.
+            -  | *Sampling Rate (Å/px)*: Size of voxel dimensions in Å.
 
-            -  *Mask size (px)*: Mask dimensions in number of pixels.
+            -  | *Mask size (px)*: Mask dimensions in number of pixels.
 
-            -  *Mask type*: Sphere, box, crown, cylinder, Gaussian,
-               raised cosine and raised crown. Dimensions of each one of
-               these geometric shapes have to be assigned in pixels:
-               Radius of the sphere (half size of the mask by default);
-               box size; inner and outer radius of the crown, raised
-               cosine and raised crown (half size of the mask by
-               default); height of cylinder (mask size by default);
-               Gaussian sigma (mask size/6 by default); and border decay
-               or fall-off of the two borders of the crown (0 by
-               default).
+            -  | *Mask type*: Sphere, box, crown, cylinder, Gaussian, raised cosine and raised crown. Dimensions of each one of these geometric shapes have to be assigned in pixels: Radius of the sphere (half size of the mask by default); box size; inner and outer radius of the crown, raised cosine and raised crown (half size of the mask by default); height of cylinder (mask size by default); Gaussian sigma (mask size/6 by default); and border decay or fall-off of the two borders of the crown (0 by default).
 
-            -  *Shift center of the mask?*: By selecting “Yes”, the mask
-               will be shifted to a new origin of coordinates *X, Y, Z*.
+            -  | *Shift center of the mask?*: By selecting “Yes”, the mask will be shifted to a new origin of coordinates *X, Y, Z*.
 
-         #. *Feature File*: Select with the browser the feature file in
-            your computer.
+         #. | *Feature File*: Select with the browser the feature file in your computer.
 
-   -  *Postprocessing*
+   -  | *Postprocessing*
 
-      -  *Remove small objects*: Selection of “Yes” allows to ignore
-         ligands of the map volume below a certain size (in voxels).
+      -  | *Remove small objects*: Selection of “Yes” allows to ignore ligands of the map volume below a certain size (in voxels).
 
-      -  *Keep largest component*: By selecting “Yes” a mask will be
-         generated considering only the largest element of the map
-         volume, ignoring the rest.
+      -  | *Keep largest component*: By selecting “Yes” a mask will be generated considering only the largest element of the map volume, ignoring the rest.
 
-      -  *Symmetrize mask*: By selecting “Yes” a symmetrized mask will
-         be generated according to a specific symmetry group (look at
-         `XMIPP Symmetry <https://github.com/I2PC/xmipp-portal/wiki/Symmetry>`_). *c1*
-         symmetry indicates no symmetry, by default.
+      -  | *Symmetrize mask*: By selecting “Yes” a symmetrized mask will be generated according to a specific symmetry group (look at `XMIPP Symmetry <https://github.com/I2PC/xmipp-portal/wiki/Symmetry>`_). *c1* symmetry indicates no symmetry, by default.
 
-      -  *Apply morphological operation*: Slight modifications of the
-         mask can be applied by dilation or erosion of the density
-         region (*Structural element size*: One voxel by default).
-         Combinations of dilation and erosion allow closing or opening
-         empty spaces of density in the map volume.
+      -  | *Apply morphological operation*: Slight modifications of the mask can be applied by dilation or erosion of the density region (*Structural element size*: One voxel by default). Combinations of dilation and erosion allow closing or opening empty spaces of density in the map volume.
 
-      -  *Invert the mask*: This option allows to invert the values of
-         density regarding the wrapping surface of the mask, masking the
-         outer part instead the inner part.
+      -  | *Invert the mask*: This option allows to invert the values of density regarding the wrapping surface of the mask, masking the outer part instead the inner part.
 
-      -  *Smooth borders*: Mask borders can be smoothed by applying a
-         convolution of the mask with a Gaussian. The Gaussian sigma (in
-         pixels) has to be supplied.
+      -  | *Smooth borders*: Mask borders can be smoothed by applying a convolution of the mask with a Gaussian. The Gaussian sigma (in pixels) has to be supplied.
 
 -  | Protocol execution:
+
    | Adding specific mask label is recommended in *Run name* section, at
      the form top. To add the label, open the protocol form, press the
      pencil symbol at the right side of *Run name* box, complete the
@@ -119,13 +90,9 @@ operating on a 3D volume or a previous mask.
 
    | Press the *Execute* red button at the form bottom.
 
--  Visualization of protocol results:
+-  | Visualization of protocol results:
 
-   After executing the protocol, press *Analyze Results* and
-   `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_, the
-   default viewer, will open the mask by slices (:numref:`model_building_create3Dmask_2`). *ShowJ*
-   window menu (*File -> Open with ChimeraX*) allows to open the mask
-   volume in *ChimeraX* graphics window.
+   | After executing the protocol, press *Analyze Results* and `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_, the default viewer, will open the mask by slices (:numref:`model_building_create3Dmask_2`). *ShowJ* window menu (*File -> Open with ChimeraX*) allows to open the mask volume in *ChimeraX* graphics window.
 
 -  Summary content:
 
