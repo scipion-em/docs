@@ -8,6 +8,8 @@ Submodules
    :maxdepth: 4
 
    emantomo.protocols.protocol_align_ts
+   emantomo.protocols.protocol_average_subtomos
+   emantomo.protocols.protocol_classify_subtomos
    emantomo.protocols.protocol_estimate_ctf
    emantomo.protocols.protocol_resize_tomograms
    emantomo.protocols.protocol_tomo_boxing
