@@ -117,6 +117,7 @@ to *Validate -> Density fit analysis* and check if the orange bar shown in *MET*
   respective window of parameters. Secondly, open the *Scipion* browser (:numref:`model_building_cootini` (1)) and
   navigate to the *extra* directory, open the *coot.ini* text file (2), and modify the file
   so it matches the information shown below (3).
+
 ::
 
      [myvars]
@@ -178,6 +179,7 @@ to *Validate -> Density fit analysis* and check if the orange bar shown in *MET*
   write there your label name, for example *label1_HBA_HUMAN*. This label will appear in
   the *Summary* window of the *Scipion* framework (:numref:`model_building_coot_summary` (A)). Assuming that *#0* is your *model* number,
   write in Command:
+
 ::
 
      scipion write (0, ’label1_HBA_HUMAN’)
@@ -438,6 +440,7 @@ remarked in red in the *Summary Plot*.
   In the same way, :numref:`model_building_phenix_search_fit_4` (F) compares this input model *#3* with the respective
   fragment of the *PDB ID 5NI1* structure. To open it as model *#9* and align it with
   rest of structures, write in *ChimeraX* comand line:
+
 ::
 
          open 5ni1

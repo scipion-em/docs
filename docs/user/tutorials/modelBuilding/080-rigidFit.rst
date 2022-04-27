@@ -112,6 +112,7 @@ the *map*, by command line or through the *ChimeraX* GUI.
 | To track the *ChimeraX* fitted *model* in *Scipion* we have to save it as fitted *model* of
   the *metHgb* :math:`\alpha` subunit in the *ChimeraX* command line before closing the *ChimeraX*
   window:
+
 ::
 
      scipionwrite #3 prefix Hgb_alpha_

@@ -95,7 +95,7 @@ especially the *EMRinger* score, will also be written in the protocol *SUMMARY*
   in appendix :ref:`Solutions <app:solutions>`; :ref:`Question8 <question8>`). Try the same validation with :math:`\beta` subunit *models*.
 
 *MolProbity*
----------
+------------
 
 | The atomic structure validation web service *MolProbity*, with better reference
   data has been implemented in the open-source CCTBX portion of PHENIX :cite:p:`williams2018`. This widely used tool assesses *model* geometry and quality at both global and local levels.
@@ -131,7 +131,7 @@ and *Refmac* refinement with MASK before and after *PHENIX real space refine*.
 .. _`requestion5`:
 
 *Validation CryoEM*
----------
+-------------------
 
 | *PHENIX* versions higher than 1.13 combine multiple tools for validating
   cryo-EM maps and models into the single tool called *Validation CryoEM* :cite:p:`afonine2018b`. This tool has been implemented in *PHENIX*
