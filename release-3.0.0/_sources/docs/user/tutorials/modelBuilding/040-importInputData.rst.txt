@@ -47,6 +47,8 @@ Clicking in the viewer menu (:numref:`model_building_visualization_volume` (1)),
 
    Volume visualized with *ChimeraX*.
 
+.. _`section_import_seq`:
+
 Sequences
 ---------
 

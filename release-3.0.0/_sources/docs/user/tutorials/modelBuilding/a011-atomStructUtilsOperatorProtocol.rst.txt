@@ -11,19 +11,16 @@ and water molecules. b) Chain addition: One or several chains will be
 added to a reference atomic structure. The resulting addition will be
 saved as a new polymeric atomic structure.
 
--  Requirements to run this protocol and visualize results:
+-  | Requirements to run this protocol and visualize results:
 
-   -  *Scipion* plugin: **scipion-em**
+   -  | *Scipion* plugin: **scipion-em**
 
-   -  *Scipion* plugin: **scipion-em-atomstructutils**
+   -  | *Scipion* plugin: **scipion-em-atomstructutils**
 
-   -  *Scipion* plugin: **scipion-em-chimera**
-
-
--  *Scipion* menu: *Model building -> Tools-Calculators* (:numref:`model_building_app_protocol_atomstructutils_operator_1` (A))
+   -  | *Scipion* plugin: **scipion-em-chimera**
 
 
--  Protocol form parameters (:numref:`model_building_app_protocol_atomstructutils_operator_1` (B and C)):
+-  | *Scipion* menu: *Model building -> Tools-Calculators* (:numref:`model_building_app_protocol_atomstructutils_operator_1` (A))
 
    .. figure:: Images_appendix/Fig154.svg
       :alt: Protocol **atomstructutils-operator**. A: Protocol location in *Scipion* menu. B: Protocol form to extract a chain from an atomic structure. C: Protocol form to add one or several chains to an atomic structure.
@@ -33,38 +30,24 @@ saved as a new polymeric atomic structure.
 
       Protocol **atomstructutils-operator**. A: Protocol location in *Scipion* menu. B: Protocol form to extract a chain from an atomic structure. C: Protocol form to add one or several chains to an atomic structure.
 
-   -  *Atomic structure 1*: PDBx/mmCIF atomic structure, previously
-      downloaded or generated in *Scipion*.
+-  | Protocol form parameters (:numref:`model_building_app_protocol_atomstructutils_operator_1` (B and C)):
 
-   -  *Operation*: Two types of operations can be performed with this
-      protocol:
+   -  | *Atomic structure 1*: PDBx/mmCIF atomic structure, previously downloaded or generated in *Scipion*.
 
-      -  *addChain*: Addition of one or several chains to an initial
-         atomic structure. By selecting this option, an additional param
-         has to be completed (:numref:`model_building_app_protocol_atomstructutils_operator_1` (B)):
+   -  | *Operation*: Two types of operations can be performed with this protocol:
 
-         -  *Atomic structure 2*: One or several PDBx/mmCIF atomic
-            structures, previously downloaded or generated in *Scipion*.
+      -  | *addChain*: Addition of one or several chains to an initial atomic structure. By selecting this option, an additional param has to be completed (:numref:`model_building_app_protocol_atomstructutils_operator_1` (B)):
+
+         -  | *Atomic structure 2*: One or several PDBx/mmCIF atomic structures, previously downloaded or generated in *Scipion*.
 
 
-      -  *extractChain*: Extraction of only one chain from a polymeric
-         atomic structure. By selecting this option, three additional
-         params have to be completed (:numref:`model_building_app_protocol_atomstructutils_operator_1` (C)):
+      -  | *extractChain*: Extraction of only one chain from a polymeric atomic structure. By selecting this option, three additional params have to be completed (:numref:`model_building_app_protocol_atomstructutils_operator_1` (C)):
 
-         -  *Chain*: Specific chain that has to be extracted. The wizard
-            on the right helps the user to select that chain showing the
-            number of the starting model structure, the name of the
-            chain, and its number of residues.
+         -  | *Chain*: Specific chain that has to be extracted. The wizard on the right helps the user to select that chain showing the number of the starting model structure, the name of the chain, and its number of residues.
 
-         -  *Start at residue #*: The default value (-1) allows to
-            extract the whole chain. In case you would like to extract
-            only a fraction of the chain, the number of the initial
-            required residue should be indicated.
+         -  | *Start at residue #*: The default value (-1) allows to extract the whole chain. In case you would like to extract only a fraction of the chain, the number of the initial required residue should be indicated.
 
-         -  *End at residue #*: The default value (-1) allows to extract
-            the whole chain. In case you would like to extract only a
-            fraction of the chain, the number of the last required
-            residue should be indicated.
+         -  | *End at residue #*: The default value (-1) allows to extract the whole chain. In case you would like to extract only a fraction of the chain, the number of the last required residue should be indicated.
 
 -  | Protocol execution: Adding specific structure/chain label is
      recommended in *Run name* section, at the form top. To add the

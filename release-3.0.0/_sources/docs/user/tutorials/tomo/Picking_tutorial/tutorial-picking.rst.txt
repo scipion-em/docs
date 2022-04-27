@@ -54,7 +54,7 @@ On the other hand, directional pickings will provide both the spatial location o
 Deciding which strategy suits your data better depends on the conditions of the particles inside the tomogram. In general, suspended particles are better handled by non-directional pickings, while particles close or attached to a vesicle or describing specific geometries are more easily analyzed by directional pickings.
 
 Preliminary steps
-============
+=================
 
 If you are new to Scipion, we strongly suggest that you follow this `Scipion tutorial <https://scipion-em.github.io/docs/docs/user/scipion-gui.html#scipion-gui>`_ to learn how to navigate and work with the interface of Scipion. In the previous tutorial, you will find how to look for and create new protocols, together with some examples of SPA workflows.
 

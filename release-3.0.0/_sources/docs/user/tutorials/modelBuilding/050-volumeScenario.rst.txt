@@ -218,6 +218,8 @@ initial unsharpened map would be enough to trace the atomic structure.
 However, in order to detail the method, the starting map and their two
 sharpened ones will be used simultaneously.
 
+.. _`section_extraction_asym_unit`:
+
 Extraction of the asymmetric unit map
 -------------------------------------
 

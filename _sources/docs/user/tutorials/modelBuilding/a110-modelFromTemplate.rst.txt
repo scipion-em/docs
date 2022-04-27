@@ -26,34 +26,21 @@ Model from Template protocol
 
       Protocol **chimerax-model from template**. A: Protocol location in *Scipion* menu. B: Protocol form: Option “template available”. C: Protocol form: Option “looking for template”.
 
--  Protocol form parameters (:numref:`model_building_app_protocol_seqHomology_1` (B)):
+-  | Protocol form parameters (:numref:`model_building_app_protocol_seqHomology_1` (B)):
 
-   -  *Input* section
+   -  | *Input* section
 
       -  | *Do you already have a template?*: Select *“Yes”* if you have found your *template* in a previous similarity searching step. Select *“No”* if you do not have any *template* to start the homology modeling and you would like to search for one.
 
       -  | Option *“Yes”* (:numref:`model_building_app_protocol_seqHomology_1` (B))
 
-         -  *Atomic structure used as template*: Atomic structure
-            previously downloaded in *Scipion*. This structure was selected by
-            sequence homology, i.e. by looking for the structurally
-            characterized sequence more similar (with higher identity)
-            to the target sequence.
+         -  | *Atomic structure used as template*: Atomic structure previously downloaded in *Scipion*. This structure was selected by sequence homology, i.e. by looking for the structurally characterized sequence more similar (with higher identity) to the target sequence.
 
-         -  *Chain*: Specific monomer of the macromolecule that has to
-            be used as structure *template* of the *target sequence*.
-            Use the wizard on the right side of *Chain* parameter to
-            select that chain.
+         -  | *Chain*: Specific monomer of the macromolecule that has to be used as structure *template* of the *target sequence*. Use the wizard on the right side of *Chain* parameter to select that chain.
 
-         -  *Target sequence*: Sequence previously downloaded in *Scipion*. This
-            sequence has to be modeled following the structure skeleton
-            of the selected *template*.
+         -  | *Target sequence*: Sequence previously downloaded in *Scipion*. This sequence has to be modeled following the structure skeleton of the selected *template*.
 
-         -  *Options to improve the alignment*: :math:`Modeller`
-            provides structural models of the *target sequence* based on
-            a sequence alignment, in which at least sequences of
-            *template* and *target* have to be included. Three options
-            can be considered to improve this alignment:
+         -  | *Options to improve the alignment*: :math:`Modeller` provides structural models of the *target sequence* based on a sequence alignment, in which at least sequences of *template* and *target* have to be included. Three options can be considered to improve this alignment:
 
             #. | *None*: No more sequences are going to be included in
                  the alignment except *model* and *target* sequences.
@@ -90,23 +77,13 @@ Model from Template protocol
 
       -  | Option *“No”* (:numref:`model_building_app_protocol_seqHomology_1` (C))
 
-         -  *Target sequence*: Sequence previously downloaded in *Scipion*. This
-            sequence has to be modeled following the structure skeleton
-            of the *template* that you are going to select among the
-            retrieved entries found by the similarity searching tool.
+         -  | *Target sequence*: Sequence previously downloaded in *Scipion*. This sequence has to be modeled following the structure skeleton of the *template* that you are going to select among the retrieved entries found by the similarity searching tool.
 
-         -  *Protein sequence database*: Select one of the two suggested
-            protein sequence databases, PDB and NR. Press the *“?”*
-            symbol on the right to see the meaning of each one. Remark
-            that the NR database allows you to get entries with, as well
-            as without, atomic structure associated. These ones, which
-            do not provide *templates*, could be useful to build a
-            better sequence alignment.
+         -  | *Protein sequence database*: Select one of the two suggested protein sequence databases, PDB and NR. Press the *“?”* symbol on the right to see the meaning of each one. Remark that the NR database allows you to get entries with, as well as without, atomic structure associated. These ones, which do not provide *templates*, could be useful to build a better sequence alignment.
 
-         -  *Similarity matrix*: Select one of the `“substitution matrix” <https://www.ncbi.nlm.nih.gov/blast/html/sub_matrix.html>`_ to assign a score to any couple of residues in the alignment.
+         -  | *Similarity matrix*: Select one of the `“substitution matrix” <https://www.ncbi.nlm.nih.gov/blast/html/sub_matrix.html>`_ to assign a score to any couple of residues in the alignment.
 
-         -  *cutoff evalue*: Maximum statistic value required to include
-            a retrieved element in the hit list.
+         -  | *cutoff evalue*: Maximum statistic value required to include a retrieved element in the hit list.
 
          -  | *Maximum number of sequences* that you’d like to retrieve from the database.
 
@@ -153,11 +130,11 @@ Model from Template protocol
 
            scipionwrite #n_final prefix user_defined_name_
 
--  Visualization of protocol results:
+-  | Visualization of protocol results:
 
    | After executing the protocol, press *Analyze Results* and *ChimeraX* graphics window will be opened by default. Atomic structures are referred to the origin of coordinates in *ChimeraX*. To show the relative position of the atomic structure, the three coordinate axes are represented; X axis (red), Y axis (yellow), and Z axis (blue) (:numref:`model_building_app_protocol_volume_3`). Coordinate axes and selected atomic structure *model* are model numbers *#1* and *#2*, respectively, in *ChimeraX Models* panel if only one structure has been saved.
 
--  Summary content:
+-  | Summary content:
 
    -  | Protocol output (below *Scipion* framework):
       | *chimerax - model from template -> name of the new atomic

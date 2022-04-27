@@ -12,14 +12,14 @@ part of it. In addition, wrong modeled regions can be also identified
 with this protocol since the atomic structure could doesn’t fit to the
 density map.
 
--  Requirements to run this protocol and visualize results:
+-  | Requirements to run this protocol and visualize results:
 
-   -  *Scipion* plugin: **scipion-em**
+   -  | *Scipion* plugin: **scipion-em**
 
-   -  *Scipion* plugin: **scipion-em-chimera**
+   -  | *Scipion* plugin: **scipion-em-chimera**
 
 
--  *Scipion* menu: *Model building -> Tools-Calculators* (:numref:`model_building_app_protocol_map_subtract_1` (A))
+-  | *Scipion* menu: *Model building -> Tools-Calculators* (:numref:`model_building_app_protocol_map_subtract_1` (A))
 
    .. figure:: Images_appendix/Fig309.svg
       :alt: Protocol **chimerax-map subtraction**. A: Protocol location in *Scipion* menu. B: Protocol form to subtract two maps. C: Param option *Mask*. D: Protocol form to subtract an atomic structure from a map. All possible params are shown.
@@ -30,59 +30,29 @@ density map.
       Protocol **chimerax-map subtraction**. A: Protocol location in *Scipion* menu. B: Protocol form to subtract two maps. C: Param option *Mask*. D: Protocol form to subtract an atomic structure from a map. All possible params are shown.
 
 -  | Protocol form parameters (:numref:`model_building_app_protocol_map_subtract_1` (B,C,D)):
+
    | *Input* section:
 
-   -  *Input 3D Map*: Include here any map previously downloaded or
-      generated in *Scipion* that you would like to use as minuend of the
-      subtraction operation.
+   -  | *Input 3D Map*: Include here any map previously downloaded or generated in *Scipion* that you would like to use as minuend of the subtraction operation.
 
-   -  *Select the operation to perform*: Two possibilities are allowed:
+   -  | *Select the operation to perform*: Two possibilities are allowed:
 
-      -  *Subtraction*: Between minuend and subtrahend maps, and you’ll
-         obtain the difference. ``WARNING:`` Both maps have to be perfectly
-         aligned.
+      -  | *Subtraction*: Between minuend and subtrahend maps, and you’ll obtain the difference. ``WARNING:`` Both maps have to be perfectly aligned.
 
-      -  *Mask*: The voxel region of the subtrahend greater than a
-         certain level will be masked (:numref:`model_building_app_protocol_map_subtract_1` (C)). The default level is
-         *0.001* although can be modified with the *Advanced* param
-         *Contour level (subtrahend)*. If no level is supplied, *ChimeraX* will
-         compute that level value.
+      -  | *Mask*: The voxel region of the subtrahend greater than a certain level will be masked (:numref:`model_building_app_protocol_map_subtract_1` (C)). The default level is *0.001* although can be modified with the *Advanced* param *Contour level (subtrahend)*. If no level is supplied, *ChimeraX* will compute that level value.
 
-   -  *Subtraction/Mask of*: Select the subtrahend of the subtraction
-      operation. Two possibilities are allowed:
+   -  | *Subtraction/Mask of*: Select the subtrahend of the subtraction operation. Two possibilities are allowed:
 
-      -  *3D map*: Any map previously downloaded or generated in *Scipion*.
-         ``WARNING:`` The sampling rate of this map should be identical to
-         the subtrahend’s.
+      -  | *3D map*: Any map previously downloaded or generated in *Scipion*.
+         | ``WARNING:`` The sampling rate of this map should be identical to the subtrahend’s.
 
-      -  *atomic structure*: Previously downloaded or generated in *scipion*. By
-         selecting this option many new params will interrogate about
-         the structure-derived map that you would like to generate (:numref:`model_building_app_protocol_map_subtract_1`
-         (D)).
+      -  | *atomic structure*: Previously downloaded or generated in *scipion*. By selecting this option many new params will interrogate about the structure-derived map that you would like to generate (:numref:`model_building_app_protocol_map_subtract_1` (D)).
 
-         -  *Map resolution (Å)*: This is a tricky param and a uniform
-            rule cannot be followed since, although its value is related
-            with the minuend map resolution obtained by computing the
-            *FSC* in the reconstruction process, local variations of
-            this resolution seem to be involved. As a general rule,
-            start with a resolution value half of the one obtained by
-            the *FSC* and check your results. Then test other resolution
-            values closer to the one computed by the *FSC* and compare
-            the results with the previous one. At the end select the
-            resolution that maximizes the difference between the minuend
-            and the subtrahend.
+         -  | *Map resolution (Å)*: This is a tricky param and a uniform rule cannot be followed since, although its value is related with the minuend map resolution obtained by computing the *FSC* in the reconstruction process, local variations of this resolution seem to be involved. As a general rule, start with a resolution value half of the one obtained by the *FSC* and check your results. Then test other resolution values closer to the one computed by the *FSC* and compare the results with the previous one. At the end select the resolution that maximizes the difference between the minuend and the subtrahend.
 
-         -  *Atomic structure*: Select the atomic structure in the
-            workflow to generate the called *molmap_Map*.
+         -  | *Atomic structure*: Select the atomic structure in the workflow to generate the called *molmap_Map*.
 
-         -  *Select a specific chain?*: In case you are interested in
-            generate the sustrahend *3D map* from the input atomic
-            structure as a whole, answer *No* to this question. However,
-            answer *Yes* if you want to derive that map from a specific
-            chain of the atomic structure. If this is the case, a new
-            param (*Chain of the atomic structure*) will interrogate you
-            about the specific chain that you can select with the help
-            of the wizard on the right.
+         -  | *Select a specific chain?*: In case you are interested in generate the sustrahend *3D map* from the input atomic structure as a whole, answer *No* to this question. However, answer *Yes* if you want to derive that map from a specific chain of the atomic structure. If this is the case, a new param (*Chain of the atomic structure*) will interrogate you about the specific chain that you can select with the help of the wizard on the right.
 
          -  | *Remove residues from the atomic structure?*: Select *Yes*
               to answer this question in case you’d like to count on a
@@ -107,52 +77,15 @@ density map.
               *Chain* since the selection of a different chain wouldn’t
               make sense.
 
-         -  *Apply symmetry to the atomic structure*: In case your input
-            atomic structure to derive the subtrahend *3D map*
-            corresponds to the asymmetric unit and you’d like to have
-            the whole atomic structure or at least several adjacent
-            asymmetric units together with the input one, select the
-            option *Yes*. Otherwise, the subtrahend derived map will
-            only correspond to the asymmetric unit. All *ChimeraX* symmetries will
-            be available
-            (https://www.cgl.ucsf.edu/chimerax/docs/user/commands/sym.html).
-            In case you select symmetries cyclic or dihedral, an
-            additional param will interrogate you about the *Symmetry
-            Order*. Pay attention to the param *Range of distance*, set
-            to *100* by default. This is the distance (in Å) from the
-            center of the input asymmetric unit to the center of
-            additional allowed asymmetric units, in order to select only
-            the closer ones. You should probably modify the default
-            value to regenerate big maps by applying symmetry.
+         -  | *Apply symmetry to the atomic structure*: In case your input atomic structure to derive the subtrahend *3D map* corresponds to the asymmetric unit and you’d like to have the whole atomic structure or at least several adjacent asymmetric units together with the input one, select the option *Yes*. Otherwise, the subtrahend derived map will only correspond to the asymmetric unit. All *ChimeraX* `symmetries <https://www.cgl.ucsf.edu/chimerax/docs/user/commands/sym.html>`_ will be available. In case you select symmetries cyclic or dihedral, an additional param will interrogate you about the *Symmetry Order*. Pay attention to the param *Range of distance*, set to *100* by default. This is the distance (in Å) from the center of the input asymmetric unit to the center of additional allowed asymmetric units, in order to select only the closer ones. You should probably modify the default value to regenerate big maps by applying symmetry.
 
-         -  *Map fraction around the atomic structure?*: Select the
-            option *Yes* if you want to limit the input minuend *3D Map*
-            to a certain area around the atomic structure. This is the
-            option recommended if you have a big starting map and you’d
-            like to substract a much smaller subtrahend
-            structure-derived map since the visualization of results
-            will be much easier. An additional param, *Atom radius (Å)*
-            asks you about the distance around the input structure used
-            to crop the input *3D Map*. *15* is the default value. The
-            *ChimeraX*-generated map is called *zone_Map*.
+         -  | *Map fraction around the atomic structure?*: Select the option *Yes* if you want to limit the input minuend *3D Map* to a certain area around the atomic structure. This is the option recommended if you have a big starting map and you’d like to substract a much smaller subtrahend structure-derived map since the visualization of results will be much easier. An additional param, *Atom radius (Å)* asks you about the distance around the input structure used to crop the input *3D Map*. *15* is the default value. The *ChimeraX*-generated map is called *zone_Map*.
 
-      -  *Other atomic structures*: Additional atomic structures
-         previously downloaded or obtained in *Scipion* can be included here to
-         help you identify particular areas of the map or structure.
-         Then, those structures are only informative and won’t be used
-         to generate the subtrahend map.
+      -  | *Other atomic structures*: Additional atomic structures previously downloaded or obtained in *Scipion* can be included here to help you identify particular areas of the map or structure. Then, those structures are only informative and won’t be used to generate the subtrahend map.
 
-      -  *Filter to apply to the differential map*: *Advanced* parameter
-         to clean the background of the differential map by applying a
-         filter in order to maximize the differences between the minuend
-         and the subtrahend maps, since the differential map usually
-         results quite blurry. This *filtered_Map* will always appear
-         together with the *difference_Map* when the *ChimeraX* graphics window
-         opens. To filter the differential map you can choose between
-         two different filters, *Gaussian* (with variable width) and
-         based on the *Fourier Transform*.
+      -  | *Filter to apply to the differential map*: *Advanced* parameter to clean the background of the differential map by applying a filter in order to maximize the differences between the minuend and the subtrahend maps, since the differential map usually results quite blurry. This *filtered_Map* will always appear together with the *difference_Map* when the *ChimeraX* graphics window opens. To filter the differential map you can choose between two different filters, *Gaussian* (with variable width) and based on the *Fourier Transform*.
 
--  Protocol execution:
+-  | Protocol execution:
 
    | Adding specific volume label is recommended in *Run name* section,
      at the form top. To add the label, open the protocol form, press

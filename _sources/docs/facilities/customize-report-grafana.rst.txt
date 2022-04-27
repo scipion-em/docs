@@ -135,7 +135,7 @@ First create certificate
 * In addition to the default **admin** user you may create a readonly user (use server admin -> Users)
 
 Grafana create Data Source
-________________________
+__________________________
 
 Log into Grafana and  add a data source (see details at https://grafana.com/docs/grafana/latest/features/datasources/add-a-data-source/). Follows a table with the parameters used to create the data source:
 

@@ -5,19 +5,17 @@ ChimeraX Restore Session protocol
 
 Protocol designed to restore *ChimeraX* session, provided that this session has
 been saved previously in *Scipion*. Currently, four protocols save *ChimeraX* sessions when *ChimeraX*
-commands *scipionwrite*, *scipionss* or *scipioncombine* are used, **chimerax-rigid fit**,  **chimerax-operate**, **chimerax-model from template** and **chimerax-map subtraction** (Appendices :ref:`Rigid fit <app:chimeraRigidFit>`, :ref:`Operate <app:chimeraOperate>`, :ref:`Model from template <app:modelFromTemplate>` and :ref:`Map subtraction <app:chimeraMapSubtraction>`, respectively). Restored sessions allow inspect any element contained in a previously saved *ChimeraX* session, perform *ChimeraX* operations, and finally save maps or
+commands *scipionwrite*, *scipionss* or *scipioncombine* are used, **chimerax-rigid fit**,  **chimerax-operate**, **chimerax-model from template** and **chimerax-map subtraction** (Appendices :ref:`CHIMERAX Rigid fit <app:chimeraRigidFit>`, :ref:`Operate <app:chimeraOperate>`, :ref:`Model from template <app:modelFromTemplate>` and :ref:`Map subtraction <app:chimeraMapSubtraction>`, respectively). Restored sessions allow inspect any element contained in a previously saved *ChimeraX* session, perform *ChimeraX* operations, and finally save maps or
 atomic structures.
 
--  Requirements to run this protocol and visualize results:
+-  | Requirements to run this protocol and visualize results:
 
-   -  *Scipion* plugin: **scipion-em**
+   -  | *Scipion* plugin: **scipion-em**
 
-   -  *Scipion* plugin: **scipion-em-chimera**
+   -  | *Scipion* plugin: **scipion-em-chimera**
 
 -  | *Scipion* menu:
    | *Model building -> Tools-Calculators* (:numref:`model_building_app_protocol_chimera_3` (A))
-
--  Protocol form parameters (:numref:`model_building_app_protocol_chimera_3` (B)):
 
    .. figure:: Images_appendix/Fig118.svg
       :alt: Protocol **chimerax-restore session**. A: Protocol location in *Scipion* menu. B: Protocol form.
@@ -27,23 +25,17 @@ atomic structures.
 
       Protocol **chimerax-restore session**. A: Protocol location in *Scipion* menu. B: Protocol form.
 
-   -  *Input* section
+-  | Protocol form parameters (:numref:`model_building_app_protocol_chimera_3` (B)):
 
-      -  *Input protocols*: Parameter that allows to select a particular
-         protocol in which *ChimeraX* session has been saved in *Scipion*. As it was
-         mentioned before, four protocols support this possibility
-         (*ChimeraX rigid fit*, *ChimeraX operate*, *ChimeraX model from template* and *ChimeraX map
-         subtraction*).
+   -  | *Input* section
 
-   -  *Help* section
+      -  | *Input protocols*: Parameter that allows to select a particular protocol in which *ChimeraX* session has been saved in *Scipion*. As it was mentioned before, four protocols support this possibility (*ChimeraX rigid fit*, *ChimeraX operate*, *ChimeraX model from template* and *ChimeraX map subtraction*).
 
-      This section contains *ChimeraX* commands required to save *models*
-      according to their reference volumes, which can also be saved if
-      required. Remark that using *scipionwrite* command, session will
-      be saved by default, without prejudice that it may be saved with
-      *scipionss* command. *ChimeraX* sessions can be restored again by using this same **chimerax-restore session** protocol.
+   -  | *Help* section
 
--  Protocol execution:
+      | This section contains *ChimeraX* commands required to save *models* according to their reference volumes, which can also be saved if required. Remark that using *scipionwrite* command, session will be saved by default, without prejudice that it may be saved with *scipionss* command. *ChimeraX* sessions can be restored again by using this same **chimerax-restore session** protocol.
+
+-  | Protocol execution:
 
    | Adding specific protocol label is recommended in *Run name*
      section, at the form top. To add the label, open the protocol form,
@@ -86,22 +78,15 @@ atomic structures.
         structure is optional, although quite recomendable.
 
 
-   -  Close *ChimeraX* graphics window.
+   -  | Close *ChimeraX* graphics window.
 
--  Visualization of protocol results:
+-  | Visualization of protocol results:
 
-   After executing the protocol, press *Analyze Results* and *ChimeraX* graphics
-   window will be opened by default. Atomic structures and volumes are
-   referred to the origin of coordinates in *ChimeraX*. To show the relative
-   position of atomic structures and electron density volumes, the three
-   coordinate axes are represented; X axis (red), Y axis (yellow), and Z
-   axis (blue) (:numref:`model_building_app_protocol_volume_3`). In this particular case a *ChimeraX* graphics window identical
-   to the input session will be opened and it will include every element
-   saved lately.
+   | After executing the protocol, press *Analyze Results* and *ChimeraX* graphics window will be opened by default. Atomic structures and volumes are referred to the origin of coordinates in *ChimeraX*. To show the relative position of atomic structures and electron density volumes, the three coordinate axes are represented; X axis (red), Y axis (yellow), and Z axis (blue) (:numref:`model_building_app_protocol_volume_3`). In this particular case a *ChimeraX* graphics window identical to the input session will be opened and it will include every element saved lately.
 
--  Summary content:
+-  | Summary content:
 
-   -  If an atomic structure is generated:
+   -  | If an atomic structure is generated:
 
       -  | Protocol output (below *Scipion* framework):
          | *chimerax - operate -> output atomic structure name, starting
@@ -117,7 +102,7 @@ atomic structures.
            file)
          | we have some result
 
-   -  If a volume is generated:
+   -  | If a volume is generated:
 
       -  | Protocol output (below *Scipion* framework):
          | *chimerax - operate -> output 3D map name*; *Volume (x, y,

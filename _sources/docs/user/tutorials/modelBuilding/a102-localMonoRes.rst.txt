@@ -9,13 +9,13 @@ accurate method developed to compute the local resolution of a 3D map
 based on the calculation of the amplitude of the monogenic signal after
 filtering the map at different frequencies.
 
--  Requirements to run this protocol and visualize results:
+-  | Requirements to run this protocol and visualize results:
 
-   -  *Scipion* plugin: **scipion-em**
+   -  | *Scipion* plugin: **scipion-em**
 
-   -  *Scipion* plugin: **scipion-em-xmipp**
+   -  | *Scipion* plugin: **scipion-em-xmipp**
 
-   -  *Scipion* plugin: **scipion-em-chimera**
+   -  | *Scipion* plugin: **scipion-em-chimera**
 
 -  | *Scipion* menu:
    | *Model building -> Preprocess map* (:numref:`model_building_app_localMonoRes_1` (A))
@@ -28,52 +28,23 @@ filtering the map at different frequencies.
 
       Protocol **xmipp3-local MonoRes**. A: Protocol location in *Scipion* menu. B: Protocol form.
 
--  Protocol form parameters (:numref:`model_building_app_localMonoRes_1` (B)):
+-  | Protocol form parameters (:numref:`model_building_app_localMonoRes_1` (B)):
 
-   -  *Would you like to use half volumes?*: Option “No” has been
-      selected by default, with the box *Input Volume* to fill in with
-      the volume, imported or generated in *Scipion*. However, since the noise
-      estimation needed to determine the local resolution is based on
-      half volumes, select “Yes” whenever half volumes are available. A
-      couple of boxes will thus be opened to select both half volumes,
-      *Volume Half 1* and *Volume Half 2*. If you want an appropriate
-      computation of local resolution try to use half maps, or raw
-      average maps otherwise. Avoid using postprocessed or sharpened
-      maps.
+   -  | *Would you like to use half volumes?*: Option “No” has been selected by default, with the box *Input Volume* to fill in with the volume, imported or generated in *Scipion*. However, since the noise estimation needed to determine the local resolution is based on half volumes, select “Yes” whenever half volumes are available. A couple of boxes will thus be opened to select both half volumes, *Volume Half 1* and *Volume Half 2*. If you want an appropriate computation of local resolution try to use half maps, or raw average maps otherwise. Avoid using postprocessed or sharpened maps.
 
-   -  *Binary Mask*: Mask that will be overlapped to the map volume in
-      order to indicate which points of the map are specimen and which
-      are not.
+   -  | *Binary Mask*: Mask that will be overlapped to the map volume in order to indicate which points of the map are specimen and which are not.
 
-   -  *Exclude area*: Advanced parameter to select part of the specimen
-      that should be excluded from the estimation of local resolution,
-      for example in viruses to exclude the inner genetic material or in
-      membrane proteins to exclude fosfolipids. Remark that we are
-      talking about part of the specimen (signal and not noise) in which
-      we are simply not interested.
+   -  | *Exclude area*: Advanced parameter to select part of the specimen that should be excluded from the estimation of local resolution, for example in viruses to exclude the inner genetic material or in membrane proteins to exclude fosfolipids. Remark that we are talking about part of the specimen (signal and not noise) in which we are simply not interested.
 
-   -  *Extra parameters*:
+   -  | *Extra parameters*:
 
-      -  *Resolution Range (Å)*: Interval of resolution expected, from
-         the maximum resolution (*High* = 0.0 by default), to the
-         minimal resolution (*Low*) of the map volume. This parameter is
-         empty by default and :math:`MonoRes` will try to estimate it.
-         *Step* is an advanced parameter that indicates the fraction of
-         resolution of each interval in the range contained between the
-         max and min resolution.
+      -  | *Resolution Range (Å)*: Interval of resolution expected, from the maximum resolution (*High* = 0.0 by default), to the minimal resolution (*Low*) of the map volume. This parameter is empty by default and :math:`MonoRes` will try to estimate it. *Step* is an advanced parameter that indicates the fraction of resolution of each interval in the range contained between the max and min resolution.
 
-      -  *Significance*: Advanced parameter that determines the
-         significance of the hypothesis test computed to calculate the
-         resolution (0.95 by default).
+      -  | *Significance*: Advanced parameter that determines the significance of the hypothesis test computed to calculate the resolution (0.95 by default).
 
-      -  *Mask threshold*: Advanced parameter that indicates the density
-         value required to get a binary mask in case there is none (0.5
-         by default). Density values below the threshold will be changed
-         to 0 and values above the threshold will be changed to 1.
+      -  | *Mask threshold*: Advanced parameter that indicates the density value required to get a binary mask in case there is none (0.5 by default). Density values below the threshold will be changed to 0 and values above the threshold will be changed to 1.
 
-      -  *Consider noise gaussian?*: “No” by default has to be changed
-         to “Yes” if you prefer to establish the premise that the noise
-         follows a gaussian distribution.
+      -  | *Consider noise gaussian?*: “No” by default has to be changed to “Yes” if you prefer to establish the premise that the noise follows a gaussian distribution.
 
 -  | Protocol execution:
 
@@ -87,10 +58,9 @@ filtering the map at different frequencies.
 
    | Press the *Execute* red button at the form bottom.
 
--  Visualization of protocol results:
+-  | Visualization of protocol results:
 
-   After executing the protocol, press *Analyze Results* and a menu
-   window will be opened (:numref:`model_building_app_localMonoRes_2`):
+   | After executing the protocol, press *Analyze Results* and a menu window will be opened (:numref:`model_building_app_localMonoRes_2`):
 
    .. figure:: Images_appendix/Fig209.svg
       :alt: Protocol **xmipp3-local MonoRes**. Menu to visualize results.
@@ -100,51 +70,35 @@ filtering the map at different frequencies.
 
       Protocol **xmipp3-local MonoRes**. Menu to visualize results.
 
-   -  *Show resolution slices*: Map resolution slices are opened with
-      `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_, the
-      default *Scipion* viewer.
+   -  | *Show resolution slices*: Map resolution slices are opened with `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_, the default *Scipion* viewer.
 
-   -  *Show original volume slices*: Original map slices are opened with
-      `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_.
+   -  | *Show original volume slices*: Original map slices are opened with `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_.
 
-   -  *Show resolution histogram*: Number of map voxels that show a
-      certain resolution.
+   -  | *Show resolution histogram*: Number of map voxels that show a certain resolution.
 
-   -  *Colored resolution Slices and Volumes*: Box that allows to
-      display local resolution of map and slices according to a specific
-      color code.
+   -  | *Colored resolution Slices and Volumes*: Box that allows to display local resolution of map and slices according to a specific color code.
 
-      -  *Slice axis*: Select the perpendicular axis to visualize the
-         slices. The *Z* axis is perpendicular to the screen.
+      -  | *Slice axis*: Select the perpendicular axis to visualize the slices. The *Z* axis is perpendicular to the screen.
 
-      -  *Show colored slices*: Map slices 34, 45, 56 and 67 of local
-         resolution along the axis selected previously.
+      -  | *Show colored slices*: Map slices 34, 45, 56 and 67 of local resolution along the axis selected previously.
 
-      -  *Show selected slice*: Advanced parameter to show by default
-         the 51 local resolution slide, or any other selected along the
-         axis previously selected.
+      -  | *Show selected slice*: Advanced parameter to show by default the 51 local resolution slide, or any other selected along the axis previously selected.
 
-      -  *Show slice number*: Advanced parameter to select the slice
-         number to be shown by *Show selected slice*.
+      -  | *Show slice number*: Advanced parameter to select the slice number to be shown by *Show selected slice*.
 
-      -  *Show Resolution map in ChimeraX*: The resolution map is shown
-         using *ChimeraX*. Left hand bar indicates resolution
-         colour code.
+      -  | *Show Resolution map in ChimeraX*: The resolution map is shown using *ChimeraX*. Left hand bar indicates resolution colour code.
 
-         -  *Color scale options*: Highest value of the resolution
-            range.
+         -  | *Color scale options*: Highest value of the resolution range.
 
-         -  *Lowest*: Lowest value of the resolution range.
+         -  | *Lowest*: Lowest value of the resolution range.
 
-         -  *Intervals*: Number of resolution intervals from the highest
-            to the lowest range value.
+         -  | *Intervals*: Number of resolution intervals from the highest to the lowest range value.
 
-         -  *Color set*: `Color <http://matplotlib.org/1.3.0/examples/color/colormaps_reference.html>`_ to apply to the local resolution map.
+         -  | *Color set*: `Color <http://matplotlib.org/1.3.0/examples/color/colormaps_reference.html>`_ to apply to the local resolution map.
 
-         ``NOTE:`` Remark that on the right side you have a wizard to
-         control color params.
+         | ``NOTE:`` Remark that on the right side you have a wizard to control color params.
 
--  Summary content:
+-  | Summary content:
 
    -  | Protocol output (below *Scipion* framework):
       | *xmipp3 - local MonoRes -> resolution_Volume*;

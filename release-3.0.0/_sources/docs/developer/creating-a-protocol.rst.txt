@@ -469,7 +469,7 @@ information to the final user. All these functions will return a list of
 strings, whose meaning is different in each case.
 
 Input validations and Warnings customization
--------------------------------------------
+--------------------------------------------
 
 The ``_validate`` and ``_warnings`` methods will be called just before a
 protocol is executed. Both could return a list of string messages,

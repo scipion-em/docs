@@ -20,7 +20,7 @@ evaluation process.
 
    -  | *Scipion* plugin: **scipion-em-phenix**
 
-   -  | **PHENIX software suite** (tested for versions 1.13-2998, 1.16-3549, 1.17.1-3660 and 1.18.2-3874)
+   -  | **PHENIX software suite** (tested for versions 1.13-2998, 1.16-3549, 1.17.1-3660, 1.18.2-3874, 1.19.2-4158 and 1.20.1-4487)
 
    -  | *Scipion* plugin: **scipion-em-ccp4**
 
