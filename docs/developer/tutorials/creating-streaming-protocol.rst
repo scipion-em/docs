@@ -335,7 +335,7 @@ But the ``registerImageStep`` is not being invoked by the protocol yet. Furtherm
 one step per downloaded file.
 
 The ``_stepsCheck`` method
-_________________________
+__________________________
 
 All protocols have a method called ``_stepsCheck``. The default implementation doesn't do anything.
 Scipion executes the steps in a loop until all the steps are completed. During the execution of the steps

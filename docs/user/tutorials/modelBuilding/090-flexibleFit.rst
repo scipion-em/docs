@@ -26,7 +26,7 @@ Observe the new steps in the modeling *Scipion* workflow in :numref:`model_build
    *Scipion* framework detailing the workflow to refine the model of the human *Hgb* :math:`\alpha` subunit in the map asymmetric unit.
 
 CCP4 *Coot* Refinement
----------------
+----------------------
 
 Initially devoted to atomic models obtained by X-ray crystallography
 methods, *Coot* (from Crystallopgraphic Object-Oriented Toolkit) is a 3D
@@ -47,7 +47,7 @@ the *Coot* graphics window will appear to start working.
    :align: center
    :width: 100.0%
 
-   | Filling in the *Coot* refinement protocol.
+   Filling in the *Coot* refinement protocol.
 
 | To check the objects downloaded in *Coot*, go to the second bar of the main
   menu and select *Display Manager*. Maps (numbers *#1*, *#2* and *#3*) and model *Hgb_alpha_Atom_struct__3_007124.cif* (number *#0*) are
@@ -226,7 +226,7 @@ to *Validate -> Density fit analysis* and check if the orange bar shown in *MET*
 .. _`requestion2`:
 
 *PHENIX* Real Space Refine
------------------
+--------------------------
 
 | In order to compare the previous *Coot* interactive refinement with an
   automatic refinement, we are going to use the **phenix-real space refine** protocol in parallel, as
@@ -320,7 +320,7 @@ the normalized map asymmetric unit saved in *Coot*.
   thus possible.
 
 *PHENIX* Search Fit
-----------
+-------------------
 
 An extension of *PHENIX* Real Space Refine is **phenix-search fit**, a protocol implemented in *Scipion* to fit
 a small sequence of residues in a certain density of the map and,
@@ -454,7 +454,7 @@ remarked in red in the *Summary Plot*.
 .. _`requestion3`:
  
 *CCP4 Refmac* 
-----------
+-------------
 
 As in the case of *Coot*, *Refmac* (from maximum-likelihood Refinement of
 Macromolecules) was initially developed to optimize models obtained by

@@ -51,7 +51,7 @@ in the upper menu (1) you can distinguish the *Hgb* :math:`\alpha` subunit
 .. _`section_structural_models`:
 
 Structural models of human *metHgb* subunits from templates
----------------------------------------------------------
+-----------------------------------------------------------
 
 *Modeller* :cite:p:`sali1993` is one of the computational web services
 used by *ChimeraX*, which provides the interface to run the program. Working with *Modeller*
@@ -267,7 +267,7 @@ Additional exercises for practising
    sequences.
 
 Option of recovering the *ChimeraX* session
---------------------------------
+-------------------------------------------
 
 If for any reason you decide to go back and check a different *model* from the
 five *models* initially provided by *Modeller*, you can do it by using **chimerax-restore session** protocol (Appendix :ref:`ChimeraX restore session <app:chimeraRestoreSession>`). This

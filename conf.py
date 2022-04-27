@@ -62,6 +62,7 @@ extensions = [
 ]
 bibtex_bibfiles = ['em.bib']
 bibtex_reference_style = u'author_year'
+autosectionlabel_prefix_document = True
 
 napoleon_google_docstring = False
 napoleon_use_param = False

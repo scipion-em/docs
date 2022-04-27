@@ -26,7 +26,7 @@ included in the *Scipion* framework.
 .. _`requestion1`:
 
 How to identify *templates* of the *target sequence*
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Similarity searching programs like *BLAST* (:numref:`model_building_blastp`) :cite:p:`altschul1997`,
 available in `BLAST <https://blast.ncbi.nlm.nih.gov/Blast.cgi>`_, use the *target sequence* (1) to
