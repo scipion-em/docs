@@ -50,7 +50,7 @@ Model Building
 .. toctree::
     :maxdepth: 1
 
-    Model Building by Homology <tutorials/modelBuilding/modelBuilding/index>
+    Model Building by Homology <tutorials/modelBuilding/Homology/index>
     Build initial model with Alphafold <tutorials/modelBuilding/Alphafold/index>
 
 Processing How To's
