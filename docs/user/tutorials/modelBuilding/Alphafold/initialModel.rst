@@ -1,0 +1,2 @@
+Get inital AlphaFold model 
+==========================

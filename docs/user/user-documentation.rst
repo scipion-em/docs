@@ -50,7 +50,7 @@ Model Building
 .. toctree::
     :maxdepth: 1
 
-    Model Building Tutorial <tutorials/modelBuilding/index>
+    Model Building Tutorials <tutorials/modelBuilding/index>
 
 Processing How To's
 ===================
