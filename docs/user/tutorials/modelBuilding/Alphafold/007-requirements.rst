@@ -4,8 +4,8 @@ Prelude
 Requirements
 ------------
 
-This tutorial requires, in addition to *Scipion* (plugins chimera and phenix),
-the `PHENIX suite <https://www.phenix-online.org/download/>`_. 
+This tutorial requires, in addition to *Scipion* (plugins scipion-em-chimera and scipion-em-phenix),
+the `PHENIX suite <https://www.phenix-online.org/download/>`_. This tutorial has been tested for the PHENIX v. 1.20.1-4487.
 
 We'd like to hear from you
 --------------------------

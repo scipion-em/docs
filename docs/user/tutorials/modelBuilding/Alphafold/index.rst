@@ -1,15 +1,15 @@
-Predicting initial models with Alphafold
+Predicting initial models with AlphaFold
 ========================================
 
-AlphaFold network predicts the 3D coordinates of all heavy atoms for a given protein using mainly the primary amino acid sequence and aligned sequences of homologues as inputs. 
+AlphaFold neural network predicts the 3D coordinates of all heavy atoms for a given protein using solely the primary amino acid sequence as input :cite:p:`jumper2021`. 
 
-In this tutorial we show how to generate AlphaFold models of your sequence and rebuild them using the 3D density map. We use the approach described in the `phenix web site <https://phenix-online.org/documentation/reference/alphafold.html>`_ and summarized as:
+In this tutorial we show how to generate AlphaFold models of your sequence and rebuild them using the 3D density map. We use the *Scipion* framework and the approach described in the `PHENIX  <https://phenix-online.org/documentation/reference/alphafold.html>`_ web site and summarized as:
 
 
-* Get inital AlphaFold model
-* Trim the model and break it into rigid domains
-* Dock your models (cryo-EM) to place them in the right places in your map or unit cell.
-* Fill in the missing parts of your models.
+* Get the initial AlphaFold model
+* Remove low-confidence residues of the model and break it into compact domains
+* Dock the domains obtained in the previous model processing step into your cryo-EM  map or unit cell
+* Morph the docked fragments and rebuild the whole predicted model in the map density
 
 Contents
 --------
@@ -20,7 +20,20 @@ Contents
    005-versionhistory
    007-requirements
    010-introduction
-   initialModel
-   breakRigidDomains
-   dock
-   fill
+   020-initialModel
+   030-processModel
+   040-dockModel
+   050-rebuildModel
+
+Appendices
+----------
+.. toctree::
+   :maxdepth: 1
+   :numbered:
+
+   a010-alphafoldPredictionProtocol
+   a020-processPredictedProtocol
+   a030-dockPredictedModelProtocol
+   a040-rebuildPredictedModelProtocol
+   a050-dockAndRebuildProtocol
+   
