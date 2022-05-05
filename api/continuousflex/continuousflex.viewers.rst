@@ -19,6 +19,8 @@ Submodules
    continuousflex.viewers.nma_plotter
    continuousflex.viewers.plotter
    continuousflex.viewers.plotter_vol
+   continuousflex.viewers.viewer_deephemnma_infer
+   continuousflex.viewers.viewer_deephemnma_train
    continuousflex.viewers.viewer_genesis
    continuousflex.viewers.viewer_heteroflow
    continuousflex.viewers.viewer_heteroflow_dimred

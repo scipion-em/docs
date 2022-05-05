@@ -22,6 +22,8 @@ Submodules
    continuousflex.protocols.protocol_batch_cluster
    continuousflex.protocols.protocol_batch_cluster_heteroflow
    continuousflex.protocols.protocol_batch_cluster_vol
+   continuousflex.protocols.protocol_deep_hemnma_infer
+   continuousflex.protocols.protocol_deep_hemnma_train
    continuousflex.protocols.protocol_denoise_volumes
    continuousflex.protocols.protocol_genesis
    continuousflex.protocols.protocol_heteroflow

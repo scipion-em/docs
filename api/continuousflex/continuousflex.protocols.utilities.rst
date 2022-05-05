@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    continuousflex.protocols.utilities.mwr
+   continuousflex.protocols.utilities.processing_dh
    continuousflex.protocols.utilities.spider_matlab
 
 Submodules
@@ -18,6 +19,8 @@ Submodules
 
    continuousflex.protocols.utilities.OF_plots
    continuousflex.protocols.utilities.bm4d
+   continuousflex.protocols.utilities.deep_hemnma
+   continuousflex.protocols.utilities.deep_hemnma_infer
    continuousflex.protocols.utilities.dynamo
    continuousflex.protocols.utilities.genesis_utilities
    continuousflex.protocols.utilities.mwr_wrapper
