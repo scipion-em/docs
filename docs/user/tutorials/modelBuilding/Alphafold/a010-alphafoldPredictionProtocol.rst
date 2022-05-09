@@ -11,8 +11,6 @@ AlphaFold2 Initial Model Prediction protocol
 
    -  | *Scipion* plugin: **scipion-em-chimera**
 
-   -  | **PHENIX software suite** (tested for version 1.20.1-4487)
-
 -  | *Scipion* menu: *Model building -> Initial model* (:numref:`model_building_app_protocol_alphafold_prediction_1` (A))
 
    .. figure:: Images_appendix/Fig309.svg
