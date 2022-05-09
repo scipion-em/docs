@@ -3,7 +3,7 @@
 Phenix Process Predicted Model protocol
 =======================================
 
-*PHENIX*-based protocol designed to process AlphaFold2 :cite:p:`jumper2021`, RoseTTAFold :cite:p:`baek2021` and other predicted models in *Scipion*. According to `PHENIX documentation <https://phenix-online.org/documentation/reference/process_predicted_model.html>`_ the tool *process_predicted_model* allows to remove the lowest confidence residues of a predicted atom structure, (optionally) to split the model into compact domains, and to replace by pseudo-B values the values included by default in the B-factor column by the different prediction programs.  
+*PHENIX*-based protocol designed to process AlphaFold2 :cite:p:`jumper2021`, RoseTTAFold :cite:p:`baek2021` and other predicted models in *Scipion*. According to `PHENIX documentation <https://phenix-online.org/documentation/reference/process_predicted_model.html>`_ the tool *process_predicted_model* starts replacing the confidence values (LDDT) or error estimates (RMSD) included in the B-factor column of a predicted atom structure by B or pseudo-B values. Then, it removes the lowest confidence residues (high B-values) and, optionally, it splits the model into compact domains. 
 
 -  | Requirements to run this protocol and visualize results:
 
@@ -33,13 +33,13 @@ Phenix Process Predicted Model protocol
 
    -  | *Contents of B-value field*: Three different types of values can be represented in the B-factor column of any atom structure file and the user should select one of them:
 
-	-  | *LDDT (AlphaFold2)*: LDDT stands for *local-distance difference test* and computes the accuracy of the backbone prediction. AlphaFold 2 produces a per-residue confidence score (pLDDT, predicted LDDT) that varies between 0 and 100. Only values above 70 are accepted for confident residues. Fractional values between 0 and 1 are also accepted. Although 70 is considered the default value, the user can modify this value through the next parameter:
+	-  | *LDDT (AlphaFold2)*: LDDT stands for *local-distance difference test* and computes the accuracy of the backbone prediction. AlphaFold 2 produces a per-residue confidence score (pLDDT, predicted LDDT) that varies between 0 (bad) and 100 (good). Only values above 70 are accepted for confident residues. Although 70 is considered the default value, the user can modify this value through the next parameter:
 
 		-  | *Minimum LDDT value*: Cutoff confidence value used to remove low-confidence residues. A minimum LDDT of 70 (default value) corresponds to a maximum RMSD of 1.5.
 
-	-  | *RMSD*: 
+	-  | *RMSD*: Root Mean Square Deviation as confidence value in Angstroms. Residues with values higher than 1.5 are not acceptable. An empirical formula converts LDDT values in error estimates (`PHENIX documentation <https://phenix-online.org/documentation/reference/process_predicted_model.html>`_).
 
-	-  | *B-value*: 
+	-  | *B-value*: Single number generated from the fluctuations of the atoms in all the frames.
 
 	-  | *Remove low-confidence residues*:
 
