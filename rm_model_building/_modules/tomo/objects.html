@@ -229,6 +229,80 @@
 <span class="kn">import</span> <span class="nn">tomo.constants</span> <span class="k">as</span> <span class="nn">const</span>
 
 
+<div class="viewcode-block" id="convertMatrix"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.convertMatrix">[docs]</a><span class="k">def</span> <span class="nf">convertMatrix</span><span class="p">(</span><span class="n">M</span><span class="p">,</span> <span class="n">convention</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Parameters:</span>
+<span class="sd">                - M --&gt; Transformation matrix</span>
+<span class="sd">                - convention --&gt; One of the valid conventions to convert M. It can be:</span>
+<span class="sd">                    * None         : Return the matrix stored in the metadata (Scipion convention).</span>
+<span class="sd">                    * relion (str) : Relion matrix convention</span>
+<span class="sd">                    * eman (str)   : Eman matrix convention</span>
+<span class="sd">                - direction --&gt; Determine how to perform the conversion (not considered if convention is None):</span>
+<span class="sd">                    * &#39;get&#39; (str)   : Convert the matrix stored in metadata (Scipion definition) to the given &#39;convention&#39;</span>
+<span class="sd">                    * &#39;set&#39; (str)   : Convert the matrix from the given &#39;convention&#39; to Scipion definition</span>
+
+<span class="sd">            Scipion transformation matrix definition is described in detailed below:</span>
+
+<span class="sd">               Notation:</span>
+<span class="sd">                    - r      --&gt; A 3D position vector</span>
+<span class="sd">                    - f&#39;(r)  --&gt; Moved map</span>
+<span class="sd">                    - f(r)   --&gt; Reference</span>
+<span class="sd">                    - M      --&gt; Matrix to be stored by Scipion</span>
+<span class="sd">                    - @      --&gt; Matrix product</span>
+
+<span class="sd">               Definition:</span>
+
+<span class="sd">                   f&#39;(r) = f(M@r)</span>
+
+<span class="sd">               Example:</span>
+
+<span class="sd">                   If r = (0,0,0,1) = o (origin vector) and M is a translation only transformation matrix</span>
+<span class="sd">                   of the form:</span>
+
+<span class="sd">                        M = [[1,0,0,0],[0,1,0,0],[0,0,0,1],[-dx,-dy,-dz,1]]</span>
+
+<span class="sd">                   Being dx, dy, and dz a infinitesimally small displacement, then our transformation</span>
+<span class="sd">                   verifies that:</span>
+
+<span class="sd">                        f&#39;(o) = f(M@o) = [-dx,-dy,-dz,1]</span>
+
+<span class="sd">            We include conversions to the following matrix conventions:</span>
+
+<span class="sd">                - Eman: Same as Scipion convention</span>
+
+<span class="sd">                - Relion:</span>
+<span class="sd">                    Notation:</span>
+<span class="sd">                        - X&#39;  --&gt;  inverse of a matrix</span>
+<span class="sd">                        - T   --&gt;  translation matrix</span>
+<span class="sd">                        - R   ---&gt; rotation matrix</span>
+<span class="sd">                        - M   --&gt;  Scipion transformation matrix</span>
+<span class="sd">                        - N   --&gt;  Relion transformation matrix</span>
+<span class="sd">                        - @   --&gt;  Matrix multiplication</span>
+
+<span class="sd">                    Conversion Scipion --&gt; Relion</span>
+<span class="sd">                        M = R@T&#39; =&gt; T = M&#39;@R</span>
+<span class="sd">                        *** N = T@R = M&#39;@R@R ***</span>
+
+<span class="sd">                    Conversion Relion --&gt; Scipion</span>
+<span class="sd">                        N = M&#39;@R@R =&gt; M&#39; = N@R&#39;@R&#39; =&gt; *** M = R@R@N&#39; ***</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">convention</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">convention</span> <span class="o">==</span> <span class="s2">&quot;eman&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">M</span>
+    <span class="k">elif</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;get&#39;</span> <span class="ow">and</span> <span class="n">convention</span> <span class="o">==</span> <span class="s1">&#39;relion&#39;</span><span class="p">:</span>
+        <span class="c1"># Rotation matrix. Remove translation from the Scipion matrix</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="n">R</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">M</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">Mi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">Mi</span> <span class="o">@</span> <span class="n">R</span> <span class="o">@</span> <span class="n">R</span>
+    <span class="k">elif</span> <span class="n">direction</span> <span class="o">==</span> <span class="s1">&#39;set&#39;</span> <span class="ow">and</span> <span class="n">convention</span> <span class="o">==</span> <span class="s1">&#39;relion&#39;</span><span class="p">:</span>
+        <span class="c1"># Rotation matrix. Remove translation from the Scipion matrix</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="n">R</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">M</span><span class="p">[:</span><span class="mi">3</span><span class="p">,</span> <span class="p">:</span><span class="mi">3</span><span class="p">]</span>
+        <span class="n">Mi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">M</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">R</span> <span class="o">@</span> <span class="n">R</span> <span class="o">@</span> <span class="n">Mi</span></div>
+
+
 <div class="viewcode-block" id="TiltImageBase"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.TiltImageBase">[docs]</a><span class="k">class</span> <span class="nc">TiltImageBase</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot; Base class for TiltImageM and TiltImage. &quot;&quot;&quot;</span>
 
@@ -450,7 +524,7 @@
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;ERROR: Some tilt-image is missing from transform object associated.&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">path</span><span class="o">.</span><span class="n">createLink</span><span class="p">(</span><span class="n">inputFilePath</span><span class="p">,</span> <span class="n">outputFilePath</span><span class="p">)</span></div>
+            <span class="n">path</span><span class="o">.</span><span class="n">createAbsLink</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">inputFilePath</span><span class="p">),</span> <span class="n">outputFilePath</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_dimStr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return the string representing the dimensions. &quot;&quot;&quot;</span>
@@ -459,7 +533,7 @@
                             <span class="bp">self</span><span class="o">.</span><span class="n">_firstDim</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
 
 <div class="viewcode-block" id="TiltSeries.writeNewstcomFile"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.TiltSeries.writeNewstcomFile">[docs]</a>    <span class="k">def</span> <span class="nf">writeNewstcomFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts_folder</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;Writes an artifitial newst.com file&#39;&#39;&#39;</span>
+        <span class="sd">&quot;&quot;&quot;Writes an artificial newst.com file&quot;&quot;&quot;</span>
         <span class="n">newstcomPath</span> <span class="o">=</span> <span class="n">ts_folder</span> <span class="o">+</span> <span class="s1">&#39;/newst.com&#39;</span>
         <span class="n">pathi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getTsId</span><span class="p">()</span>
         <span class="n">taperAtFill</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;taperAtFill&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
@@ -488,7 +562,7 @@
         <span class="k">return</span> <span class="n">newstcomPath</span></div>
 
 <div class="viewcode-block" id="TiltSeries.writeTiltcomFile"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.TiltSeries.writeTiltcomFile">[docs]</a>    <span class="k">def</span> <span class="nf">writeTiltcomFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts_folder</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&#39;&#39;&#39;Writes an artifitial tilt.com file&#39;&#39;&#39;</span>
+        <span class="sd">&quot;&quot;&quot;Writes an artificial tilt.com file&quot;&quot;&quot;</span>
         <span class="n">tiltcomPath</span> <span class="o">=</span> <span class="n">ts_folder</span> <span class="o">+</span> <span class="s1">&#39;/tilt.com&#39;</span>
         <span class="n">pathi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getTsId</span><span class="p">()</span>
         <span class="n">thickness</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;thickness&#39;</span><span class="p">,</span> <span class="mi">500</span><span class="p">)</span>
@@ -502,6 +576,10 @@
         <span class="n">mode</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">subsetStart</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;subsetStart&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
         <span class="n">actionIfGPUFails</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;actionIfGPUFails&#39;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+
+        <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getDim</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">getDim</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;swapDims&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="p">(</span><span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
 
         <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">tiltcomPath</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;$tilt -StandardInput</span><span class="se">\n\</span>
@@ -518,7 +596,7 @@
 <span class="s1">PERPENDICULAR</span><span class="se">\n\</span>
 <span class="s1">MODE </span><span class="si">{}</span><span class="se">\n\</span>
 <span class="s1">FULLIMAGE </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="se">\n\</span>
-<span class="s1">SUBSETSTART 0 0</span><span class="se">\n\</span>
+<span class="s1">SUBSETSTART </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="se">\n\</span>
 <span class="s1">AdjustOrigin</span><span class="se">\n\</span>
 <span class="s1">ActionIfGPUFails </span><span class="si">{}</span><span class="s1">,</span><span class="si">{}</span><span class="se">\n\</span>
 <span class="s1">XTILTFILE </span><span class="si">{}</span><span class="s1">.xtilt</span><span class="se">\n\</span>
@@ -527,7 +605,7 @@
 <span class="s1">$if (-e ./savework) ./savework&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pathi</span><span class="p">,</span> <span class="n">pathi</span><span class="p">,</span> <span class="n">binned</span><span class="p">,</span> <span class="n">pathi</span><span class="p">,</span> <span class="n">thickness</span><span class="p">,</span>
                                        <span class="n">radial</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">radial</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">xAxisTill</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span>
                                        <span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">scale</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">mode</span><span class="p">,</span>
-                                       <span class="bp">self</span><span class="o">.</span><span class="n">getDim</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">getDim</span><span class="p">()[</span><span class="mi">1</span><span class="p">],</span>
+                                       <span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                                        <span class="n">subsetStart</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">subsetStart</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                                        <span class="n">actionIfGPUFails</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">actionIfGPUFails</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
                                        <span class="n">pathi</span><span class="p">,</span> <span class="n">offset</span><span class="p">,</span> <span class="n">shift</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">shift</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
@@ -1111,16 +1189,17 @@
 <div class="viewcode-block" id="Coordinate3D.shiftZ"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.shiftZ">[docs]</a>    <span class="k">def</span> <span class="nf">shiftZ</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shiftZ</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">shiftZ</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Coordinate3D.setMatrix"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.setMatrix">[docs]</a>    <span class="k">def</span> <span class="nf">setMatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matrix</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_eulerMatrix</span><span class="o">.</span><span class="n">setMatrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span></div>
+<div class="viewcode-block" id="Coordinate3D.setMatrix"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.setMatrix">[docs]</a>    <span class="k">def</span> <span class="nf">setMatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matrix</span><span class="p">,</span> <span class="n">convention</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eulerMatrix</span><span class="o">.</span><span class="n">setMatrix</span><span class="p">(</span><span class="n">convertMatrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">SET</span><span class="p">,</span> <span class="n">convention</span><span class="o">=</span><span class="n">convention</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="Coordinate3D.getMatrix"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.getMatrix">[docs]</a>    <span class="k">def</span> <span class="nf">getMatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eulerMatrix</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">()</span></div>
+<div class="viewcode-block" id="Coordinate3D.getMatrix"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.getMatrix">[docs]</a>    <span class="k">def</span> <span class="nf">getMatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">convention</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">convertMatrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_eulerMatrix</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">(),</span> <span class="n">direction</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="n">convention</span><span class="o">=</span><span class="n">convention</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Coordinate3D.hasTransform"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.hasTransform">[docs]</a>    <span class="k">def</span> <span class="nf">hasTransform</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_eulerMatrix</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Coordinate3D.euler2Matrix"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.euler2Matrix">[docs]</a>    <span class="k">def</span> <span class="nf">euler2Matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+        <span class="c1"># FIXME: Queremos mantener esta conversion? Puede ser muy lioso</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eulerMatrix</span><span class="o">.</span><span class="n">setMatrix</span><span class="p">(</span><span class="n">euler_matrix</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="Coordinate3D.eulerAngles"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.Coordinate3D.eulerAngles">[docs]</a>    <span class="k">def</span> <span class="nf">eulerAngles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1504,7 +1583,20 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">sr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
             <span class="n">origin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getShiftsFromOrigin</span><span class="p">()</span>
-            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">sr</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">sr</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">sr</span><span class="p">)</span></div></div>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">sr</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">sr</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="n">sr</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SubTomogram.setTransform"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.SubTomogram.setTransform">[docs]</a>    <span class="k">def</span> <span class="nf">setTransform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newTransform</span><span class="p">,</span> <span class="n">convention</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">newTransform</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">newTransform</span> <span class="o">=</span> <span class="n">Transform</span><span class="p">()</span>
+            <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">matrix</span> <span class="o">=</span> <span class="n">newTransform</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">()</span>
+        <span class="n">newTransform</span><span class="o">.</span><span class="n">setMatrix</span><span class="p">(</span><span class="n">convertMatrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">SET</span><span class="p">,</span> <span class="n">convention</span><span class="o">=</span><span class="n">convention</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_transform</span> <span class="o">=</span> <span class="n">newTransform</span></div>
+
+<div class="viewcode-block" id="SubTomogram.getTransform"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.SubTomogram.getTransform">[docs]</a>    <span class="k">def</span> <span class="nf">getTransform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">convention</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="n">matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_transform</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">Transform</span><span class="p">(</span><span class="n">convertMatrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">GET</span><span class="p">,</span> <span class="n">convention</span><span class="o">=</span><span class="n">convention</span><span class="p">))</span></div></div>
 
 
 <div class="viewcode-block" id="SetOfSubTomograms"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.SetOfSubTomograms">[docs]</a><span class="k">class</span> <span class="nc">SetOfSubTomograms</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">SetOfVolumes</span><span class="p">):</span>
@@ -1536,7 +1628,10 @@
         <span class="sd">&quot;&quot;&quot; Set the SetOfCoordinates associates with</span>
 <span class="sd">        this set of particles.</span>
 <span class="sd">         &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_coordsPointer</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">coordinates</span><span class="p">,</span> <span class="n">Pointer</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_coordsPointer</span> <span class="o">=</span> <span class="n">coordinates</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_coordsPointer</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">coordinates</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SetOfSubTomograms.iterSubtomos"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.SetOfSubTomograms.iterSubtomos">[docs]</a>    <span class="k">def</span> <span class="nf">iterSubtomos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">volume</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">orderBy</span><span class="o">=</span><span class="s1">&#39;id&#39;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Iterates over the sutomograms, enriching them with the related tomogram if apply so coordinate getters and setters will work</span>
@@ -1595,10 +1690,11 @@
 
         <span class="c1"># If not cached</span>
         <span class="k">if</span> <span class="n">tomoId</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tomos</span><span class="p">:</span>
-            <span class="n">tomo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getCoordinates3D</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getPrecedents</span><span class="p">()[</span><span class="n">subtomo</span><span class="o">.</span><span class="n">getVolId</span><span class="p">()]</span>
+            <span class="n">tomo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getCoordinates3D</span><span class="p">()</span><span class="o">.</span><span class="n">getPrecedents</span><span class="p">()[</span><span class="n">subtomo</span><span class="o">.</span><span class="n">getVolId</span><span class="p">()]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_tomos</span><span class="p">[</span><span class="n">tomoId</span><span class="p">]</span> <span class="o">=</span> <span class="n">tomo</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tomos</span><span class="p">[</span><span class="n">tomoId</span><span class="p">]</span></div></div>
+
 
 <div class="viewcode-block" id="AverageSubTomogram"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.AverageSubTomogram">[docs]</a><span class="k">class</span> <span class="nc">AverageSubTomogram</span><span class="p">(</span><span class="n">SubTomogram</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Represents a Average SubTomogram.</span>
@@ -2364,6 +2460,7 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">data</span><span class="o">.</span><span class="n">EMSet</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_setOfTiltSeriesPointer</span> <span class="o">=</span> <span class="n">Pointer</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;tiltSeriesPointer&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_idDict</span> <span class="o">=</span> <span class="p">{}</span>
 
 <div class="viewcode-block" id="SetOfCTFTomoSeries.copyInfo"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.SetOfCTFTomoSeries.copyInfo">[docs]</a>    <span class="k">def</span> <span class="nf">copyInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="n">data</span><span class="o">.</span><span class="n">EMSet</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
@@ -2430,22 +2527,25 @@
         <span class="k">return</span> <span class="n">classItem</span></div>
 
 <div class="viewcode-block" id="SetOfCTFTomoSeries.iterItems"><a class="viewcode-back" href="../../api/tomo/tomo.objects.html#tomo.objects.SetOfCTFTomoSeries.iterItems">[docs]</a>    <span class="k">def</span> <span class="nf">iterItems</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orderBy</span><span class="o">=</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="s1">&#39;ASC&#39;</span><span class="p">):</span>
-        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">EMSet</span><span class="o">.</span><span class="n">iterItems</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
-                                         <span class="n">orderBy</span><span class="o">=</span><span class="n">orderBy</span><span class="p">,</span>
-                                         <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">EMSet</span><span class="o">.</span><span class="n">iterItems</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">orderBy</span><span class="o">=</span><span class="n">orderBy</span><span class="p">,</span> <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">):</span>
 
-            <span class="n">objId</span> <span class="o">=</span> <span class="kc">None</span>
-            <span class="k">for</span> <span class="n">tiltSeries</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSetOfTiltSeries</span><span class="p">():</span>
-                <span class="k">if</span> <span class="n">tiltSeries</span><span class="o">.</span><span class="n">getTsId</span><span class="p">()</span> <span class="o">==</span> <span class="n">item</span><span class="o">.</span><span class="n">getTsId</span><span class="p">():</span>
-                    <span class="n">objId</span> <span class="o">=</span> <span class="n">tiltSeries</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
-
-            <span class="k">if</span> <span class="n">objId</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTiltSeriesFromTsId</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">getTsId</span><span class="p">())</span>
+            <span class="k">if</span> <span class="n">ts</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="p">(</span><span class="s2">&quot;Could not find tilt-series with tsId = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">item</span><span class="o">.</span><span class="n">getTsId</span><span class="p">())</span>
 
-            <span class="n">item</span><span class="o">.</span><span class="n">setTiltSeries</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getSetOfTiltSeries</span><span class="p">()[</span><span class="n">objId</span><span class="p">])</span>
+            <span class="n">item</span><span class="o">.</span><span class="n">setTiltSeries</span><span class="p">(</span><span class="n">ts</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_setItemMapperPath</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
 
-            <span class="k">yield</span> <span class="n">item</span></div></div>
+            <span class="k">yield</span> <span class="n">item</span></div>
+
+    <span class="k">def</span> <span class="nf">_getTiltSeriesFromTsId</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tsId</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_idDict</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_idDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tsId</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_idDict</span> <span class="o">=</span> <span class="p">{</span><span class="n">ts</span><span class="o">.</span><span class="n">getTsId</span><span class="p">():</span> <span class="n">ts</span><span class="o">.</span><span class="n">clone</span><span class="p">(</span><span class="n">ignoreAttrs</span><span class="o">=</span><span class="p">[])</span> <span class="k">for</span> <span class="n">ts</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSetOfTiltSeries</span><span class="p">()}</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_idDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">tsId</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
 </pre></div>
 
            </div>

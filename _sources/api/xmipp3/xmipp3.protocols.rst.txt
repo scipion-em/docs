@@ -99,6 +99,7 @@ Submodules
    xmipp3.protocols.protocol_resolution_directional
    xmipp3.protocols.protocol_resolution_fso
    xmipp3.protocols.protocol_resolution_monogenic_signal
+   xmipp3.protocols.protocol_rotate_volume
    xmipp3.protocols.protocol_rotational_spectra
    xmipp3.protocols.protocol_rotational_symmetry
    xmipp3.protocols.protocol_screen_deepConsensus
