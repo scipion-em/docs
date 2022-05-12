@@ -3,7 +3,7 @@
 Phenix Rebuild Predicted Model protocol
 =======================================
 
-*PHENIX*-based protocol designed to dock processed AlphaFold2 :cite:p:`jumper2021`, RoseTTAFold :cite:p:`baek2021` and other predicted models in *Scipion*. According to `PHENIX documentation <https://phenix-online.org/version_docs/dev-4380/reference/dock_predicted_model.html>`_ the tool *dock_predicted_model* uses the connectivity of the model as a restraint so that the docked domains are in a reasonable arrangement. Although the method has been designed to handle with symmetry, you can get usually a better result segmenting manually the map and working with the asymmetric unit (see also appendices :ref:`Extract asymmetric unit <app:extractUnitCell>` and :ref:`Phenix Dock in Map <app:dockInMapProtocol>`). Each domain is docked and refined by rigid-body refinement. When all the domains are docked, the residues are sorted and a single chain is produced.
+*PHENIX*-based protocol designed to 
 
 -  | Requirements to run this protocol and visualize results:
 
@@ -18,12 +18,12 @@ Phenix Rebuild Predicted Model protocol
 -  | *Scipion* menu: *Model building -> Rigid fitting*  (:numref:`model_building_app_protocol_rebuild_prediction_1` (A))
 
    .. figure:: Images_appendices/Fig4_rebuildPrediction.svg
-      :alt: Protocol **phenix-dock predicted model**. A: Protocol location in *Scipion* menu. B: Protocol form.
+      :alt: Protocol **phenix-rebuild predicted model**. A: Protocol location in *Scipion* menu. B: Protocol form.
       :name: model_building_app_protocol_rebuild_prediction_1
       :align: center
       :width: 100.0%
 
-      Protocol **phenix-dock predicted model**. A: Protocol location in *Scipion* menu. B: Protocol form.
+      Protocol **phenix-rebuild predicted model**. A: Protocol location in *Scipion* menu. B: Protocol form.
 
 -  | Protocol form parameters (:numref:`model_building_app_protocol_rebuild_prediction_1` (B)):
 
@@ -31,7 +31,7 @@ Phenix Rebuild Predicted Model protocol
 
    -  | *Predicted AlphaFold2 model*: Any atom structure that the user would like to process. It can be generated as AlphaFold2 prediction through the *Scipion* protocol **chimerax-alphafold prediction** (See Appendix :ref:`AlphaFold2 Initial Model Prediction <app:alphafoldPredictionProtocol>`) or generated outside *Scipion*. In this last case, the predicted atom structure has to be imported previously (look at Appendix :ref:`Import atomic structure <app:importAtomicStructure>`). 
 
-   -  | *Processed AlphaFold2 model*: Since the protocol **phenix-dock predicted model** is usually the second step in the modeling workflow of AlphaFold2 predictions, it uses the previous processed prediction model, in which all the uncertain residues have been trimmed and the rest of the sequence has been grouped in compact domains. Then, include here the output of the protocol **phenix-dock predicted model** (see appendix :ref:`Process Predicted Model <app:processPredictedProtocol>`).
+   -  | *Docked AlphaFold2 model*: 
 
    -  | *Input map*: Electron density map previously downloaded or generated in *Scipion* to fit the atomic structure.
 
