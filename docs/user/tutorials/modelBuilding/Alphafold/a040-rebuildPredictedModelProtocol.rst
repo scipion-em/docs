@@ -3,7 +3,7 @@
 Phenix Rebuild Predicted Model protocol
 =======================================
 
-*PHENIX*-based protocol designed to 
+*PHENIX*-based protocol designed to rebuild models predicted by AlphaFold2 :cite:p:`jumper2021`, RoseTTAFold :cite:p:`baek2021` and other predicted models in *Scipion*. According to `PHENIX documentation <https://phenix-online.org/version_docs/dev-4380/reference/rebuild_predicted_model.html>`_ the tool *rebuild_predicted_model* uses, in addition to the starting prediction model, a set of docked domains from the predicted model as template. These docked domains should correspond to the accurate parts of the model that have to be fitted according to map restrains. The model will be morphed to match the docked domains. Residues between domains are strectched to span the gap, serving as markers of the chain tracing. Then several methods contribute to rebuild each docked domain and connecting loops. The final model should have to be refined at the end of the process.
 
 -  | Requirements to run this protocol and visualize results:
 
@@ -31,7 +31,7 @@ Phenix Rebuild Predicted Model protocol
 
    -  | *Predicted AlphaFold2 model*: Any atom structure that the user would like to process. It can be generated as AlphaFold2 prediction through the *Scipion* protocol **chimerax-alphafold prediction** (See Appendix :ref:`AlphaFold2 Initial Model Prediction <app:alphafoldPredictionProtocol>`) or generated outside *Scipion*. In this last case, the predicted atom structure has to be imported previously (look at Appendix :ref:`Import atomic structure <app:importAtomicStructure>`). 
 
-   -  | *Docked AlphaFold2 model*: 
+   -  | *Docked AlphaFold2 model*: Usually the output of the protocol **phenix-dock predicted model**. This model is normally constituted by a single chain with gaps for the less accurate parts of the model. 
 
    -  | *Input map*: Electron density map previously downloaded or generated in *Scipion* to fit the atomic structure.
 
