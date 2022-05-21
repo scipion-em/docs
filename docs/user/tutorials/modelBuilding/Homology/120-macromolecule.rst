@@ -136,7 +136,7 @@ density occupancy of the new macromolecule generated.
    obtained by FSC is recommended. Include also the refined atomic
    structure *model* of the whole human *metHgb* (3). As a control
    of the subtraction process we are going to remove 7 residues of the
-   chain *A*. With this aim, use the three wizards on the right (4) to
+   chain *A*. With this aim, use the two wizards on the right (4) to
    select that chain and residues located between positions *22* and
    *28*, both included. Since we are interested in observing differences
    in the whole map, the default option *No* will be maintained
