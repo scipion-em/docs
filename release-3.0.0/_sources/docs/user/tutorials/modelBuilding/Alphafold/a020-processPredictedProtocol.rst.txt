@@ -51,7 +51,7 @@ Phenix Process Predicted Model protocol
 
    -  | *Processing option: Minimum domain length (residues)*: Only domains of this length will be kept. In terms of size (in Angstroms), 15 Angstroms is the approximate size of domains to be found. This is the resolution that will be used to make a domain map. If you are getting too many domains, try making domain_size bigger (maximum 70 Angstroms). 
 
-   -  | *Extra Params*: Look at `PHENIX documentation <https://phenix-online.org/documentation/reference/process_predicted_model.html>`_ page to include additional params with the appropriate syntaxis.
+   -  | *Extra Params*: Advanced param. Look at `PHENIX documentation <https://phenix-online.org/documentation/reference/process_predicted_model.html>`_ page to include additional params with the appropriate syntaxis.
 
 -  Protocol execution:
 
@@ -67,7 +67,7 @@ Phenix Process Predicted Model protocol
 
 -  | Visualization of protocol results:
 
-   | After executing the protocol, press *Analyze Results* (:numref:`model_building_app_protocol_process_prediction_1` (B)) and a pop up window will open by default (:numref:`model_building_app_protocol_process_prediction_2`). 
+   | After executing the protocol, press *Analyze Results* in the *Scipion* framework and a pop up window will open by default (:numref:`model_building_app_protocol_process_prediction_2`). 
 
    .. figure:: Images_appendices/Fig2_processPrediction.svg
       :alt: Viewer window showing the result menu of protocol **phenix-process predicted model**.
@@ -77,7 +77,7 @@ Phenix Process Predicted Model protocol
 
       Viewer window showing the result menu of protocol **phenix-process predicted model**.
 
-   | Clicking *Structures in ChimeraX*, the *ChimeraX* graphics window will be opened. Atomic structures are referred to the origin of coordinates in *ChimeraX*. To show the relative position of atomic structures, the three coordinate axes are represented; X axis (red), Y axis (yellow), and Z axis (blue) (:numref:`model_building_app_protocol_volume_3`). Coordinate axes, initial predicted model and processed one are model numbers *#1*, *#2* and *#3*, respectively, in *ChimeraX Models* panel. Initial model residues predicted by AlphaFold2 are colored according to the alphafold bfactor (*LDDT* values) palette of *ChimeraX*.
+   | Clicking *Structures in ChimeraX*, the *ChimeraX* graphics window will be opened. Atomic structures are referred to the origin of coordinates in *ChimeraX*. To show the relative position of atomic structures, the three coordinate axes are represented; X axis (red), Y axis (yellow), and Z axis (blue) (:numref:`model_building_app_protocol_volume_3`). Coordinate axes, initial predicted model and processed one are model numbers *#1*, *#2* and *#3*, respectively, in *ChimeraX Models* panel. Initial model residues predicted by AlphaFold2 are colored according to the alphafold bfactor (*LDDT* values) palette of *ChimeraX* (model #2).
 
    | Clicking *Remaining Sequences*, a text file window will be opened including the different aminoacid residue fragments that been removed or deleted in the model. 15 residues is the minimum size set to write the sequence in this file. Smaller fragments will be ignored. When empty, the *Remaining Sequences* menu element will be hide. 
 

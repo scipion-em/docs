@@ -25,7 +25,7 @@ density map.
       :alt: Protocol **chimerax-map subtraction**. A: Protocol location in *Scipion* menu. B: Protocol form to subtract two maps. C: Param option *Mask*. D: Protocol form to subtract an atomic structure from a map. All possible params are shown.
       :name: model_building_app_protocol_map_subtract_1
       :align: center
-      :width: 85.0%
+      :width: 100.0%
 
       Protocol **chimerax-map subtraction**. A: Protocol location in *Scipion* menu. B: Protocol form to subtract two maps. C: Param option *Mask*. D: Protocol form to subtract an atomic structure from a map. All possible params are shown.
 
@@ -68,14 +68,9 @@ density map.
               and downstream of the removed aminoacids will be
               highlighted.
 
-            | Additional params to interrogate about the residues to be
-              removed are *Chain*, *First residue to remove* and *Last
-              residue to remove*. A wizard on the right helps to select
-              this three elements. ``WARNING:`` In case you have already
-              selected a specific chain of the structure to generate the
-              *3D Map*, this chain will appear by default in the param
-              *Chain* since the selection of a different chain wouldn’t
-              make sense.
+            | Additional param to interrogate about the residues to be
+              removed is *Residues to remove*. A wizard on the right helps to select
+              the residue segment that you are interested in removing (from the first to the last residue of this sequence. Press the wizard and every residue of the sequence will be shown. Select the first one clicking it, then press ``CTRL``, and select the second one by clicking it. The aminoacid sequence contained between those two selected first and last residues will be included in the box.
 
          -  | *Apply symmetry to the atomic structure*: In case your input atomic structure to derive the subtrahend *3D map* corresponds to the asymmetric unit and you’d like to have the whole atomic structure or at least several adjacent asymmetric units together with the input one, select the option *Yes*. Otherwise, the subtrahend derived map will only correspond to the asymmetric unit. All *ChimeraX* `symmetries <https://www.cgl.ucsf.edu/chimerax/docs/user/commands/sym.html>`_ will be available. In case you select symmetries cyclic or dihedral, an additional param will interrogate you about the *Symmetry Order*. Pay attention to the param *Range of distance*, set to *100* by default. This is the distance (in Å) from the center of the input asymmetric unit to the center of additional allowed asymmetric units, in order to select only the closer ones. You should probably modify the default value to regenerate big maps by applying symmetry.
 

@@ -39,7 +39,7 @@ Phenix Dock Predicted Model protocol
 
    -  | *Number of threads*: Advanced param. Depending on the size of *map* and *model*, and the number of *models* to fit the process could be quite slow and you can accelerate it by increasing the number of threads.
 
-   -  | *Extra Params*: Look at `PHENIX documentation <https://phenix-online.org/version_docs/dev-4380/reference/dock_predicted_model.html>`_ page to include additional params with the appropriate syntaxis.
+   -  | *Extra Params*: Advanced param. Look at `PHENIX documentation <https://phenix-online.org/version_docs/dev-4380/reference/dock_predicted_model.html>`_ page to include additional params with the appropriate syntaxis.
 
 -  Protocol execution:
 
@@ -55,7 +55,7 @@ Phenix Dock Predicted Model protocol
 
 -  | Visualization of protocol results:
 
-   | After executing the protocol, press *Analyze Results* (:numref:`model_building_app_protocol_dock_prediction_1` (B)) and the *ChimeraX* graphics window will be opened. Atomic structures and volumes are referred to the origin of coordinates in *ChimeraX*. To show the relative position of atomic structures and electron density volume, the three coordinate axes are represented; X axis (red), Y axis (yellow), and Z axis (blue) (:numref:`model_building_app_protocol_volume_3`). Coordinate axes, map, initial predicted model,  processed unfitted *model* (suffix *.pdb*) and final fitted atomic structure (suffix *.pdb.pdb*) are model numbers *#1*, *#2*, *#3*, *#4* and *#5*, respectively, in *ChimeraX Models* panel. Initial model residues predicted by AlphaFold2 are colored according to the alphafold bfactor (*LDDT* values) palette of *ChimeraX*.
+   | After executing the protocol, press *Analyze Results* in the *Scipion* framework and the *ChimeraX* graphics window will be opened. Atomic structures and volumes are referred to the origin of coordinates in *ChimeraX*. To show the relative position of atomic structures and electron density volume, the three coordinate axes are represented; X axis (red), Y axis (yellow), and Z axis (blue) (:numref:`model_building_app_protocol_volume_3`). Coordinate axes, map, initial predicted model,  processed unfitted *model* (suffix *.pdb*) and final fitted atomic structure (suffix *.pdb.pdb*) are model numbers *#1*, *#2*, *#3*, *#4* and *#5*, respectively, in *ChimeraX Models* panel. Initial model residues predicted by AlphaFold2 are colored according to the alphafold bfactor (*LDDT* values) palette of *ChimeraX* (model #3).
 
 -  | Summary content:
 

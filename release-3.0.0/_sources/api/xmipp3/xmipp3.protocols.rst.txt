@@ -47,6 +47,7 @@ Submodules
    xmipp3.protocols.protocol_ctf_micrographs
    xmipp3.protocols.protocol_deep_align
    xmipp3.protocols.protocol_deep_denoising
+   xmipp3.protocols.protocol_deep_hand
    xmipp3.protocols.protocol_deep_micrograph_screen
    xmipp3.protocols.protocol_denoise_particles
    xmipp3.protocols.protocol_eliminate_empty_images

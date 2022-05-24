@@ -212,11 +212,12 @@
 <span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="n">String</span><span class="p">,</span> <span class="n">Integer</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.constants</span> <span class="kn">import</span> <span class="n">PROD</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span>
-                                        <span class="n">IntParam</span><span class="p">,</span> <span class="n">LabelParam</span><span class="p">)</span>
+                                        <span class="n">IntParam</span><span class="p">,</span> <span class="n">LabelParam</span><span class="p">,</span> <span class="n">LEVEL_ADVANCED</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pwem.constants</span> <span class="kn">import</span> <span class="n">ALIGN_PROJ</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">ProtOperateParticles</span>
 
 <span class="kn">import</span> <span class="nn">relion.convert</span> <span class="k">as</span> <span class="nn">convert</span>
+<span class="kn">from</span> <span class="nn">relion</span> <span class="kn">import</span> <span class="n">Plugin</span>
 <span class="kn">from</span> <span class="nn">.protocol_base</span> <span class="kn">import</span> <span class="n">ProtRelionBase</span>
 
 
@@ -298,6 +299,14 @@
                            <span class="s2">&quot;wish to keep is white (1).</span><span class="se">\n</span><span class="s2">&quot;</span>
                            <span class="s2">&quot;That is: *the mask should INCLUDE the part of the &quot;</span>
                            <span class="s2">&quot;volume that you wish to KEEP.*&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">Plugin</span><span class="o">.</span><span class="n">IS_GT31</span><span class="p">():</span>
+            <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;saveFloat16&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                          <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Write output in float16?&quot;</span><span class="p">,</span>
+                          <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Relion can write output images in float16 &quot;</span>
+                               <span class="s2">&quot;MRC (mode 12) format to save disk space. &quot;</span>
+                               <span class="s2">&quot;By default, float32 format is used.&quot;</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="s1">&#39;Centering&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;help1&#39;</span><span class="p">,</span> <span class="n">LabelParam</span><span class="p">,</span>
@@ -430,6 +439,9 @@
             <span class="n">params</span> <span class="o">+=</span> <span class="s2">&quot; --center_x </span><span class="si">%d</span><span class="s2"> --center_y </span><span class="si">%d</span><span class="s2"> --center_z </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">cX</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cY</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cZ</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="n">Plugin</span><span class="o">.</span><span class="n">IS_GT31</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">saveFloat16</span><span class="p">:</span>
+            <span class="n">params</span> <span class="o">+=</span> <span class="s2">&quot; --float16&quot;</span>
+
         <span class="n">params</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convertMask</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getProgram</span><span class="p">(</span><span class="s1">&#39;relion_particle_subtract&#39;</span><span class="p">),</span> <span class="n">params</span><span class="p">)</span></div>
 
@@ -443,7 +455,8 @@
         <span class="n">px</span> <span class="o">=</span> <span class="n">imgSet</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">reader</span> <span class="o">=</span> <span class="n">convert</span><span class="o">.</span><span class="n">createReader</span><span class="p">(</span><span class="n">alignType</span><span class="o">=</span><span class="n">ALIGN_PROJ</span><span class="p">,</span>
                                            <span class="n">pixelSize</span><span class="o">=</span><span class="n">px</span><span class="p">)</span>
-        <span class="n">mdIter</span> <span class="o">=</span> <span class="n">convert</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">iterRows</span><span class="p">(</span><span class="s1">&#39;particles@&#39;</span> <span class="o">+</span> <span class="n">outImgsFn</span><span class="p">)</span>
+        <span class="n">mdIter</span> <span class="o">=</span> <span class="n">convert</span><span class="o">.</span><span class="n">Table</span><span class="o">.</span><span class="n">iterRows</span><span class="p">(</span><span class="s1">&#39;particles@&#39;</span> <span class="o">+</span> <span class="n">outImgsFn</span><span class="p">,</span>
+                                        <span class="n">types</span><span class="o">=</span><span class="n">convert</span><span class="o">.</span><span class="n">LABELS_DICT</span><span class="p">)</span>
         <span class="n">outImgSet</span><span class="o">.</span><span class="n">copyItems</span><span class="p">(</span><span class="n">imgSet</span><span class="p">,</span> <span class="n">doClone</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                             <span class="n">updateItemCallback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_updateItem</span><span class="p">,</span>
                             <span class="n">itemDataIterator</span><span class="o">=</span><span class="n">mdIter</span><span class="p">)</span>
@@ -462,6 +475,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">relionInput</span><span class="o">.</span><span class="n">get</span><span class="p">()):</span>
             <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Use of several CPUs when input is not relion &quot;</span>
                           <span class="s2">&quot;protocol is not supported&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasAttribute</span><span class="p">(</span><span class="s1">&#39;saveFloat16&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">saveFloat16</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;MRC float16 format is not yet supported by XMIPP, &quot;</span>
+                          <span class="s2">&quot;so you cannot use this option.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">errors</span>
     
     <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

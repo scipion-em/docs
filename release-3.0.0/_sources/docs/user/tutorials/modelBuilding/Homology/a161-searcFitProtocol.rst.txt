@@ -40,15 +40,13 @@ Phenix Search Fit protocol
 
    -  | *Extra Params*: Advance param. First line of extra params that the user would like to add to the *PHENIX* real space refiment process that will be performed in the last step before retrieving the structure candidates of the atomic structure fitted to the density map.
 
-   -  | *Test sequence*: Sequence of the atomic structure that we want to fit in the density map. This sequence has previously imported in *Scipion*. The next two wizards allow to delimit exactly the part of the sequence that has to be considered by selecting the first and last residues of this sequence (position and type of residue):
+   -  | *Test sequence*: Sequence of the atomic structure that we want to fit in the density map. This sequence has previously imported in *Scipion*.
 
-      - | *First residue
-  
-      - | *Last residue 
+   -  | *Residues: Fill in this box with the residues of the *Test sequence* that you are iterested in. The wizard on the right allows to delimit exactly the part of the sequence that has to be considered by selecting the first and last residues of this sequence (position and type of residue). Press the wizard and every residue of the sequence will be shown. Select the first one clicking it, then press ``CTRL``, and select the second one by clicking it. The aminoacid sequence contained between those two selected first and last residues will be included in the box.
 
    -  | *Extra Params*: Advanced param. Second line of extra params that can be added to the *Coot* script. This script is generated in the mutation process that allows to retrieve all possible atomic structures of a certain length starting in the first residue selected and ending in the last one selected.
 
-   -  | *Additional Advanced Params for real space refinement*: Go to Appendix:ref:`Real space refine <app:realSpaceRefineProtocol>`.
+   -  | *Additional Advanced Params for real space refinement*: Go to Appendix :ref:`Real space refine <app:realSpaceRefineProtocol>`.
 
 -  Protocol execution:
 
