@@ -12,6 +12,7 @@ Submodules
    xmipp3.viewers.viewer_analyze_local_ctf
    xmipp3.viewers.viewer_angular_alignment_sph
    xmipp3.viewers.viewer_cl2d
+   xmipp3.viewers.viewer_classes3D
    xmipp3.viewers.viewer_ctf_consensus
    xmipp3.viewers.viewer_deepEMHancer
    xmipp3.viewers.viewer_deep_align
