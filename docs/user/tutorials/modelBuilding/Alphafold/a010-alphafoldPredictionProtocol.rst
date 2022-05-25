@@ -13,15 +13,15 @@ AlphaFold2 Initial Model Prediction protocol
 
 -  | *Scipion* menu: *Model building -> Initial model* (:numref:`model_building_app_protocol_alphafold_prediction_1` (A))
 
-   .. figure:: Images_appendix/Fig309.svg
-      :alt: Protocol **chimerax-alphafold prediction**. A: Protocol location in *Scipion* menu. B: Protocol form to get AlphaFold2 structure predictions using *ChimeraX* tools. C: *Idem* using *PHENIX* tools. D: Protocol form to subtract an atomic structure from a map. All possible params are shown.
+   .. figure:: Images_appendices/Fig6_alphaFoldPrediction.svg
+      :alt: Protocol **chimerax-alphafold prediction**. A: Protocol location in *Scipion* menu. B: Protocol form to retrieve AlphaFold2 structure predictions from EMDB (identical sequence). C: Protocol form to retrieve AlphaFold2 structure predictions from EMDB (homologous sequence) D: Protocol form to predict atomic structures using Google Colab notebooks to run AlphaFold2. E: Protocol form to predict atomic structures running AlphaFold2 in your own computer.
       :name: model_building_app_protocol_alphafold_prediction_1
       :align: center
-      :width: 85.0%
+      :width: 100.0%
 
-      Protocol **chimerax-alphafold prediction**. A: Protocol location in *Scipion* menu. B: Protocol form to get AlphaFold2 structure predictions using *ChimeraX* tools. C: *Idem* using *PHENIX* tools. D: Protocol form to subtract an atomic structure from a map. All possible params are shown.
+      Protocol **chimerax-alphafold prediction**. A: Protocol location in *Scipion* menu. B: Protocol form to retrieve AlphaFold2 structure predictions from EMDB (identical sequence). C: Protocol form to retrieve AlphaFold2 structure predictions from EMDB (homologous sequence). D: Protocol form to predict atomic structures using Google Colab notebooks to run AlphaFold2. E: Protocol form to predict atomic structures running AlphaFold2 in your own computer.
 
--  | Protocol form parameters (:numref:`model_building_app_protocol_alphafold_prediction_1` (B,C,D)):
+-  | Protocol form parameters (:numref:`model_building_app_protocol_alphafold_prediction_1` (B, C, D, E)):
 
    | *Input* section:
 
