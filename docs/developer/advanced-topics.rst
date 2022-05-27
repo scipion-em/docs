@@ -48,7 +48,7 @@ Virtualization
 Scipioncloud
 -------------
 
-`ScipionCloud <scipion-cloud>`_ main "cloud platforms" are Amazon Web Services (AWS) and EGI Federated Cloud (FedCloud)
+ScipionCloud main "cloud platforms" are Amazon Web Services (AWS) and EGI Federated Cloud (FedCloud)
 
 * `ScipionCloud on AWS <scipionCloud-on-amazon-web-services-ec2>`_
 * `ScipionCloud on FedCloud <scipion-on-the-egi-federated-cloud>`_
