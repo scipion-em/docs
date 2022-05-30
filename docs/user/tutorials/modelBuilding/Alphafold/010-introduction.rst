@@ -1,3 +1,5 @@
+.. _introductionToModelWithAlphaFold:
+
 Introduction to Model building with AlphaFold
 =============================================
 
@@ -15,7 +17,4 @@ With this tutorial we are going to learn how to:
 
 -  | d) morph the predicted model onto the docked fragments and then, fill in or rebuild the missing parts of the model in the map density.
 
-Description of the specimen used in this tutorial
-=======================================================
 
-The Specimen used in this tutorial will be the protein ....
