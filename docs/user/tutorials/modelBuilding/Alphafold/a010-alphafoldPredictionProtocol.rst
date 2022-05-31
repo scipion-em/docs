@@ -28,13 +28,13 @@ AlphaFold2 Initial Model Prediction protocol
    -  | *Source to retrieve the AlphaFold2 model*: 
       | Click to select one of the next four options:
 
-   	-  | *EBI Database (identical sequence)*: The `AlphaFold Protein Structure Database <https://alphafold.ebi.ac.uk/>`_ has been developed by DeepMind and EMBL-EBI with the aim of provide researchers with the AlphaFold2 predictions for the human proteome and other key organisms. They plan to extent the database to the majority of catalogued proteins. This work is still in progress and many proteins included as UniProt IDs have already been predicted and those predictions are freely available to the scientific community. To retrieve one of those protein predictions, write the alphanumerical code of the respective UniProt entry (:numref:`model_building_app_protocol_alphafold_prediction_1` (B):
+   	-  | *EBI Database (identical sequence)*: The `AlphaFold Protein Structure Database <https://alphafold.ebi.ac.uk/>`_ has been developed by DeepMind and EMBL-EBI with the aim of providing researchers with the AlphaFold2 predictions for the human proteome and other key organisms. They plan to extent the database to the majority of catalogued proteins. This work is still in progress and many proteins included as UniProt IDs have already been predicted and those predictions are freely available to the scientific community. To retrieve one of those protein predictions, write the alphanumerical code of the respective UniProt entry (:numref:`model_building_app_protocol_alphafold_prediction_1` (B):
 
 		-  | *UniProt name/ID*
 
 		   | The protocol will fail if the written code doesn't exist in UniProt DB or if  despite being a valid UniProt ID, the prediction has not been included in the *AlphaFold Protein Structure Database* yet.
 
-        -  | *EBI Database (homologous sequence)*: For all those cases in which the AlphaFold2 prediction hasn't been included in the *AlphaFold Protein Structure Database*, the protocol **chimerax-alphafold prediction** gives the oportunity of retrieving the prediction performed for the most similar protein, identified through BLAST searching taking advantage of *ChimeraX*. Selecting this option you'll be interrogated about (:numref:`model_building_app_protocol_alphafold_prediction_1` (C):
+        -  | *EBI Database (homologous sequence)*: For all those cases in which the AlphaFold2 prediction hasn't been included in the *AlphaFold Protein Structure Database* yet, the protocol **chimerax-alphafold prediction** gives the oportunity of retrieving the prediction performed for the most similar protein, identified through BLAST searching taking advantage of *ChimeraX*. Selecting this option you'll be interrogated about (:numref:`model_building_app_protocol_alphafold_prediction_1` (C):
 
 		-  | *Reference sequence*: Protein sequence to perform the BLAST searching. This sequence has been previously imported to *Scipion* by using the protocol :ref:`Import sequence <app:importSequence>`.
 
@@ -44,7 +44,7 @@ AlphaFold2 Initial Model Prediction protocol
 
 		-  | *Hide help popup window*: With this param you can choose between hide (*YES*) or show (*NO*) a help message to select and save the atomic structure using the *ChimeraX* command `scipionwrite <help:user/commands/scipionwrite.html>`_. Selecting *YES* that help information will be shown also in red bold in the *ChimeraX* GUI (Log). Take into account that you might not retrieve any homologous structure. Check the box *Blast Protein Results* on the right. An empty box means no homologous structures retrieved for a particular substitution matrix and cutoff value.
 	
-	-  | *Google  Colab*:
+	-  | *Google  Colab*: In case no AlphaFold2 predictions can be retrieved from *EBI Database* (considering both identical and homologous sequences) the user has the opportunity to generate his/her own prediction taking advantage of two different Google Colaboratory notebooks that allows the user to run the program for free in the Google cloud. There are, nevertheless, some limitations in the computing resources that can be used. In particular, there is a daily limit and the GPUs assigned by Google Colab might not have enough memory for predicting the structure of long sequences.
 
 	-  | *Local AlphaFold*:
 
