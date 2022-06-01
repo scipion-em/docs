@@ -1,3 +1,5 @@
+.. _introductionToModelWithAlphaFold:
+
 Introduction to Model building with AlphaFold
 =============================================
 
@@ -15,11 +17,9 @@ With this tutorial we are going to learn how to:
 
 -  morph the predicted model onto the docked fragments and then, fill in or rebuild the missing parts of the model in the map density.
 
-Description of the specimen used in this tutorial
-=======================================================
 
 The Specimen used in this tutorial will be the protein 
-with UniProt ID `Q9BXJ8 <https://www.uniprot.org/uniprot/Q9BXJ8>`_ known  as TACAN. TACAN is an ion channel-like protein that may be involved in sensing mechanical pain and form dimers :cite:p:`tacan`. This protein has been solved recently by electron micrsoopy at 3.66Å resolution (see `EMDB 30495 <https://www.ebi.ac.uk/emdb/EMD-31482>`_ ). There is an atomic model available at PDBe (ID= `7f6v <https://www.ebi.ac.uk/pdbe/entry/pdb/7f6v>`_ ) with release date 16-Feb-2022.
+with UniProt ID `Q9BXJ8 <https://www.uniprot.org/uniprot/Q9BXJ8>`_ known  as TACAN. TACAN is an ion channel-like protein that may be involved in sensing mechanical pain and form dimers :cite:p:`tacan`. This protein has been solved recently by electron micrsoopy at 3.66Å resolution (see `EMDB 30495 <https://www.ebi.ac.uk/emdb/EMD-31482>`_ ). There is an atomic model available at PDBe (ID= 7CXR ` <https://www.ebi.ac.uk/pdbe/entry/pdb/7cxr>`_ ) with release date 16-Feb-2022.
 
 
    .. figure:: Images/tacan.png

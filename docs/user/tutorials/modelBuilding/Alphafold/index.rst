@@ -20,6 +20,7 @@ Contents
    005-versionhistory
    007-requirements
    010-introduction
+   011-problem2solve
    020-initialModel
    030-processModel
    040-dockModel

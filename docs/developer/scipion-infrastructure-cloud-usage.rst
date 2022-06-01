@@ -32,12 +32,3 @@ Depending on your data size data will take some time to copy but you can login a
    :alt: Scipion project
 
 You might then continue working on the project until you reach your results.
-
-
-The infrastructure setup has a limited time but in case you need more time you could request it sending an email to i2pc and an extension might be granted depending on the pending requests.
-
-In any case you will have some time to download project and results.
-
-And please do not forget to acknowledge the use of this infrastructure by adding the following paragraph to your publication (change IFCA by the appropiate site):
-
-“This work made use of ScipionCloud and the resources provided by the IFCA cloud site, which have been partially supported by the project 'European Open Science Cloud - Expanding Capacities by building Capabilities' (EOSC-SYNERGY), funded by the RI Horizon 2020 Program of the European Commission under Grant Agreement No. 857647.”

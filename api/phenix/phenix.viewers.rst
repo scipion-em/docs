@@ -10,6 +10,7 @@ Submodules
    phenix.viewers.viewer_dock_in_map
    phenix.viewers.viewer_emringer
    phenix.viewers.viewer_molprobity
+   phenix.viewers.viewer_process_predicted_alphafold
    phenix.viewers.viewer_real_space_refine
    phenix.viewers.viewer_refinement_base
    phenix.viewers.viewer_search_fit

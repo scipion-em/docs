@@ -21,6 +21,7 @@ Submodules
    chimera.convert
    chimera.editList
    chimera.getchimera
+   chimera.objects
    chimera.parser_h1
    chimera.utils
    chimera.wizards

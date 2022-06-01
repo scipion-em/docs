@@ -14,6 +14,7 @@ Submodules
    emfacilities.protocols.protocol_monitor_movie_gain
    emfacilities.protocols.protocol_monitor_summary
    emfacilities.protocols.protocol_monitor_system
+   emfacilities.protocols.protocol_trackUsedItems
    emfacilities.protocols.pynvml
    emfacilities.protocols.report_html
    emfacilities.protocols.report_influx
