@@ -14,4 +14,17 @@ We will execute two different versions alphafold. In the first one a single copy
 If you click on "Analyze Results" three windows will pop-up (see figure WWWW). The first one (WWWWa) shows the atomic model using chimerax, the second one (WWWWWb) provides a map of the multiple alignment coverage, that is, given a multiple alignment containing N proteins how many of this N protein contain each one of the problem protein aminoacids. Finally the third windows (WWWWc) show a plot with e the value of PAE (Predicted Aligned Error). This plot reports AlphaFold’s expected position error 
 at residue x, when the predicted and true structures are aligned on residue y.
 
+-----------
+
+comment best -> scipion onject // scipionwrite // amber relaxation // script mouse.py
+
+# Is there any way to programmatically prevent Google Colab from disconnecting on a timeout?
+# Google Colab notebooks have an idle timeout of 90 minutes and absolute timeout of 12 hours.
+# This means, if user does not interact with his Google Colab notebook for more than 90 minutes,
+#  its instance is automatically terminated. Also, maximum lifetime of a Colab instance is 12 hours.
+#
+# Run this code in your Desktop, Then point mouse arrow over (colabs left panel - file section)
+# directory structure on any directory this code will keep clicking on directory on every 30 seconds
+# so it will expand and shrink every 30 seconds so your session will not get expired Important
+# - you have to run this code in your pc 
 
