@@ -7,15 +7,28 @@ AlphaFold predicts the three-dimensional struture of a protein based exclusively
 
 With this tutorial we are going to learn how to:
 
--  | a) generate a prediction model using AlphaFold, 
+-  generate a prediction model using AlphaFold, 
 
--  | b) process this prediction model removing the low confidence residues,
+-  process this prediction model removing the low confidence residues,
  
--  | c) fit the remaining high confidence residues in the 3D density map,
+-  fit the remaining high confidence residues in the 3D density map,
 
--  | d) morph the predicted model onto the docked fragments and then, fill in or rebuild the missing parts of the model in the map density.
+-  morph the predicted model onto the docked fragments and then, fill in or rebuild the missing parts of the model in the map density.
 
 Description of the specimen used in this tutorial
 =======================================================
 
-The Specimen used in this tutorial will be the protein ....
+The Specimen used in this tutorial will be the protein 
+with UniProt ID `Q9BXJ8 <https://www.uniprot.org/uniprot/Q9BXJ8>`_ known  as TACAN. TACAN is an ion channel-like protein that may be involved in sensing mechanical pain and form dimers :cite:p:`tacan`. This protein has been solved recently by electron micrsoopy at 3.66Å resolution (see `EMDB 30495 <https://www.ebi.ac.uk/emdb/EMD-31482>`_ ). There is an atomic model available at PDBe (ID= `7f6v <https://www.ebi.ac.uk/pdbe/entry/pdb/7f6v>`_ ) with release date 16-Feb-2022.
+
+
+   .. figure:: Images/tacan.png
+      :alt: Atomic model for the human TACAN dimer protein.
+      :name: model_building_tacan
+      :width: 50.0%
+      :align: center
+
+      Atomic model for the human TACAN dimer protein (EMDB map 30495) obtained using the AlphaFold.
+
+In this tutorial we will assume that only the 3D map and the sequence are known.
+
