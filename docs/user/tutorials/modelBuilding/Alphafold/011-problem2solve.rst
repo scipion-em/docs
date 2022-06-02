@@ -1,3 +1,5 @@
+.. _problemToSolveTACAN:
+
 Problem to solve: Human ion channel-like protein TACAN
 ======================================================
 
