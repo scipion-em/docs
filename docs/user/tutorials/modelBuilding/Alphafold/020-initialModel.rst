@@ -1,2 +1,37 @@
-Get the initial AlphaFold model 
-===============================
+Get the initial model 
+=====================
+
+Predicting the three-dimensional (3D) structure of a protein 
+from its sequence alone remains an unsolved problem. However,
+some programs as AlphaFold2 are able to predict the 3D atomic coordinates of a large collection of folded protein structures with remarcable accuracy.
+
+Alphafold2 execution can take up to hours for a single protein,  needs more than 2 TB of disk space and requires a GPU card. To enable researchers without these resources to use AlphaFold2, independent solutions based on Google Colaboratory were developed.
+
+We will use one of this solutions to create an initial atomic model of the protein *TACAN*. As mentioned before *TACAN* is a homodimer of the protein with Uniprot ID *A0A024R4K9* (link to https://www.uniprot.org/uniprot/A0A024R4K9). Let us start by imporintg twice the sequence *A0A024R4K9* (see figure XXX) using the protocol *pwem-import-sequence* followed by executing alphafold (protocol *chimera-alphafold*) as shown in figure YYYY (see the figure caption for a description of the main parameters or go to appendix YYYY for a more in detail description).
+
+We will execute two different versions alphafold. In the first one a single copy of the sequence will be provided ans therefore only half protein will be created (see figure YYYYa), in the second execution we will provide both copies (see figure ZZZZa)
+
+If you click on "Analyze Results" three windows will pop-up (see figure WWWW). The first one (WWWWa) shows the atomic model using chimerax, the second one (WWWWWb) provides a map of the multiple alignment coverage, that is, given a multiple alignment containing N proteins how many of this N protein contain each one of the problem protein aminoacids. Finally the third windows (WWWWc) show a plot with the value of PAE (Predicted Aligned Error). This plot reports AlphaFold’s expected position error 
+at residue x, when the predicted and true structures are aligned on residue y.
+
+-----------
+caption figure XXXX: **Import sequence** protocol. Provide a string in **Sequence Name** this value will be use to identify the sequence in the future, then select the option "UniProt ID" and provide the uniport ID in the cell labeled "UniProt NameID"
+
+caption figure YYYY: **Alphafold prediction protocol**
+Select Unitprot ID ...
+
+
+-----------
+
+comment best -> scipion onject // scipionwrite // amber relaxation // script mouse.py
+
+# Is there any way to programmatically prevent Google Colab from disconnecting on a timeout?
+# Google Colab notebooks have an idle timeout of 90 minutes and absolute timeout of 12 hours.
+# This means, if user does not interact with his Google Colab notebook for more than 90 minutes,
+#  its instance is automatically terminated. Also, maximum lifetime of a Colab instance is 12 hours.
+#
+# Run this code in your Desktop, Then point mouse arrow over (colabs left panel - file section)
+# directory structure on any directory this code will keep clicking on directory on every 30 seconds
+# so it will expand and shrink every 30 seconds so your session will not get expired Important
+# - you have to run this code in your pc 
+
