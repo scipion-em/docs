@@ -370,7 +370,7 @@ As the :numref:`model_building_phenix_search_fit_1` indicates, the protocol **ph
 
      ::
 
-         sel 2 & ~ #2/A
+         sel #2 & ~ #2/A
          del sel
          scipionwrite #2 prefix 5ni1_chainA_
 
@@ -384,7 +384,7 @@ As the :numref:`model_building_phenix_search_fit_1` indicates, the protocol **ph
      ::
 
          fitmap #3 inMap #2
-         scipionwrite #3 prefix 5ni1 chainA_fitted_
+         scipionwrite #3 prefix 5ni1_chainA_fitted_
          select #3 & ~ #3/A:94-118
          del sel
          swapaa #3/A:94-118 ALA
@@ -397,19 +397,19 @@ With these three previous inputs we can complete the **phenix-search fit** proto
 Open it in the *Scipion* left menu (1) and include the asymmetric unit map (2)
 detailing its resolution (3), as well as the small fragment of mutated
 structure previously saved (4), the sequence downloaded (5) and take
-advantage of the two wizards on the right (6 and 7) to select the
+advantage of the wizard on the right (6) to select the
 initial and final residues that delimite the sequence to search.
 
 .. figure:: Images/Fig_search_fit_3.svg
    :alt: Completing the **phenix-search fit** protocol in *Scipion*.
    :name: model_building_phenix_search_fit_3
    :align: center
-   :width: 95.0%
+   :width: 100.0%
 
    Completing the **phenix-search fit** protocol in *Scipion*.
 
-After executing the **phenix-search fit** protocol (:numref:`model_building_phenix_search_fit_3` (8)) we can have a look to the results. By
-pressing *Analyze Results* (:numref:`model_building_phenix_search_fit_3` (9)) a window with the Viewer menu is opened (:numref:`model_building_phenix_search_fit_4` (A)). This menu
+After executing the **phenix-search fit** protocol (:numref:`model_building_phenix_search_fit_3` (7)) we can have a look to the results. By
+pressing *Analyze Results* (:numref:`model_building_phenix_search_fit_3` (8)) a window with the Viewer menu is opened (:numref:`model_building_phenix_search_fit_4` (A)). This menu
 allows to visualize a certain number of atomic structures, according to
 their ranking scores, with lateral side chains fitted in the map density
 (1). Those structures will be opened in *ChimeraX* (2) surrounded by the density
