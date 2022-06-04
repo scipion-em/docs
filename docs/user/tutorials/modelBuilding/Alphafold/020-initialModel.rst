@@ -27,7 +27,12 @@ In this tutorial we will use one of the solutions involving the option *Google C
 
       Completing the *Scipion* protocol **pwem-import-sequence** to import the sequence of TACAN protein from UniProt database.
 
-Protein sequences are the only input required to predict the atomic structure of a complex running AlphaFold2. Templates from PDB or a particular user's template can also be included as inputs depending on the Colab Notebook. In this tutorial we are going to execute two different examples using *Phenix* and *Chimera21* Colab Notebooks, respectively in the *Scipion* protocol **chimerax-alphafold prediction**. In the first one we will execute AlphaFold2 based on *Phenix* Colab Notebook and a single copy of the sequence as input. Fill in the protocol form as indicated in :numref:`model_building_fig3_alphafold_prediction`. Select *Google Colab* option (1), *Phenix* Colab Notebook (2), include the sequence of TACAN protein (3) and execute the protocol (4). For details go to protocol :ref:`appendix <app:alphafoldPredictionProtocol>`.
+Protein sequences are the only input required to predict the atomic structure of a complex running AlphaFold2. Templates from PDB or a particular user's template can also be included as inputs depending on the Colab Notebook. In this tutorial we are going to execute two different examples using *Phenix* and *Chimera21* Colab Notebooks, respectively, in the *Scipion* protocol **chimerax-alphafold prediction**. 
+
+AlphaFold initial model of monomer
+----------------------------------
+
+In the first one we will execute AlphaFold2 based on *Phenix* Colab Notebook and a single copy of the sequence as input. Fill in the protocol form as indicated in :numref:`model_building_fig3_alphafold_prediction`. Select *Google Colab* option (1), *Phenix* Colab Notebook (2), include the sequence of TACAN protein (3) and execute the protocol (4). For details go to protocol :ref:`appendix <app:alphafoldPredictionProtocol>`.
 
    .. figure:: Images/Fig3_protocol_prediction.svg
       :alt: **A**: Completing the *Scipion* protocol **chimerax-alphafold prediction** to predict the structure of TACAN protein with AlphaFold2 using *Phenix* Colab Notebook. **B**: Warning message about the requirement of RAM. **C**: Warning message about the authorship of the Notebook.
@@ -47,17 +52,83 @@ After executing the protocol a couple of warning messages usually appear (:numre
 
       Browser of *Phenix* Colab Notebook completed with the TACAN protein sequence and running.
 
-We will execute two different versions alphafold. In the first one a single copy of the sequence will be provided ans therefore only half protein will be created (see figure YYYYa), in the second execution we will provide both copies (see figure ZZZZa)
+When the execution finishes, since the default option *Show results in ChimeraX* has been set (:numref:`model_building_fig3_alphafold_prediction` (A)), the prediction structure of TACAN protein will be opened in the *ChimeraX* GUI. The user can close this *ChimeraX* session if (s)he doesn't save any modification in the structure. After clicking ``Analyze Results`` in the *Scipion* framework, the output result of AlphaFold2 execution can be visualized anyway (:numref:`model_building_fig5_alphafold_prediction`). 
 
-If you click on "Analyze Results" three windows will pop-up (see figure WWWW). The first one (WWWWa) shows the atomic model using chimerax, the second one (WWWWWb) provides a map of the multiple alignment coverage, that is, given a multiple alignment containing N proteins how many of this N protein contain each one of the problem protein aminoacids. Finally the third windows (WWWWc) show a plot with the value of PAE (Predicted Aligned Error). This plot reports AlphaFold’s expected position error 
-at residue x, when the predicted and true structures are aligned on residue y.
+   .. figure:: Images/Fig5_protocol_prediction.svg
+      :alt: Prediction of TACAN protein structure obtained using the *Phenix* Colab Notebook. **A**: Protein structure in *ChimeraX* GUI. **B**: PAE plot.
+      :name: model_building_fig5_alphafold_prediction
+      :align: center
+      :width: 100.0%
 
------------
-caption figure XXXX: **Import sequence** protocol. Provide a string in **Sequence Name** this value will be use to identify the sequence in the future, then select the option "UniProt ID" and provide the uniport ID in the cell labeled "UniProt NameID"
+      Prediction of TACAN protein structure obtained using the *Phenix* Colab Notebook. **A**: Protein structure in *ChimeraX* GUI. **B**: PAE plot.
 
-caption figure YYYY: **Alphafold prediction protocol**
-Select Unitprot ID ...
+The unique prediction structure of TACAN protein (:numref:`model_building_fig5_alphafold_prediction` (A, model #2)) is colored according to the *Model Confidence* score. The reoriented model observed in Fig. :numref:`model_building_fig6_alphafold_prediction` (A) helps to observe in detail colors of the two helices diametrically opposed (1 and 2) and connected by linker 3. As you can check in *"How confident should I be in a prediction?"* in AlphaFold Protein Structure Database `FAQ <https://alphafold.ebi.ac.uk/faq>`_, only the residues of alpha helixes (1 and 2) display acceptable confidence pLDDT values (color blue and close to blue), although the confidence of helix 1 residues seems to be better than the observed for helix 2. The residues included in ribbons (yellow and orange) are disordered and can't be interpreted in general. 
 
+   .. figure:: Images/Fig6_protocol_prediction.svg
+      :alt: Prediction of TACAN protein structure obtained using the *Phenix* Colab Notebook. **A**: Protein structure in *ChimeraX* GUI reoriented compared to :numref:`model_building_fig5_alphafold_prediction`. **B**: PAE plot split in homogeneous squares.
+      :name: model_building_fig6_alphafold_prediction
+      :align: center
+      :width: 100.0%
+
+      Prediction of TACAN protein structure obtained using the *Phenix* Colab Notebook. **A**: Protein structure in *ChimeraX* GUI reoriented compared to :numref:`model_building_fig5_alphafold_prediction`. **B**: PAE plot split in homogenoeous squares.
+
+
+Regarding the relative position of domains inferred from PAE  plot (Predicted Aligned Error plot reporting AlphaFold’s expected position error at residue x, when the predicted and true structures are aligned on residue y. Look at *"How should I interpret the relative positions of domains?"* in AlphaFold Protein Structure Database `FAQ <https://alphafold.ebi.ac.uk/faq>`_ for a detailed explanation) several conclusions can be extracted. The big dark green square of the upper left corner (:numref:`model_building_fig5_alphafold_prediction` (B)) corresponds to the N-terminal part of the protein where two sub-domains are included (:numref:`model_building_fig6_alphafold_prediction` (B, 1 and 2)). These domains are the two alpha helixes 1 and 2 of :numref:`model_building_fig6_alphafold_prediction` (A). The relative orientation of these two sub-domains is assessed by the orange squares (:numref:`model_building_fig6_alphafold_prediction` (B, 3)). Although the error values of these squares are worse than the error values of sub-domains 1 and 2, they are still much better than the background, indicating that the relative position of the sub-domains might be quite close to the real one. The orientation of the yellow linker represented in :numref:`model_building_fig6_alphafold_prediction` (A, 3) could be quite reliable. 
+
+A similar prediction could have been obtained using the *Chimera21* Colab Notebook. We have completed the protocol with this aim, as shown in :numref:`model_building_fig7_alphafold_prediction` (A). Again, the option *Google Colab* has been selected (1), as well as the *Chimera21* Colab Notebook (2). To avoid using more computational resources than are available from Google Colab, we maintain the default option to *Skip Amber relaxation* (3). The last step of molecular dynamics performed with the best prediction structure is thus skipped, which also save processing time. Take into account that surpassing the available resources might drive to the prediction failing. And finally, the sequence of the TACAN protein has been included (4).
+
+   .. figure:: Images/Fig7_protocol_prediction.svg
+      :alt: **A**: Completing the *Scipion* protocol **chimerax-alphafold prediction** to predict the structure of TACAN protein with AlphaFold2 using *Chimera21* Colab Notebook. **B**: Browser of *Chimera21* Colab Notebook completed with the TACAN protein sequence and running.
+      :name: model_building_fig7_alphafold_prediction
+      :align: center
+      :width: 100.0%
+
+      **A**: Completing the *Scipion* protocol **chimerax-alphafold prediction** to predict the structure of TACAN protein with AlphaFold2 using *Chimera21* Colab Notebook. **B**: Browser of *Chimera21* Colab Notebook completed with the TACAN protein sequence and running.
+
+Compared with the browser of *Phenix* Colab Notebook, the browser of *Chimera21* Colab Notebook contains only one running cell (:numref:`model_building_fig7_alphafold_prediction` (B)). Check that the protein sequence has been included before starting the running. In this particular case, upstream the sequence appears the command *"dont_minimize"* referring the option *Skip Amber relaxation*.
+
+When the run time finishes, the **5** resulting unrelaxed models of TACAN will appear in the *ChimeraX* GUI (:numref:`model_building_fig8_alphafold_prediction` (A)). ``Remark`` that *Phenix* Colab Notebook retrieves a unique structure prediction. Observing one by one the predicted structures two conclusions can be inferred: a) Residues from the horizontal helix show on average better confidence score values than residues from vertical helixes. b) Comparing the five predictions, the agreement in the prediction of the horizontal helix seems to be higher that in the prediction of the vertical helix. c) There are accuracy differences among predictions and one displays the highest confidence score values. This model (number #3 in *Models* panel) is the best model. Rotate, show and hide models to confirm the result. 
+
+   .. figure:: Images/Fig8_protocol_prediction.svg
+      :alt: Prediction of TACAN protein structure obtained using the *Chimera21* Colab Notebook. **A**: 5 structure predictions visualized in *ChimeraX GUI*. **B**: Best structure prediction of TACAN protein displayed in the *ChimeraX viewer*. **C**: Plot *Number of Aligned Sequences with no Gap for each Residue Position*. **D**: PAE plot.
+      :name: model_building_fig8_alphafold_prediction
+      :align: center
+      :width: 100.0%
+
+      Prediction of TACAN protein structure obtained using the *Chimera21* Colab Notebook. **A**: 5 structure predictions visualized in *ChimeraX GUI*. **B**: Best structure prediction of TACAN protein displayed in the *ChimeraX viewer*. **C**: Plot *Number of Aligned Sequences with no Gap for each Residue Position*. **D**: PAE plot.
+
+The best model is individually displayed in the *ChimeraX* GUI viewer opened adter clicking ``Analyze Results`` (:numref:`model_building_fig8_alphafold_prediction` (B)).  A couple of additional plots are opened simultaneously. The first one is the plot *Number of Aligned Sequences with no Gap for each Residue Position* that provides the map of the multiple alignment coverage, that is, given a multiple alignment containing N proteins how many of these N proteins contain each one of the problem protein aminoacids (:numref:`model_building_fig8_alphafold_prediction` (C)). This plot shows on the left the residues with high coverage of aligned sequences. This part of the sequence coincides with the N-terminal end of the protein for which AlphaFold2 achieved a quite fair prediction. The C-terminal part of TACAN doesn't show a minimum coverage of aligned sequences, thus avoiding the structure prediction of that sequence.
+
+PAE plot is the second plot opened to visualize the results (:numref:`model_building_fig8_alphafold_prediction` (D)). Quite similar to the same plot obtained from *Phenix* Colab Notebook (:numref:`model_building_fig6_alphafold_prediction` (B)), the PAE plot obtained with *Chimera21* Colab Notebook shows a slightly better prediction of the inter-domain linker. 
+
+If you try to superpose the models generated both with *Phenix* and *Chimera21* Colab Notebooks with the *Scipion* protocol :ref:`Superpose PDBs <app:superposePdbsProtocol>` you  will see that ther not an obvious superposition. This indicates that both prediction models are quite different in the spatial orientation of helixes, which was expected due to the low accuracy of residues that are not included in the two helixes.
+
+AlphaFold initial model of multimer
+-----------------------------------
+
+One interesting advantage of *Chimera21* Colab Notebook compared with *Phenix* Colab Notebook is that the first one enables structure prediction of multimers. As it was mentioned :ref:`before <problemToSolveTACAN>` TACAN protein oligomerizes as a homodimer and we can predict directly the structure of this protein complex using AlphaFold2.
+
+Let us execute again AlphaFold with the protocol **chimerax-alphafold prediction** completing it with two identical sequences of TACAN that should be part of the homodimer. Observe that this is the only one difference between the prediction of the monomer (:numref:`model_building_fig7_alphafold_prediction` (4)) and dimer (:numref:`model_building_fig9_alphafold_prediction` (1)).
+
+   .. figure:: Images/Fig9_protocol_prediction.svg
+      :alt: Completing the *Scipion* protocol **chimerax-alphafold prediction** to predict the structure of TACAN homodimer with AlphaFold2 using *Chimera21* Colab Notebook.
+      :name: model_building_fig9_alphafold_prediction
+      :align: center
+      :width: 100.0%
+
+      Completing the *Scipion* protocol **chimerax-alphafold prediction** to predict the structure of TACAN homodimer with AlphaFold2 using *Chimera21* Colab Notebook.
+
+When the run time finishes, the **5** resulting unrelaxed models of TACAN homodimer will appear in the *ChimeraX* GUI. This window can be closed if no modifications are saved. Then clicking on ``Analyze Results`` three windows will pop-up again allowing the visualization of the best homodimer structure prediction (:numref:`model_building_fig10_alphafold_prediction`).
+
+   .. figure:: Images/Fig10_protocol_prediction.svg
+      :alt: Prediction of TACAN homodimer structure obtained using the *Chimera21* Colab Notebook. **A**: Best structure prediction of TACAN protein displayed in the *ChimeraX viewer*. **D**: PAE plot. **C**: Plot *Number of Aligned Sequences with no Gap for each Residue Position*. 
+      :name: model_building_fig10_alphafold_prediction
+      :align: center
+      :width: 100.0%
+
+      Prediction of TACAN homodimer structure obtained using the *Chimera21* Colab Notebook. **A**: Best structure prediction of TACAN protein displayed in the *ChimeraX viewer*. **D**: PAE plot. **C**: Plot *Number of Aligned Sequences with no Gap for each Residue Position*.
+
+Concerning the confidence score values of each residue (:numref:`model_building_fig10_alphafold_prediction` (A)), we can see that most of the residues included in the N-terminal part of the protein (helix 1-linker-helix 2) seem to show better confidence scores in the homodimer than in the monomer prediction. The PAE plot (:numref:`model_building_fig10_alphafold_prediction` (B)) shows a small error for this part of the protein in each monomer (boxes 1 and 2), as well as the relative position between the N-terminal parts of each monomer (boxes 3). Of course, the disordered region continues disordered in the dimer, mainly because no additional sequences have been found to align in the C-terminal end of the TACAN protein, as can be observed in :numref:`model_building_fig10_alphafold_prediction` (C).
 
 -----------
 
