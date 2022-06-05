@@ -1,5 +1,9 @@
-Get the initial model 
-=====================
+.. _`getInitialModel`:
+
+Get the initial model with AlphaFold2
+=====================================
+
+In this section of the alphaFold tutorial we cover the first steps in the small workflow addressed to get the structure AlphaFold2 initial model and process it (Fig. workflow)
 
 Predicting the three-dimensional (3D) structure of a protein 
 from its sequence alone remains an unsolved problem. However,
