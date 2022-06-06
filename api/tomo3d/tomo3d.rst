@@ -1,5 +1,5 @@
-tomoj package
-=============
+tomo3d package
+==============
 
 Subpackages
 -----------
@@ -7,7 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   tomoj.protocols
+   tomo3d.protocols
 
 Submodules
 ----------
@@ -15,13 +15,14 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
-   tomoj.bibtex
-   tomoj.constants
+   tomo3d.bibtex
+   tomo3d.constants
+   tomo3d.wizards
 
 Module contents
 ---------------
 
-.. automodule:: tomoj
+.. automodule:: tomo3d
    :members:
    :undoc-members:
    :show-inheritance:

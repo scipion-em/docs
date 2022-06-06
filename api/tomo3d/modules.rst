@@ -1,7 +1,7 @@
-tomoj
-=====
+tomo3d
+======
 
 .. toctree::
    :maxdepth: 4
 
-   tomoj
+   tomo3d
