@@ -145,7 +145,7 @@ We are going to look at each line function:
 . Extract the html code that we need. After this you can include this html in your page, adding more static code (code that is always the same) taken from the exported file that is needed for the correct webGL visualization.
 
 Problems
------------
+--------
 
 1. With an incorrect threshold we will see a black result. With a very
   bad threshold we will not see anything.

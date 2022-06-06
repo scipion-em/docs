@@ -4,12 +4,9 @@
 
 .. _scipionCloud-images-manual:
 
-================================
+==========================
 ScipionCloud images manual
-================================
-
-ScipionCloud images manual
-===========================
+==========================
 
 There are two virtual appliances that can be found in the EGI Applications Database: `ScipionCloud <https://appdb.egi.eu/store/vappliance/scipion.v1.0>`_ and `ScipionCloud-GPU <https://appdb.egi.eu/store/vappliance/scipioncloud.gpu>`_.
 

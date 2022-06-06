@@ -315,8 +315,7 @@ Let's implement what the test is expecting:
 Note that we have:
 1. Implemented the ``getStorageFilePath()`` method.
 2. Implemented a ``storeUsageData()`` to store our usage data
-3. In the ``step()`` function we have called the storage function:
-   ``self.storeUsageData(usage)``
+3. In the ``step()`` function we have called the storage function: ``self.storeUsageData(usage)``
 
 Using the Monitor
 =================
