@@ -84,7 +84,7 @@ master_doc = 'index'
 
 # add file with custom css
 def setup(app):
-    app.add_stylesheet('custom.css')
+    app.add_css_file('custom.css')
 
 # use :numref: for references (instead of :ref:)
 numfig = True
