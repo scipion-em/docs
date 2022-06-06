@@ -43,7 +43,7 @@ you might have used the sharpened maps for refinement/validation.
 .. _`requestion4`:
  
 *EMRinger*
----------
+----------
 
 Specifically designed for cryo-EM data, *EMRinger* tool assesses the appropriate
 fitting of a model to a map, validating high-resolution features such as
