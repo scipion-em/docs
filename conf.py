@@ -104,7 +104,9 @@ exclude_patterns = [
     u'build',
     'Thumbs.db',
     '.DS_Store',
-    'docs/developer/scipion-web*',]
+    'docs/developer/scipion-web*',
+    'docs/developer/introduction-scipion-web.rst',
+]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None

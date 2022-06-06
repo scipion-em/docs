@@ -14,7 +14,7 @@ Advanced Topics
 Installation system
 -------------------
 
-* `[Installation system for developers] <installation-system>`_
+* `Installation system for developers <installation-system>`_
 
 
 Desktop development
@@ -23,14 +23,14 @@ Desktop development
 Most of the Scipion graphic user interfaces (GUIs) to visualize EM objects
 (particles, coordinates, volumes, etc) have been developed in Java, extending
 Xmipp ShowJ and Particle Picker. Implementation details are available
-`[here] <scipion-java>`_.
+`here <scipion-java>`_.
 
 Scipion from the command line
 ------------------------------
 
 There are many things you can do with Scipion using just the command line, like
 running tests, starting the webserver, or opening a ShowJ viewer. Read
-this `[page] <scipion-commands>`_ to learn how.
+this `page <scipion-commands>`_ to learn how.
 
 Profiling and Debugging
 -----------------------
