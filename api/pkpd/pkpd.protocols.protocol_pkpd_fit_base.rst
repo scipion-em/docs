@@ -1,7 +1,0 @@
-pkpd.protocols.protocol\_pkpd\_fit\_base module
-===============================================
-
-.. automodule:: pkpd.protocols.protocol_pkpd_fit_base
-   :members:
-   :undoc-members:
-   :show-inheritance:
