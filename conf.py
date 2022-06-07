@@ -29,7 +29,7 @@ sys.path.insert(0, os.path.join(SCIPION_HOME))
 # -- Project information -----------------------------------------------------
 
 project = u'Scipion'
-copyright = u'2020, Scipion team'
+copyright = u'2022, Scipion team'
 author = u'Scipion team'
 
 # The short X.Y version
@@ -84,7 +84,7 @@ master_doc = 'index'
 
 # add file with custom css
 def setup(app):
-    app.add_stylesheet('custom.css')
+    app.add_css_file('custom.css')
 
 # use :numref: for references (instead of :ref:)
 numfig = True
@@ -100,7 +100,13 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = [u'build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = [
+    u'build',
+    'Thumbs.db',
+    '.DS_Store',
+    'docs/developer/scipion-web*',
+    'docs/developer/introduction-scipion-web.rst',
+]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = None

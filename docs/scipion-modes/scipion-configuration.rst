@@ -44,8 +44,7 @@ The configuration files generated with this command are in one location:
           You can find more about it on the :ref:`host configuration page <host-configuration>`.
         - ``protocols.conf`` with the protocols tree definition.
 
-* ``~/.config/scipion/scipion.conf`` will be read if present but Scipion3 will never generate this file.
-This could be useful if you want to overwrite global Scipion3 configuration.
+* ``~/.config/scipion/scipion.conf`` will be read if present but Scipion3 will never generate this file. This could be useful if you want to overwrite global Scipion3 configuration.
 
 For example, below is an excerpt of
 ``config/scipion.conf`` adapted for Ubuntu:

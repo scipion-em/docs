@@ -1,5 +1,5 @@
-tomoj package
-=============
+tomoviz package
+===============
 
 Subpackages
 -----------
@@ -7,7 +7,8 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
-   tomoj.protocols
+   tomoviz.protocols
+   tomoviz.viewers
 
 Submodules
 ----------
@@ -15,13 +16,13 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
-   tomoj.bibtex
-   tomoj.constants
+   tomoviz.bibtex
+   tomoviz.utils
 
 Module contents
 ---------------
 
-.. automodule:: tomoj
+.. automodule:: tomoviz
    :members:
    :undoc-members:
    :show-inheritance:

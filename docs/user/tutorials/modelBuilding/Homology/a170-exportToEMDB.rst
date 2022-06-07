@@ -1,7 +1,7 @@
 .. _`app:exportToEMDB`:
 
 Submission to wwPDB protocol
-===========================
+============================
 
 Protocol designed to save in a specified folder main files required to
 submit cryo-EM derived electron density maps and derived atomic

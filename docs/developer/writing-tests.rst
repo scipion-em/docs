@@ -4,15 +4,15 @@
 
 .. _writing-tests:
 
-===========================
+=============
 Writing Tests
-===========================
+=============
 
 Writing tests for Scipion is much like writing tests for other python code. Tests
 need to be thorough, fast, isolated, consistently repeatable, and as simple as
 possible. We try to have tests both for normal behaviour and for error
 conditions. Tests live in the `<module>/tests` directory, where every file that
-includes tests has a test_ prefix.
+includes tests has a **test\_** prefix.
 
 When you are adding tests to an existing test file, it is also recommended that
 you study the other existing tests; it will teach you which precautions you

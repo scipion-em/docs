@@ -38,11 +38,8 @@ The following paragraphs describe supported formats for different import objects
 Import of CTF estimation results is possible for:
 
 * **.ctfparam** files from Xmipp.
-* **.log**/**.txt**/**.out** files from CTFFind3/4. Typically user has to have
-_MicName_ctffind3.log_ and _MicName.ctf_ files in the import folder so that both
-CTF parameters and power spectrum could be detected.
-* **.log** files from Gctf. Similarly to CTFFind, the log files are usually
-_MicName_ctffind3.log_ or _MicName_gctf.log_.
+* **.log**/**.txt**/**.out** files from CTFFind3/4. Typically, user has to have _MicName_ctffind3.log_ and _MicName.ctf_ files in the import folder so that both CTF parameters and power spectrum could be detected.
+* **.log** files from Gctf. Similarly to CTFFind, the log files are usually _MicName_ctffind3.log_ or _MicName_gctf.log_.
 
 **Coordinates**
 ---------------
@@ -50,7 +47,7 @@ _MicName_ctffind3.log_ or _MicName_gctf.log_.
 Scipion can import coordinates from several picking programs:
 
 * **.box** files from EMAN1/2, Gautomatch
-* **.json** files from EMAN2 (_info/*_info.json_ files in EMAN2 project folder)
+* **.json** files from EMAN2 (_info/\*_info.json_ files in EMAN2 project folder)
 * **.pos** files from Xmipp3 (STAR format)
 * **.star** files from Relion, Gautomatch
 * **.txt** files from Appion DogPicker
@@ -70,7 +67,7 @@ and Y-axis pointing downwards. The coordinates mark the box center (fig. 1).
 
 
 For details about import of coordinates inside Xmipp picker interface,
-see  `[here] <https://github.com/I2PC/scipion/wiki/Picker#import-coordinates>`_
+see  `[here] <https://github.com/I2PC/scipion/wiki/Picker#import-coordinates>`__
 
 **Micrographs**
 ---------------
@@ -78,7 +75,7 @@ see  `[here] <https://github.com/I2PC/scipion/wiki/Picker#import-coordinates>`_
 Micrographs can be imported either directly from files (default option, see the
 list of `[supported formats] <https://github.com/I2PC/xmipp-portal/wiki/ImageFormats))>`_ or:
 
-* **emx** - EMX files follow Electron Microscopy Exchange format (details can be found `[here] <http://i2pc.cnb.csic.es/emx/LoadHome.htm>`_
+* **emx** - EMX files follow Electron Microscopy Exchange format (details can be found `[here] <http://i2pc.cnb.csic.es/emx/LoadHome.htm>`__
 * **scipion** - you can provide **.sqlite** database file created previously with Scipion and containing all associated micrograph metadata
 * **xmipp** - Xmipp metadata files (**.md**) are usually produced by import or preprocess protocols.
 
@@ -92,7 +89,7 @@ _SetOfClasses_ or/and _SetOfMicrographs_ that are associated with imported
 particles. The following formats are currently supported:
 
 * **files** - default import mode
-* **emx** - EMX files follow Electron Microscopy Exchange format (details can be found `[here] <(http://i2pc.cnb.csic.es/emx/LoadHome.htm))>`_
+* **emx** - EMX files follow Electron Microscopy Exchange format (details can be found `[here] <(http://i2pc.cnb.csic.es/emx/LoadHome.htm))>`__
 * **frealign** - FReAlign files. You need to provide both stack file and **.par** file
 * **relion** - Relion STAR file, e.g. _itXX_data.star_
 * **scipion** - **.sqlite** file created previously with Scipion, e.g. _particles.sqlite_

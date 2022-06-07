@@ -23,8 +23,7 @@ on `AWS instance types <https://aws.amazon.com/ec2/instance-types/>`_.
 
   * Choose the ScipionCloud AMI: in *"Community AMIs"* section, search for "scipion" and find the latest release. The ScipionCloud AMI is currently available only in Ireland region but if you would like to use it in a different region contact us and we will make a copy there.
   * Choose the instance type, according to how much resources (CPU, RAM, GPU, disk) you want to use. This AMI has been tested on g4dn types, other GPUs instances types might not work straight away. Contact us if you need advise on this.
-  Regarding disk, you can use an integrated SSD disk, or attach an EBS Volume. Press "Next: Configure instance details". 
-  
+  * Regarding disk, you can use an integrated SSD disk, or attach an EBS Volume. Press "Next: Configure instance details".
   * Configure instance: leave everything as default unless you know what you are doing.
   * Add storage: specify the disk size of the system disk (that you can use also for data). Here you can also create a new volume of arbitrary size.
   * Tag instance: Add tag 'Name' and give a descriptive name.
@@ -169,4 +168,3 @@ cryo electron microscopy image processing on commercial and academic clouds <htt
 
 Also, AWS has the following `tool <https://calculator.s3.amazonaws.com/index.html>`_ to estimate your costs beforehand.
 
--------------------------------------------------------------------------------------

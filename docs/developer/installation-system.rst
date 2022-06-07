@@ -213,8 +213,7 @@ note that it is the same as typing the line:
 Exercise 2 is also simple and is an example of how can we compile a
 new external library. In this case, developer will only need to add a
 line in SConscript, but this time it will be a call to
-**`AddLibrary()`**. Let's say it's the sqlite library. If we see the
-    AddLibrary() params...
+**`AddLibrary()`**. Let's say it's the sqlite library. If we see the ``AddLibrary() params...``
 
 * **name**: similar to AddModule; this will be 'sqlite'.
 * **tar**: same as in AddModule; this time we will use

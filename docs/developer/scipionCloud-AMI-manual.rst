@@ -71,6 +71,7 @@ To verify installed packages type:
 And to install latest version of a package:
 
 .. code-block:: bash
+
     scipion install package-name
 
 Relion is compiled with CUDA support.
