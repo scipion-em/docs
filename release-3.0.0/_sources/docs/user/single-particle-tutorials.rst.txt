@@ -76,6 +76,7 @@ Mouse apoferritin image processing in Scipion 3.0.0
    :align: right
    :height: 96
    :alt: Cover_apoferritin.png
+
 This tutorial presents a complete
 workflow of Cryo-EM single particles inside Scipion 3. It
 demonstrates the combination of different EM-packages with high focus on Xmipp highres. \

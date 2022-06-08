@@ -26,8 +26,8 @@ of a volume using a system call. In particular you will learn to:
 You can choose to:
 
 * watch `the video tutorial <https://www.youtube.com/watch?v=y9AMLywnBMw>`_
-* look at the `source code <https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2>`_
-* or check the `presentation slides <https://drive.google.com/file/d/1VRO1tdVJsF23av8uGBsJZIA_vazeUEk1/view?usp=sharing>`_
+* look at the `source code <https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2>`__
+* or check the `presentation slides <https://drive.google.com/file/d/1VRO1tdVJsF23av8uGBsJZIA_vazeUEk1/view?usp=sharing>`__
 
 Writing a viewer
 ================
@@ -47,8 +47,8 @@ In this practice you will learn how to:
 
 You can learn how to create viewers:
 
-* Without a form: `video tutorial <https://www.youtube.com/watch?v=_sxA0O4_rpg>`_, `source code <https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2>`_, `presentation slides <https://drive.google.com/file/d/1-O1dT-aOtKwhaKBsQuCQSQrmhuuW_PuO/view?usp=sharing>`_.
-* With a GUI form: `video tutorial <https://www.youtube.com/watch?v=eHQrsodO6xQ>`_, `source code <https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2b>`_, `presentation slides <https://drive.google.com/file/d/1DxH6-Aks-Ix2dOk0pzZn_cD7se8shR6O/view?usp=sharing>`_
+* Without a form: `video tutorial <https://www.youtube.com/watch?v=_sxA0O4_rpg>`__, `source code <https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2>`__, `presentation slides <https://drive.google.com/file/d/1-O1dT-aOtKwhaKBsQuCQSQrmhuuW_PuO/view?usp=sharing>`__.
+* With a GUI form: `video tutorial <https://www.youtube.com/watch?v=eHQrsodO6xQ>`__, `source code <https://github.com/scipion-em/scipion-em-template/tree/course1_exDay2b>`__, `presentation slides <https://drive.google.com/file/d/1DxH6-Aks-Ix2dOk0pzZn_cD7se8shR6O/view?usp=sharing>`__
 
 Practice
 ========

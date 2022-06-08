@@ -88,6 +88,7 @@ Exercise 2 is also so simple and is an example of how can we compile a new exter
 We can then write, to solved the exercise, the following line in SConscript:
 
 .. code-block:: python
+
     sqlite = env.AddLibrary(
         'sqlite',
         tar='sqlite-3.6.23.tgz',
@@ -113,6 +114,7 @@ The exercise 3 only aims building a new EM Package called 'TRFEMP'. In this case
 To include the TRFEMP Package, add to =install/script.py= something like...
 
 .. code-block:: python
+
     env.AddPackage('TRFEMP',
                    buildDir='trfemp-1.0/unix',
                    extraActions=[('Makefile', './configure --funny-option'),

@@ -40,7 +40,7 @@ do a specific task or to introduce a new software package:
 *  `Buildbot <buildbot>`_
 
 
-Development Tools
+Development tools
 -----------------
 
 Git
@@ -52,9 +52,9 @@ Development environment
 Setup your Development Environment, we prefer `Eclipse-IDE <eclipse>`_
 or `PyCharm-IDE <pycharm>`_
 
-Advanced Development Topics
+Advanced development topics
 ===========================
-The following link contains `Advanced-Development-Topics <advanced-topics>`_. The information provided is intended for developers working in our lab and developing the core of
+The following link contains `advanced development topics <advanced-topics>`_. The information provided is intended for developers working in our lab and developing the core of
 Scipion. Anyway, some general information is also found such as Profiling and Debugging.
 
 

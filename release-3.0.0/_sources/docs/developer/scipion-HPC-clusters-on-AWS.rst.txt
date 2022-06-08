@@ -4,9 +4,9 @@
 
 .. _Scipion-HPC-clusters-on-AWS:
 
-===============================
+===========================
 Scipion HPC clusters on AWS
-===============================
+===========================
 
 The following diagram shows a basic HPC cluster architecture on AWS:
 
@@ -107,11 +107,11 @@ Specify the key pair to use (managed on EC2 / Security Groups / Key pairs)
 Define the scipioncluster template: +
 Set the cluster size and the instance image and type (although starcluster allows different images and types for master and node, current Scipion AMI is unique for both). +
 The list of instance types might not be updated on the config file, you can
-check them `[here] <https://github.com/I2PC/scipion/wiki/AWS-Instance-Types-for-Starcluster>`_
+check them `here <https://github.com/I2PC/scipion/wiki/AWS-Instance-Types-for-Starcluster>`__
 You might also want to choose a prefix for the machine names. +
 Although not necessary it is recommended to attach an external EBS storage.
 Just uncomment the VOLUMES parameter and create a volume section as explained
-`[here] <https://github.com/I2PC/scipion/wiki/ScipionCloud-on-Amazon-Web-Services-EC2#using-external-ebs-volumes.>`_
+`here <https://github.com/I2PC/scipion/wiki/ScipionCloud-on-Amazon-Web-Services-EC2#using-external-ebs-volumes.>`__
 
 .. code-block:: bash
 
@@ -213,7 +213,7 @@ For the cluster approach the use of an external EBS volume has to be defined on 
 
 The volume has to exist and be formatted before it can be attached to the
 cluster. This can be done through EC2 dashboard or using starcluster client as
-explained `here <http://star.mit.edu/cluster/docs/latest/manual/volumes.html#create-and-format-a-new-ebs-volume>`_.
+explained `here <http://star.mit.edu/cluster/docs/latest/manual/volumes.html#create-and-format-a-new-ebs-volume>`__.
 
 Then it has to be added to the cluster template (if more than one volume is
 added separate it by commas):
@@ -241,7 +241,7 @@ Elastic cluster
 
 StarCluster provides a experimental feature, called Elastic Load Balancer, that can be used to balance clusters dynamically depending on the batch system workload (Sun Grid Engine).
 To use it you need a cluster running as explained above.
-Detailed documentation can be found `[here] <http://star.mit.edu/cluster/docs/latest/manual/load_balancer.html>`_ but the basic usage is as follows:
+Detailed documentation can be found `here <http://star.mit.edu/cluster/docs/latest/manual/load_balancer.html>`__ but the basic usage is as follows:
 
 To start balancing:
 
@@ -277,4 +277,4 @@ AWS CfnCluster
 --------------
 It is and open-source tool developed by AWS that allows to create and configure an elastic HPC cluster on AWS EC2. +
 We have not yet tested it with ScipionCloud but an easy How-to can be
-found `here <https://aws.amazon.com/getting-started/projects/deploy-elastic-hpc-cluster/>`_.
+found `here <https://aws.amazon.com/getting-started/projects/deploy-elastic-hpc-cluster/>`__.

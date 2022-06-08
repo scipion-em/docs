@@ -5,7 +5,7 @@
 .. _plugin-manager:
 
 ==============
-Plugin Manager
+Plugin manager
 ==============
 
 This page aims to introduce you to the usage of Scipion Plugin Manager,
@@ -26,8 +26,8 @@ to select the Plugins option (Figure 1).
 
 Figure 1. Scipion project manager
 
-Plugin Manager
-==============
+Plugin manager window
+=====================
 
 Now you will see the Plugin Manager interface (Figure 2).
 
@@ -141,8 +141,8 @@ uninstall (Figure 7)
 
 |uninstall_plugins| Figure 7. Uninstalling plugins
 
-Step 2: Execute all selected operations
----------------------------------------
+Step 2: Execute all selected operations.
+----------------------------------------
 
 Same as Step 2 to `Install
 Plugins <#step-2-execute-all-selected-operations>`__

@@ -19,7 +19,7 @@ How can I group micrographs in order to have more particles per group?
 
 In the Relion protocols in Scipion there is an option to create the groups automatically.
 You can specify a minimum number of particles in each group or a defocus range.
-(See the `original answer in Relion FAQs <https://www3.mrc-lmb.cam.ac.uk/relion/index.php/FAQs#How_can_I_group_micrographs_in_order_to_have_more_particles_per_group.3F>`_
+(See the `original answer in Relion FAQs <https://www3.mrc-lmb.cam.ac.uk/relion/index.php/FAQs#How_can_I_group_micrographs_in_order_to_have_more_particles_per_group.3F>`__
 
 What are groups for anyway?
 ---------------------------
@@ -28,7 +28,7 @@ See the `original answer in Relion FAQs <https://www3.mrc-lmb.cam.ac.uk/relion/i
 
 Do I need to downsize my images?
 --------------------------------
-This is not needed for Relion. (see the `original answer in Relion FAQs <https://www3.mrc-lmb.cam.ac.uk/relion/index.php/FAQs#Do_I_need_to_downsize_my_images.3F>`_
+This is not needed for Relion. (see the `original answer in Relion FAQs <https://www3.mrc-lmb.cam.ac.uk/relion/index.php/FAQs#Do_I_need_to_downsize_my_images.3F>`__
 If you still want to downsize your images, you can use either Relion or Xmipp
 preprocess particles protocols to do so. (Later you can easily assign angular
 assignment to original sized images)

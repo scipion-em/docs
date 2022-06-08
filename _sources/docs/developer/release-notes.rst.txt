@@ -4,17 +4,19 @@
 
 .. _release-notes:
 
-=======================
+=============
 Release-notes
-=======================
+=============
 
 .. contents:: Table of Contents
+
+
 
 v3.0.18 (2021-12-20) core or pworkflow
 ======================================
 Users:
  - Fixed GUI errors:
-   - fixing the workflow collapse/expande nodes
+   - fixing the workflow collapse/expand nodes
    - resetting nodes with manual subset looses the parent
    - reporting the protocol wall time
    - finished protocol can't be modified
@@ -45,11 +47,10 @@ V3.0.14 (2021-12-20) em core or pwem
 Users:
   - New protocol: numeric classes extractor: Extracts items from a SetOfClasses based on number of items assigned to the classes
   - Filter ser protocol can filter by ranking: ascending or descending getting N items or a percentage.
+  - Filebrowser preview for images limited to 500MB (default). MAX_PREVIEW_FILE_SIZE (in MB) can be used to change this value.
   - Outputs predefined for: import masks, import micrographs, import movies, movie alignment methods, ctf estimators, particle pickers, particle extractors.
 
 .. figure:: possible-outputs.gif
-  
-  - Filebrowser preview for images limited to 500MB (default). MAX_PREVIEW_FILE_SIZE (in MB) can be used to change this value.
 
 
 v3.0 (2020-11-10) Eugenius
@@ -161,8 +162,6 @@ Developers
 v2.0 (2019-05-16) Diocletian
 ============================
 
-Release Notes
--------------
 We are pleased to announce the new major release of version Scipion 2.0.
 It is available for download on Linux `here <http://scipion.i2pc.es/download_form>`_
 
@@ -198,7 +197,7 @@ Key changes for version 2.0 are:
 * For developers and facility managers we now have a slack workspace where you can easily reach other developers and facility staff to get a quick feedback: https://scipion.slack.com/. Contact us at scipion@cnb.csic.es for an invitation.
 
 Streaming
-----------
+---------
 1. New protocol from Xmipp to trigger data (movies, micrographs, particles...) only when a certain among of that data is reached, in three modes: in batches, full streaming, from streaming to static.
 2. Xmipp Movie Alignment is updated to work on GPU and to do local alignment by means of splines fititings.
 3. New protocol to select/discard movies on-the-fly depending on the shift jumps between frames or/and the total travel drift.
@@ -212,7 +211,7 @@ Streaming
 11. More streaming methods available...
 
 New protocols & package updates
---------------------------------
+-------------------------------
 1. EMPIAR depositor.
 2. Cryolo picker from SPHIRE.
 3. EMAN2 updated to 2.21, new protocols added: new boxer (interactive and autopicker), ctf_auto, refine 2d and ref2d bispectra, tilt validation.
@@ -254,9 +253,6 @@ And many more minor features and bug fixes! ;)
 v1.2.1 (2018-10-01) Claudio
 ===========================
 
-Release Note
--------------
-
 We are pleased to announce another release of Scipion, v1.2.1 is now available! We added several new features, made improvements and fixed bugs, specially for on-the-fly data processing.
 
 We are also very happy to see the Scipion development becoming more distributed. The main developers team is in Madrid, but now core developers are also in Stockholm, Montreal and Cambridge. We will be really happy to have more people on-board, come and join us!
@@ -264,7 +260,7 @@ We are also very happy to see the Scipion development becoming more distributed.
 For the next release, we are going for a more strong “pluginization”, to make the whole platform more easy to maintain and the development more agile. Stay tuned and keep an eye!
 
 New for Streaming
-------------------
+-----------------
 
 * Allow protocols to run in multiple GPUs (e.g Gctf and Gautomatch)
 * Protocols can now wait for other protocols to finish before starting (internal scheduling)
@@ -272,7 +268,7 @@ New for Streaming
 * Schedule batch of 2D classification jobs one after each other (protocol '2d streamer')
 
 New protocols
----------------
+-------------
 * `Local sharpening protocol in Xmipp <https://github.com/I2PC/scipion-em-xmipp/wiki/XmippProtLocSharp>`_
 * Added cryomethods package added from McGill developers.
 
@@ -282,7 +278,7 @@ New protocols
 * Protocol to export particles in Relion format (both .star file and stacks)
 
 Other improvements and bug fixes
-----------------------------------
+--------------------------------
 * Monores Xmipp protocol to estimate local resolution has been accelerated.
 * Allow to merge sets with different attributes
 * Use double-click to select in Dialogs (more intuitive)
@@ -303,12 +299,10 @@ Other improvements and bug fixes
 v1.2 (2018-04-03) Caligula
 ==========================
 
-Release note
-------------
 We are very pleased to announce the release of a new version of `Scipion <http://scipion.i2pc.es/>`_. We have put our efforts in improving the Streaming functionality to work better in facilities. We have also updated some EM packages versions and done some bug-fixing and enhancements.
 
 New features
--------------
+------------
 Picking and particle extraction in streaming
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 We have pushed our streaming capabilities until particle extraction, this means
@@ -324,7 +318,7 @@ resolution histogram. Check the latest
 version `[here] <http://scipion.cnb.csic.es/scipionbox/lastHTMLReport/>`_
 
 Improved CTF model
-~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~
 We have added phase shift, max. resolution and CTF fit quality as global
 parameters to our Scipion CTF model. Old package-specific parameters are still
 kept for compatibility with previous versions.
@@ -366,9 +360,6 @@ Others
 v1.1 (2017-06-14) Balbino
 =========================
 
-Release note
--------------
-
 We are very pleased to announce the release of a new version
 of `Scipion <http://scipion.i2pc.es>`_. It’s been over a year since the previous
 and first version and we have been working on 3 main goals for this release:
@@ -378,7 +369,7 @@ and first version and we have been working on 3 main goals for this release:
 * Streaming capabilities: To speed up first preprocessing steps we have enabled Scipion to work in “streaming mode”, allowing users to compute aligned movies and estimate CTF as soon as a movie or micrograph comes out of the microscope PC.
 
 New features
-=============
+============
 
 EM Packages
 -----------
@@ -443,7 +434,7 @@ Monitors
 We have designed monitors to follow the status of several running protocols within a Scipion project. They can track and plot values for “system status” (cpu, memory, swap), ctf values (defocusU, defocusV). Alerts can be setup to email the microscopist/user when certain values rise above/below a custom threshold.
 
 HTML Report
-~~~~~~~~~~~~~
+~~~~~~~~~~~
 The summary monitor generates an HTML report that summarizes the status of the system and the data being processed, plotting the defoci and system data.
 
 Scipion box wizard
@@ -473,7 +464,7 @@ We have also done a lot of work to consolidate Scipion, improving the usability 
 
 
 v1.0.1 (2016-06-30)
-====================
+===================
 * Several protocol fixes:
 
     * Fixed bug when creating the output for Frealign (in some cases some information from input particles was not properly propagated)

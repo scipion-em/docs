@@ -2,7 +2,7 @@
    :width: 250
    :alt: scipion logo
 
-.. _advanced-topics:
+.. _rotations-advanced-topics:
 
 =================================
 Rotations, shifts and projections

@@ -5,7 +5,7 @@ Requirements
 ------------
 
 This tutorial requires, in addition to *Scipion* (plugins scipion-em-chimera and scipion-em-phenix),
-the `PHENIX suite <https://www.phenix-online.org/download/>`_. This tutorial has been tested for the PHENIX v. 1.20.1-4487.
+the `PHENIX suite <https://www.phenix-online.org/download/>`_. This tutorial has been tested for the PHENIX v. 1.20.1-4487. AlphaFold version 2.1.1 or upgraded should be installed to predict locally multimer structures.
 
 We'd like to hear from you
 --------------------------

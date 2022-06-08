@@ -21,7 +21,7 @@ Only AWS admin user can do that, but these are the steps.
 * Select AMIs on the left side menu
 * Select i2pc-cloud-training and click on ``Launch``
 
-.. figure:: /docs/images/cloud/AWS%20console%20-%20AMIs.png
+.. figure:: /docs/images/cloud/AWSconsole-AMIs.png
    :alt: AWS console - AMIs
 
 * Choose the instance type appropriate for the training. For the usual Workflow (ExtendedBetagal) we normally use p2.xlarge (GPU).
@@ -30,7 +30,7 @@ Only AWS admin user can do that, but these are the steps.
 * Click ‘Next: Add tags’ and specify the following tags:
 
 
-.. figure:: /docs/images/cloud/AWS%20console%20-%20Add%20Tags.png
+.. figure:: /docs/images/cloud/AWSconsole-AddTags.png
    :alt: AWS console - Add tags
 
 
@@ -47,7 +47,7 @@ ssh is by default restricted to CNB IP range but it could be changed if necessar
   A pop-up window will appear to select a security key pair. You can either select key i2pc-training or create a new one.
 
 
-.. figure:: /docs/images/cloud/AWS%20console%20-%20Key%20pairs.png
+.. figure:: /docs/images/cloud/AWSconsole-Keypairs.png
    :alt: AWS console - Key pairs
 
 * Click on ‘Launch Instances’ and go to ‘View Instances’ and wait until instances has been initialized (Status Checks)
@@ -71,7 +71,7 @@ There is a user called i2pc-training that can only manage training instances (st
 * Select the instance and either click on ‘Actions’ or Right-click on the instance and select Instance State and the action required.
 
 
-.. figure:: /docs/images/cloud/AWS%20console%20-%20manage%20training%20instances.png
+.. figure:: /docs/images/cloud/AWSconsole-managetraininginstances.png
    :alt: AWS console - manage training instances
 
 Accessing training instances

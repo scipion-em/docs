@@ -4,9 +4,9 @@
 
 .. _customize-grafana:
 
-========================================
+======================================
 Grafana, InfluxDB report customization
-========================================
+======================================
 
 .. :contents:: Table of Contents
 
@@ -84,7 +84,8 @@ You may find a description of the process in https://devconnected.com/how-to-set
     > show databases
     name: databases
     name
-    
+
+
 Note: The flag **unsafeSsl* is needed if you use a self-signed certificate.
 
 * Create database "scipion" and grant access permission to scipion_writer (as admin user) and to scipion_reader (as readonly user)
