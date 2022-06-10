@@ -26,6 +26,7 @@ Contents
    030-processModel
    040-dockModel
    050-rebuildModel
+   060-dockAndRebuildModel
 
 Appendices
 ----------
