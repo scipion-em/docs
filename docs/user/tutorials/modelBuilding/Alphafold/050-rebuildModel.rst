@@ -38,12 +38,12 @@ After a quick running, the protocol finishes. Probably due to a file format inco
 Soon after executing the protocol, the browser window of *Phenix* Colab Notebok opens and stars to run. ``REMARK`` that when a template is used, this template has to be manually uploaded. This task requires clicking the key ``Choose Files`` in the Cell #3 of the browser (:numref:`model_building_fig26_rebuild` (1)).
 
    .. figure:: Images/Fig26_protocol_rebuild_model_4.svg
-      :alt: Cell 2 of the browser of *Phenix* Colab Notebook completed and running.
+      :alt: Cell 3 of the browser of *Phenix* Colab Notebook completed and running.
       :name: model_building_fig26_rebuild
       :align: center
       :width: 100.0%
 
-      Cell 2 of the browser of *Phenix* Colab Notebook completed and running.
+      Cell 3 of the browser of *Phenix* Colab Notebook completed and running.
 
 After a while the prediction process finishes and the AlphaFold2 predicted structure is shown in *ChimeraX*. :numref:`model_building_fig27_rebuild` details the new prediction (A) and the PAE plot (B). Comparing the accuracy of residues and PAE error with the predictions of monomers and dimers that we have obtained :ref:`before <getInitialModel>`, we can observe that the new one is the best one.
 
