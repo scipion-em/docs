@@ -144,15 +144,8 @@ Concerning the confidence score values of each residue (:numref:`model_building_
 
 -----------
 
-comment best -> scipion onject // scipionwrite // amber relaxation // script mouse.py
+NOTE: Google Colab notebooks have an idle timeout of 90 minutes and absolute timeout of 12 hours.
+This means, if user does not interact with his Google Colab notebook for more than 90 minutes,
+its instance is automatically terminated. So, is there any way to programmatically prevent Google Colab from disconnecting on a timeout? In the past we have been able to implement the solution provided by seyon-seyon `here <https://stackoverflow.com/questions/57113226/how-to-prevent-google-colab-from-disconnecting>`_.
 
-# Is there any way to programmatically prevent Google Colab from disconnecting on a timeout?
-# Google Colab notebooks have an idle timeout of 90 minutes and absolute timeout of 12 hours.
-# This means, if user does not interact with his Google Colab notebook for more than 90 minutes,
-#  its instance is automatically terminated. Also, maximum lifetime of a Colab instance is 12 hours.
-#
-# Run this code in your Desktop, Then point mouse arrow over (colabs left panel - file section)
-# directory structure on any directory this code will keep clicking on directory on every 30 seconds
-# so it will expand and shrink every 30 seconds so your session will not get expired Important
-# - you have to run this code in your pc 
 
