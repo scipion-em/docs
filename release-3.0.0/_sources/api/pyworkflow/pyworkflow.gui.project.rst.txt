@@ -11,10 +11,14 @@ Submodules
    pyworkflow.gui.project.constants
    pyworkflow.gui.project.labels
    pyworkflow.gui.project.project
+   pyworkflow.gui.project.searchprotocol
+   pyworkflow.gui.project.searchrun
+   pyworkflow.gui.project.steps
    pyworkflow.gui.project.utils
    pyworkflow.gui.project.viewdata
    pyworkflow.gui.project.viewprojects
    pyworkflow.gui.project.viewprotocols
+   pyworkflow.gui.project.viewprotocols_extra
 
 Module contents
 ---------------

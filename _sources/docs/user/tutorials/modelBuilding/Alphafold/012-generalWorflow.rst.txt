@@ -1,6 +1,6 @@
 .. _`generalWorkflow`:
 
-General workflow to predict and fit Alphafold2 structures followed in this tutorial
+General workflow followed in this tutorial to predict and fit Alphafold2 structures 
 ===================================================================================
 
    .. figure:: Images/Fig16_workflow.svg

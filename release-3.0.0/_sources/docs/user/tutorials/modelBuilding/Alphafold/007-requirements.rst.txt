@@ -4,8 +4,8 @@ Prelude
 Requirements
 ------------
 
-This tutorial requires, in addition to *Scipion* (plugins scipion-em-chimera and scipion-em-phenix),
-the `PHENIX suite <https://www.phenix-online.org/download/>`_. This tutorial has been tested for the PHENIX v. 1.20.1-4487. AlphaFold version 2.1.1 or upgraded should be installed to predict locally multimer structures.
+This tutorial requires, in addition to *Scipion* (plugins `scipion-em-chimera <https://github.com/scipion-em/scipion-em-chimera>`_ and `scipion-em-phenix <https://github.com/scipion-em/scipion-em-phenix>`_ ),
+the `PHENIX suite <https://www.phenix-online.org/download/>`_. This tutorial has been tested for the PHENIX v. 1.20.1-4487. `AlphaFold <https://www.deepmind.com/open-source/alphafold>`_ version 2.1.1 or upgraded should be installed to predict locally multimer structures.
 
 We'd like to hear from you
 --------------------------
