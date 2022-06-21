@@ -23,7 +23,7 @@ To copy your data in the virtual server you can use rsync but the destination fo
 
 As an example you should launch a similar command from the server where your data and project is located:
 
-rsync -av Instruct_project_1234 scipionuser@IP.OF.THE.SERVICE:ScipionUserData/projects/
+rsync -av -e 'ssh -p 2222' Instruct_project_1234 scipionuser@IP.OF.THE.SERVICE:ScipionUserData/projects/
 
 Depending on your data size data will take some time to copy but you can login and start working on it.
 
@@ -31,4 +31,8 @@ Depending on your data size data will take some time to copy but you can login a
    :width: 500
    :alt: Scipion project
 
-You might then continue working on the project until you reach your results.
+It is also possible to access the virtual server using ssh on port 2222.
+
+Both rsync and ssh assume that you have previously sent your public key and has been injected in the server.
+
+Take into account that the server runs on a docker container on the physical host which is only accessible by the server administrator.
