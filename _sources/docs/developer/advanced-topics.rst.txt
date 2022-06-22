@@ -40,20 +40,10 @@ Profiling and Debugging
 * Profiling Python with `PyCharm <pycharm-profiling>`_
 * Profiling Python with `Intel VTune Profiler <vtune-profiler>`_
 
-Virtualization
----------------
+Scipion and docker
+------------------
 
-* `Preparing a Scipion image <scipion-image>`_
-
-Scipioncloud
--------------
-
-ScipionCloud main "cloud platforms" are Amazon Web Services (AWS) and EGI Federated Cloud (FedCloud)
-
-* `ScipionCloud on AWS <scipionCloud-on-amazon-web-services-ec2>`_
-* `ScipionCloud on FedCloud <scipion-on-the-egi-federated-cloud>`_
-* `Starcluster instance types (AWS) <aws-instance-types-for-starcluster>`_
-* `ScipionCloud deployments <scipion-deployments-on-the-cloud>`_ : on `FedCloud <scipion-deployments-on-the-egi-federated-cloud>`_
+* `Docker images for Scipion <https://github.com/i2pc/scipion-docker>`_
 
 GPU
 ---

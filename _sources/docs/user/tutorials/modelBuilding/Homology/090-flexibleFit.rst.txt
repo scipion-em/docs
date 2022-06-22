@@ -182,7 +182,7 @@ to *Validate -> Density fit analysis* and check if the orange bar shown in *MET*
 
 ::
 
-     scipion write (0, ’label1_HBA_HUMAN’)
+     scipion_write (0, ’label1_HBA_HUMAN’)
 
 
 .. figure:: Images/Fig26.svg
