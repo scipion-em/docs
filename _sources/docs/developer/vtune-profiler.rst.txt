@@ -17,12 +17,7 @@ A more detailed comparison can be found `here <https://software.intel.com/conten
 Getting started
 ---------------
 
-`Download and install VTune <https://software.intel.com/content/www/us/en/develop/documentation/vtune-help/top.html>`_
-
-VTune is a part of Intel oneAPI Base Toolkit. During installation, if you are interested only in Python profiling, select the following components:
-
-.. figure:: /docs/images/dev-tools/vtune-install.png
-   :alt: Selected components to install
+`Download and install VTune standalone version <https://www.intel.com/content/www/us/en/developer/tools/oneapi/vtune-profiler-download.html>`_
 
 Setting Up VTune
 ----------------
@@ -33,7 +28,7 @@ It is assumed that Scipion3 has been previously installed. In the example below 
 
 .. code-block:: bash
 
-   source /home/azazello/soft/intel/oneapi/vtune/latest/env/vars.sh
+   source /path/to/vtune/latest/env/vars.sh
    export AMPLXE_RUNTOOL_OPTIONS=--no-altstack
 
 2. Open Vtune (**vtune-gui**) and create a new project. If the **Configure Analysis** tab didn't open, right click on the project name and select that option.
