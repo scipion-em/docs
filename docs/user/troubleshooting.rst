@@ -16,7 +16,7 @@ using Scipion.
 Launcher scipion3 not found
 ===========================
 The ``scipion3`` launcher is created at the end of the installation. Then, if the installation is not completed
-(e.g. Xmipp compilation have failed) it will not be created.
+(e.g. Xmipp compilation has failed) it will not be created.
 
 If you want to run something like ``scipion3 config``, but you get an error like
 
