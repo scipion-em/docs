@@ -17,7 +17,7 @@ Here you can find resources associated with this content, like videos or present
 Practice
 ========
 
-Let's go to our template plugin folder and setup everything ready for the practice session:
+Let's go to our template plugin folder (if you dot have it, visit `template plugin <https://github.com/scipion-em/scipion-em-template>`_ and clone and install it) folder and setup everything ready for the practice session:
 
 .. code-block:: bash
 
@@ -76,6 +76,10 @@ The GUI would be as the following figure shows:
 
 The following code contain the class definition and the protocol GUI implementation.
 
+.. note:: 
+
+         Remember import the protocolo inthe __init__.py file of the protocol folder of the plugin
+
 .. code-block:: python
 
     import json
@@ -84,7 +88,7 @@ The following code contain the class definition and the protocol GUI implementat
     import os
     import shutil
 
-    from pwem.objects import Movie, SetOfMovies, Float, String
+    from pwem.objects import Movie, SetOfMovies, Float, String, Set
     from pwem.protocols import EMProtocol
     from pyworkflow.protocol import params, Positive, STATUS_NEW, STEPS_PARALLEL
     import pyworkflow.utils as pwutils
@@ -106,11 +110,11 @@ The following code contain the class definition and the protocol GUI implementat
             # 1) add a section
 
             # 2) add a parameter to capture the EMPIAR entry ID:
-            # name --> entryId, String param, default value 10200, you choose the label
+            # name --> entryId, StringParam, default value 10200, you choose the label
             # Ideally we want it in bold so it is "Important". Fill in the help.
 
             # 3) add another parameter to set a limit of downloaded files:
-            # name-->amountOfImages, Integer param, default to 1, choose the label and the help
+            # name-->amountOfImages, IntParam(, default to 1, choose the label and the help
             # It has to be positive (use "validators" argument, it expects a list of
             # pyworkflow.protocol.params.Validator, look for the Positive Validator)
 
@@ -184,6 +188,11 @@ We provide you the code that reads EMPIAR's xml:
             return title, samplingRate
 
 
+.. tip::
+
+    All the values that we want to have in the summary (title, samplingRate, ...)
+    have to be Scipion objects (String, Integer, ...) that automatically get persisted.
+    
 Now your protocol should be able to run. Try it now and get some information from the empiar entry **10200.**
 Check that the summary looks good.
 
@@ -193,10 +202,6 @@ After the execution, the **Summary** panel could show the following information 
    :width: 450
    :alt: Summary
 
-.. tip::
-
-    All the values that we want to have in the summary (title, samplingRate, ...)
-    have to be Scipion objects (String, Integer, ...) that automatically get persisted.
 
 After that, we'll add into ``_insertAllSteps`` method the second step. This step
 will download the movies from the entry (``entryId``) ftp until the maximum number
@@ -210,8 +215,9 @@ specified (``amountOfImages``) is reached.
 
         def downloadImagesStep(self):
             # Call the method provided below.
-            # Make the download happen into the tmp folder of the protocol,
-            # and the final folder has to be the extra folder.
+            # Make the download happen into the tmp folder (self._getTmpPath) of the protocol,
+            # and the final folder has to be the extra folder (self._getExtraPath).
+            pass
 
 The code below should download the files from empiar:
 
@@ -264,6 +270,9 @@ Try to run the protocol now and check that the files are being downloaded and en
 Check as well that the limit is taken into account.
 
 .. note:: At this point, there isn't any code registering the movies in Scipion.
+
+The dynamic part
+---------------------------------------
 
 Let's add the third step that will be used later to close the set, but for now we will leave it empty.
 
