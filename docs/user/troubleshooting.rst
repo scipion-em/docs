@@ -59,6 +59,50 @@ If you've tried to install scipion3 sometime ago, you may have an old installer.
 
 This should bring you the latest published version as show here: https://pypi.org/project/scipion-installer/ 
 
+Xmipp dependencies
+======================
+- Compiler
+Xmipp requires C++17 compatible compiler. We recommend either GCC or CLANG, in the newest version possible. We have good experience with GCC-8 and bad experience with GCC-7.
+
+We strongly recommend you to have this compiler linked to `gcc` and `g++`. Otherwise it might not be properly picked up by wrappers, such as MPI's wrapper.
+We have good experince with using `alternatives`:
+
+```
+sudo apt install gcc-8 g++-8
+sudo update-alternatives --remove-all gcc
+sudo update-alternatives --remove-all g++
+sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 50
+sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-8 50
+```
+
+- Cuda
+Xmipp supports Cuda 8 through 11. CUDA is optional but highly recommended. We recommend you to use the newest version available for your operating system, though Cuda 10.2 has the widest support among other Scipion plugins.
+To install CUDA for your operating system, follow the `official install guide <https://developer.nvidia.com/cuda-toolkit-archive>`__.
+
+- OpenCV
+OpenCV is used for some programs: movie_optical_alignment (with GPU support) and volume_homogenizer, however, it is not required.
+If you installed OpenCV via apt (`sudo apt install libopencv-dev`), it should be automatically picked up by the Xmipp script
+
+- HDF5
+We sometimes see issues regarding the HDF5 dependency.
+We recommend removing all hdf5 versions and install just hdf5-devel. To do that:
+```
+sudo apt remove hdf5
+sudo apt remove hdf5-devel
+pip uninstall h5py
+```
+Remove all files related to hdf5 in /usr/lib64/libhdf5*, /usr/include/hdf5* and .../anaconda3/include/hdf5*. 
+
+We strongy recommend you to install it via your default package manager:
+`sudo apt-get install libhdf5-dev` 
+If you install it using other package management system (such as Conda), it might lead to compile/link time issues caused by incompatible version being fetched.
+
+- Full list of dependencies
+```sudo apt install -y libfftw3-dev libopenmpi-dev libhdf5-dev python3-numpy python3-dev libtiff5-dev libsqlite3-dev default-jdk git cmake gcc-8 g++-8```
+
+```pip install scons numpy```
+
+
 General error while installing/compiling Xmipp (non-development installations)
 ==============================================================================
 Scipion installation also includes the Xmipp compilation and installation, by default.
@@ -71,9 +115,7 @@ Xmipp can be installed separately using the plugin manager or by
     scipion3 installp -p scipion-em-xmipp -j 4
 
 
-If you are getting an error during the Xmipp compilation, consider to check the
-:ref:`Scipion's configuration page <scipion-configuration>` or the
-`Xmipp's configuration page <https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)>`_.
+If you are getting an error during the Xmipp compilation, consider to check the `Xmipp's configuration page <https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)>`_.
 
 Xmipp bundle is placed at ``<SCIPION_HOME>/software/em/xmippSrc-v3.20.07`` (production mode), see the
 `Xmipp structure guide <https://github.com/I2PC/xmipp/wiki/Xmipp-structure>`_ for more information regarding Xmipp.
@@ -101,7 +143,7 @@ If ``ERROR: Could not find target xmippSrc`` is gotten, try to run
     scipion3 installp -p scipion-em-xmipp -j 4
 
 
-If the problem persist, don't hesitate to :ref:`contact us <contact-us>`.
+If the problem persist, don't hesitate to :ref:`contact us <contact-us>` or `open a issue <https://github.com/I2PC/xmipp/issues/new>`_ 
 
 
 General error while installing/compiling Xmipp (development installations)
@@ -113,9 +155,7 @@ the installation command.
 Xmipp can be installed separately following the
 `Xmipp's installation guide <https://github.com/I2PC/xmipp#xmipp-as-a-standalone-bundle-for-developers>`_.
 
-If you are getting an error during the Xmipp compilation, consider to check the
-:ref:`Scipion's configuration page<scipion-configuration>` or the
-`Xmipp's configuration page <https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)>`_.
+If you are getting an error during the Xmipp compilation, consider to check the `Xmipp's configuration page <https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)>`_.
 
 Xmipp bundle is placed at ``<SCIPION_HOME>/xmipp-bundle`` (devel mode), see the
 `Xmipp structure guide <https://github.com/I2PC/xmipp/wiki/Xmipp-structure>`_
@@ -145,7 +185,7 @@ If ``ERROR: Could not find target xmippDev`` is gotten, try to run
     scipion3 installp -p <SCIPION_HOME>/xmipp-bundle/src/scipion-em-xmipp --devel -j 4
 
 
-If the problem persist, don't hesitate to :ref:`contact us <contact-us>`.
+If the problem persist, don't hesitate to :ref:`contact us <contact-us>`. or `open a issue <https://github.com/I2PC/xmipp/issues/new>`_ 
 
 
 Installing Scipion/Xmipp from precompiled bundles
