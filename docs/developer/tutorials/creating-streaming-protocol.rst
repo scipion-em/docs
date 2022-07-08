@@ -152,7 +152,7 @@ The first step reads the dataset xml file from EMPIAR.
             summary = []
             # Check if we have the any summary attribute (if readXmlStep has happened) (HINT: hasattr will do)
             # Add items to the summary list like:
-            # "Title: %s" % ??
+            # "Title: %s" % getattr(self, 'title')
             # "Sampling rate: %s" % ??
             # How would you have more values in the summary? (HINT: return more values in readXmlFromEmpiar)
 
