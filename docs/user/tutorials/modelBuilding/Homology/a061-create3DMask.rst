@@ -92,7 +92,7 @@ operating on a 3D volume or a previous mask.
 
 -  | Visualization of protocol results:
 
-   | After executing the protocol, press *Analyze Results* and `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_, the default viewer, will open the mask by slices (:numref:`model_building_create3Dmask_2`). *ShowJ* window menu (*File -> Open with ChimeraX*) allows to open the mask volume in *ChimeraX* graphics window.
+   | After executing the protocol, press *Analyze Results* and `ShowJ <../../../showJ>`_, the default viewer, will open the mask by slices (:numref:`model_building_create3Dmask_2`). *ShowJ* window menu (*File -> Open with ChimeraX*) allows to open the mask volume in *ChimeraX* graphics window.
 
 -  Summary content:
 
