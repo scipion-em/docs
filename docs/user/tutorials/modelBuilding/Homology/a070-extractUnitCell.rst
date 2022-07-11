@@ -110,7 +110,7 @@ Extract asymmetric unit protocol
       | Initial whole volume and extracted volume appear referred to the origin of coordinates in *ChimeraX*. To show the relative position of the volume, the three coordinate axes are represented; X axis (red), Y axis (yellow), and Z axis (blue) (:numref:`model_building_app_protocol_volume_3`). Coordinate axes, initial volume, and extracted map asymmetric unit are model numbers *#1*, *#2* and *#3*, respectively, in *ChimeraX Models* panel. Volume coordinates and pixel size can be checked in *ChimeraX* main menu *Tools -> Volume Data -> Map Coordinates: Origin index/ Voxel size*. 
       |``WARNING:`` Take into account that coordinates appear in pixels while they have been introduced in Å.
 
-   -  | *slices*: `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_
+   -  | *slices*: `ShowJ <../../../user/showJ>`_
 
       | Each volume can be independently visualized by selecting it in the upper menu as the arrow indicates in :numref:`model_building_app_protocol_extractUnitCell_3`.
 

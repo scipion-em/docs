@@ -70,9 +70,9 @@ filtering the map at different frequencies.
 
       Protocol **xmipp3-local MonoRes**. Menu to visualize results.
 
-   -  | *Show resolution slices*: Map resolution slices are opened with `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_, the default *Scipion* viewer.
+   -  | *Show resolution slices*: Map resolution slices are opened with `ShowJ <../../../user/showJ>`_, the default *Scipion* viewer.
 
-   -  | *Show original volume slices*: Original map slices are opened with `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_.
+   -  | *Show original volume slices*: Original map slices are opened with `ShowJ <../../../user/showJ>`_.
 
    -  | *Show resolution histogram*: Number of map voxels that show a certain resolution.
 

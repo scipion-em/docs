@@ -89,7 +89,7 @@ information of this method can be also obtained `here <https://github.com/rsanch
      respectively, in *ChimeraX Model Panel*. In case that half maps have been
      included, the respective additional model numbers will be applied.
 
-   | The possibility of visualizing the sharpened map by slices with `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_ is also opened as commonly in *Scipion*, selecting in the *Output* of the *Summary* box, black arrow *xmipp3 - deepEMhancer -> Volume*, the right mouse option *Open with DataViewer*.
+   | The possibility of visualizing the sharpened map by slices with `ShowJ <../../../user/showJ>`_ is also opened as commonly in *Scipion*, selecting in the *Output* of the *Summary* box, black arrow *xmipp3 - deepEMhancer -> Volume*, the right mouse option *Open with DataViewer*.
 
 -  Summary content:
 

@@ -45,7 +45,7 @@ mask’s sampling rate.
 
    | After executing the protocol, press *Analyze Results* and *ShowJ*, the default *Scipion* viewer, will allow you to visualize the *slices* window of the mask (:numref:`model_building_create3Dmask_2`). The *ShowJ* window menu *(File -> Open with ChimeraX)* allows to open the selected map in *ChimeraX* graphics window.
 
-   -  | *slices*: `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_
+   -  | *slices*: `ShowJ <../../../user/showJ>`_
 
 -  | Summary content:
 
