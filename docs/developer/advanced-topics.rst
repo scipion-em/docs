@@ -45,8 +45,3 @@ Scipion and docker
 
 * `Docker images for Scipion <https://github.com/i2pc/scipion-docker>`_
 
-GPU
----
-* `GPU purchase guide. Enabling GPU in Scipion <https://scipion-em.github.io/docs/docs/developer/enable-gpu-in-scipion>`_
-* `GPU params standardization in Scipion protocols <gpu-params-standardization>`_
-

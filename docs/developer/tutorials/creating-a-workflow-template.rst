@@ -14,7 +14,7 @@ Here you can find resources associated with this content, like videos or present
 
 `Course presentation <https://docs.google.com/presentation/d/1KGz6_A2YLtjIBoiLKqhHTBUr2HYhqvAz91WiWWSXNQY/present?usp=sharing>`_
 
-`Facilities workflows <https://scipion-em.github.io/docs/docs/facilities/facilities-workflows.html>`_
+`Facilities workflows <../../facilities/facilities-workflows>`_
 
 Scipion can export a workflow or a series of protocols into a file.
 A ``Scipion workflow file`` contains all the attributes for each protocol
@@ -182,7 +182,7 @@ In our example we want to ask for the ``Message`` and the ``Time`` parameters.
    :width: 750
    :alt: Customized template
 
-You can find more details about how the ``dynamic fields`` syntax works `here <https://scipion-em.github.io/docs/docs/facilities/facilities-workflows.html#creating-custom-dynamic-templates>`_.
+You can find more details about how the ``dynamic fields`` syntax works `here <docs/facilities/facilities-workflows.html#creating-custom-dynamic-templates>`_.
 
 Now you can provide the values for these dynamic parameters directly from the command line, e.g. below Message and Time dynamic parameters were defined as arguments:
 

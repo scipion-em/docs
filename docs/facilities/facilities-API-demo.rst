@@ -8,50 +8,22 @@
 API workflows
 =============
 
-To create Scipion workflows from Python scripts, you only need to do 3 logical
+To create Scipion workflows from Python scripts, you only need to do a few logical
 steps:
 
-1. `Create an empty project <facilities-API-demo#creating-a-project>`_.
-2. `Create protocols <facilities-API-demo#including-protocols>`_.
-3. `Register that protocols to the project <facilities-API-demo#registering-protocols>`_.
+#. `Creating a project`_
+#. `Creating some protocols`_
+#. `Adding protocols to the project`_
 
 In addition, we include an special mention in `how to set EM objects as protocol
-inputs <facilities-API-demo#setting-em-objects-as-protocol-inputs>`_.
+inputs<Setting EM objects as protocol inputs>`_.
 
 
-0. Getting config and user parameters
-=====================================
-
-First of all, we need to get all the `config <acquisition-simulation#config-file>`_
-and `user <acquisition-simulation#wizard-for-user-parameters>`_
-parameters retrieved in `previous steps <acquisition-simulation>`_.
-In this case, we have stored all these parameters in the ``configDict`` dictionary
-that is gotten as argument from the wizard
-(`form_launcher.py <https://github.com/I2PC/em-facilities/blob/master/usingAPI_demo/acquisition_workflow.py>`_).
-In addition, we import the *UPPER_CASE* constants from `constants.py
-<https://github.com/I2PC/em-facilities/blob/master/usingAPI_demo/constants.py>`_
-to ensure that we use the same that in the wizard
-and also to easy get values from the ``configDict``.
-
-.. code-block:: python
-
-    from constants import *
-
-    def preprocessWorkflow(configDict):
-
-        numCpus = (configDict.get(NUM_CPU) if configDict.get(NUM_CPU, 0)
-                       else int(subprocess.Popen(['nproc','--all'],
-                                                 stdout=subprocess.PIPE).stdout.read()))
-
-Note that we are taking the number of CPUs from the ``configDict`` via the `NUM_CPU`
-constant.
-
-1. Creating a project
-=====================
+Creating a project
+==================
 
 To create an empty project, you only must use the `Manager.createProject()
-<https://scipion-em.github.io/docs/api/pyworkflow.project.manager.html#
-pyworkflow.project.manager.Manager.createProject>`_ method
+<../../api/pyworkflow/pyworkflow.project.manager.html#pyworkflow.project.manager.Manager.createProject>`_ method
 
 .. code-block:: python
 
@@ -65,15 +37,14 @@ where ``PROJECT_NAME`` and ``SCIPION_PROJECT`` constants return the project name
 the project path from the ``configDict``, respectively.
 
 
-2. Including protocols
-======================
+Creating some protocols
+=======================
 
 Once a project is created, we must fill it with protocols.
 
 To be able to instance a protocol, it must be imported from the containing plugin
 (or from Scipion). Here an example of importing the `Import Movies
-<https://scipion-em.github.io/docs/api/pyworkflow.em.protocol.protocol_import.micrographs.html#
-pyworkflow.em.protocol.protocol_import.micrographs.ProtImportMovies>`_ protocol
+<../../api/pwem/pwem.protocols.protocol_import.micrographs.html#pwem.protocols.protocol_import.micrographs.ProtImportMovies>`_ protocol
 from Scipion and the `Motioncor <https://github.com/scipion-em/scipion-em-motioncorr/blob/
 master/motioncorr/protocols/protocol_motioncorr.py>`_ protocol from the
 `scipion-em-motioncor <https://github.com/scipion-em/scipion-em-motioncorr>`_
@@ -86,13 +57,11 @@ plugin.
     from pyworkflow.em.protocol import ProtImportMovies
     ProtMotionCorr = pwutils.importFromPlugin('motioncorr.protocols', 'ProtMotionCorr')
 
-Notice that we use the `pwutils.importFromPlugin() <https://scipion-em.github.io/
-docs/api/pyworkflow.utils.utils.html#pyworkflow.utils.utils.importFromPlugin>`_
+Notice that we use the `pwutils.importFromPlugin() <../../api/pyworkflow/pyworkflow.plugin.html#pyworkflow.plugin.Domain.importFromPlugin>`_
 method to import classes from plugins in order to avoid uncontrolled errors
 if that plugin is not installed in the current Scipion.
 
-To create a protocol, the `Project <https://scipion-em.github.io/docs/api/
-pyworkflow.project.project.html#pyworkflow.project.project.Project>`_ class has
+To create a protocol, the `Project <../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project>`_ class has
 a method to make new protocols.
 For instance, for the *Import movies*
 
@@ -115,28 +84,21 @@ For instance, for the *Import movies*
                       timeout=configDict.get(TIMEOUT, 43200)  # 12h default
                       )
 
-Notice that the first argument of the `project.newProtocol()
-<https://scipion-em.github.io/docs/api/pyworkflow.project.project.html
-#pyworkflow.project.project.Project.newProtocol>`_ method is an
-`EM-protocol <https://scipion-em.github.io/docs/api/pyworkflow.protocol.protocol.html
-#pyworkflow.protocol.protocol.Protocol>`_
+Notice that the first argument of the `project.newProtocol() <../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.newProtocol>`_
+method is an `EM-protocol <../../api/pwem/pwem.protocols.protocol.html#pwem.protocols.protocol.EMProtocol>`_
 subclass, corresponding to that protocol to be created (and imported above).
-The following arguments are all those `form parameters <https://scipion-em.github.io/
-docs/api/pyworkflow.protocol.params.html#pyworkflow.protocol.params.FormElement>`_
-defined by `the protocol <https://scipion-em.github.io/docs/modules/pyworkflow/em/
-protocol/protocol_import/micrographs.html#ProtImportMicBase>`_ using the
-`addParam() <https://scipion-em.github.io/docs/api/pyworkflow.protocol.params.html#
-pyworkflow.protocol.params.ElementGroup.addParam>`_ method.
+The following arguments are all those `form parameters <../../api/pyworkflow/pyworkflow.protocol.params.html#pyworkflow.protocol.params.FormElement>`_
+defined by `the protocol <../../api/pwem/pwem.protocols.protocol_import.micrographs.html#pwem.protocols.protocol_import.micrographs.ProtImportMicBase>`_ using the
+`addParam() <../../api/pyworkflow/pyworkflow.protocol.params.html#pyworkflow.protocol.params.ElementGroup.addParam>`_ method.
 If a parameter is not set, the default value is used.
 
-3. Registering protocols
-========================
+Adding protocols to the project
+===============================
 
 Once a protocol is instanced, we should register it, which means writing it in
 disk at the data bases. This can be done in two **alternative** ways:
 
-* **Saving the protocol** using the `project.saveProtocol() <https://scipion-em.github.io/
-  docs/api/pyworkflow.project.project.html#pyworkflow.project.project.Project.saveProtocol>`_
+* **Saving the protocol** using the `project.saveProtocol() <../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.saveProtocol>`_
   method:
 
   .. code-block:: python
@@ -144,16 +106,14 @@ disk at the data bases. This can be done in two **alternative** ways:
         project.saveProtocol(protImport)
 
   This option is conceptually similar to create a *JSON* block when making
-  `Scipion's templates <facilities-workflows.html#static-templates>`_.
+  `Scipion's templates <facilities-workflows.html#id1>`_
   Therefore, that protocol does not run until the whole workflow will be
-  launched after including all the rest protocols (see `launch an open workflows
-  <acquisition-simulation.html#launch-an-open-projects>`_).
+  launched after including all the rest protocols.
   Thus, the output objects from the saved protocols are not created yet and,
   then, no information can be gotten from them. Even though, they
   can be used for the next protocols with no inconvenience as we will see below.
 
-* **Launching the protocol** using the `project.launchProtocol() <https://scipion-em.github.io/
-  docs/api/pyworkflow.project.project.html#pyworkflow.project.project.Project.launchProtocol>`_
+* **Launching the protocol** using the `project.launchProtocol() <../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.launchProtocol>`_
   method:
 
   .. code-block:: python
@@ -176,12 +136,11 @@ These two options are noticeable different and we must take a procedure decision
 since we should do the same for all the protocols.
 
 
-4. Setting EM objects as protocol inputs
-========================================
+Setting EM objects as protocol inputs
+=====================================
 
 We have seen how to set protocol parameters in the initialization arguments.
-However, the `set(value) <https://scipion-em.github.io/docs/api/pyworkflow.object.html#
-pyworkflow.object.Object.set>`_ method sets a value to any protocol parameter.
+However, the `set(value) <../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Object.set>`_ method sets a value to any protocol parameter.
 For instance,
 
 .. code-block:: python
@@ -194,35 +153,23 @@ d9397a6dd5c9493a67b08d08f8c2af1e8f580c61/motioncorr/protocols/
 protocol_motioncorr.py#L50-L55>`_ is initialized in the first line whereas the
 `doApplyDoseFilter <https://github.com/scipion-em/scipion-em-motioncorr/blob/d9397a6dd5c9493a67b08d08f8c2af1e8f580c61/
 motioncorr/protocols/protocol_motioncorr.py#L167-L171>`_ is set to ``True`` if
-the *dose per frame* introduced by the user in `the wizard in previous steps
-<acquisition-simulation#wizard-for-user-parameters>`_ is bigger than 0 or
+the *dose per frame* introduced by the user is bigger than 0 or
 to ``False``, instead.
 
-Until here, we only have set `Scalar <https://scipion-em.github.io/docs/api/
-pyworkflow.object.html#pyworkflow.object.Scalar>`_ objects or `Built-in Python
-Types <https://docs.python.org/2.7/library/stdtypes.html>`_.
-However, usually we want to use `EMSets outputs <https://scipion-em.github.io/
-docs/api/pyworkflow.em.data.html#pyworkflow.em.data.EMSet>`_
-(`SetOfMicrographs <https://scipion-em.github.io/docs/api/
-pyworkflow.em.data.html#pyworkflow.em.data.SetOfMicrographsBase>`_,
-`SetOfCtfs <https://scipion-em.github.io/docs/api/pyworkflow.em.data.html#
-pyworkflow.em.data.SetOfCTF>`_,
-`SetOfCoordinates <https://scipion-em.github.io/docs/api/pyworkflow.em.data.html#
-pyworkflow.em.data.SetOfCoordinates>`_,
-`SetOfParticles <https://scipion-em.github.io/docs/api/pyworkflow.em.data.html#
-pyworkflow.em.data.SetOfParticles>`_,
-`SetOfClasses <https://scipion-em.github.io/docs/api/pyworkflow.em.data.html#
-pyworkflow.em.data.SetOfClasses>`_...) from previous protocols as input
+Until here, we only have set `Scalar <../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Scalar>`_ objects or `Built-in Python Types <https://docs.python.org/2.7/library/stdtypes.html>`_.
+However, usually we want to use `EMSets outputs <../../api/pwem/pwem.objects.data.html#pwem.objects.data.EMSet>`_
+(`SetOfMicrographs <../../api/pwem/pwem.objects.data.html#pwem.objects.data.SetOfMicrographsBase>`_,
+`SetOfCtfs <../../api/pwem/pwem.objects.data.html#pwem.objects.data.SetOfCTF>`_,
+`SetOfCoordinates <../../api/pwem/pwem.objects.data.html#pwem.objects.data.SetOfCoordinates>`_,
+`SetOfParticles <../../api/pwem/pwem.objects.data.html#pwem.objects.data.SetOfParticles>`_,
+`SetOfClasses <../../api/pwem/pwem.objects.data.html#pwem.objects.data.SetOfClasses>`_...) from previous protocols as input
 for next protocols. At this point, we must take into
-account that previous protocols may be not running yet (`it can be just saved
-<facilities-API-demo#registering-protocols>`_). Then, in that cases, the previous
+account that previous protocols may be not running yet (see `Adding protocols to the project`_). Then, in that cases, the previous
 outputs are not created yet. Therefore it cannot be passed as value in the
-`set(value) <https://scipion-em.github.io/docs/api/pyworkflow.object.html#
-pyworkflow.object.Object.set>`_ method. To fix this situations,
+`set(value) <../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Object.set>`_ method. To fix this situations,
 we set the whole protocol as input parameter, while indicating which
 object should be retrieved in the running time from that protocol by means of
-the `setExtended() <https://scipion-em.github.io/docs/api/pyworkflow.object.html#
-pyworkflow.object.Pointer.setExtended>`_ method. For instance,
+the `setExtended() <../../api/pyworkflow/pyworkflow.object.html#pyworkflow.object.Pointer.setExtended>`_ method. For instance,
 
 .. code-block:: python
 
@@ -234,8 +181,7 @@ where the whole ``protImport`` protocol is attached to the
 an extension for this parameter, indicating that it will be gotten in the
 running time.
 
-If you decided to `launch protocols as soon as they are created
-<facilities-API-demo#registering-protocols>`_, then a direct
+If you decided to launch protocols as soon as they are created when `adding protocols to the project`_, then a direct
 assignation is possible as long as the object is ready
 
 .. code-block:: python
