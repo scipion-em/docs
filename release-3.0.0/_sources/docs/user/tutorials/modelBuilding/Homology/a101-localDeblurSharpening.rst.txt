@@ -73,7 +73,7 @@ the same.
      epochs will be detailed. The sharpening algorithm stops when the
      difference between two successive iterations is lower than 1%, thus
      generating a variable number of maps before stopping. You can
-     select any of them and visualize the slices with `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_, the default *Scipion* viewer.
+     select any of them and visualize the slices with `ShowJ <../../../showJ>`_, the default *Scipion* viewer.
      To visualize the slices press the symbol that appears below *File*
      in the main menu. The *ShowJ* window menu (*File -> Open with
      Chimera*) allows to open the selected map in *ChimeraX*

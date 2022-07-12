@@ -72,7 +72,9 @@ Installation
 
 See `Configuration guide <scipion-configuration>`_ for more details about these and other possible variables.
 
-6. Install Xmipp plugin (example below is using 12 threads)
+6. Install `Xmipp <https://github.com/I2PC/xmipp#xmipp>`__ plugin. We have tested Xmipp compilation on the following operating systems: `Ubuntu 16.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-16.04>`__, `Ubuntu 18.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-18.04>`__, `Ubuntu 20.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-20.04>`__, and `Centos 7 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-CentOS-7-9.2009>`__. A list of dependencies can be found `here <https://github.com/I2PC/xmipp#additional-dependencies>`__. Command example below is using 12 threads
+
+
 
 ::
 

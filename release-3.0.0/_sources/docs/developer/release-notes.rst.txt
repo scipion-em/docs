@@ -11,6 +11,17 @@ Release-notes
 .. contents:: Table of Contents
 
 
+Release notes have been moved
+=============================
+Since Scipion3 is released in smaller components it is more convenient to make release notes per each of the components.
+Main component's release notes can be found at:
+
+ - `pyworkflow <https://github.com/scipion-em/scipion-pyworkflow/blob/master/CHANGES.txt>`_
+ - `scipion-em <https://github.com/scipion-em/scipion-em/blob/master/CHANGES.txt>`_
+ - `scipion-app <https://github.com/scipion-em/scipion-app/blob/master/CHANGES.txt>`_
+
+For each of the plugins you should go to each `plugins URL <http://scipion.i2pc.es/contact>`_ where you'll likely find the same *CHANGES.txt* file.
+
 
 v3.0.18 (2021-12-20) core or pworkflow
 ======================================

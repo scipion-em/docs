@@ -2,7 +2,7 @@
    :width: 250
    :alt: scipion logo
 
-.. _tomosegmemTV-pySeg-workflow:
+.. _tomosegmemtv-pyseg-workflow:
 
 ==================================================================================
 Tutorial - Denoising, Membrane Segmentation and Annotation and Directional Picking
@@ -73,7 +73,7 @@ documentation pages:
 
 `PySeg presentation`_
 
-`Basic actions with Scipion <https://scipion-em.github.io/docs/docs/user/scipion-gui.html#scipion-gui>`_
+`Basic actions with Scipion <docs/user/scipion-gui.html#scipion-gui>`_
 
 The dataset
 -----------

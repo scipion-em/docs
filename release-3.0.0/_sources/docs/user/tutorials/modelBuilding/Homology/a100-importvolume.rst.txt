@@ -81,7 +81,7 @@ user’s computer or from the `Electron Microscopy Data Bank (EMDB ) <https://ww
       | Volumes are referred to the origin of coordinates in *ChimeraX*. To show the relative position of the volume, the three coordinate axes are represented; X axis (red), Y axis (yellow), and Z axis (blue) (:numref:`model_building_app_protocol_volume_3`). Coordinate axes and the imported volume are model numbers *#1* and *#2*, respectively, *ChimeraX Models* panel. Volume coordinates and pixel size can be checked in *ChimeraX* main menu *Tools -> Volume Data -> Map coordinates: Origin index/ Voxel size*. 
       | ``WARNING:`` Take into account that coordinates appear in pixels while they have been introduced in Å.
 
-   -  | *slices*: `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_ (:numref:`model_building_app_protocol_volume_4`)
+   -  | *slices*: `ShowJ <../../../user/showJ>`_ (:numref:`model_building_app_protocol_volume_4`)
 
       .. figure:: Images_appendix/Fig103.svg
          :alt: Protocol **import volumes**. Gallery model of *ShowJ* to visualize volume slices.

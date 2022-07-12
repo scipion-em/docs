@@ -44,7 +44,7 @@ AlphaFold2 Initial Model Prediction protocol
 
 		-  | *cutoff*: Advanced param to select the maximum statistic value required to include a retrieved element in the hit list.
 
-		-  | *Hide help popup window*: With this param you can choose between hide (*YES*) or show (*NO*) a help message to select and save the atomic structure using the *ChimeraX* command `scipionwrite <help:user/commands/scipionwrite.html>`_. Selecting *YES* that help information will be shown also in red bold in the *ChimeraX* GUI (Log). Take into account that you might not retrieve any homologous structure. Check the box *Blast Protein Results* on the right. An empty box means no homologous structures retrieved for a particular substitution matrix and cutoff value.
+		-  | *Hide help popup window*: With this param you can choose between hide (*YES*) or show (*NO*) a help message to select and save the atomic structure using the *ChimeraX* command `scipionwrite <../../../commands/scipionwrite>`_. Selecting *YES* that help information will be shown also in red bold in the *ChimeraX* GUI (Log). Take into account that you might not retrieve any homologous structure. Check the box *Blast Protein Results* on the right. An empty box means no homologous structures retrieved for a particular substitution matrix and cutoff value.
 
 		   | ``Note:`` Look :ref:`below <useCasesPredict>` for a use case (:numref:`model_building_app_protocol_alphafold_prediction_3`).
 	
@@ -68,7 +68,7 @@ AlphaFold2 Initial Model Prediction protocol
 			
 			- | *Test*: This third option is not a Google Colab notebook although it has been included here for debugging. ``WARNING:`` *Do not select this option*.
 
-		- | *Show results in ChimeraX*: By default the *ChimeraX* GUI window will be opened to show the AlphaFold2 prediction structures. This gives the user the opportunity to modify any of the predictions and save this model using the command `scipionwrite <help:user/commands/scipionwrite.html>`_. See also the *ChimeraX Operate* protocol `appendix <https://scipion-em.github.io/docs/docs/user/tutorials/modelBuilding/Homology/a020-chimeraOperate.html>`_.
+		- | *Show results in ChimeraX*: By default the *ChimeraX* GUI window will be opened to show the AlphaFold2 prediction structures. This gives the user the opportunity to modify any of the predictions and save this model using the command `scipionwrite <../../../commands/scipionwrite>`_. See also the *ChimeraX Operate* protocol `appendix <docs/user/tutorials/modelBuilding/Homology/a020-chimeraOperate.html>`_.
 
 	-  | **Local AlphaFold**: It is possible to run AlphaFold2 locally if you can fit to the requirements of hardware system configuration. In particular, you need a minimum storage capacity of 2.5 TB (recommended 3 TB) since the Alphafold database size is 2.2 TB (uncompressed), and a GPU since otherwise the computation will be very slow. GPU of 24 Gb is recommended to run predictions for sequences between 3,000 and 4,000 amino acids. The protocol has been tested for AlphaFold v2.1.1, able to predict multimers :cite:p:`AlphaFold-Multimer2021`. To learn more about software instalation and requirements follow this `link <https://github.com/kalininalab/alphafold_non_docker>`_. Additional params with this option (:numref:`model_building_app_protocol_alphafold_prediction_1` (E):
 

@@ -48,7 +48,7 @@ for example to deposit it to EMDB, you should use the protocol :ref:`export to D
 
    | After executing the protocol, press *Analyze Results* and :math:`ShowJ`, the default *Scipion* viewer, will allow you to visualize the *slices* window of the map (:numref:`model_building_app_protocol_assign_orig_and_sampling_2`). The :math:`ShowJ` window menu (*File -> Open with ChimeraX*) allows to open the selected map in *ChimeraX* graphics window.
 
-   -  | *slices*: `ShowJ <https://scipion-em.github.io/docs/docs/user/showJ>`_
+   -  | *slices*: `ShowJ <../../../user/showJ>`_
 
       .. figure:: Images_appendix/Fig302.svg
          :alt: Protocol **assign Orig & Sampling**. Gallery model of :math:`ShowJ` to visualize the map slices.

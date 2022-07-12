@@ -16,7 +16,7 @@ of our docs on the `docs GitHub repository <https://github.com/scipion-em/docs>`
 only one version, the branch ``release-3.0.0``, but we'll have more versions in the future.
 The branch ``gh-pages`` contains the **built**
 documentation for all versions (i.e. HTML files). When new commits are pushed to this branch,
-https://scipion-em.github.io/docs/ will update and reflect them automatically.
+ will update and reflect them automatically.
 
 On a high level, the docs have two main parts:
 
@@ -82,4 +82,28 @@ Resources and tips
     rm build/release-3.0.0/_static/custom.css
     ln -s _static/custom.css build/release-3.0.0/_static/
 
+4. Finding targets:
 
+.. code-block::
+
+    scipion3 run python -m sphinx.ext.intersphinx build/release-3.0.0/objects.inv
+
+
+5.- Linking to other sections in other pages, use ref tag:
+
+.. code-block::
+
+    :ref:`project.newProtocol() <pyworkflow.project.project.Project.newProtocol>`
+
+6.- Linking to pages: Although the rst link will work for the final build, they will not work for a local build
+
+.. code-block::
+
+    `link text <page_identifier>`_
+
+
+It is better to use:
+
+.. code-block::
+
+    :doc:`link text <page_identifier>`
