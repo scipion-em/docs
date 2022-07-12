@@ -9,7 +9,7 @@ Scipion web development setup
 ======================================
 
 Scipion web requires you to have Scipion installed in the server. For that you
-will need to `install Scipion <https://scipion-em.github.io/docs/docs/scipion-modes/install-from-sources.html>`_.
+will need to install Scipion.
 After this you should have Python, Django and all the modules required to run Scipion web.
 
 Django scripts need write permission in ``$SCIPION_HOME``
