@@ -26,17 +26,17 @@ General Information
 Extending Scipion
 -----------------
 
-Scipion can be 'easily' extended by `Creating a Plugin <creating-a-plugin>`_ to
+Scipion can be 'easily' extended by :doc:`Creating a Plugin <creating-a-plugin>` to
 do a specific task or to introduce a new software package:
 
-* `Creating a protocol <creating-a-protocol>`_
-* `Integrating parameter Wizards <creating-a-wizard>`_
-* `Developing output Viewers <creating-a-viewer>`_
-* `Creating a monitor <creating-a-monitor>`_
-* `Customize the HTML report <customize-html-report>`_
-*  `Writing tests <writing-tests>`_
-*  `Running tests <running-tests>`_
-*  `Buildbot <buildbot>`_
+* :doc:`Creating a protocol <creating-a-protocol>`
+* :doc:`Integrating parameter Wizards <creating-a-wizard>`
+* :doc:`Developing output Viewers <creating-a-viewer>`
+* :doc:`Creating a monitor <creating-a-monitor>`
+* :doc:`Customize the HTML report <customize-html-report>`
+* :doc:`Writing tests <writing-tests>`
+* :doc:`Running tests <running-tests>`
+* :doc:`Buildbot <buildbot>`
 
 
 Development tools
@@ -44,24 +44,23 @@ Development tools
 
 Git
 ===
-`Using git <how-to-git>`_: Find the most used commands and practices using *git* in Scipion.
+:doc:`Using git <how-to-git>` : Find the most used commands and practices using *git* in Scipion.
 
 Development environment
 =======================
-Setup your Development Environment, we prefer `Eclipse-IDE <eclipse>`_
-or `PyCharm-IDE <pycharm>`_
+Setup your Development Environment, we prefer :doc:`Eclipse-IDE <eclipse>`
+or :doc:`PyCharm-IDE <pycharm>`
 
 Advanced development topics
 ===========================
-The following link contains `advanced development topics <advanced-topics>`_. The information provided is intended for developers working in our lab and developing the core of
+The following link contains :doc:`advanced development topics <advanced-topics>`. The information provided is intended for developers working in our lab and developing the core of
 Scipion. Anyway, some general information is also found such as Profiling and Debugging.
 
 
 Internal development tools and hints
 ====================================
 
-* `Generating binaries <generating-binaries>`_
-* `Building Scipion docs <building-scipion-docs>`_
+* `Building Scipion docs <https://github.com/scipion-em/docs/blob/release-3.0.0/README.rst>`_
 
 
 Tutorials
