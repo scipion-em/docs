@@ -12,15 +12,14 @@ Welcome to the **Scipion Developers Page**!
 
 On this page, you will find documentation about the Scipion architecture and how you can easily 
 extend Scipion with new functionality. If you are completely new to the Scipion framework, we 
-recommend that you start with our `Introduction to Scipion Developers <introduction-to-scipion-developers>`_
+recommend that you start with our :ref:`Introduction to Scipion Developers <introduction-to-scipion-developers>`
 
 General Information
 -------------------
-* `Architecture <architecture>`_: take a look at the big picture
-* `Scipion EM Classes <scipion-em-classes>`_: Diagram containing EM Classes and its relations
-* `Conventions <conventions>`_ : How scipion understands rotations, translations, symmetries ...
-* `Release-notes <release-notes>`_: What has been done in each release.
-* `Road map 2018 <road-map>`_ What we want to do for the next release.
+* :doc:`Architecture <architecture>`: take a look at the big picture
+* :ref:`Scipion EM Classes <scipion-em-classes>`: Diagram containing EM Classes and its relations
+* :ref:`Conventions <conventions>` : How scipion understands rotations, translations, symmetries ...
+* :ref:`Release-notes <release-notes>`: What has been done in each release.
 
 .. _extending-scipion:
 

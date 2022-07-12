@@ -2,7 +2,7 @@
    :width: 250
    :alt: scipion logo
 
-.. _architecture:
+.. _conventions:
 
 ============
 Conventions

@@ -335,13 +335,7 @@ Using Scipion's API
 -------------------
 
 A Scipion's project can be created, designed (adding protocols) and launched by
-a Python script using the :ref:`Scipion's API <Scipion-API>`.
+a Python script using the :ref:`Scipion's API <scipion-api>`.
 
-We have a repository destined to share Scipion's scripts potentially useful in
-`EM-facilities <https://github.com/I2PC/em-facilities>`_.
-Specially, we have an example of `creating a Scipion2 project using the API <https://github.com/I2PC/em-facilities/blob/master/usingAPI_demo/acquisition_workflow.py>`_.
-See the `acquisition simulation (for Scipion2) <acquisition-simulation-scipion2>`_ section to learn how
-to use this script.
-
-Go to `API workflows <facilities-API-demo>`_ to see in detail how to make
+Go to :ref:`API workflows <facilities-api-demo>` to see in detail how to make
 projects with a Python script.
