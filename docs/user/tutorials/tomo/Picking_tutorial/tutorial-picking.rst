@@ -23,7 +23,8 @@ Additional resources
 Here you can find some valuable resources to complement the contents described in the tutorial:
 
 * `Slides - Scipion tomography course December 2021 <https://docs.google.com/presentation/d/1Dyt9An3FR_qNDugjmB9VEriiASzrZb1GlxLBTVkSY7I/edit?usp=sharing>`_
-* `Video tutorials for Directional picking tutorial section <x>`_
+* `Video tutorials for Directional picking with Dynamo <https://youtu.be/qbfVo7IVyQY>`_
+* `Video tutorials for Directional picking with Eman <https://youtu.be/Rp1-5951Ok0>`_
 
 Where to find the protocols?
 ============================
@@ -56,7 +57,7 @@ Deciding which strategy suits your data better depends on the conditions of the 
 Preliminary steps
 =================
 
-If you are new to Scipion, we strongly suggest that you follow this `Scipion tutorial <https://scipion-em.github.io/docs/docs/user/scipion-gui.html#scipion-gui>`_ to learn how to navigate and work with the interface of Scipion. In the previous tutorial, you will find how to look for and create new protocols, together with some examples of SPA workflows.
+If you are new to Scipion, we strongly suggest that you follow this :ref:`Scipion tutorial <scipion-gui>` to learn how to navigate and work with the interface of Scipion. In the previous tutorial, you will find how to look for and create new protocols, together with some examples of SPA workflows.
 
 Directional picking tutorial
 ============================

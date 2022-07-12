@@ -17,7 +17,7 @@ Here you can find resources associated with this content, like videos or present
 
 `Course presentation <https://docs.google.com/presentation/d/1coUcXLkDZrNAWtRbcDO-JsPCxsOSrHh8gjMngoLK7WE/present?usp=sharing>`_
 
-`Detailed documentation <https://scipion-em.github.io/docs/docs/developer/creating-a-plugin#creating-init-py>`_
+:doc:`Detailed documentation <creating-a-plugin>`
 
 Starting with scipion-em-template
 =================================
