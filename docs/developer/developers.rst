@@ -32,8 +32,8 @@ do a specific task or to introduce a new software package:
 * :doc:`Creating a protocol <creating-a-protocol>`
 * :doc:`Integrating parameter Wizards <creating-a-wizard>`
 * :doc:`Developing output Viewers <creating-a-viewer>`
-* :doc:`Creating a monitor <creating-a-monitor>`
-* :doc:`Customize the HTML report <customize-html-report>`
+* :doc:`Creating a monitor <tutorials/creating-a-monitor>`
+* :doc:`Customize the HTML report <../facilities/customize-report-html>`
 * :doc:`Writing tests <writing-tests>`
 * :doc:`Running tests <running-tests>`
 * :doc:`Buildbot <buildbot>`
@@ -66,4 +66,4 @@ Internal development tools and hints
 Tutorials
 ==========
 
-* `Developers tutorials <../tutorials/dev-tutorials>`_
+* :doc:`Developers tutorials <tutorials/dev-tutorials>`

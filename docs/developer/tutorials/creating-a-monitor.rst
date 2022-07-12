@@ -2,11 +2,9 @@
    :width: 250
    :alt: scipion logo
 
-.. _creating-a-monitor:
-
-==================
-Creating a monitor
-==================
+====================
+Creating the monitor
+====================
 
 What is a monitor?
 ==================
