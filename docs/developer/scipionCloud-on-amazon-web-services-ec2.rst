@@ -21,7 +21,7 @@ on `AWS instance types <https://aws.amazon.com/ec2/instance-types/>`_.
 * Open the EC2 dashboard
 * Launch a ScipionCloud instance: Enter "Instances" panel, then click "Launch instance". Follow the wizard filling in the required information:
 
-  * Choose the ScipionCloud AMI: in *"Community AMIs"* section, search for "scipion" and find the latest release. The ScipionCloud AMI is currently available only in Ireland region but if you would like to use it in a different region contact us and we will make a copy there.
+  * There is an ScipionCloud AMI but it is private and can only be used for non-commercial purposes. If you wish to use it please write an email to bcu-sysadmins@cnb.csic.es.
   * Choose the instance type, according to how much resources (CPU, RAM, GPU, disk) you want to use. This AMI has been tested on g4dn types, other GPUs instances types might not work straight away. Contact us if you need advise on this.
   * Regarding disk, you can use an integrated SSD disk, or attach an EBS Volume. Press "Next: Configure instance details".
   * Configure instance: leave everything as default unless you know what you are doing.
