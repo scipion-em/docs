@@ -372,8 +372,8 @@ Let's get our hands dirty..
                     # append it to registeredFiles list
 
                     # create a new step to register the new file
-                    # use _insertFunctionStep with registerImageStep, file, and
-                    # self.readXmlFile as a prerequisite parameter
+                    # use _insertFunctionStep with registerImageStepadding the parameter file, and
+                    # self.readXmlFile as a prerequisite parameter of the first
                     # and store the returned value in a variable (newStep)
 
                     # append the newStep to the newSteps list declared at the beginning
