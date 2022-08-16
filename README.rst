@@ -40,6 +40,13 @@ so you'll find it here:
 
 build/release-3.0.0/index.html
 
+Alternative you could locally run to verify build is ok:
+
+.. code-block::
+
+    scipion3 run sphinx-build . build/<your-branch>
+
+
 Generate API docs
 -----------------
 
@@ -99,7 +106,7 @@ Resources and tips
 
 .. code-block::
 
-    `link text <page_identifier>`_
+`   link text <page_identifier>`_
 
 
 It is better to use:
@@ -107,3 +114,11 @@ It is better to use:
 .. code-block::
 
     :doc:`link text <page_identifier>`
+
+7.- Linking contained PDFs.
+    PDFs are not built and has to be treated separately. First, place the PDF at _static/pdfs/my-new.pdf
+    Then, link it relative to your page, e.g.:
+
+.. code-block::
+
+    `my-new.pdf <../../_static/pdfs/my-new.pdf>`__

@@ -68,7 +68,7 @@ processing pipeline described for Relion 4.0 tutorial with
 Beta-galactosidase data. \
 
 *Guide*:
-`scipion\_tutorial\_relion.pdf </docs/user/tutorials/spa/scipion_tutorial_relion.pdf>`__
+`scipion\_tutorial\_relion.pdf <../../_static/pdfs/scipion_tutorial_relion.pdf>`__
 
 
 Full processing video tutorial
