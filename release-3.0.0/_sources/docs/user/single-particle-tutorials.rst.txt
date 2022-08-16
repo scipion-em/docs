@@ -59,6 +59,18 @@ Beta-galactosidase data. \
 You may download a fully solved project of this tutorial from
 `here <http://scipion.cnb.csic.es/downloads/scipion/data/FEICourse.tgz>`__.
 
+
+Relion in Scipion
+-----------------
+
+This tutorial is focused on using Relion 4 single particle workflow inside Scipion. It follows the 
+processing pipeline described for Relion 4.0 tutorial with
+Beta-galactosidase data. \
+
+*Guide*:
+`scipion\_tutorial\_relion.pdf <../../_static/pdfs/scipion_tutorial_relion.pdf>`__
+
+
 Full processing video tutorial
 ------------------------------
     4 video tutorials in a
