@@ -754,20 +754,22 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">openedAsReadOnly</span><span class="p">():</span>
             <span class="k">return</span> <span class="n">pw</span><span class="o">.</span><span class="n">NOT_UPDATED_READ_ONLY</span>
 
-        <span class="k">if</span> <span class="n">checkPid</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">checkPid</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">skipUpdatedProtocols</span><span class="p">:</span>
-            <span class="c1"># If we are already updated, comparing timestamps</span>
-            <span class="k">if</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">isProtocolUpToDate</span><span class="p">(</span><span class="n">protocol</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">pw</span><span class="o">.</span><span class="n">NOT_UPDATED_UNNECESSARY</span>
-
         <span class="k">try</span><span class="p">:</span>
+
             <span class="c1"># Backup the values of &#39;jobId&#39;, &#39;label&#39; and &#39;comment&#39;</span>
             <span class="c1"># to be restored after the .copy</span>
             <span class="n">jobId</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getJobId</span><span class="p">()</span>
             <span class="n">label</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getObjLabel</span><span class="p">()</span>
             <span class="n">comment</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getObjComment</span><span class="p">()</span>
+
+            <span class="k">if</span> <span class="n">checkPid</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">checkPid</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">skipUpdatedProtocols</span><span class="p">:</span>
+                <span class="c1"># If we are already updated, comparing timestamps</span>
+                <span class="k">if</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">isProtocolUpToDate</span><span class="p">(</span><span class="n">protocol</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">pw</span><span class="o">.</span><span class="n">NOT_UPDATED_UNNECESSARY</span>
+
 
             <span class="c1"># If the protocol database has ....</span>
             <span class="c1">#  Comparing date will not work unless we have a reliable</span>
@@ -809,18 +811,22 @@
             <span class="n">prot2</span><span class="o">.</span><span class="n">closeMappers</span><span class="p">()</span>
 
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t update protocol </span><span class="si">%s</span><span class="s2">(jobId=</span><span class="si">%s</span><span class="s2">) from it&#39;s own database. ERROR: </span><span class="si">%s</span><span class="s2">, tries=</span><span class="si">%d</span><span class="s2">&quot;</span>
-                  <span class="o">%</span> <span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getObjName</span><span class="p">(),</span> <span class="n">jobId</span><span class="p">,</span> <span class="n">ex</span><span class="p">,</span> <span class="n">tries</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">tries</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>  <span class="c1"># 3 tries have been failed</span>
                 <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
                 <span class="c1"># If any problem happens, the protocol will be marked</span>
                 <span class="c1"># with a FAILED status</span>
-                <span class="n">protocol</span><span class="o">.</span><span class="n">setFailed</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">protocol</span><span class="o">.</span><span class="n">setFailed</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">ex</span><span class="p">))</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                    <span class="k">pass</span>
                 <span class="k">return</span> <span class="n">pw</span><span class="o">.</span><span class="n">NOT_UPDATED_ERROR</span>
             <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t update protocol </span><span class="si">%s</span><span class="s2">(jobId=</span><span class="si">%s</span><span class="s2">) from it&#39;s own database. ERROR: </span><span class="si">%s</span><span class="s2">, attempt=</span><span class="si">%d</span><span class="s2">&quot;</span>
+                             <span class="o">%</span> <span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getObjName</span><span class="p">(),</span> <span class="n">jobId</span><span class="p">,</span> <span class="n">ex</span><span class="p">,</span> <span class="n">tries</span><span class="p">))</span>
                 <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_updateProtocol</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">tries</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+
 
         <span class="k">return</span> <span class="n">pw</span><span class="o">.</span><span class="n">PROTOCOL_UPDATED</span>
 
@@ -1177,7 +1183,6 @@
 
         <span class="n">g</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getRunsGraph</span><span class="p">()</span>
 
-        <span class="c1"># pwutils.startDebugger(&#39;a&#39;)</span>
         <span class="k">for</span> <span class="n">prot</span> <span class="ow">in</span> <span class="n">protocols</span><span class="p">:</span>
             <span class="n">protId</span> <span class="o">=</span> <span class="n">prot</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
             <span class="n">node</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">prot</span><span class="o">.</span><span class="n">strId</span><span class="p">())</span>
@@ -1489,7 +1494,10 @@
         <span class="kn">from</span> <span class="nn">pyworkflow.protocol.launch</span> <span class="kn">import</span> <span class="n">_runsLocally</span>
         <span class="n">pid</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getPid</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">isRunning</span><span class="p">()</span> <span class="ow">and</span> <span class="n">_runsLocally</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+        <span class="c1"># Include running and scheduling ones</span>
+        <span class="c1"># NOTE: This may be happening even with successfully finished protocols</span>
+        <span class="c1"># which PID is gone.</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">isActive</span><span class="p">()</span> <span class="ow">and</span> <span class="n">_runsLocally</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
             <span class="ow">and</span> <span class="ow">not</span> <span class="n">protocol</span><span class="o">.</span><span class="n">useQueue</span><span class="p">()</span>
                 <span class="ow">and</span> <span class="ow">not</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">isProcessAlive</span><span class="p">(</span><span class="n">pid</span><span class="p">)):</span>
             <span class="n">protocol</span><span class="o">.</span><span class="n">setFailed</span><span class="p">(</span><span class="s2">&quot;Process </span><span class="si">%s</span><span class="s2"> not found running on the machine. &quot;</span>

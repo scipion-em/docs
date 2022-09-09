@@ -140,6 +140,7 @@
                        <span class="n">QueueStepExecutor</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">.constants</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">.params</span> <span class="kn">import</span> <span class="n">Form</span>
+<span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">getFileSize</span>
 
 <span class="n">SCHEDULE_LOG</span> <span class="o">=</span> <span class="s1">&#39;schedule.log&#39;</span>
 
@@ -453,6 +454,7 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">Step</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_steps</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># List of steps that will be executed</span>
         <span class="c1"># All generated filePaths should be inside workingDir</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">workingDir</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;workingDir&#39;</span><span class="p">,</span> <span class="s1">&#39;.&#39;</span><span class="p">))</span>
@@ -579,7 +581,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">__tryUpdateOutputSet</span><span class="p">(</span><span class="n">outputName</span><span class="p">,</span> <span class="n">outputSet</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__tryUpdateOutputSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputName</span><span class="p">,</span> <span class="n">outputSet</span><span class="p">,</span>
-                            <span class="n">state</span><span class="o">=</span><span class="n">Set</span><span class="o">.</span><span class="n">STREAM_OPEN</span><span class="p">,</span> <span class="n">tries</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+                            <span class="n">state</span><span class="o">=</span><span class="n">Set</span><span class="o">.</span><span class="n">STREAM_OPEN</span><span class="p">,</span> <span class="n">tries</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">firstException</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># Update the set with the streamState value (either OPEN or CLOSED)</span>
             <span class="n">outputSet</span><span class="o">.</span><span class="n">setStreamState</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
@@ -599,14 +601,16 @@
             <span class="n">outputSet</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error trying to update output of protocol, tries=</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">tries</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">tries</span> <span class="o">&gt;</span> <span class="n">pw</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">getUpdateSetAttempts</span><span class="p">():</span>
-                <span class="k">raise</span> <span class="n">ex</span>
+                <span class="k">raise</span> <span class="ne">BlockingIOError</span><span class="p">(</span><span class="s2">&quot;Can&#39;t update </span><span class="si">%s</span><span class="s2"> (output) of </span><span class="si">%s</span><span class="s2"> after </span><span class="si">%s</span><span class="s2"> attempts. Reason: </span><span class="si">%s</span><span class="s2">. &quot;</span>
+                                      <span class="s2">&quot;Concurrency, a non writable file system or a quota exceeded could be among the causes.&quot;</span> <span class="o">%</span>
+                                      <span class="p">(</span><span class="n">outputName</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span><span class="n">tries</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">ex</span><span class="p">))</span> <span class="kn">from</span> <span class="nn">firstException</span>
             <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Trying to update </span><span class="si">%s</span><span class="s2"> (output) of protocol </span><span class="si">%s</span><span class="s2">, attempt=</span><span class="si">%d</span><span class="s2">: </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">outputName</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">tries</span><span class="p">,</span> <span class="n">ex</span><span class="p">))</span>
                 <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">pw</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">getUpdateSetAttemptsWait</span><span class="p">())</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__tryUpdateOutputSet</span><span class="p">(</span><span class="n">outputName</span><span class="p">,</span> <span class="n">outputSet</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span>
-                                          <span class="n">tries</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                                          <span class="n">tries</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">firstException</span><span class="o">=</span> <span class="n">ex</span> <span class="k">if</span> <span class="n">tries</span><span class="o">==</span><span class="mi">1</span> <span class="k">else</span> <span class="n">firstException</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Protocol.hasExpert"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.hasExpert">[docs]</a>    <span class="k">def</span> <span class="nf">hasExpert</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; This function checks if the protocol has</span>
@@ -768,39 +772,36 @@
             <span class="k">elif</span> <span class="n">attr</span><span class="o">.</span><span class="n">isPointer</span><span class="p">():</span>
                 <span class="k">yield</span> <span class="n">key</span><span class="p">,</span> <span class="n">attr</span></div>
 
-<div class="viewcode-block" id="Protocol.inputProtocolDict"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.inputProtocolDict">[docs]</a>    <span class="k">def</span> <span class="nf">inputProtocolDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Protocol.getProtocolsToUpdate"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getProtocolsToUpdate">[docs]</a>    <span class="k">def</span> <span class="nf">getProtocolsToUpdate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        This function returns a dictionary of protocols that need to update</span>
+<span class="sd">        This function returns a list of protocols ids that need to update</span>
 <span class="sd">        their database to launch this protocol (this method is only used</span>
 <span class="sd">        when a WORKFLOW is restarted or continued).</span>
 <span class="sd">        Actions done here are:</span>
 
 <span class="sd">        #. Iterate over the main input Pointer of this protocol</span>
-<span class="sd">            (here, 3 different cases are analyzed)</span>
+<span class="sd">            (here, 3 different cases are analyzed):</span>
 
-<span class="sd">            #. When the pointer points to a protocol</span>
+<span class="sd">            A #. When the pointer points to a protocol</span>
 
-<span class="sd">            #. When the pointer points to another object (INDIRECTLY).</span>
+<span class="sd">            B #. When the pointer points to another object (INDIRECTLY).</span>
 <span class="sd">                The pointer has an _extended value (new parameters configuration</span>
 <span class="sd">                in the protocol)</span>
 
-<span class="sd">            #. When the pointer points to another object (DIRECTLY).</span>
+<span class="sd">            C #. When the pointer points to another object (DIRECTLY).</span>
 
 <span class="sd">              - The pointer has not an _extended value (old parameters</span>
 <span class="sd">                configuration in the protocol)</span>
 
 <span class="sd">        #. The PROTOCOL to which the pointer points is determined and saved in</span>
-<span class="sd">            the dictionary</span>
+<span class="sd">            the list</span>
 
-<span class="sd">        #. If this pointer points to another object (case B and C):</span>
+<span class="sd">        #. If this pointer points to a set (case B and C):</span>
 
-<span class="sd">          - Iterate over the main attributes of this pointer</span>
-
-<span class="sd">          - if any attribute is a pointer, then we move to PROTOCOL and repeat</span>
-<span class="sd">            this procedure from step 1</span>
-
+<span class="sd">          - Iterate over the main attributes of the set</span>
+<span class="sd">            - if attribute is a pointer then we add the pointed protocol to the ids list</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">protocolDict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">protocolIds</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">protocol</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">attrInput</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterInputAttributes</span><span class="p">():</span>
             <span class="n">output</span> <span class="o">=</span> <span class="n">attrInput</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
@@ -828,25 +829,18 @@
 
                 <span class="c1"># If there is output</span>
                 <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-
                     <span class="c1"># For each output attribute: Looking for pointers like SetOfCoordinates.micrographs</span>
                     <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">output</span><span class="o">.</span><span class="n">getAttributes</span><span class="p">():</span>
-
                         <span class="c1"># If it&#39;s a pointer</span>
                         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">Pointer</span><span class="p">):</span>
-                            <span class="k">if</span> <span class="n">attr</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                                <span class="c1"># Get input dict from the previous protocol.</span>
-                                <span class="c1"># NOTE: This might not be enough cause the pointer</span>
-                                <span class="c1"># might not be to the previous protocol</span>
-                                <span class="n">auxDict</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">inputProtocolDict</span><span class="p">()</span>
-                                <span class="k">for</span> <span class="n">auxKey</span> <span class="ow">in</span> <span class="n">auxDict</span><span class="p">:</span>
-                                    <span class="k">if</span> <span class="n">auxKey</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">protocolDict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                                        <span class="n">protocolDict</span><span class="p">[</span><span class="n">auxKey</span><span class="p">]</span> <span class="o">=</span> <span class="n">auxDict</span><span class="p">[</span><span class="n">auxKey</span><span class="p">]</span>
-                                <span class="k">break</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Pointer found in output: </span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">attr</span><span class="p">))</span>
+                            <span class="n">prot</span> <span class="o">=</span> <span class="n">attr</span><span class="o">.</span><span class="n">getObjValue</span><span class="p">()</span>
+                            <span class="k">if</span> <span class="n">prot</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                                <span class="n">protocolIds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prot</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
 
-            <span class="n">protocolDict</span><span class="p">[</span><span class="n">protocol</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()]</span> <span class="o">=</span> <span class="n">protocol</span>
+            <span class="n">protocolIds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
 
-        <span class="k">return</span> <span class="n">protocolDict</span></div>
+        <span class="k">return</span> <span class="n">protocolIds</span></div>
 
 <div class="viewcode-block" id="Protocol.getInputStatus"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getInputStatus">[docs]</a>    <span class="k">def</span> <span class="nf">getInputStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns if any input pointer is not ready yet and if there is</span>
@@ -1135,6 +1129,10 @@
             <span class="n">stepsSet</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
         <span class="n">stepsSet</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
         <span class="n">stepsSet</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>  <span class="c1"># Close the connection</span>
+
+<div class="viewcode-block" id="Protocol.getPath"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getPath">[docs]</a>    <span class="k">def</span> <span class="nf">getPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">paths</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Same as _getPath but without underscore. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPath</span><span class="p">(</span><span class="o">*</span><span class="n">paths</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_getPath</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">paths</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return a path inside the workingDir. &quot;&quot;&quot;</span>
@@ -2380,8 +2378,14 @@
         <span class="sd">&quot;&quot;&quot; Hook defined to run some compatibility checks</span>
 <span class="sd">        before display the protocol.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span></div></div>
+        <span class="k">pass</span></div>
 
+<div class="viewcode-block" id="Protocol.getSize"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getSize">[docs]</a>    <span class="k">def</span> <span class="nf">getSize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the size of the folder corresponding to this protocol&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="n">getFileSize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getPath</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span></div></div>
 
 <div class="viewcode-block" id="LegacyProtocol"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.LegacyProtocol">[docs]</a><span class="k">class</span> <span class="nc">LegacyProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Special subclass of Protocol to be used when a protocol class</span>
@@ -2534,7 +2538,7 @@
     <span class="n">dbTS</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">getFileLastModificationDate</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getDbPath</span><span class="p">())</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">protTS</span> <span class="ow">and</span> <span class="n">dbTS</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Can&#39;t compare if protocol is up to date: &quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Can&#39;t compare if protocol is up to date: &quot;</span>
               <span class="s2">&quot;Protocol </span><span class="si">%s</span><span class="s2">, protocol time stamp: </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2"> timeStamp: </span><span class="si">%s</span><span class="s2">&quot;</span>
               <span class="o">%</span> <span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">protTS</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">dbTS</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
