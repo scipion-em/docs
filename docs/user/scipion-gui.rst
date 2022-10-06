@@ -142,15 +142,15 @@ All you have to do is choose one of them and that output will be displayed (Fig.
 
     Figure 10. Viewer list
 
-Waiting for other protocols
+Schedule protocol
 ---------------------------
 
 Sometimes we need a protocol to finish its execution to be able to launch
-another protocol. Scipion protocol forms have a parameter called "Wait for"
+another protocol. Scipion protocol forms have a parameter called "Schedule protocol after"
 (Fig. 11) in which you can specify one or more protocols (protocols IDs
 separated by a comma).This protocol starts after the input protocols in the list
 are finished. This function will allow you to "schedule" many
-runs that will be executed after each other. test
+runs that will be executed after each other.
 
 .. figure:: /docs/images/guis/wait_for.png
     :alt: Prerequisites parameter
@@ -201,7 +201,7 @@ Protocol provides cite references and help util to introduce user on the
 subject (Fig. 15-16). Form possess two sections: Run and Input. Run
 section is common to all protocols and allows the user to configure run
 label and comments (to personalize runs, Fig. 14); execution mode
-(restart or resume), host, queue and threads or MPI. Many image
+(restart or resume), host, and threads or MPI. Many image
 processing tasks are computer expensive so they need to be run on
 specific hosts, using queue system and parallel processing.
 Parallelization can be supported by underneath algorithm or enabled for
