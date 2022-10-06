@@ -150,7 +150,7 @@ another protocol. Scipion protocol forms have a parameter called "Wait for"
 (Fig. 11) in which you can specify one or more protocols (protocols IDs
 separated by a comma).This protocol starts after the input protocols in the list
 are finished. This function will allow you to "schedule" many
-runs that will be executed after each other.
+runs that will be executed after each other. test
 
 .. figure:: /docs/images/guis/wait_for.png
     :alt: Prerequisites parameter
