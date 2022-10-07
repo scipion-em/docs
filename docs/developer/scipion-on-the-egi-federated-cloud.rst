@@ -1,6 +1,6 @@
 .. figure:: /docs/images/cloud/ScipionCloud_icon.png
    :width: 250
-   :alt: scipion logo
+   :alt: ScipionCloud logo
 
 .. _scipion-on-the-egi-federated-cloud:
 
@@ -12,6 +12,14 @@ The European Open Science Cloud (EOSC) initiative offers researchers a virtual e
 EOSC resources can be accessed from the `EOSC portal <https://eosc-portal.eu/>`_.
 
 ScipionCloud is being developed as one of the EOSC-Synergy thematic `services <https://www.eosc-synergy.eu/supporting-science/scipion/>`_ and it is now available as a service in the EOSC portal.
+
+A detailed tutorial for the service can be found in the EOSC-Synergy moodle platform for training.
+
+.. image:: /docs/images/cloud/ScipionCloud_EOSCSynergy.png
+   :width: 250
+   :alt: ScipionCloud tutorial
+   :target: https://moodle.learn.eosc-synergy.eu/course/view.php?id=141
+
 
 How to use Scipion in the EOSC
 ==============================
