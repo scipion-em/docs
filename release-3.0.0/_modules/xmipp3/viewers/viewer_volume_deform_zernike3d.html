@@ -126,20 +126,20 @@
 <span class="c1"># *  e-mail address &#39;scipion@cnb.csic.es&#39;</span>
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
-
-
+<span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="n">Set</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.viewer</span> <span class="kn">import</span> <span class="n">DESKTOP_TKINTER</span><span class="p">,</span> <span class="n">WEB_DJANGO</span><span class="p">,</span> <span class="n">ProtocolViewer</span>
 <span class="kn">from</span> <span class="nn">pwem.viewers</span> <span class="kn">import</span> <span class="n">ChimeraView</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">getExt</span><span class="p">,</span> <span class="n">removeExt</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">abspath</span>
 <span class="kn">from</span> <span class="nn">xmipp3.protocols.protocol_volume_deform_zernike3d</span> <span class="kn">import</span> <span class="n">XmippProtVolumeDeformZernike3D</span>
+<span class="kn">from</span> <span class="nn">xmipp3.protocols.protocol_apply_zernike3d</span> <span class="kn">import</span> <span class="n">XmippApplyZernike3D</span>
 
 
 <div class="viewcode-block" id="XmippVolumeDeformZernike3DViewer"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.viewers.viewer_volume_deform_zernike3d.html#xmipp3.viewers.viewer_volume_deform_zernike3d.XmippVolumeDeformZernike3DViewer">[docs]</a><span class="k">class</span> <span class="nc">XmippVolumeDeformZernike3DViewer</span><span class="p">(</span><span class="n">ProtocolViewer</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Visualize the output of protocol volume strain &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;viewer volume deform sph&#39;</span>
-    <span class="n">_targets</span> <span class="o">=</span> <span class="p">[</span><span class="n">XmippProtVolumeDeformZernike3D</span><span class="p">]</span>
+    <span class="n">_targets</span> <span class="o">=</span> <span class="p">[</span><span class="n">XmippProtVolumeDeformZernike3D</span><span class="p">,</span> <span class="n">XmippApplyZernike3D</span><span class="p">]</span>
     <span class="n">_environments</span> <span class="o">=</span> <span class="p">[</span><span class="n">DESKTOP_TKINTER</span><span class="p">,</span> <span class="n">WEB_DJANGO</span><span class="p">]</span>
     <span class="n">OPEN_FILE</span> <span class="o">=</span> <span class="s2">&quot;open </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span>
     <span class="n">VOXEL_SIZE</span> <span class="o">=</span> <span class="s2">&quot;volume #</span><span class="si">%d</span><span class="s2"> voxelSize </span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span>
@@ -147,17 +147,46 @@
     <span class="n">VIEW</span> <span class="o">=</span> <span class="s2">&quot;view</span><span class="se">\n</span><span class="s2">&quot;</span>
 
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span> <span class="n">XmippApplyZernike3D</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">only_apply</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">deformed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">deformed</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">have_set</span> <span class="o">=</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">deformed</span><span class="p">,</span> <span class="n">Set</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">have_set</span> <span class="o">=</span> <span class="kc">False</span>
+
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Show deformation&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;idChoice&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;self.have_set==True&#39;</span><span class="p">,</span>
+                      <span class="n">choices</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">deformed</span><span class="o">.</span><span class="n">getIdSet</span><span class="p">()),</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Structure to display&#39;</span><span class="p">,</span> <span class="n">display</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="o">.</span><span class="n">DISPLAY_COMBO</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select which volume to display from the IDs of the set&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;doShowStrain&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">LabelParam</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;self.only_apply==False&#39;</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Display the strain deformation&quot;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;doShowRotation&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">LabelParam</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;self.only_apply==False&#39;</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Display the rotation deformation&quot;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;doShowMorphOrigRef&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">LabelParam</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;self.only_apply==False&#39;</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Display the morphing between original and reference volumes&quot;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;doShowMorphDeformedRef&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">LabelParam</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Display the morphing between deformed and reference volumes&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_getVisualizeDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span> <span class="n">XmippApplyZernike3D</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">have_set</span><span class="o">==</span><span class="kc">True</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inputVol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">volume</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">deformed</span><span class="o">.</span><span class="n">getIdSet</span><span class="p">())[</span><span class="bp">self</span><span class="o">.</span><span class="n">pdbIdChoice</span><span class="p">]]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">chosen</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deformed</span><span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">deformed</span><span class="o">.</span><span class="n">getIdSet</span><span class="p">())[</span><span class="bp">self</span><span class="o">.</span><span class="n">pdbIdChoice</span><span class="p">]]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">inputVol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">volume</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">chosen</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">deformed</span>
+
+            <span class="n">myDict</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s1">&#39;fnRefVol&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputVol</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span>
+                <span class="s1">&#39;fnOutVol&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">chosen</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
+                    <span class="p">}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_updateFilenamesDict</span><span class="p">(</span><span class="n">myDict</span><span class="p">)</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_createFilenameTemplates</span><span class="p">()</span>
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;doShowStrain&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_doShowStrain</span><span class="p">,</span>
                 <span class="s1">&#39;doShowRotation&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_doShowRotation</span><span class="p">,</span>
@@ -249,6 +278,8 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">view</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_doShowDeformedOrigRef</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_only</span> <span class="o">==</span> <span class="kc">True</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">applyPDB</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;This viewer is only for volumes, not atomic structures&quot;</span><span class="p">)</span>
 
         <span class="n">scriptFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_getPath</span><span class="p">(</span><span class="s1">&#39;morph_deformed_ref_chimera.cxc&#39;</span><span class="p">)</span>
         <span class="n">fhCmd</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">scriptFile</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span>
