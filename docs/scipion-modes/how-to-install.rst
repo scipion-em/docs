@@ -35,8 +35,8 @@ Installation
 
 ::
 
-    wget https://repo.anaconda.com/miniconda/Miniconda3-py39_4.9.2-Linux-x86_64.sh
-    bash Miniconda3-py39_4.9.2-Linux-x86_64.sh -b -p /path/for/miniconda
+    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+    bash Miniconda3-latest-Linux-x86_64.sh -b -p /path/for/miniconda
 
 2. Make sure you are running **bash** shell (run ``echo $SHELL`` in your console), then initialize conda:
 
