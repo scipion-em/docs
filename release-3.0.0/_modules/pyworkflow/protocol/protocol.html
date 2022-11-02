@@ -126,7 +126,7 @@
 <span class="sd">This modules contains classes required for the workflow</span>
 <span class="sd">execution and tracking like: Step and Protocol</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">threading</span>
 <span class="kn">import</span> <span class="nn">time</span>
@@ -142,7 +142,6 @@
 <span class="kn">from</span> <span class="nn">.params</span> <span class="kn">import</span> <span class="n">Form</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">getFileSize</span>
 
-<span class="n">SCHEDULE_LOG</span> <span class="o">=</span> <span class="s1">&#39;schedule.log&#39;</span>
 
 <span class="kn">import</span>  <span class="nn">logging</span>
 <span class="c1"># Get the root logger</span>
@@ -1119,6 +1118,11 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">setFailed</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_closeOutputSet</span><span class="p">()</span></div>
 
+    <span class="k">def</span> <span class="nf">_finalizeStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Closes the step and setting up the protocol process id &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_finalizeStep</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pid</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">_updateSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">updater</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="s2">&quot;1&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set the status of all steps</span>
 <span class="sd">        :parameter updater callback/lambda receiving a step and editing it inside</span>
@@ -1580,8 +1584,6 @@
 <span class="sd">        to run should exists.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">LoggingConfigurator</span><span class="o">.</span><span class="n">setUpProtocolRunLogging</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getLogPaths</span><span class="p">()[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">getLogPaths</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span> <span class="p">)</span>
-
             <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">greenStr</span><span class="p">(</span><span class="s1">&#39;RUNNING PROTOCOL -----------------&#39;</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Protocol starts&quot;</span><span class="p">,</span> <span class="n">extra</span><span class="o">=</span><span class="n">getExtraLogInfo</span><span class="p">(</span><span class="s2">&quot;PROTOCOL&quot;</span><span class="p">,</span> <span class="n">STATUS</span><span class="o">.</span><span class="n">START</span><span class="p">,</span>
                                                                <span class="n">project_name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getProject</span><span class="p">()</span><span class="o">.</span><span class="n">getName</span><span class="p">(),</span>
@@ -1642,11 +1644,16 @@
 
 
 <div class="viewcode-block" id="Protocol.getLogPaths"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getLogPaths">[docs]</a>    <span class="k">def</span> <span class="nf">getLogPaths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getLogsPath</span><span class="p">,</span>
-                        <span class="p">[</span><span class="s1">&#39;run.stdout&#39;</span><span class="p">,</span> <span class="s1">&#39;run.stderr&#39;</span><span class="p">,</span> <span class="n">SCHEDULE_LOG</span><span class="p">]))</span></div>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">getStdoutLog</span><span class="p">(),</span><span class="bp">self</span><span class="o">.</span><span class="n">getStderrLog</span><span class="p">()</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getScheduleLog</span><span class="p">()]</span></div>
+
+<div class="viewcode-block" id="Protocol.getStdoutLog"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getStdoutLog">[docs]</a>    <span class="k">def</span> <span class="nf">getStdoutLog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getLogsPath</span><span class="p">(</span><span class="s2">&quot;run.stdout&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Protocol.getStderrLog"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getStderrLog">[docs]</a>    <span class="k">def</span> <span class="nf">getStderrLog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getLogsPath</span><span class="p">(</span><span class="s1">&#39;run.stderr&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Protocol.getScheduleLog"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getScheduleLog">[docs]</a>    <span class="k">def</span> <span class="nf">getScheduleLog</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getLogsPath</span><span class="p">(</span><span class="n">SCHEDULE_LOG</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getLogsPath</span><span class="p">(</span><span class="s1">&#39;schedule.log&#39;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Protocol.getSteps"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getSteps">[docs]</a>    <span class="k">def</span> <span class="nf">getSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return the steps.sqlite file under logs directory. &quot;&quot;&quot;</span>

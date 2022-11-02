@@ -42,9 +42,8 @@ This will fix the ugly fonts issue when using conda installation
 
 ::
 
-    scipion3 run conda remove tk --force
     wget https://anaconda.org/scipion/tk/8.6.10/download/linux-64/tk-8.6.10-h14c3975_1005.tar.bz2
-    scipion3 run conda install tk-8.6.10-h14c3975_1005.tar.bz2
+    scipion3 run "conda remove tk --force && conda install tk-8.6.10-h14c3975_1005.tar.bz2"
 
 Updating the installer
 ======================

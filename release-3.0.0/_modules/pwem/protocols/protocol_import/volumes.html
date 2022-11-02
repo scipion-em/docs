@@ -126,8 +126,11 @@
 <span class="c1"># *  e-mail address &#39;scipion@cnb.csic.es&#39;</span>
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
+<span class="kn">import</span> <span class="nn">enum</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os.path</span>
 
-
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">abspath</span><span class="p">,</span> <span class="n">relpath</span><span class="p">,</span> <span class="n">join</span><span class="p">,</span> <span class="n">splitext</span>
 <span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">stat</span>
 <span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span>
@@ -143,11 +146,15 @@
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="n">ProtImportFiles</span>
 <span class="kn">from</span> <span class="nn">.images</span> <span class="kn">import</span> <span class="n">ProtImportImages</span>
 
+<div class="viewcode-block" id="ImportVolumeOutputs"><a class="viewcode-back" href="../../../../api/pwem/pwem.protocols.protocol_import.volumes.html#pwem.protocols.protocol_import.volumes.ImportVolumeOutputs">[docs]</a><span class="k">class</span> <span class="nc">ImportVolumeOutputs</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">outputVolume</span> <span class="o">=</span> <span class="n">emobj</span><span class="o">.</span><span class="n">Volume</span>
+    <span class="n">outputVolumes</span> <span class="o">=</span> <span class="n">emobj</span><span class="o">.</span><span class="n">SetOfVolumes</span></div>
 
 <div class="viewcode-block" id="ProtImportVolumes"><a class="viewcode-back" href="../../../../api/pwem/pwem.protocols.protocol_import.volumes.html#pwem.protocols.protocol_import.volumes.ProtImportVolumes">[docs]</a><span class="k">class</span> <span class="nc">ProtImportVolumes</span><span class="p">(</span><span class="n">ProtImportImages</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Protocol to import a set of volumes to the project&quot;&quot;&quot;</span>
     <span class="n">_outputClassName</span> <span class="o">=</span> <span class="s1">&#39;SetOfVolumes&#39;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;import volumes&#39;</span>
+    <span class="n">_possibleOutputs</span> <span class="o">=</span> <span class="n">ImportVolumeOutputs</span>
     <span class="n">IMPORT_FROM_EMDB</span> <span class="o">=</span> <span class="mi">1</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
@@ -236,117 +243,126 @@
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;z&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;offset along z axis (Angstroms)&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;importVolumesStep&#39;</span><span class="p">,</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">importFrom</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">IMPORT_FROM_FILES</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">importFromFileStep</span><span class="p">,</span>
                                  <span class="bp">self</span><span class="o">.</span><span class="n">getPattern</span><span class="p">(),</span>
                                  <span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
                                  <span class="bp">self</span><span class="o">.</span><span class="n">setOrigCoord</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">importFromEMDBStep</span><span class="p">)</span>
 
     <span class="c1"># --------------------------- STEPS functions -----------------------------</span>
 
-<div class="viewcode-block" id="ProtImportVolumes.importVolumesStep"><a class="viewcode-back" href="../../../../api/pwem/pwem.protocols.protocol_import.volumes.html#pwem.protocols.protocol_import.volumes.ProtImportVolumes.importVolumesStep">[docs]</a>    <span class="k">def</span> <span class="nf">importVolumesStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">samplingRate</span><span class="p">,</span> <span class="n">setOrigCoord</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="ProtImportVolumes.importFromFileStep"><a class="viewcode-back" href="../../../../api/pwem/pwem.protocols.protocol_import.volumes.html#pwem.protocols.protocol_import.volumes.ProtImportVolumes.importFromFileStep">[docs]</a>    <span class="k">def</span> <span class="nf">importFromFileStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">samplingRate</span><span class="p">,</span> <span class="n">setOrigCoord</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Copy images matching the filename pattern</span>
 <span class="sd">        Register other parameters.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">volSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfVolumes</span><span class="p">()</span>
         <span class="n">vol</span> <span class="o">=</span> <span class="n">emobj</span><span class="o">.</span><span class="n">Volume</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">importFrom</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">IMPORT_FROM_FILES</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using pattern: &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">pattern</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Using pattern: &#39;</span><span class="si">%s</span><span class="s2">&#39;&quot;</span> <span class="o">%</span> <span class="n">pattern</span><span class="p">)</span>
 
-            <span class="c1"># Create a Volume template object</span>
-            <span class="n">vol</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">samplingRate</span><span class="p">)</span>
+        <span class="c1"># Create a Volume template object</span>
+        <span class="n">vol</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">samplingRate</span><span class="p">)</span>
 
-            <span class="n">imgh</span> <span class="o">=</span> <span class="n">emlib</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">ImageHandler</span><span class="p">()</span>
+        <span class="n">imgh</span> <span class="o">=</span> <span class="n">emlib</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">ImageHandler</span><span class="p">()</span>
 
-            <span class="n">volSet</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">samplingRate</span><span class="p">)</span>
+        <span class="n">volSet</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">samplingRate</span><span class="p">)</span>
 
-            <span class="k">for</span> <span class="n">fileName</span><span class="p">,</span> <span class="n">fileId</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterFiles</span><span class="p">():</span>
-                <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">imgh</span><span class="o">.</span><span class="n">getDimensions</span><span class="p">(</span><span class="n">fileName</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">fileName</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.mrc&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">fileName</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.map&#39;</span><span class="p">):</span>
-                    <span class="n">fileName</span> <span class="o">+=</span> <span class="s1">&#39;:mrc&#39;</span>
-                    <span class="k">if</span> <span class="n">z</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">n</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                        <span class="n">zDim</span> <span class="o">=</span> <span class="n">n</span>
-                        <span class="n">n</span> <span class="o">=</span> <span class="mi">1</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">zDim</span> <span class="o">=</span> <span class="n">z</span>
+        <span class="k">for</span> <span class="n">fileName</span><span class="p">,</span> <span class="n">fileId</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterFiles</span><span class="p">():</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">imgh</span><span class="o">.</span><span class="n">getDimensions</span><span class="p">(</span><span class="n">fileName</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">fileName</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.mrc&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">fileName</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.map&#39;</span><span class="p">):</span>
+                <span class="n">fileName</span> <span class="o">+=</span> <span class="s1">&#39;:mrc&#39;</span>
+                <span class="k">if</span> <span class="n">z</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">n</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">zDim</span> <span class="o">=</span> <span class="n">n</span>
+                    <span class="n">n</span> <span class="o">=</span> <span class="mi">1</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="n">zDim</span> <span class="o">=</span> <span class="n">z</span>
-                <span class="n">origin</span> <span class="o">=</span> <span class="n">emobj</span><span class="o">.</span><span class="n">Transform</span><span class="p">()</span>
-                <span class="k">if</span> <span class="n">setOrigCoord</span><span class="p">:</span>
-                    <span class="n">origin</span><span class="o">.</span><span class="n">setShiftsTuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getOrigCoord</span><span class="p">())</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">origin</span><span class="o">.</span><span class="n">setShifts</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="o">-</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">samplingRate</span><span class="p">,</span>
-                                     <span class="n">y</span> <span class="o">/</span> <span class="o">-</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">samplingRate</span><span class="p">,</span>
-                                     <span class="n">zDim</span> <span class="o">/</span> <span class="o">-</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">samplingRate</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">zDim</span> <span class="o">=</span> <span class="n">z</span>
+            <span class="n">origin</span> <span class="o">=</span> <span class="n">emobj</span><span class="o">.</span><span class="n">Transform</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">setOrigCoord</span><span class="p">:</span>
+                <span class="n">origin</span><span class="o">.</span><span class="n">setShiftsTuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getOrigCoord</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">origin</span><span class="o">.</span><span class="n">setShifts</span><span class="p">(</span><span class="n">x</span> <span class="o">/</span> <span class="o">-</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">samplingRate</span><span class="p">,</span>
+                                 <span class="n">y</span> <span class="o">/</span> <span class="o">-</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">samplingRate</span><span class="p">,</span>
+                                 <span class="n">zDim</span> <span class="o">/</span> <span class="o">-</span><span class="mf">2.</span> <span class="o">*</span> <span class="n">samplingRate</span><span class="p">)</span>
 
-                <span class="n">vol</span><span class="o">.</span><span class="n">setOrigin</span><span class="p">(</span><span class="n">origin</span><span class="p">)</span>  <span class="c1"># read origin from form</span>
+            <span class="n">vol</span><span class="o">.</span><span class="n">setOrigin</span><span class="p">(</span><span class="n">origin</span><span class="p">)</span>  <span class="c1"># read origin from form</span>
 
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">copyFiles</span> <span class="ow">or</span> <span class="n">setOrigCoord</span><span class="p">:</span>
-                    <span class="n">newFileName</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVolumeFileName</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="s2">&quot;mrc&quot;</span><span class="p">))</span>
-                    <span class="n">emconv</span><span class="o">.</span><span class="n">Ccp4Header</span><span class="o">.</span><span class="n">fixFile</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="n">newFileName</span><span class="p">,</span> <span class="n">origin</span><span class="o">.</span><span class="n">getShifts</span><span class="p">(),</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">copyFiles</span> <span class="ow">or</span> <span class="n">setOrigCoord</span><span class="p">:</span>
+                <span class="n">newFileName</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVolumeFileName</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="s2">&quot;mrc&quot;</span><span class="p">))</span>
+                <span class="n">emconv</span><span class="o">.</span><span class="n">Ccp4Header</span><span class="o">.</span><span class="n">fixFile</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="n">newFileName</span><span class="p">,</span> <span class="n">origin</span><span class="o">.</span><span class="n">getShifts</span><span class="p">(),</span>
+                                          <span class="n">samplingRate</span><span class="p">,</span> <span class="n">emconv</span><span class="o">.</span><span class="n">Ccp4Header</span><span class="o">.</span><span class="n">ORIGIN</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setHalfMaps</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+                    <span class="n">newFileName1</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVolumeFileName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1map</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="s2">&quot;mrc&quot;</span><span class="p">))</span>
+                    <span class="n">emconv</span><span class="o">.</span><span class="n">Ccp4Header</span><span class="o">.</span><span class="n">fixFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1map</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">newFileName1</span><span class="p">,</span> <span class="n">origin</span><span class="o">.</span><span class="n">getShifts</span><span class="p">(),</span>
                                               <span class="n">samplingRate</span><span class="p">,</span> <span class="n">emconv</span><span class="o">.</span><span class="n">Ccp4Header</span><span class="o">.</span><span class="n">ORIGIN</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setHalfMaps</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-                        <span class="n">newFileName1</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVolumeFileName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1map</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="s2">&quot;mrc&quot;</span><span class="p">))</span>
-                        <span class="n">emconv</span><span class="o">.</span><span class="n">Ccp4Header</span><span class="o">.</span><span class="n">fixFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1map</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">newFileName1</span><span class="p">,</span> <span class="n">origin</span><span class="o">.</span><span class="n">getShifts</span><span class="p">(),</span>
-                                                  <span class="n">samplingRate</span><span class="p">,</span> <span class="n">emconv</span><span class="o">.</span><span class="n">Ccp4Header</span><span class="o">.</span><span class="n">ORIGIN</span><span class="p">)</span>
-                        <span class="n">newFileName2</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVolumeFileName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half2map</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="s2">&quot;mrc&quot;</span><span class="p">))</span>
-                        <span class="n">emconv</span><span class="o">.</span><span class="n">Ccp4Header</span><span class="o">.</span><span class="n">fixFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half2map</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">newFileName2</span><span class="p">,</span> <span class="n">origin</span><span class="o">.</span><span class="n">getShifts</span><span class="p">(),</span>
-                                                  <span class="n">samplingRate</span><span class="p">,</span> <span class="n">emconv</span><span class="o">.</span><span class="n">Ccp4Header</span><span class="o">.</span><span class="n">ORIGIN</span><span class="p">)</span>
+                    <span class="n">newFileName2</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVolumeFileName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half2map</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="s2">&quot;mrc&quot;</span><span class="p">))</span>
+                    <span class="n">emconv</span><span class="o">.</span><span class="n">Ccp4Header</span><span class="o">.</span><span class="n">fixFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half2map</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">newFileName2</span><span class="p">,</span> <span class="n">origin</span><span class="o">.</span><span class="n">getShifts</span><span class="p">(),</span>
+                                              <span class="n">samplingRate</span><span class="p">,</span> <span class="n">emconv</span><span class="o">.</span><span class="n">Ccp4Header</span><span class="o">.</span><span class="n">ORIGIN</span><span class="p">)</span>
 
-                        <span class="n">vol</span><span class="o">.</span><span class="n">setHalfMaps</span><span class="p">([</span><span class="n">relpath</span><span class="p">(</span><span class="n">newFileName1</span><span class="p">),</span> <span class="n">relpath</span><span class="p">(</span><span class="n">newFileName2</span><span class="p">)])</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">newFileName</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVolumeFileName</span><span class="p">(</span><span class="n">fileName</span><span class="p">))</span>
+                    <span class="n">vol</span><span class="o">.</span><span class="n">setHalfMaps</span><span class="p">([</span><span class="n">relpath</span><span class="p">(</span><span class="n">newFileName1</span><span class="p">),</span> <span class="n">relpath</span><span class="p">(</span><span class="n">newFileName2</span><span class="p">)])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">newFileName</span> <span class="o">=</span> <span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVolumeFileName</span><span class="p">(</span><span class="n">fileName</span><span class="p">))</span>
 
-                    <span class="k">if</span> <span class="n">fileName</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;:mrc&#39;</span><span class="p">):</span>
-                        <span class="n">fileName</span> <span class="o">=</span> <span class="n">fileName</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">fileName</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;:mrc&#39;</span><span class="p">):</span>
+                    <span class="n">fileName</span> <span class="o">=</span> <span class="n">fileName</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
 
-                    <span class="n">pwutils</span><span class="o">.</span><span class="n">createAbsLink</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="n">newFileName</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setHalfMaps</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-                        <span class="n">pwutils</span><span class="o">.</span><span class="n">createAbsLink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1map</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-                                              <span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVolumeFileName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1map</span><span class="o">.</span><span class="n">get</span><span class="p">())))</span>
-                        <span class="n">pwutils</span><span class="o">.</span><span class="n">createAbsLink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half2map</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-                                              <span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVolumeFileName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half2map</span><span class="o">.</span><span class="n">get</span><span class="p">())))</span>
+                <span class="n">pwutils</span><span class="o">.</span><span class="n">createAbsLink</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="n">newFileName</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setHalfMaps</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+                    <span class="n">pwutils</span><span class="o">.</span><span class="n">createAbsLink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1map</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
+                                          <span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVolumeFileName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1map</span><span class="o">.</span><span class="n">get</span><span class="p">())))</span>
+                    <span class="n">pwutils</span><span class="o">.</span><span class="n">createAbsLink</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half2map</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
+                                          <span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVolumeFileName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half2map</span><span class="o">.</span><span class="n">get</span><span class="p">())))</span>
 
-                        <span class="n">vol</span><span class="o">.</span><span class="n">setHalfMaps</span><span class="p">([</span><span class="n">relpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVolumeFileName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1map</span><span class="o">.</span><span class="n">get</span><span class="p">())),</span>
-                                         <span class="n">relpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVolumeFileName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half2map</span><span class="o">.</span><span class="n">get</span><span class="p">()))</span>
-                                         <span class="p">])</span>
+                    <span class="n">vol</span><span class="o">.</span><span class="n">setHalfMaps</span><span class="p">([</span><span class="n">relpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVolumeFileName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half1map</span><span class="o">.</span><span class="n">get</span><span class="p">())),</span>
+                                     <span class="n">relpath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVolumeFileName</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">half2map</span><span class="o">.</span><span class="n">get</span><span class="p">()))</span>
+                                     <span class="p">])</span>
 
-                <span class="c1"># Make newFileName relative</span>
-                <span class="c1"># https://github.com/I2PC/scipion/issues/1935</span>
-                <span class="n">newFileName</span> <span class="o">=</span> <span class="n">relpath</span><span class="p">(</span><span class="n">newFileName</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Make newFileName relative</span>
+            <span class="c1"># https://github.com/I2PC/scipion/issues/1935</span>
+            <span class="n">newFileName</span> <span class="o">=</span> <span class="n">relpath</span><span class="p">(</span><span class="n">newFileName</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">vol</span><span class="o">.</span><span class="n">cleanObjId</span><span class="p">()</span>
+                <span class="n">vol</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">newFileName</span><span class="p">)</span>
+                <span class="n">volSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vol</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
                     <span class="n">vol</span><span class="o">.</span><span class="n">cleanObjId</span><span class="p">()</span>
-                    <span class="n">vol</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">newFileName</span><span class="p">)</span>
+                    <span class="n">vol</span><span class="o">.</span><span class="n">setLocation</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">newFileName</span><span class="p">)</span>
                     <span class="n">volSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vol</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
-                        <span class="n">vol</span><span class="o">.</span><span class="n">cleanObjId</span><span class="p">()</span>
-                        <span class="n">vol</span><span class="o">.</span><span class="n">setLocation</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">newFileName</span><span class="p">)</span>
-                        <span class="n">volSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vol</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>  <span class="c1"># import from EMDB</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Downloading map with ID = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">emdbId</span><span class="p">)</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">localFileName</span><span class="p">,</span> <span class="n">sampling</span><span class="p">,</span> <span class="n">origin</span> <span class="o">=</span> \
-                    <span class="n">fetch_emdb_map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">emdbId</span><span class="p">,</span>
-                                   <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span>
-                                   <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">())</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-                <span class="k">return</span>
-            <span class="c1"># open volume and fill sampling and origin</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">sampling</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span><span class="p">)</span>
-            <span class="n">vol</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">sampling</span><span class="p">)</span>
-            <span class="n">vol</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">localFileName</span><span class="p">)</span>
-            <span class="kn">from</span> <span class="nn">pwem.objects.data</span> <span class="kn">import</span> <span class="n">Transform</span>
-            <span class="n">originMat</span> <span class="o">=</span> <span class="n">Transform</span><span class="p">()</span>
-            <span class="n">originMat</span><span class="o">.</span><span class="n">setShifts</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">origin</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-            <span class="n">vol</span><span class="o">.</span><span class="n">setOrigin</span><span class="p">(</span><span class="n">originMat</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">volSet</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputVolumes</span><span class="o">=</span><span class="n">volSet</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">ImportVolumeOutputs</span><span class="o">.</span><span class="n">outputVolumes</span><span class="o">.</span><span class="n">name</span><span class="p">:</span><span class="n">volSet</span><span class="p">})</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputVolume</span><span class="o">=</span><span class="n">vol</span><span class="p">)</span></div>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">ImportVolumeOutputs</span><span class="o">.</span><span class="n">outputVolume</span><span class="o">.</span><span class="n">name</span><span class="p">:</span><span class="n">vol</span><span class="p">})</span></div>
+
+<div class="viewcode-block" id="ProtImportVolumes.importFromEMDBStep"><a class="viewcode-back" href="../../../../api/pwem/pwem.protocols.protocol_import.volumes.html#pwem.protocols.protocol_import.volumes.ProtImportVolumes.importFromEMDBStep">[docs]</a>    <span class="k">def</span> <span class="nf">importFromEMDBStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Copy images matching the filename pattern</span>
+<span class="sd">        Register other parameters.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">vol</span> <span class="o">=</span> <span class="n">emobj</span><span class="o">.</span><span class="n">Volume</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Downloading map with ID = </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">emdbId</span><span class="p">)</span>
+
+        <span class="n">localFileName</span><span class="p">,</span> <span class="n">sampling</span><span class="p">,</span> <span class="n">origin</span> <span class="o">=</span> \
+            <span class="n">fetch_emdb_map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">emdbId</span><span class="p">,</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">())</span>
+
+        <span class="c1"># open volume and fill sampling and origin</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">sampling</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span><span class="p">)</span>
+        <span class="n">vol</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">sampling</span><span class="p">)</span>
+        <span class="n">vol</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">localFileName</span><span class="p">)</span>
+        <span class="kn">from</span> <span class="nn">pwem.objects.data</span> <span class="kn">import</span> <span class="n">Transform</span>
+        <span class="n">originMat</span> <span class="o">=</span> <span class="n">Transform</span><span class="p">()</span>
+        <span class="n">originMat</span><span class="o">.</span><span class="n">setShifts</span><span class="p">(</span><span class="n">origin</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">origin</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">origin</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">vol</span><span class="o">.</span><span class="n">setOrigin</span><span class="p">(</span><span class="n">originMat</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">ImportVolumeOutputs</span><span class="o">.</span><span class="n">outputVolume</span><span class="o">.</span><span class="n">name</span><span class="p">:</span><span class="n">vol</span><span class="p">})</span></div>
+
 
     <span class="c1"># --------------------------- INFO functions ------------------------------</span>
 
@@ -623,7 +639,7 @@
     <span class="kn">import</span> <span class="nn">socket</span>
 
     <span class="c1"># get computer name and select server</span>
-    <span class="n">url_rest_api</span> <span class="o">=</span> <span class="s2">&quot;https://www.ebi.ac.uk/pdbe/api/emdb/entry/map/EMD-</span><span class="si">%s</span><span class="s2">&quot;</span>
+    <span class="n">url_rest_api</span> <span class="o">=</span> <span class="s2">&quot;https://www.ebi.ac.uk/emdb/api/entry/map/</span><span class="si">%s</span><span class="s2">&quot;</span>
     <span class="n">hname</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">gethostname</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">hname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.edu&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">hname</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.gov&#39;</span><span class="p">):</span>
         <span class="n">site</span> <span class="o">=</span> <span class="s1">&#39;ftp.wwpdb.org&#39;</span>
@@ -661,13 +677,11 @@
                                                           <span class="p">)</span>
             <span class="k">break</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Retrieving 3D map with id=&quot;</span><span class="p">,</span> <span class="nb">id</span><span class="p">,</span> <span class="s2">&quot;failed retrying (</span><span class="si">%d</span><span class="s2">/</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span>
-                  <span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">nTimes</span><span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error:&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
-    <span class="c1"># Loop statements may have an else clause; it is executed</span>
-    <span class="c1"># when the loop terminates through exhaustion of the iterable</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Cannot retrieve File from EMDB&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="o">&lt;</span><span class="n">nTimes</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Retrieving 3D map with id=</span><span class="si">%s</span><span class="s2"> failed retrying (</span><span class="si">%d</span><span class="s2">/</span><span class="si">%d</span><span class="s2">)&quot;</span> <span class="o">%</span>
+                  <span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">nTimes</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Cannot retrieve File from EMDB&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
 
 
     <span class="n">originAPI</span> <span class="o">=</span> <span class="n">array</span><span class="p">(</span><span class="n">originAPI</span><span class="p">)</span> <span class="o">*</span> <span class="n">samplingAPI</span>  <span class="c1"># convert to Angstrom</span>
@@ -715,36 +729,36 @@
     <span class="n">noCompressName</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">save_dir</span><span class="p">,</span> <span class="n">save_name</span><span class="p">)</span>
     <span class="n">compressName</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">tmp_dir</span><span class="p">,</span> <span class="n">save_name</span> <span class="o">+</span> <span class="s2">&quot;.gz&quot;</span><span class="p">)</span>
 
-    <span class="k">try</span><span class="p">:</span>
+    <span class="c1"># If uncompressed file exists</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">noCompressName</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;File fetching skip: file </span><span class="si">%s</span><span class="s2"> exists.&quot;</span> <span class="o">%</span> <span class="n">noCompressName</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Fetching file from </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">url</span><span class="p">)</span>
         <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">compressName</span><span class="p">)</span>
-        <span class="c1"># if retrieval fails retry another time</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">compressName</span><span class="p">):</span>
-            <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlretrieve</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="n">compressName</span><span class="p">)</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">compressName</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Can not download file from EMDB&quot;</span><span class="p">)</span>
-
-        <span class="n">json_results</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url_rest_api</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
-        <span class="n">sampling_tag</span> <span class="o">=</span> <span class="s2">&quot;pixel_spacing&quot;</span>
-        <span class="n">sampling_x_tag</span> <span class="o">=</span> <span class="s2">&quot;x&quot;</span>
-        <span class="n">origin_tag</span> <span class="o">=</span> <span class="s2">&quot;origin&quot;</span>
-        <span class="n">origin_x_tag</span> <span class="o">=</span> <span class="s2">&quot;column&quot;</span>
-        <span class="n">origin_y_tag</span> <span class="o">=</span> <span class="s2">&quot;row&quot;</span>
-        <span class="n">origin_z_tag</span> <span class="o">=</span> <span class="s2">&quot;section&quot;</span>
-
-        <span class="c1"># units A/px</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="n">json_results</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;map&#39;</span><span class="p">]</span>
-        <span class="n">sampling</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="n">sampling_tag</span><span class="p">][</span><span class="n">sampling_x_tag</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]</span>
-        <span class="c1"># units unknown may be pixels since this is integer</span>
-        <span class="n">x</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="n">origin_tag</span><span class="p">][</span><span class="n">origin_x_tag</span><span class="p">]</span>
-        <span class="n">y</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="n">origin_tag</span><span class="p">][</span><span class="n">origin_y_tag</span><span class="p">]</span>
-        <span class="n">z</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="n">origin_tag</span><span class="p">][</span><span class="n">origin_z_tag</span><span class="p">]</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error retrieving data from EMDB&quot;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">stat</span><span class="p">(</span><span class="n">compressName</span><span class="p">)</span><span class="o">.</span><span class="n">st_size</span> <span class="o">&lt;</span> <span class="n">minimum_file_size</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;File Downloaded from EMDB is empty&quot;</span><span class="p">)</span>
 
     <span class="n">gunzip</span><span class="p">(</span><span class="n">compressName</span><span class="p">,</span> <span class="n">noCompressName</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Fetching metadata from </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">url_rest_api</span><span class="p">)</span>
+    <span class="n">json_results</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url_rest_api</span><span class="p">)</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+    <span class="n">sampling_tag</span> <span class="o">=</span> <span class="s2">&quot;pixel_spacing&quot;</span>
+    <span class="n">sampling_x_tag</span> <span class="o">=</span> <span class="s2">&quot;x&quot;</span>
+    <span class="n">origin_tag</span> <span class="o">=</span> <span class="s2">&quot;origin&quot;</span>
+    <span class="n">origin_x_tag</span> <span class="o">=</span> <span class="s2">&quot;col&quot;</span>
+    <span class="n">origin_y_tag</span> <span class="o">=</span> <span class="s2">&quot;row&quot;</span>
+    <span class="n">origin_z_tag</span> <span class="o">=</span> <span class="s2">&quot;sec&quot;</span>
+
+    <span class="c1"># units A/px</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">json_results</span><span class="p">[</span><span class="s1">&#39;map&#39;</span><span class="p">]</span>
+    <span class="n">sampling</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">sampling_tag</span><span class="p">][</span><span class="n">sampling_x_tag</span><span class="p">][</span><span class="s1">&#39;valueOf_&#39;</span><span class="p">])</span>
+    <span class="c1"># units unknown may be pixels since this is integer</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">origin_tag</span><span class="p">][</span><span class="n">origin_x_tag</span><span class="p">])</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">origin_tag</span><span class="p">][</span><span class="n">origin_y_tag</span><span class="p">])</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="n">origin_tag</span><span class="p">][</span><span class="n">origin_z_tag</span><span class="p">])</span>
+
     <span class="k">return</span> <span class="n">noCompressName</span><span class="p">,</span> <span class="n">sampling</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span></div>
 
 
