@@ -127,6 +127,9 @@
 <span class="c1"># **************************************************************************</span>
 
 <span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">LoggingConfigurator</span>
+
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">time</span>
@@ -138,31 +141,18 @@
                                  <span class="n">STATUS_LAUNCHED</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">MAX_SLEEP_TIME</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.constants</span> <span class="kn">import</span> <span class="n">PROTOCOL_UPDATED</span>
 
-<span class="c1"># Add callback for remote debugging if available.</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">LoggingConfigurator</span>
-
-<span class="k">try</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">rpdb2</span> <span class="kn">import</span> <span class="n">start_embedded_debugger</span>
-    <span class="kn">from</span> <span class="nn">signal</span> <span class="kn">import</span> <span class="n">signal</span><span class="p">,</span> <span class="n">SIGUSR2</span>
-
-    <span class="n">signal</span><span class="p">(</span><span class="n">SIGUSR2</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">sig</span><span class="p">,</span> <span class="n">frame</span><span class="p">:</span> <span class="n">start_embedded_debugger</span><span class="p">(</span><span class="s1">&#39;a&#39;</span><span class="p">))</span>
-<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
-    <span class="k">pass</span>
-
 <span class="n">stopStatuses</span> <span class="o">=</span> <span class="p">[</span><span class="n">STATUS_FINISHED</span><span class="p">,</span> <span class="n">STATUS_ABORTED</span><span class="p">,</span> <span class="n">STATUS_FAILED</span><span class="p">]</span>
 
 
 <div class="viewcode-block" id="RunScheduler"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.apps.pw_schedule_run.html#pyworkflow.apps.pw_schedule_run.RunScheduler">[docs]</a><span class="k">class</span> <span class="nc">RunScheduler</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot; Check that all dependencies are met before launching a run. &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_parseArgs</span><span class="p">()</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">logger</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="o">=</span> <span class="n">args</span>
         <span class="c1"># Enter to the project directory and load protocol from db</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadProtocol</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">project</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">getProject</span><span class="p">()</span>
-        <span class="n">LoggingConfigurator</span><span class="o">.</span><span class="n">setupDefaultLogging</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">getScheduleLog</span><span class="p">(),</span>
-                                                <span class="n">console</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">log</span> <span class="o">=</span> <span class="n">logger</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">protPid</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getpid</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">setPid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protPid</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_pid</span><span class="p">)</span>
@@ -177,35 +167,6 @@
 
 <div class="viewcode-block" id="RunScheduler.getInitialSleepTime"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.apps.pw_schedule_run.html#pyworkflow.apps.pw_schedule_run.RunScheduler.getInitialSleepTime">[docs]</a>    <span class="k">def</span> <span class="nf">getInitialSleepTime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_sleep</span></div>
-
-    <span class="k">def</span> <span class="nf">_parseArgs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
-        <span class="n">_addArg</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span>  <span class="c1"># short notation</span>
-
-        <span class="n">_addArg</span><span class="p">(</span><span class="s2">&quot;projPath&quot;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;PROJECT_NAME&#39;</span><span class="p">,</span>
-                <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Project database path.&quot;</span><span class="p">)</span>
-
-        <span class="n">_addArg</span><span class="p">(</span><span class="s2">&quot;dbPath&quot;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;DATABASE_PATH&#39;</span><span class="p">,</span>
-                <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Protocol database path.&quot;</span><span class="p">)</span>
-
-        <span class="n">_addArg</span><span class="p">(</span><span class="s2">&quot;protId&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;PROTOCOL_ID&#39;</span><span class="p">,</span>
-                <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Protocol ID.&quot;</span><span class="p">)</span>
-
-        <span class="n">_addArg</span><span class="p">(</span><span class="s2">&quot;--initial_sleep&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;initial_sleep&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;SECONDS&#39;</span><span class="p">,</span>
-                <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Initial sleeping time (in seconds)&quot;</span><span class="p">)</span>
-
-        <span class="n">_addArg</span><span class="p">(</span><span class="s2">&quot;--sleep_time&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
-                <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;sleepTime&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;SECONDS&#39;</span><span class="p">,</span>
-                <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Sleeping time (in seconds) between updates.&quot;</span><span class="p">)</span>
-
-        <span class="n">_addArg</span><span class="p">(</span><span class="s2">&quot;--wait_for&quot;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
-                <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;waitProtIds&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;PROTOCOL_ID&#39;</span><span class="p">,</span>
-                <span class="n">help</span><span class="o">=</span><span class="s2">&quot;List of protocol ids that should be not running &quot;</span>
-                     <span class="s2">&quot;(i.e, finished, aborted or failed) before this &quot;</span>
-                     <span class="s2">&quot;run will be executed.&quot;</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_loadProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">getProtocolFromDb</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_args</span><span class="o">.</span><span class="n">projPath</span><span class="p">,</span>
@@ -399,6 +360,37 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="p">(</span><span class="s2">&quot;Launching the protocol &gt;&gt;&gt;&gt;&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">launchProtocol</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span> <span class="n">scheduled</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div></div>
 
+<div class="viewcode-block" id="parseArgs"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.apps.pw_schedule_run.html#pyworkflow.apps.pw_schedule_run.parseArgs">[docs]</a><span class="k">def</span> <span class="nf">parseArgs</span><span class="p">():</span>
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+    <span class="n">_addArg</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span>  <span class="c1"># short notation</span>
+
+    <span class="n">_addArg</span><span class="p">(</span><span class="s2">&quot;projPath&quot;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;PROJECT_NAME&#39;</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Project database path.&quot;</span><span class="p">)</span>
+
+    <span class="n">_addArg</span><span class="p">(</span><span class="s2">&quot;dbPath&quot;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;DATABASE_PATH&#39;</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Protocol database path.&quot;</span><span class="p">)</span>
+
+    <span class="n">_addArg</span><span class="p">(</span><span class="s2">&quot;protId&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;PROTOCOL_ID&#39;</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Protocol ID.&quot;</span><span class="p">)</span>
+
+    <span class="n">_addArg</span><span class="p">(</span><span class="s2">&quot;logPath&quot;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;LOG_PATH&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Path to the log file.&#39;</span><span class="p">)</span>
+
+    <span class="n">_addArg</span><span class="p">(</span><span class="s2">&quot;--initial_sleep&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+            <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;initial_sleep&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;SECONDS&#39;</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Initial sleeping time (in seconds)&quot;</span><span class="p">)</span>
+
+    <span class="n">_addArg</span><span class="p">(</span><span class="s2">&quot;--sleep_time&quot;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+            <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;sleepTime&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;SECONDS&#39;</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Sleeping time (in seconds) between updates.&quot;</span><span class="p">)</span>
+
+    <span class="n">_addArg</span><span class="p">(</span><span class="s2">&quot;--wait_for&quot;</span><span class="p">,</span> <span class="n">nargs</span><span class="o">=</span><span class="s1">&#39;*&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="p">[],</span>
+            <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;waitProtIds&#39;</span><span class="p">,</span> <span class="n">metavar</span><span class="o">=</span><span class="s1">&#39;PROTOCOL_ID&#39;</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;List of protocol ids that should be not running &quot;</span>
+                 <span class="s2">&quot;(i.e, finished, aborted or failed) before this &quot;</span>
+                 <span class="s2">&quot;run will be executed.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span></div>
+
 
 <span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
 
@@ -412,11 +404,19 @@
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">runScheduler</span> <span class="o">=</span> <span class="n">RunScheduler</span><span class="p">()</span>
+            <span class="c1"># Parse arguments</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">parseArgs</span><span class="p">()</span>
+
+            <span class="c1"># Configure logging</span>
+            <span class="n">LoggingConfigurator</span><span class="o">.</span><span class="n">setUpProtocolSchedulingLog</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">logPath</span><span class="p">)</span>
+            <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+            <span class="n">runScheduler</span> <span class="o">=</span> <span class="n">RunScheduler</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">logger</span><span class="p">)</span>
             <span class="n">runScheduler</span><span class="o">.</span><span class="n">schedule</span><span class="p">()</span>
+
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Scheduling failed with these parameters: &quot;</span><span class="p">,</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="n">ex</span> <span class="kn">from</span> <span class="bp">None</span>
 </pre></div>
 
            </div>
