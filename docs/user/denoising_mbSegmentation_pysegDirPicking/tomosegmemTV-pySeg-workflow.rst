@@ -45,6 +45,7 @@ out.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/00_workflow_scheme.png
    :align: center
+   :width: 200
    :alt: Workflow scheme
 
 
