@@ -11,14 +11,14 @@ Installing Scipion
 Prerequisites
 =============
 
-Scipion software requires GCC (GCC8 recommended) and OpenMPI already installed. CUDA (10.1 recommended) is optional but highly recommended.
+Scipion software requires GCC (GCC10 recommended) and OpenMPI already installed. CUDA (11.4 recommended) is optional but highly recommended.
 Scipion uses conda package manager for installation. Before starting, make sure you do not have other cryo-EM software in your PATH / LD_LIBRARY_PATH as it might conflict with Scipion installation.
 
 For Ubuntu:
 
 ::
 
-    sudo apt-get install gcc-8 g++-8 libopenmpi-dev make
+    sudo apt-get install gcc-10 g++-10 libopenmpi-dev make
 
 For CentOS:
 
@@ -63,8 +63,8 @@ Installation
 ::
 
     CUDA = True
-    CUDA_BIN = /usr/local/cuda-10.1/bin
-    CUDA_LIB = /usr/local/cuda-10.1/lib64
+    CUDA_BIN = /usr/local/cuda-11.4/bin
+    CUDA_LIB = /usr/local/cuda-11.4/lib64
     MPI_BINDIR = /usr/lib64/mpi/gcc/openmpi/bin
     MPI_LIBDIR = /usr/lib64/mpi/gcc/openmpi/lib
     MPI_INCLUDE = /usr/lib64/mpi/gcc/openmpi/include
@@ -72,7 +72,7 @@ Installation
 
 See `Configuration guide <scipion-configuration>`_ for more details about these and other possible variables.
 
-6. Install `Xmipp <https://github.com/I2PC/xmipp#xmipp>`__ plugin. We have tested Xmipp compilation on the following operating systems: `Ubuntu 16.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-16.04>`__, `Ubuntu 18.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-18.04>`__, `Ubuntu 20.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-20.04>`__, and `Centos 7 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-CentOS-7-9.2009>`__. A list of dependencies can be found `here <https://github.com/I2PC/xmipp#additional-dependencies>`__. Command example below is using 12 threads
+6. Install `Xmipp <https://github.com/I2PC/xmipp#xmipp>`__ plugin. We have tested Xmipp compilation on the following operating systems: `Ubuntu 16.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-16.04>`__, `Ubuntu 18.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-18.04>`__, `Ubuntu 20.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-20.04>`__, `Ubuntu 22.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-22.04>`_ and `Centos 7 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-CentOS-7-9.2009>`__. A list of dependencies can be found `here <https://github.com/I2PC/xmipp#additional-dependencies>`__. Command example below is using 12 threads
 
 
 
