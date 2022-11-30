@@ -168,7 +168,7 @@ you can find a very simple tutorial about installing Slurm in Ubuntu.
         #SBATCH -o %_(JOB_SCRIPT)s.out
         #SBATCH -e %_(JOB_SCRIPT)s.err
         ### Partition (queue) name
-        # SBATCH -p %_(JOB_QUEUE)s
+        #SBATCH -p %_(JOB_QUEUE)s
         ### Specify time, number of nodes (tasks), cores and memory(MB) for your job
         #SBATCH --time=%_(JOB_TIME)s:00:00 --ntasks=%_(JOB_NODES)d --cpus-per-task=%_(JOB_THREADS)d --mem=%_(JOB_MEMORY)s           --gres=gpu:%_(GPU_COUNT)s
 
