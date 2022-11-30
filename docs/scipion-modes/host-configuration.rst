@@ -167,6 +167,7 @@ you can find a very simple tutorial about installing Slurm in Ubuntu.
         ### Outputs
         #SBATCH -o %_(JOB_SCRIPT)s.out
         #SBATCH -e %_(JOB_SCRIPT)s.err
+        #SBATCH --open-mode=append
         ### Partition (queue) name
         #SBATCH -p %_(JOB_QUEUE)s
         ### Specify time, number of nodes (tasks), cores and memory(MB) for your job
