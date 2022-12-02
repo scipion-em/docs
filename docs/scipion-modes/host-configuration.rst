@@ -151,69 +151,40 @@ you can find a very simple tutorial about installing Slurm in Ubuntu.
 ::
 
     [localhost]
-    PARALLEL_COMMAND = mpirun -np %_(JOB_NODES)d -bynode %_(COMMAND)s
+    PARALLEL_COMMAND = mpirun -np %_(JOB_NODES)d %_(COMMAND)s
     NAME = SLURM
     MANDATORY = False
     SUBMIT_COMMAND = sbatch %_(JOB_SCRIPT)s
     CANCEL_COMMAND = scancel %_(JOB_ID)s
     CHECK_COMMAND = squeue -h -j %_(JOB_ID)s
+    JOB_DONE_REGEX = ""
+    SUBMIT_PREFIX = scipion
     SUBMIT_TEMPLATE = #!/bin/bash
         ### Inherit all current environment variables
         #SBATCH --export=ALL    
         ### Job name
         #SBATCH -J %_(JOB_NAME)s
         ### Outputs
-        #SBATCH -o %_(JOB_LOGS)s.out
-        #SBATCH -e %_(JOB_LOGS)s.err
+        #SBATCH -o %_(JOB_SCRIPT)s.out
+        #SBATCH -e %_(JOB_SCRIPT)s.err
+        #SBATCH --open-mode=append
         ### Partition (queue) name
-        ### if the system has only 1 queue, it can be omitted
-        ### if you want to specify the queue, ensure the name in the scipion dialog matches
-        ### a slurm partition, then leave only 1 # sign in the next line
-        ##### SBATCH -p %_(JOB_QUEUE)s
-
+        #SBATCH -p %_(JOB_QUEUE)s
         ### Specify time, number of nodes (tasks), cores and memory(MB) for your job
         #SBATCH --time=%_(JOB_TIME)s:00:00 --ntasks=%_(JOB_NODES)d --cpus-per-task=%_(JOB_THREADS)d --mem=%_(JOB_MEMORY)s           --gres=gpu:%_(GPU_COUNT)s
-        # Use as working dir the path where sbatch was launched
-        WORKDIR=$SLURM_SUBMIT_DIR
 
-        #################################
-        ### Set environment variable to know running mode is non interactive
-        export XMIPP_IN_QUEUE=1
-
-        cd $WORKDIR
-        # Make a copy of node file
-        echo $SLURM_JOB_NODELIST > %_(JOB_NODEFILE)s
-        # Calculate the number of processors allocated to this run.
-        NPROCS=`wc -l < $SLURM_JOB_NODELIST`
-        # Calculate the number of nodes allocated.
-        NNODES=`uniq $SLURM_JOB_NODELIST | wc -l`
-
-        ### Display the job context
-        echo Running on host `hostname`
-        echo Time is `date`
-        echo Working directory is `pwd`
-        echo Using ${NPROCS} processors across ${NNODES} nodes
-        echo NODE LIST - config:
-        echo $SLURM_JOB_NODELIST
-        echo CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES
-        #################################
-        # echo '%_(JOB_COMMAND)s' >> /tmp/slurm-jobs.log
         %_(JOB_COMMAND)s
-        find "$SLURM_SUBMIT_DIR" -type f -user $USER -perm 644 -exec chmod 664 {} +
 
     QUEUES = {
         "tesla": [["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
                   ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"],
-                  ["GPU_COUNT", "1", "Number of GPUs", "Select the number of GPUs if protocol has been set up to use them"],
-                  ["QUEUE_FOR_JOBS", "N", "Use queue for jobs", "Send individual jobs to queue"]],
+                  ["GPU_COUNT", "1", "Number of GPUs", "Select the number of GPUs if protocol has been set up to use them"]],
         "geforce": [["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
                     ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"],
-                    ["GPU_COUNT", "1", "Number of GPUs", "Select the number of GPUs if protocol has been set up to use them"],
-                    ["QUEUE_FOR_JOBS", "N", "Use queue for jobs", "Send individual jobs to queue"]],
+                    ["GPU_COUNT", "1", "Number of GPUs", "Select the number of GPUs if protocol has been set up to use them"]],
         "quadro": [["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
                    ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"],
-                   ["GPU_COUNT", "1", "Number of GPUs", "Select the number of GPUs if protocol has been set up to use them"],
-                   ["QUEUE_FOR_JOBS", "N", "Use queue for jobs", "Send individual jobs to queue"]]
+                   ["GPU_COUNT", "1", "Number of GPUs", "Select the number of GPUs if protocol has been set up to use them"]]
     }
 
 
