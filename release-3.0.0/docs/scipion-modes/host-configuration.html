@@ -233,71 +233,42 @@ selected. The values must be set with the Key = Value inside braces.</p>
 <h3>Example for <a class="reference external" href="http://slurm.schedmd.com/slurm.html">Slurm</a><a class="headerlink" href="#example-for-slurm" title="Permalink to this heading"></a></h3>
 <p><a class="reference external" href="https://thehatteronline.com/2014/11/18/turn-your-workstation-into-a-mini-grid-with-slurm">Here</a>
 you can find a very simple tutorial about installing Slurm in Ubuntu.</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>[localhost]
-PARALLEL_COMMAND = mpirun -np %_(JOB_NODES)d -bynode %_(COMMAND)s
-NAME = SLURM
-MANDATORY = False
-SUBMIT_COMMAND = sbatch %_(JOB_SCRIPT)s
-CANCEL_COMMAND = scancel %_(JOB_ID)s
-CHECK_COMMAND = squeue -h -j %_(JOB_ID)s
-SUBMIT_TEMPLATE = #!/bin/bash
-    ### Inherit all current environment variables
-    #SBATCH --export=ALL
-    ### Job name
-    #SBATCH -J %_(JOB_NAME)s
-    ### Outputs
-    #SBATCH -o %_(JOB_LOGS)s.out
-    #SBATCH -e %_(JOB_LOGS)s.err
-    ### Partition (queue) name
-    ### if the system has only 1 queue, it can be omitted
-    ### if you want to specify the queue, ensure the name in the scipion dialog matches
-    ### a slurm partition, then leave only 1 # sign in the next line
-    ##### SBATCH -p %_(JOB_QUEUE)s
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">localhost</span><span class="p">]</span>
+<span class="n">PARALLEL_COMMAND</span> <span class="o">=</span> <span class="n">mpirun</span> <span class="o">-</span><span class="n">np</span> <span class="o">%</span><span class="n">_</span><span class="p">(</span><span class="n">JOB_NODES</span><span class="p">)</span><span class="n">d</span> <span class="o">%</span><span class="n">_</span><span class="p">(</span><span class="n">COMMAND</span><span class="p">)</span><span class="n">s</span>
+<span class="n">NAME</span> <span class="o">=</span> <span class="n">SLURM</span>
+<span class="n">MANDATORY</span> <span class="o">=</span> <span class="kc">False</span>
+<span class="n">SUBMIT_COMMAND</span> <span class="o">=</span> <span class="n">sbatch</span> <span class="o">%</span><span class="n">_</span><span class="p">(</span><span class="n">JOB_SCRIPT</span><span class="p">)</span><span class="n">s</span>
+<span class="n">CANCEL_COMMAND</span> <span class="o">=</span> <span class="n">scancel</span> <span class="o">%</span><span class="n">_</span><span class="p">(</span><span class="n">JOB_ID</span><span class="p">)</span><span class="n">s</span>
+<span class="n">CHECK_COMMAND</span> <span class="o">=</span> <span class="n">squeue</span> <span class="o">-</span><span class="n">h</span> <span class="o">-</span><span class="n">j</span> <span class="o">%</span><span class="n">_</span><span class="p">(</span><span class="n">JOB_ID</span><span class="p">)</span><span class="n">s</span>
+<span class="n">JOB_DONE_REGEX</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+<span class="n">SUBMIT_PREFIX</span> <span class="o">=</span> <span class="n">scipion</span>
+<span class="n">SUBMIT_TEMPLATE</span> <span class="o">=</span> <span class="c1">#!/bin/bash</span>
+    <span class="c1">### Inherit all current environment variables</span>
+    <span class="c1">#SBATCH --export=ALL</span>
+    <span class="c1">### Job name</span>
+    <span class="c1">#SBATCH -J %_(JOB_NAME)s</span>
+    <span class="c1">### Outputs</span>
+    <span class="c1">#SBATCH -o %_(JOB_SCRIPT)s.out</span>
+    <span class="c1">#SBATCH -e %_(JOB_SCRIPT)s.err</span>
+    <span class="c1">#SBATCH --open-mode=append</span>
+    <span class="c1">### Partition (queue) name</span>
+    <span class="c1">#SBATCH -p %_(JOB_QUEUE)s</span>
+    <span class="c1">### Specify time, number of nodes (tasks), cores and memory(MB) for your job</span>
+    <span class="c1">#SBATCH --time=%_(JOB_TIME)s:00:00 --ntasks=%_(JOB_NODES)d --cpus-per-task=%_(JOB_THREADS)d --mem=%_(JOB_MEMORY)s           --gres=gpu:%_(GPU_COUNT)s</span>
 
-    ### Specify time, number of nodes (tasks), cores and memory(MB) for your job
-    #SBATCH --time=%_(JOB_TIME)s:00:00 --ntasks=%_(JOB_NODES)d --cpus-per-task=%_(JOB_THREADS)d --mem=%_(JOB_MEMORY)s           --gres=gpu:%_(GPU_COUNT)s
-    # Use as working dir the path where sbatch was launched
-    WORKDIR=$SLURM_SUBMIT_DIR
+    <span class="o">%</span><span class="n">_</span><span class="p">(</span><span class="n">JOB_COMMAND</span><span class="p">)</span><span class="n">s</span>
 
-    #################################
-    ### Set environment variable to know running mode is non interactive
-    export XMIPP_IN_QUEUE=1
-
-    cd $WORKDIR
-    # Make a copy of node file
-    echo $SLURM_JOB_NODELIST &gt; %_(JOB_NODEFILE)s
-    # Calculate the number of processors allocated to this run.
-    NPROCS=`wc -l &lt; $SLURM_JOB_NODELIST`
-    # Calculate the number of nodes allocated.
-    NNODES=`uniq $SLURM_JOB_NODELIST | wc -l`
-
-    ### Display the job context
-    echo Running on host `hostname`
-    echo Time is `date`
-    echo Working directory is `pwd`
-    echo Using ${NPROCS} processors across ${NNODES} nodes
-    echo NODE LIST - config:
-    echo $SLURM_JOB_NODELIST
-    echo CUDA_VISIBLE_DEVICES: $CUDA_VISIBLE_DEVICES
-    #################################
-    # echo &#39;%_(JOB_COMMAND)s&#39; &gt;&gt; /tmp/slurm-jobs.log
-    %_(JOB_COMMAND)s
-    find &quot;$SLURM_SUBMIT_DIR&quot; -type f -user $USER -perm 644 -exec chmod 664 {} +
-
-QUEUES = {
-    &quot;tesla&quot;: [[&quot;JOB_MEMORY&quot;, &quot;8192&quot;, &quot;Memory (MB)&quot;, &quot;Select amount of memory (in megabytes) for this job&quot;],
-              [&quot;JOB_TIME&quot;, &quot;120&quot;, &quot;Time (hours)&quot;, &quot;Select the time expected (in hours) for this job&quot;],
-              [&quot;GPU_COUNT&quot;, &quot;1&quot;, &quot;Number of GPUs&quot;, &quot;Select the number of GPUs if protocol has been set up to use them&quot;],
-              [&quot;QUEUE_FOR_JOBS&quot;, &quot;N&quot;, &quot;Use queue for jobs&quot;, &quot;Send individual jobs to queue&quot;]],
-    &quot;geforce&quot;: [[&quot;JOB_MEMORY&quot;, &quot;8192&quot;, &quot;Memory (MB)&quot;, &quot;Select amount of memory (in megabytes) for this job&quot;],
-                [&quot;JOB_TIME&quot;, &quot;120&quot;, &quot;Time (hours)&quot;, &quot;Select the time expected (in hours) for this job&quot;],
-                [&quot;GPU_COUNT&quot;, &quot;1&quot;, &quot;Number of GPUs&quot;, &quot;Select the number of GPUs if protocol has been set up to use them&quot;],
-                [&quot;QUEUE_FOR_JOBS&quot;, &quot;N&quot;, &quot;Use queue for jobs&quot;, &quot;Send individual jobs to queue&quot;]],
-    &quot;quadro&quot;: [[&quot;JOB_MEMORY&quot;, &quot;8192&quot;, &quot;Memory (MB)&quot;, &quot;Select amount of memory (in megabytes) for this job&quot;],
-               [&quot;JOB_TIME&quot;, &quot;120&quot;, &quot;Time (hours)&quot;, &quot;Select the time expected (in hours) for this job&quot;],
-               [&quot;GPU_COUNT&quot;, &quot;1&quot;, &quot;Number of GPUs&quot;, &quot;Select the number of GPUs if protocol has been set up to use them&quot;],
-               [&quot;QUEUE_FOR_JOBS&quot;, &quot;N&quot;, &quot;Use queue for jobs&quot;, &quot;Send individual jobs to queue&quot;]]
-}
+<span class="n">QUEUES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;tesla&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="s2">&quot;JOB_MEMORY&quot;</span><span class="p">,</span> <span class="s2">&quot;8192&quot;</span><span class="p">,</span> <span class="s2">&quot;Memory (MB)&quot;</span><span class="p">,</span> <span class="s2">&quot;Select amount of memory (in megabytes) for this job&quot;</span><span class="p">],</span>
+              <span class="p">[</span><span class="s2">&quot;JOB_TIME&quot;</span><span class="p">,</span> <span class="s2">&quot;120&quot;</span><span class="p">,</span> <span class="s2">&quot;Time (hours)&quot;</span><span class="p">,</span> <span class="s2">&quot;Select the time expected (in hours) for this job&quot;</span><span class="p">],</span>
+              <span class="p">[</span><span class="s2">&quot;GPU_COUNT&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;Number of GPUs&quot;</span><span class="p">,</span> <span class="s2">&quot;Select the number of GPUs if protocol has been set up to use them&quot;</span><span class="p">]],</span>
+    <span class="s2">&quot;geforce&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="s2">&quot;JOB_MEMORY&quot;</span><span class="p">,</span> <span class="s2">&quot;8192&quot;</span><span class="p">,</span> <span class="s2">&quot;Memory (MB)&quot;</span><span class="p">,</span> <span class="s2">&quot;Select amount of memory (in megabytes) for this job&quot;</span><span class="p">],</span>
+                <span class="p">[</span><span class="s2">&quot;JOB_TIME&quot;</span><span class="p">,</span> <span class="s2">&quot;120&quot;</span><span class="p">,</span> <span class="s2">&quot;Time (hours)&quot;</span><span class="p">,</span> <span class="s2">&quot;Select the time expected (in hours) for this job&quot;</span><span class="p">],</span>
+                <span class="p">[</span><span class="s2">&quot;GPU_COUNT&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;Number of GPUs&quot;</span><span class="p">,</span> <span class="s2">&quot;Select the number of GPUs if protocol has been set up to use them&quot;</span><span class="p">]],</span>
+    <span class="s2">&quot;quadro&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="s2">&quot;JOB_MEMORY&quot;</span><span class="p">,</span> <span class="s2">&quot;8192&quot;</span><span class="p">,</span> <span class="s2">&quot;Memory (MB)&quot;</span><span class="p">,</span> <span class="s2">&quot;Select amount of memory (in megabytes) for this job&quot;</span><span class="p">],</span>
+               <span class="p">[</span><span class="s2">&quot;JOB_TIME&quot;</span><span class="p">,</span> <span class="s2">&quot;120&quot;</span><span class="p">,</span> <span class="s2">&quot;Time (hours)&quot;</span><span class="p">,</span> <span class="s2">&quot;Select the time expected (in hours) for this job&quot;</span><span class="p">],</span>
+               <span class="p">[</span><span class="s2">&quot;GPU_COUNT&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">,</span> <span class="s2">&quot;Number of GPUs&quot;</span><span class="p">,</span> <span class="s2">&quot;Select the number of GPUs if protocol has been set up to use them&quot;</span><span class="p">]]</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </div>
