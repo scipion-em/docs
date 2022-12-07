@@ -19,17 +19,17 @@ out in Scipion_, using the plugins listed below for each step:
 
 1. Import tomograms - scipion-em-tomo_
 
-2. Tomogram normalization - scipion-em-imod_
+2. Tomogram preprocessing - scipion-em-imod_
 
 3. Tomogram denoising - scipion-em-tomo3d_
 
-4. Tomogram segmentation, annotation and tomomask (segmemtation) resizing - scipion-em-tomosegmemtv_
+4. Tomogram segmentation, annotation and tomo mask (segmentation) resizing - scipion-em-tomosegmemtv_
 
 5. Directional picking (preseg, graphs, filaments and picking) - scipion-em-pyseg_
 
 6. Fit vesicles - scipion-em-xmipptomo_
 
-7. Remove duplicates (filter picked particles by distance) and filter by normal - scipion-em-tomo3d_
+7. Remove duplicates (filter picked particles by distance) and filter by normal - scipion-em-tomoviz_
 
 8. Extract particles - scipion-em-emantomo_
 
@@ -37,9 +37,9 @@ out in Scipion_, using the plugins listed below for each step:
 
 10. 2D classification - scipion-em-pyseg_
 
-11. Visualization tools - scipion-em-xmipp_, scipion-em-imod_ and scipion-em-pyseg_
+11. Visualization tools - scipion-em-xmipp_, scipion-em-imod_, scipion-em-tomoviz_ and scipion-em-dynamo_
 
-Thus, 9 different plugins will be used in this tutorial, highlighting the power of Scipion in terms of interoperability.
+Thus, 10 different plugins will be used in this tutorial, highlighting the power of Scipion in terms of interoperability.
 Figure below shows and scheme of the main workflow steps proposed for this tutorials and the plugins used to carry them
 out.
 
@@ -55,6 +55,7 @@ belong to.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/00_project_overview_colored.png
    :width: 300
+   :align: center
    :alt: Project overview
 
 
@@ -70,11 +71,11 @@ Associated resources
 Here you can find resources associated with this content, like videos or presentations used in courses and other
 documentation pages:
 
+`Basic actions with Scipion <docs/user/scipion-gui.html#scipion-gui>`_
+
 `Denoising tomograms and membrane segmentation`_
 
 `PySeg presentation`_
-
-`Basic actions with Scipion <docs/user/scipion-gui.html#scipion-gui>`_
 
 The dataset
 -----------
@@ -94,6 +95,7 @@ First of all, open a terminal and execute the command scipion3 to run Scipion. A
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/00_createProject.png
    :width: 400
+   :align: center
    :alt: Create Project
 
 Note: the protocols can be located on the left panel of the project interface or directly search via ctrl + f and typing
@@ -113,6 +115,7 @@ on "Execute" button.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/01_ImportTomo.png
    :width: 500
+   :align: center
    :alt: Import tomogram
 
 The imported data can be now visualized by clinking on button "Analyze", located on the top right corner of the bottom
@@ -122,6 +125,7 @@ double click on it.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/01_res_ImportTomo.png
    :width: 700
+   :align: center
    :alt: Import tomogram result
 
 .. _Tomogram normalization:
@@ -147,6 +151,7 @@ panel at the bottom of the project interface.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/02_NormalizeTomo.png
    :width: 650
+   :align: center
    :alt: Normalize tomogram
 
 Tomogram denoising
@@ -154,12 +159,13 @@ Tomogram denoising
 
 This step is recommended to be carried out before the membrane segmentation, considering that the higher contrast our
 data has, the better the membranes will be segmented. To do that, open the protocol "denoise tomogram" from plugin
-scipion-em-jjsoft. Once there, click on the magnifier icon and select, on the pop-up window the pointer to the
+scipion-em-tomo3d. Once there, click on the magnifier icon and select, on the pop-up window the pointer to the
 normalized tomogram (it should be the first on the list, because the objects generated are sorted from newest to
 oldest by default). Leave the rest of parameters with the default values and click execute the protocol.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/03_DenoiseTomo.png
    :width: 500
+   :align: center
    :alt: Denoise tomogram
 
 The denoised tomogram can be displayed proceeding the same as explain in section `Importing the Tomogram`_. It can be observed
@@ -168,6 +174,7 @@ the one on the right after the denoising.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/03_res_DenoiseTomo.png
    :width: 1000
+   :align: center
    :alt: Denoise tomogram result
 
 Membrane segmentation
@@ -213,6 +220,7 @@ different steps carried out internally by tomosegmemTV.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/04_MembranesSegmentation.png
    :width: 500
+   :align: center
    :alt: Vesicles segmentation
 
 Note: in this example all the parameter values provided have been tuned previously, but in the normal scenario consists
@@ -227,6 +235,7 @@ The result obtained should look like the figure below.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/04_res_MembranesSegmentation.png
    :width: 500
+   :align: center
    :alt: Vesicles segmentation result
 
 Hint: the recommended procedure is to work with one or two tomograms of the set to tune the parameters and then use
@@ -237,7 +246,7 @@ Membrane annotation
 
 Once the membranes have been successfully segmented, they need to be annotated, which means to manually add a numerical
 label to each to indicate the software that they represent different entities. This step will be carried out with the
-protocol "annotate segmented membranes" from plugin scipion-em-tomosegmemTV. This is an interactive protocol which
+protocol "annotate segmented membranes" from plugin scipion-em-tomosegmemtv. This is an interactive protocol which
 generate an auxiliary window that lists the tomograms to be annotated and allow the user to execute the membrane
 annotator tool by double clicking on it. It also indicates which of them have been annotated and which are still
 pending to be processed. The only parameter present in this protocol is the pointer to the tomomasks (segmentations).
@@ -247,6 +256,7 @@ auxiliary window.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotation.png
    :width: 1000
+   :align: center
    :alt: Vesicles annotation
 
 Membrane Annotator overview
@@ -257,6 +267,7 @@ look at its interface and components:
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_overview.png
    :width: 650
+   :align: center
    :alt: Membrane Annotator overview
 
 Here is a brief explanation of each of the component enumerated in the figure above:
@@ -322,7 +333,8 @@ It can be observed that three of the vesicles (squared in the figure below) cont
 These are the ones we're going to annotate.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_targets.png
-   :width: 650
+   :width: 500
+   :align: center
    :alt: Membrane Annotator targets
 
 Density thresholding
@@ -334,7 +346,8 @@ Hint: to get an intuition of how the variations in the density threshold value a
 to test different values until a promising visualization is obtained.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_thresholding.png
-   :width: 650
+   :width: 600
+   :align: center
    :alt: Membrane Annotator thresholding
 
 To check the results, click on button "Update Labels" [6]. The result of this operation should look like as the figure
@@ -344,7 +357,8 @@ two or more different colors (sizes) for the same vesicle, but this is more than
 situ tomogram). This can be solved annotating the different parts with the same label.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_autoLabel.png
-   :width: 650
+   :width: 600
+   :align: center
    :alt: Membrane Annotator update labels
 
 On the other hand, it's recommendable to check that both parts of target 2 are of the same size. It can be easily done
@@ -362,7 +376,8 @@ size is shown in the index label of the tooltip. The background size will be alw
 annotated with the same label as the orange one to get the full membrane annotated.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_target1_1.png
-   :width: 650
+   :width: 600
+   :align: center
    :alt: Membrane Annotator target 1 sizes
 
 The procedure followed to check the sizes was:
@@ -382,7 +397,8 @@ directly press shift + left click.
 Let's annotate now the orange part of target one with label 1 (Use the zoom in tool if necessary, as explained before):
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_target1_2.png
-   :width: 650
+   :width: 600
+   :align: center
    :alt: Membrane Annotator target 1 annotation
 
 1. Click on button "Display Cursor" from panel "Set Material" [7].
@@ -397,14 +413,16 @@ to be set to 2 or 3, respectively.
 display automatically the view "Material" from the panel "View" [4], as can be observed in the figure below.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_target1_3.png
-   :width: 650
+   :width: 600
+   :align: center
    :alt: Membrane Annotator target 1 material view part
 
 If we repeat this procedure with the blue part of target 1 vesicle (annotatin it with label 1), the result should look
 like as shown in the figure below.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_target1_4.png
-   :width: 650
+   :width: 600
+   :align: center
    :alt: Membrane Annotator target 1 material view full
 
 Manual annotation of the target 2
@@ -416,14 +434,16 @@ just the same as what happened with target 1. Moreover, the inner small vesicle 
 disconnected from target 2, because they have different sizes (see figure below).
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_target2_1.png
-   :width: 650
+   :width: 600
+   :align: center
    :alt: Membrane Annotator target 2 sizes
 
 Hence, we can proceed to the manual annotation, this time with label 2. The final result of the target 2 vesicle
 annotation is shown in the figure below.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_target2_2.png
-   :width: 650
+   :width: 600
+   :align: center
    :alt: Membrane Annotator target 2 material view full
 
 Manual annotation of the target 3
@@ -433,7 +453,8 @@ This is the easiest one, identified as a continuous structure. So we can directl
 of the three membranes annotated can be observed in the figure below.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_target3.png
-   :width: 650
+   :width: 600
+   :align: center
    :alt: Membrane Annotator target 3 material view full
 
 Save the annotated vesicles and finish the interactive annotation protocol
@@ -453,6 +474,7 @@ is located at the top right corner of the project panel).
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_saveResults.png
    :width: 400
+   :align: center
    :alt: Membrane Annotator save results and exit
 
 Analyze the annotated membranes
@@ -464,6 +486,7 @@ or by slices, as shown in the figure below.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/05_MembranesAnnotator_tomo3dviewer.png
    :width: 1000
+   :align: center
    :alt: Membrane Annotator results with tomoviz
 
 Resize the tomomasks (segmentations)
@@ -479,6 +502,7 @@ annotation protocol output for the first and the pointer to the imported tomogra
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/06_resize_tomoMasks.png
    :width: 500
+   :align: center
    :alt: Resize tomomasks protocol
 
 We're referring the tomomasks to the imported tomograms and not to the denoised ones to carry out the picking procedure
@@ -540,6 +564,7 @@ margin of the 10% of error is considered for the biggest size (that additional 3
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/07_preseg.png
    :width: 500
+   :align: center
    :alt: Preseg protocol
 
 If the results are displayed with the viewer DataViewer from xmipp (right click in the output element shown in the
@@ -549,6 +574,7 @@ visually relate each segmentation to the `target vesicles`_ they represent.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/07_res_preseg_01.png
    :width: 800
+   :align: center
    :alt: Preseg results
 
 For a better understanding of the parameters introduced in this protocol, the figure below shows the thickness of the
@@ -558,6 +584,7 @@ rate, which is 13.68 Å/voxel. The graph shown is the result of tracing a profil
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/07_res_preseg_02.png
    :width: 800
+   :align: center
    :alt: Preseg profiling
 
 .. _graphs protocol:
@@ -581,6 +608,7 @@ neighbours" from the preseg protocol selected in parameter "Pre-segmentation". T
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/08_graphs.png
    :width: 500
+   :align: center
    :alt: Graphs protocol
 
 Results can be displayed by clicking on button "Analyze Results". That action will allow us to select which vesicle is
@@ -592,6 +620,7 @@ annotation step.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/08_res_graphs.png
    :width: 1000
+   :align: center
    :alt: Graphs results
 
 .. _fils protocol:
@@ -642,6 +671,7 @@ ranges [min max]. In our case, considering the type and and features of the targ
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/09_fils.png
    :width: 1000
+   :align: center
    :alt: Fils protocol
 
 The resulting filaments should look like in the figure below. The same considerations as in the `graphs protocol`_
@@ -649,6 +679,7 @@ results have been followed.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/09_res_fils.png
    :width: 1000
+   :align: center
    :alt: Fils results
 
 .. _picking protocol:
@@ -678,6 +709,7 @@ distance between the picked coordinates. Let this tab with the default values. W
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/10_picking.png
    :width: 1000
+   :align: center
    :alt: Picking protocol
 
 It can be observed in the summary tab of the lower panel on the project interface that *2339* particles were picked.
@@ -690,6 +722,7 @@ plugin scipion-em-tomoviz:
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/10_res_picking.png
    :width: 1000
+   :align: center
    :alt: Picking results
 
 Picking post processing
@@ -709,14 +742,18 @@ rate of our data (150Å / 13.60 Å/voxel ~ 11 voxel).
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/11_remove_duplicates.png
    :width: 500
+   :align: center
    :alt: Remove duplicates protocol
 
 Again, on the summary tab of the lower panel on the project interface, it can be observed that we have now *641*
 particles after having removed the duplicates. As before, using the viewer from plugin scipion-em-protocol, the result
-should look like this:
+should look like this (left). Or any other plugin which provides functionality for the visualization of 3D coordinates
+can be used, such us scipion-em-dynamo (right). To check all the functionality available fot he visualization of an
+specific data type, simply right-click on the object name in the summary panel:
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/11_res_remove_duplicates.png
-   :width: 750
+   :width: 1000
+   :align: center
    :alt: Remove duplicates results
 
 Filter by normal
@@ -734,6 +771,7 @@ having removed the duplicates and the tomograms from which the input coordinates
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/12_fit_vesicles.png
    :width: 500
+   :align: center
    :alt: Fit vesicles protocol
 
 At this point, we are ready to use the filter by normal, so let's open it and follow these steps:
@@ -746,9 +784,18 @@ At this point, we are ready to use the filter by normal, so let's open it and fo
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/12_filter_by_normal.png
    :width: 500
+   :align: center
    :alt: Filter by normal protocol
 
 After executing it, we should have *285* items.
+
+To visualize the filtered coordinates, we're going to use this time the viewer from scipion-em-emantomo. For a better
+observation we've collected screenshots containing only the vesicles used in this tutorial.
+
+.. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/12_filter_by_normal_res.png
+   :width: 650
+   :align: center
+   :alt: Filter by normal protocol results
 
 Subtomogram extraction
 ======================
@@ -777,6 +824,7 @@ from plugin scipion-em-emantomo. Let's open it and set the parameters as listed 
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/13_extract_particles.png
    :width: 800
+   :align: center
    :alt: Extract particles protocol
 
 2D classification
@@ -801,7 +849,7 @@ Now, let's open the protocol and set the following values in the parameters list
 2. Set "Sampling rate" to *13.68* Å/px to make the mask be at the same sampling rate of our data.
 
 3. Set "Mask size" to *44* px, because it has to be of the same box size as our subtomograms (44 is the value we
-introduced as box size ehrn extracting the particles with scipion-em-emantomo).
+introduced as box size when extracting the particles with scipion-em-emantomo).
 
 4. Select "Cylinder" from "Mask type".
 
@@ -822,6 +870,7 @@ to *2* px. This smoothing is very useful to minimize border effects.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/14_create_3d_mask.png
    :width: 800
+   :align: center
    :alt: Create 3D mask protocol
 
 The obtained mask, displayed in Y positive view with viewer DataViewer from xmipp, should look like shown in the figure
@@ -829,6 +878,7 @@ below. To change the view, click on the colored cube ico on the top toolbar.
 
 .. figure:: /docs/user/denoising_mbSegmentation_pysegDirPicking/14_res_create_3d_mask.png
    :width: 650
+   :align: center
    :alt: Create 3D mask result
 
 Finally, we have all the elements required to perform the 2D classification. So let's open the protocol and set the
@@ -887,6 +937,7 @@ particle alignment and subtomogram reconstruction), we can obtain a structure fo
 .. _scipion-em-pyseg: https://github.com/scipion-em/scipion-em-pyseg
 .. _scipion-em-tomoviz: https://github.com/scipion-em/scipion-em-tomoviz
 .. _scipion-em-emantomo: https://github.com/scipion-em/scipion-em-emantomo
+.. _scipion-em-dynamo: https://github.com/scipion-em/scipion-em-dynamo
 .. _scipion-em-xmipp: https://github.com/I2PC/scipion-em-xmipp
 .. _scipion-em-xmipptomo: https://github.com/I2PC/scipion-em-xmipptomo
 .. _EMD-10439: https://www.ebi.ac.uk/emdb/EMD-10439?tab=overview
