@@ -71,11 +71,11 @@ Associated resources
 Here you can find resources associated with this content, like videos or presentations used in courses and other
 documentation pages:
 
-`Basic actions with Scipion <docs/user/scipion-gui.html#scipion-gui>`_
+* :ref:`Scipion tutorial <scipion-gui>`
 
-`Denoising tomograms and membrane segmentation`_
+* `Denoising tomograms and membrane segmentation`_
 
-`PySeg presentation`_
+* `PySeg presentation`_
 
 The dataset
 -----------
