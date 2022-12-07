@@ -80,7 +80,7 @@ The parameters to be filled up in the form of the protocol are the following:
 * **Origin info** section: By default, Scipion sets the origin of the coordinates for each tomogram on its gravity center. However, this section allows you to select any other location for the origin. For this tutorial, we will use the default value
 * **Acquisition info** section: Here, you can specify the acquisition conditions that led to the reconstructed tomogram being imported. Apart from the maximum/minimum acquisition angles, step, and principal tilt axis, Dynamo allows selecting a second tilt axis used during some acquisitions. For this tutorial, we will use the default value
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Dynamo_import_tomo.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Tomo_import_tomo.png
    :align: center
    :alt: dynamo import
 
