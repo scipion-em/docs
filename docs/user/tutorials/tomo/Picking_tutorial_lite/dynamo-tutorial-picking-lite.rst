@@ -1,9 +1,9 @@
 .. include:: <isonum.txt>
-.. |icon| image:: /docs/user/tutorials/tomo/Picking_tutorial/Toggle_icon.png
-.. |results| image:: /docs/user/tutorials/tomo/Picking_tutorial/Analyze_results.png
-.. |wizard| image:: /docs/user/tutorials/tomo/Picking_tutorial/Wizard.png
+.. |icon| image:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Toggle_icon.png
+.. |results| image:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Analyze_results.png
+.. |wizard| image:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Wizard.png
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Scipion_tomo.gif
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Scipion_tomo.gif
    :width: 100
    :align: right
    :alt: scipion tomo logo
@@ -80,7 +80,7 @@ The parameters to be filled up in the form of the protocol are the following:
 * **Origin info** section: By default, Scipion sets the origin of the coordinates for each tomogram on its gravity center. However, this section allows you to select any other location for the origin. For this tutorial, we will use the default value
 * **Acquisition info** section: Here, you can specify the acquisition conditions that led to the reconstructed tomogram being imported. Apart from the maximum/minimum acquisition angles, step, and principal tilt axis, Dynamo allows selecting a second tilt axis used during some acquisitions. For this tutorial, we will use the default value
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Tomo_import_tomo.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Tomo_import_tomo.png
    :align: center
    :alt: dynamo import
 
@@ -89,7 +89,7 @@ scipion-em-tomo3d. Once there, click on the magnifier icon and select, on the po
 imported tomogram. Then, set the threads to 12 to make the execution be faster. Leave the rest of parameters with the
 default values and click execute the protocol.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Tomo3d_tomo_denoising.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Tomo3d_tomo_denoising.png
    :align: center
    :alt: tomo3d denoising
    :width: 400
@@ -97,7 +97,7 @@ default values and click execute the protocol.
 If we analyze the results, it can be observed how the contrast has been considerably increased, being the figure on the
 left the tomogram before the denoising and the one on the right after the denoising.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Tomo3d_tomo_denoising_res.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Tomo3d_tomo_denoising_res.png
    :align: center
    :alt: tomo3d denoising result
    :width: 1000
@@ -115,7 +115,7 @@ One possible way to proceed would be to select different points along the membra
 
 Let us create a new montage view to define our membrane. First, you will need to click in `Montage` ➤ `Create Montage of full depicted scene`. The other option in the `Montage` menu will allow you to customize the settings of this view, such as the number of slices displayed.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Montage_view.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Montage_view.png
    :align: center
    :alt: montage view
    :width: 400
@@ -133,14 +133,14 @@ Another attractive property of the montage view is the possibility of automatica
 
 Before exiting the montage view, we need to define an extra point so Dynamo can orient the particles properly. This new marker will tell Dynamo which side of the membrane is the interior and exterior. You can use the **Shift key + C key** in the desired region to place this marker. **Note**: Orientations are defined pointing towards the outer part of the membrane (i.e., the opposite side of the membrane with respect to the area where we place the previous marker).
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Montage_view_picked.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Montage_view_picked.png
    :align: center
    :alt: picked montage view
    :width: 400
 
 Once you define the membrane on several slices, you can close the montage view window. Then, you will be able to see your membrane automatically on the 3D view to do any refinement you may consider appropriate.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/dtmslice_membrane.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/dtmslice_membrane.png
    :align: center
    :alt: dtmslice membrane
    :width: 400
@@ -171,7 +171,7 @@ Below you can find a brief description of the parameters associated with a `Gene
 * **Maximum number of triangles**: This parameter will limit the number of triangles that the Dynamo mesh will have. For this tutorial, we will use the default value
 * **Number of subdivision steps**: Number of times the triangles in the mesh will be split into different triangles. This will increase the smoothness of the final geometry. For this tutorial, we will use the default value
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Model_workflow.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Model_workflow.png
    :align: center
    :alt: model workflow
    :width: 400
@@ -193,7 +193,7 @@ Suppose you want to choose any other viewer. In that case, you can right-click o
 
 As it happened with the picking protocol, you will be prompted with a tomogram dialog showing the picked tomograms and their associated coordinates. By double-clicking on any of these entries, you will open the viewer for that specific tomogram.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Tomo_dialog_tomo3d.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Tomo_dialog_tomo3d.png
    :align: center
    :alt: tomo dialog tomoviz
    :width: 400
@@ -204,7 +204,7 @@ Apart from buttons and menus displayed in the viewer window, the following navig
 * Up/Down arrow keys: Change a single slice of the tomogram when the slice view is activated. The Up key moves the slice in the direction of the white arrow shown in the slice view. The Down key moves the slice in the opposite direction of the arrow
 * O key: return to the default view when the slice view is activated.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Tomo3d_dynamo.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Tomo3d_dynamo.png
    :align: center
    :alt: tomoviz viewer dynamo
    :width: 400
@@ -224,13 +224,13 @@ Now that you have generated and checked your oriented `SetOfCoordinates3D`, we c
 
 Apart from the previously described parameters, you can also specify the number of threads involved in the coordinates extraction to reduce the execution time.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Dynamo_extraction.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Dynamo_extraction.png
    :align: center
    :alt: dynamo extraction
 
 Once the protocol is finished, Scipion will generate a `SetOfSubtomograms` that you can further process in the Subtomogram averaging pipeline. If you want to check how the subtomograms look, click on |results| as we did for the coordinates. This will open an interface that will allow you to inspect your subtomograms.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Dynamo_subtomos.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Dynamo_subtomos.png
    :align: center
    :alt: dynamo subtomos
    :width: 400
@@ -248,7 +248,7 @@ It is worth mentioning that these alignments will not consider the in-plane rota
 
 To apply the alignment stored in the `SetOfSubtomograms` metadata, we can use the protocol **xmipptomo - apply alignment to subtomo** available in **scipion-em-xmipptomo** plugin.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Xmipptomo_apply.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Xmipptomo_apply.png
    :align: center
    :alt: xmipptomo apply alignment
    :width: 400
@@ -262,14 +262,14 @@ This protocol will generate two different outputs:
 
 You can visualize both outputs by clicking on |results|. Thanks to the average, you can check that there is already some blurry density, which is a good way of checking if the picking protocols worked as expected.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Average.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Average.png
    :align: center
    :alt: Average subtomo
    :width: 400
 
 Below, you can find an overall view of the Scipion workflow described during the **Directional picking tutorial**.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Directional_workflow.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Directional_workflow.png
    :align: center
    :alt: Directional picking workflow
    :width: 400
@@ -295,7 +295,7 @@ The parameters to be filled in the protocol form are the following:
 * **Acquisition info** section: Here, you can specify the acquisition conditions that led to the reconstructed tomogram being imported. You can specify them manually or import them from a file. We will use the default values for this tutorial
 * **Origin info** section: By default, Scipion sets the origin of the coordinates of each tomogram on its gravity center. However, this section allows you to select any other location for the origin. For this tutorial, we will use the default values
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Tomo_import.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Tomo_import.png
    :align: center
    :alt: Tomo import
 
@@ -319,7 +319,7 @@ To that end, we will create a new **emantomo - tomo boxer convnet** protocol in 
     * **Box Size**: Estimated box size for the future particles. At this point, this parameter is just an estimation, and it can be modified after in the workflow if needed. For this tutorial, we will use a box size of 96
     * **GroupId**: This parameter is used internally by Scipion to identify coordinates that were picked together. Thus, if you picked two different particle types in your tomogram in two different protocols and you decide to combine those results, Scipion will be able to manage them independently when needed if they had a different **GroupId**
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Eman_convnet.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Eman_convnet.png
    :align: center
    :alt: Eman convnet picking
    :width: 400
@@ -337,7 +337,7 @@ It is also worth explaining a little about the **ChangeBx** button found in this
 
 Let us start picking some particles in our tomogram to train the neural network. You can open a tomogram by double-clicking its entry on the tomograms list found in the **e2spt_boxer_convent.py** window.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Convnet_interface.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Convnet_interface.png
    :align: center
    :alt: Convnet interface
 
@@ -353,7 +353,7 @@ Below you can find a brief description of the basic controls of the Convnet pick
 
 You need to pick at least five positive and five negative references to train the network. Positive references (blue circles) should have particles centered in the circle/training box. In contrast, negative references (red circles) are those elements found in the tomogram that you do not want to be picked (such as gold beads, aggregations, noisy areas with no particles...).
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Convnet_references.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Convnet_references.png
    :align: center
    :alt: Convnet picked references
    :width: 400
@@ -362,7 +362,7 @@ After picking enough positive and negative references, you can click on the `Tra
 
 You can check the training status inside Scipion. To do so, go to `Output Log` ➤ `run.stdout`. There you can check the current training iteration and loss. If the training process works properly, the loss should follow a decreasing trend.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Scipion_status.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Scipion_status.png
    :align: center
    :alt: Scipion training status
    :width: 400
@@ -384,7 +384,7 @@ Once you are happy with your predictions, close the Convent windows to save the 
 
 Probably you would like to check at this point the result of your picking with one of the coordinate viewers implemented in Scipion. A full description of the available viewers can be found in the section **Step 4: Checking a `SetOfCoordinates3D` in Scipion** from the **Direction picking tutorial**. Below, our Convent picking result is displayed with the **Tomoviz viewer**.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Tomo3d_eman_convnet.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Tomo3d_eman_convnet.png
    :align: center
    :alt: tomoviz viewer eman convnet
    :width: 400
@@ -405,13 +405,13 @@ The parameters to be filled up in the protocol form are the following:
     * **Invert contrast?**: Determine if you want to invert the contrast of your subtomograms with respect to the contrast of your tomograms. We will use the default value `No` for this tutorial
     * **Normalize subtomogram?**: Determine if you want to normalize the voxel values of the subtomogram volumes. We will use the default value `No` for this tutorial
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Eman_extraction.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Eman_extraction.png
    :align: center
    :alt: Eman extraction
 
 All the extraction process is automatic, and it will finish with the registration of a new `SetOfSubtomograms` object in Scipion. If you want to check how the subtomograms look, click on |results| as we did for the coordinates. This will open an interface that will allow you to inspect your subtomograms.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Convnet_subtomos.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Convnet_subtomos.png
    :align: center
    :alt: convnet subtomos
    :width: 400
@@ -435,14 +435,14 @@ The parameters included in the form of this protocol are described below:
     * **Input Tomograms**: Scipion `SetOfTomograms` object generated by the previous import/binning protocol
     * **Modify previous coordinates?**: If set to `yes`, you will pass the protocol a previous picking to refine it. For this tutorial, we will leave the default value.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Emantomo_manual.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Emantomo_manual.png
    :align: center
    :alt: eman manual picking
    :width: 400
 
 After launching the protocol, you will be prompted with a tomogram dialog showing each tomogram available in your input `SetOfTomograms` and their current picking status. By double-clicking in any of the entries in the tomogram dialog, you will open the Eman picking interface for that specific tomogram.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Tomo_dialog_eman_todo.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Tomo_dialog_eman_todo.png
    :align: center
    :alt: tomo dialog todo
    :width: 400
@@ -461,7 +461,7 @@ Let's talk about the basic controls of the Eman interface. Apart from the button
 * Control key + Mouse wheel: Zoom in or out the tomogram view
 * Center mouse button: It opens a new window with several options (tomogram filtering, slice selection...)
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Emantomo_manual_interface.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Emantomo_manual_interface.png
    :align: center
    :alt: eman manual picking
    :width: 400
@@ -470,7 +470,7 @@ The next step is to pick around 50 or more subtomograms to create a good enough 
 
 After closing the Eman windows, wait until the entry you double-clicked in the Scipion tomogram dialog changes from green to red. This means that Scipion has correctly identified the picked particles in your tomogram. In addition, the information in the entry will be updated with the number of particles selected for that specific tomogram.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Tomo_dialog_eman_done.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Tomo_dialog_eman_done.png
    :align: center
    :alt: tomo dialog done
    :width: 400
@@ -515,13 +515,13 @@ The following advance parameters are also available in the form **Optimization**
 * **Shrink factor** (Advance parameter): Determine if you want Eman to downsample the final initial model by an amount equal to this factor. **Note**: As explained before, Eman will always downsample your volume by a factor of 2 internally to generate the initial model, although this internal downsampling will not affect the final size of the model. However, if you provide a **Shrink factor** bigger than one, you need to ensure that the box size you would obtain after applying this factor is still even, so Eman can perform properly its internal downsampling
 * **Apply Symmetry** (Advance parameter): Determine if you want Eman to apply the symmetry specified in the parameter **Symmetry** when generating the initial model
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Emantomo_initial_model.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Emantomo_initial_model.png
    :align: center
    :alt: emantomo initial model
 
 After setting all the parameters, you can launch the protocol. Scipion will automatically execute and register the initial model generated by Eman. You can check how it looks by clicking on |results|. Below you can find our initial model displayed with ChimeraX.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Initial_model.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Initial_model.png
    :align: center
    :alt: ribosome initial model
    :width: 400
@@ -541,7 +541,7 @@ The parameters to be filled up in the protocol form are described below:
     * **Box Size**: Estimated box size for the future particles. At this point, this parameter is just an estimation, and it can be modified after in the workflow if needed. For this tutorial, we will use a box size of 96
     * **GroupId**: This parameter is used internally by Scipion to identify coordinates that were picked together. Thus, if you picked two different particle types in your tomogram in two different protocols and you decide to combine those results, Scipion will be able to manage them independently when needed if they had a different **GroupId**
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Emantomo_template_matching.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Emantomo_template_matching.png
    :align: center
    :alt: emantomo template matching
    :width: 400
@@ -550,7 +550,7 @@ After launching the protocol, Eman will automatically pick the particles in the 
 
 As we did before, you can the picked coordinates with a viewer to evaluate the picking. Below we provide our picked coordinates shown with the **Tomoviz viewer**.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Tomo3d_eman_template_matching.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Tomo3d_eman_template_matching.png
    :align: center
    :alt: tomoviz viewer eman template matching
    :width: 400
@@ -572,7 +572,7 @@ In this tutorial section, we will learn how to combine the outputs of the **eman
     * **Consensus**: This parameter can take values from 1 to the total number of inputs (being -1 a special case). Set it to -1 to indicate that it needs to be selected by all algorithms: AND operation. Set to 1 to indicate that it suffices that only 1 algorithm selects the particle: OR operation. Any other value will determine how many times a particle needs to be selected to be considered a consensus particle. We will use the default value for this tutorial
     * **Consensus mode** (Advance parameter): If the number of votes to progress to the output must be either (=) strictly speaking equals to the consensus number or (>=) at least equals. We will use the default value for this tutorial
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Consensus.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Consensus.png
    :align: center
    :alt: Consensus
    :width: 400
@@ -581,7 +581,7 @@ After launching the protocol, Scipion will automatically combine the picking bas
 
 Below you can find an overall view of the Scipion workflow that we described during the **Non-directional picking tutorial**.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Non_directional_workflow.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Non_directional_workflow.png
    :align: center
    :alt: Non-directional picking workflow
    :width: 400
