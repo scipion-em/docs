@@ -178,97 +178,93 @@ The steps to be followed to select your user points are the following:
    :alt: montage view
    :width: 800
 
-Inside the montage view, you can still create models as you did in the 3D viewer we used before. Also, you can change the slice in this view using the buttons at the bottom of the window.
+Inside the montage view, you can still create models as you did in the 3D viewer we used before. Also, you can change
+the slice in this view using the buttons at the bottom of the window.
 
 The following steps describe how to pick in the montage view:
 
 1. For a better data visualization, click on the `Contrast filter (gaussian) icon` |iconFilter|
 2. Use the single arrows |iconArrows| located at the bottom left to go to the slices that provide the best view of the specimen/s desired to be picked.
 3. It can be observed that when the mouse is located in any of the slices displayed, a set of icons |iconSliceActions| appear at the top right of it. They offer actions that can be very useful to perform a better picking, like zooming in and ou, click and drag, etc.
-3. Click on the `Toggle icon` |icon|
-3. Left click in the desired region of a given slice to place a new "user point"
+4. For each vesicle, we will pick the membrane in different slices, as can be observed in the figure below.
+5. Click on the `Toggle icon` |icon|
+6. Left click in the desired region of a given slice to place a new "user point"
+7. To identify the points of another vesicle with a different class, go to menu `Model Pool` ➤ `Create new model in pool (choose type)`
 
-Selections in this view can be deleted by following the procedure described for the 3D view.
-
-Another attractive property of the montage view is the possibility of automatically "tracking" the membrane after several slices have been picked. To do so, activate the next slice (i.e., click it so that its frame becomes red), and press the **O key**.
-
-Before exiting the montage view, we need to define an extra point so Dynamo can orient the particles properly. This new marker will tell Dynamo which side of the membrane is the interior and exterior. You can use the **Shift key + C key** in the desired region to place this marker. **Note**: Orientations are defined pointing towards the outer part of the membrane (i.e., the opposite side of the membrane with respect to the area where we place the previous marker).
-
-
-
-We can copy the **dynamo - vectorial picking** protocol we have just created to select our membrane. Before running it,
-change the model type in the form to `Surface`. The remaining parameters can be left unchanged.
-
-Open the `dtmslice` window following the procedure described before. Remember to create a new model inside the `dtmslice` window of the `Surface` type.
-
-One possible way to proceed would be to select different points along the membrane for other Z slices in the 3D view. However, Dynamo has a handy tool to define membranes much easier: the montage view.
-
-Let us create a new montage view to define our membrane. First, you will need to click in `Montage` ➤ `Create Montage of full depicted scene`. The other option in the `Montage` menu will allow you to customize the settings of this view, such as the number of slices displayed.
-
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Montage_view.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Montage_with_points.png
    :align: center
    :alt: montage view
-   :width: 400
-
-Inside the montage view, you can still create models as you did in the 3D viewer we used before. Also, you can change the slice in this view using the buttons at the bottom of the window.
-
-The following steps describe how to pick in the montage view:
-
-1. Click on the `Toggle icon` |icon|
-2. Left click in the desired region of a given slice to place a new "user point"
+   :width: 800
 
 Selections in this view can be deleted by following the procedure described for the 3D view.
 
-Another attractive property of the montage view is the possibility of automatically "tracking" the membrane after several slices have been picked. To do so, activate the next slice (i.e., click it so that its frame becomes red), and press the **O key**.
+**Note**:
+Another attractive property of the montage view is the possibility of automatically "tracking" the membrane after
+several slices have been picked. To do so, activate the next slice (i.e., click it so that its frame becomes red),
+and press the **O key**.
 
-Before exiting the montage view, we need to define an extra point so Dynamo can orient the particles properly. This new marker will tell Dynamo which side of the membrane is the interior and exterior. You can use the **Shift key + C key** in the desired region to place this marker. **Note**: Orientations are defined pointing towards the outer part of the membrane (i.e., the opposite side of the membrane with respect to the area where we place the previous marker).
+Before exiting the montage view, we need to define an extra point so Dynamo can orient the particles properly.
+This new marker will tell Dynamo which side of the membrane is the interior and exterior. You can use the
+**Shift key + C key** in the desired region to place this marker. **Note**: Orientations are defined pointing towards
+the outer part of the membrane (i.e., the opposite side of the membrane with respect to the area where we place the previous marker).
 
 .. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Montage_view_picked.png
    :align: center
    :alt: picked montage view
    :width: 400
 
-Once you define the membrane on several slices, you can close the montage view window. Then, you will be able to see your membrane automatically on the 3D view to do any refinement you may consider appropriate.
+Once you define the membrane on several slices, you can close the montage view window. Then, you will be able to see
+your membrane automatically on the 3D view to do any refinement you may consider appropriate.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/dtmslice_membrane.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/dtmslice_picked.png
    :align: center
    :alt: dtmslice membrane
-   :width: 400
+   :width: 800
 
-If you are happy with your results, you can close the `dtmslice` window, wait until the Scipion tomo dialog is updated with the information of your picking, and register the output in Scipion. As a reference, we picked around 60 different locations along different slices in the montage view with default settings to define the membrane.
+If you are happy with your results, you can close the `dtmslice` window, wait until the Scipion tomo dialog is updated
+with the information of your picking, and register the output in Scipion.
+As a reference, we picked around 166 different locations along different slices in the montage view.
 
-We now have all the information we need to extract your initially picked "user points" based on the orientation described by the geometry of the membrane we have just defined. To that end, we will combine the output of both picking protocols with the **dynamo - model workflow** protocol.
+We now have all the information we need to extract your initially picked "user points" based on the orientation
+described by the geometry of the membrane we have just defined. To that end, we will combine the output of both
+picking protocols with the **dynamo - model workflow** protocol.
 
-Step 3: Orienting particles in Dynamo - Cropping points
+Step 2: Orienting particles in Dynamo - Cropping points
 -------------------------------------------------------
 
-At this moment, Scipion has stored separately the two different geometries picked with the Dynamo `dtmslice` tool. The next step is to use the previous information to generate a directional picking with coordinates extracted posteriorly.
+At this moment, Scipion has stored separately the two different geometries picked with the Dynamo `dtmslice` tool. The
+next step is to use the previous information to generate a directional picking with coordinates extracted posteriorly.
 
-The protocol in charge of imparting orientations to models and generating extractable coordinates (referred to as "cropping points" in Dynamo) is the **dynamo - model workflow** protocol. The parameters included in the form of this protocol are described below:
+The protocol in charge of imparting orientations to models and generating extractable coordinates (referred to as
+"cropping points" in Dynamo) is the **dynamo - model workflow** protocol. The parameters included in the form of this
+protocol are described below:
 
 * **Input** section:
     * **Input Meshes**: Output Scipion `SetOfMeshes` object generated by the **dynamo - vectorial picking** protocol. These meshes will be used to generate the extractable coordinates. If the meshes are not coming from a `General` model, they will also impart orientations to themselves. For this tutorial, select the `SetOfMeshes` created during the first picking protocol (`General` model)
-    * **Box Size**: Estimated box size for the future particles. At this point, this parameter is just an estimation, and it can be modified after in the workflow if needed. For this tutorial, we will use a box size of 32
-    * **Model type**: Model type associated with the **Input Meshes**. It can be either the same model type chosen during the picking step or a different one. However, we recommend selecting the same model type for both protocols. For this tutorial, choose `General`
+    * **Box Size**: Estimated box size for the future particles. At this point, this parameter is just an estimation, and it can be modified after in the workflow if needed. For this tutorial, we will use a box size of 64.
+    * **Model type**: Model type associated with the **Input Meshes**. It can be either the same model type chosen during the picking step or a different one. However, we recommend selecting the same model type for both protocols. For this tutorial, choose `Ellipsoidal Vesicle`
+    * **Mesh parameter**: set it to 2 (explained below).
+    * **Cropping parameter**: set it to 5 (explained below).
 
-The remaining parameters are specific to each Dynamo model. Most of them will determine how smooth will be the mesh generated to give orientations to the particles and extract the "cropping points." However, the softer the geometry, the more points will be extracted, which may decrease the performance of future workflow steps.
+The remaining parameters are specific to each Dynamo model. Most of them will determine how smooth will be the mesh
+generated to give orientations to the particles and extract the "cropping points." However, the softer the geometry,
+the more points will be extracted, which may decrease the performance of future workflow steps.
 
 Below you can find a brief description of the parameters associated with a `General` model. It is worth mentioning that a short description of all these parameters is also available in the protocols.
 
-* **Orientation Meshes**: Output Scipion `SetOfMeshes` object generated by the **dynamo - vectorial picking** protocol. These meshes will impart an orientation to the Dynamo `General` model. For this tutorial, select the `SetOfMeshes` corresponding to the membrane you defined in the previous section of the tutorial. **Note**: If this parameter is not provided, the general model will be extracted without orientation information (non-directional picking)
-* **Model type for Orientation Meshes**: Model type associated with the **Orientation Meshes**. It can be either the same model type chosen during the picking step or a different one. However, we recommend selecting the same model type for both protocols. For this tutorial, choose `Surface`
 * **Mesh parameter**: This parameter will determine the initial number of triangles to be used to generate a mesh in Dynamo. The smaller the parameter, the higher the number of triangles. For this tutorial, we will use the default value
 * **Maximum number of triangles**: This parameter will limit the number of triangles that the Dynamo mesh will have. For this tutorial, we will use the default value
-* **Number of subdivision steps**: Number of times the triangles in the mesh will be split into different triangles. This will increase the smoothness of the final geometry. For this tutorial, we will use the default value
+* **Cropping parameter**: Number of times the triangles in the mesh will be split into different triangles. This will increase the smoothness of the final geometry. For this tutorial, we will use the default value
 
 .. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Model_workflow.png
    :align: center
    :alt: model workflow
    :width: 400
 
-Unlike the **dynamo - vectorial picking**, this protocol is not interactive. Therefore, it will automatically register an oriented `SetOfCoordinates3D` in Scipion that can be extracted afterward.
+Unlike the **dynamo - vectorial picking**, this protocol is not interactive. Therefore, it will automatically register
+an oriented `SetOfCoordinates3D` in Scipion that can be extracted afterward.
 
-Step 4: Checking a `SetOfCoordinates3D` in Scipion
+Step 3: Checking a 3D coordinates in Scipion
 ---------------------------------------------------
 
 At this point, you might be interested in checking the coordinates you have already picked and their orientations. To that end, you can use one of the three viewers available in Scipion to check 3D coordinates. The viewers currently available are the following:
