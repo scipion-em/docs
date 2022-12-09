@@ -3,6 +3,12 @@
 .. |iconFilter| image:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Filter_icon.png
                :width: 20
                :alt: Alternative text
+.. |iconArrows| image:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Arrows_icon.png
+               :width: 40
+               :alt: Alternative text
+.. |iconSliceActions| image:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Slice_actions_icon.png
+                     :width: 80
+                     :alt: Alternative text
 .. |results| image:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Analyze_results.png
 .. |wizard| image:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Wizard.png
 
@@ -20,6 +26,8 @@ Picking tutorial for Tomography with Dynamo in Scipion
 This page will be focused on the basic usage of the plugin scipion-em-dynamo for particle picking. The tutorial will cover
 from the picking step to the extraction of the coordinates selected in the tomogram, including some useful tools to complement
 the protocols involved in the picking workflows.
+
+.. contents:: Table of Contents
 
 Additional resources
 ====================
@@ -174,8 +182,10 @@ Inside the montage view, you can still create models as you did in the 3D viewer
 
 The following steps describe how to pick in the montage view:
 
-1. Click on the `Contrast filter (gaussian) icon` |iconFilter|
-2. Click on the `Toggle icon` |icon|
+1. For a better data visualization, click on the `Contrast filter (gaussian) icon` |iconFilter|
+2. Use the single arrows |iconArrows| located at the bottom left to go to the slices that provide the best view of the specimen/s desired to be picked.
+3. It can be observed that when the mouse is located in any of the slices displayed, a set of icons |iconSliceActions| appear at the top right of it. They offer actions that can be very useful to perform a better picking, like zooming in and ou, click and drag, etc.
+3. Click on the `Toggle icon` |icon|
 3. Left click in the desired region of a given slice to place a new "user point"
 
 Selections in this view can be deleted by following the procedure described for the 3D view.
