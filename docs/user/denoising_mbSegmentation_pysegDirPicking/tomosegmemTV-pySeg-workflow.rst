@@ -911,7 +911,7 @@ belong to class 3:
 
 2. Click on the button "+ Particles".
 
-3. On the auxiliary window generated, choose a name for the subset. In our case it will be *class1*.:align:
+3. On the auxiliary window generated, choose a name for the subset. In our case it will be *ribo*.:align:
 
 4. Click on the button "Ok" and the subset will be automatically generated.
 
