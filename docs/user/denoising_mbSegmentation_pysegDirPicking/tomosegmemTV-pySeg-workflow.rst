@@ -712,7 +712,7 @@ distance between the picked coordinates. Let this tab with the default values. W
    :align: center
    :alt: Picking protocol
 
-It can be observed in the summary tab of the lower panel on the project interface that *2339* particles were picked.
+It can be observed in the summary tab of the lower panel on the project interface that *2370* particles were picked.
 For the moment, let's ignore the box size displayed there, which is a default value required for some viewers to be
 different from zero.
 
@@ -745,7 +745,7 @@ rate of our data (150Å / 13.60 Å/voxel ~ 11 voxel).
    :align: center
    :alt: Remove duplicates protocol
 
-Again, on the summary tab of the lower panel on the project interface, it can be observed that we have now *641*
+Again, on the summary tab of the lower panel on the project interface, it can be observed that we have now *642*
 particles after having removed the duplicates. As before, using the viewer from plugin scipion-em-protocol, the result
 should look like this (left). Or any other plugin which provides functionality for the visualization of 3D coordinates
 can be used, such us scipion-em-dynamo (right). To check all the functionality available fot he visualization of an
@@ -787,7 +787,7 @@ At this point, we are ready to use the filter by normal, so let's open it and fo
    :align: center
    :alt: Filter by normal protocol
 
-After executing it, we should have *285* items.
+After executing it, we should have *539* items.
 
 To visualize the filtered coordinates, we're going to use this time the viewer from scipion-em-emantomo. For a better
 observation we've collected screenshots containing only the vesicles used in this tutorial.
@@ -901,13 +901,13 @@ have to be specified like in other clustering algorithms), general applicability
 
 Once the protocol execution is finished, let's right click on the outputClasses object located in the lower panel of the
 project interface, in the tab "Summary". Then select the option "Open with TomoDataViewer" and the classes obtained will
-be displayed with xmipp's viewer. On the top toolbar, set the size (besides the magnifier icon) to 650 and press Intro.
-The 2 classes obtained are represented as the rotational average around the normal axis, as can be observed on the left
-side of the figure below. It seems quite clear that our ribosome is on class 1, and it's composed of 99 particles,
-while the other class only shows the membrane. Thus, will use the subset functionality provided by this viewer to create
-a subset only composed of the particles which belong to class 1:
+be displayed with xmipp's viewer. On the top toolbar, set the size (besides the magnifier icon) to 400 and press Intro.
+The 4 classes obtained are represented as the rotational average around the normal axis, as can be observed on the left
+side of the figure below. It seems quite clear that our ribosome is on class 3, and it's composed of 101 particles.
+Thus, will use the subset functionality provided by this viewer to create a subset only composed of the particles which
+belong to class 3:
 
-1. Select the row corresponding to class 1.
+1. Select the row corresponding to class 3.
 
 2. Click on the button "+ Particles".
 
