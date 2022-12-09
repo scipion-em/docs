@@ -1,6 +1,8 @@
 .. include:: <isonum.txt>
 .. |icon| image:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Toggle_icon.png
 .. |iconFilter| image:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Filter_icon.png
+               :width: 20
+               :alt: Alternative text
 .. |results| image:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Analyze_results.png
 .. |wizard| image:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Wizard.png
 
