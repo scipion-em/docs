@@ -18,14 +18,82 @@ project or select one previously registered (Fig. 1).
 
     Figure 1. Create a new project
 
-Once a project has been selected or a new one is created, a window will open
-with its content. In case of being a new one, a window will be displayed as
-shown in the following figure.
+Once a project has been selected or a new one is created, the **project window** will open
+with its content. In case of being a new one, the window will display an empty project
+like the one in the following figure.
 
 .. figure:: /docs/images/guis/new_project_window.png
     :alt: New project window
 
-    Figure 2. New project window
+    Figure 2. New project window showing 3 main sections. Protocols tree (A),
+workflow panel (B) and information panel (C).
+
+There are 3 main sections in the projects the **Protocols tree**, the **Workflow panel** and
+the **information panel**
+
+The protocol's tree
+-------------------
+On the left side on the project window it shows the list of available methods (or protocols) grouped by
+similarity and sorted by time. This is, the protocols that are listed on the top will most likely be used
+early in the project than those in the bottom.
+
+Note, that the is a dropdown box on the top. It if the **view list**. Each view only offers (filters)
+the available methods for a specific image processing domain. Figure 2 shows the protocols for Single
+Particle Analysis (SPA).
+
+There are other views available for Tomography, Hybrid modelling, ... The views are dynamically
+populated by each of the installed plugins, so the more plugins you have installed for a specific
+domain (view) the bigger the tree will be.
+
+If you do not see a protocol listed may be you are not looking at the right view or you are missing the plugin that
+brings it.
+
+A double click on any of the protocols will add it to your project.
+
+There is a special view names "all" where you can see all the protocols available in your installation
+grouped by plugin. If any icon there appears grey, then that protocol has an installation issue and
+cannot be run until you fix it. To know the exact problem try to run it and its validation method should
+tell you where the problem is.
+
+The workflow panel
+------------------
+The workflow panel shows the all the protocols (boxes) involved in your project connected with straight
+lines. Two boxes connected indicates that they one of them is, or will be, providing input data for the
+other. One box could be providing the input for several ones therefore, the shape of the workflow could
+stop being linear quite easily and become to be more like an "inverted tree".
+
+On the top-left of the workflow you can see a **dynamic toolbar** offering most common actions available for
+the current selection.
+
+**Single selection** can be done by clicking on any of the boxes and the box will be highlighted with a black,
+thicker frame. Input lines of the selected protocol will turn thicker and darker. Output lines will turn
+thicker too but this time line will become dark red.
+
+For **multiple selection** hold "Control key" while clicking on the desired boxes.
+
+Any box can be **dragged** to any location by left-clicking on the box and holding the mouse button while moving
+the mouse. Dragging will finish once left mouse button is lifted.
+
+The workflow panel will show and horizontal and vertical scrollbars when the content do not fit in the visible
+area. Scroll bars can be used to move to non visible areas of the workflow. Mouse-wheel can be used to scroll
+vertically over the workflow and "Control + mouse wheel" will activate the horizontal scrolling.
+
+**Zooming in and out** is also possible when using the mouse-wheel when shift key is pressed.
+When the workflow grows
+
+On the top right of this panel you can find, from left to right: the "view" drop down list, the "Re-organize"
+button and the "Refresh" button. The "view" list offers 3 different ways to display the workflow:
+
+* "Tree" (default): graph like detail view of the protocols and its details
+* "Tree - small": Similar to "Tree" but boxes are much smaller only with the protocol identifier (integer).
+* "List": Will display a list of protocols, loosing the "flow" aspect of the tree but sometimes easy to locate protocols.
+
+The "Re-organize" button will reorganize ALL the boxes in the best possible clean distribution possible.
+
+The "Refresh" button will update the status and outputs of those protocol that are "active" (launched, scheduled
+or running). Scipion automatically does this refresh regularly, increasing the refresh interval is there is no
+activity detected (5", 10", 20", ...) up to 30 minutes.
+
 
 At this point we will begin to build our processing workflow based on the
 protocols provided by Scipion.
@@ -114,6 +182,15 @@ operation (Fig. 7).
     :alt: Protocol options
 
     Figure 8. Protocol options
+
+
+Locating a protocol
+___________________
+When projects become big it is normal to "loose a protocol". You can use the "List" view and sort by
+columns to try to locate it of you can use the "locate protocol" window. Its shortcut is "Control + l"
+(L not I) and will list all the protocols contained in the project. The list could be filter to help
+you locate the "lost protocol". Once found, a double click will select the protocol in the panel and
+scroll up, down, left, right the workflow panel to make it visible.
 
 
 Analyzing Results
