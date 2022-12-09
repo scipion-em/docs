@@ -4,10 +4,10 @@
                :width: 20
                :alt: Alternative text
 .. |iconArrows| image:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Arrows_icon.png
-               :width: 40
+               :width: 30
                :alt: Alternative text
 .. |iconSliceActions| image:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Slice_actions_icon.png
-                     :width: 80
+                     :width: 100
                      :alt: Alternative text
 .. |results| image:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Analyze_results.png
 .. |wizard| image:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Wizard.png
