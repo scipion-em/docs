@@ -135,7 +135,7 @@ To launch the interface of Dynamo for a given tomogram, you can double click on 
 
 **Note**: depending on the size of your tomograms, the loading time of the interface may be slower.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Tomo_dialog_todo.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Tomo_dialog_todo.png
    :align: center
    :alt: tomo dialog todo
    :width: 400
@@ -144,7 +144,7 @@ Now you should see Dynamo's `dtmslice` interface for the double-clicked tomogram
 valuable tools that can be used to inspect and select "user points." However, only a few of these tools are needed to
 generate the information expected by Scipion.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/dtmslice_empty.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/dtmslice_empty.png
    :align: center
    :alt: dtmslice empty
    :width: 800
@@ -163,7 +163,7 @@ The steps to be followed to select your user points are the following:
     * Other useful actions are available `here <https://wiki.dynamo.biozentrum.unibas.ch/w/index.php/Dtmslice#:~:text=2%20%2Dc%20myCatalogue-,Viewing%20controls,-Scene%20perspective>`__.
 #. The user points can be selected in the 3D view or in a 2d slices montage. For this tutorial, we will use the second method. Let us create a new montage view to define our membrane. First, you will need to click in Montage ➤ Create Montage of full depicted scene. The other option in the Montage menu will allow you to customize the settings of this view, such as the number of slices displayed.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Montage_view.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Montage_view.png
    :align: center
    :alt: montage view
    :width: 800
