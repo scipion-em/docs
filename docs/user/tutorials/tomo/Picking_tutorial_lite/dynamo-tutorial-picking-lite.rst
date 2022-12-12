@@ -277,21 +277,16 @@ Suppose you want to choose any other viewer. In that case, you can right-click o
 
 As it happened with the picking protocol, you will be prompted with a tomogram dialog showing the picked tomograms and their associated coordinates. By double-clicking on any of these entries, you will open the viewer for that specific tomogram.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Tomo_dialog_tomo3d.png
-   :align: center
-   :alt: tomo dialog tomoviz
-   :width: 400
-
 Apart from buttons and menus displayed in the viewer window, the following navigation tools are also available:
 
 * X, Y, or Z key: Switch the view to see a Z (top), X (front), or Y (side) view of the scene
 * Up/Down arrow keys: Change a single slice of the tomogram when the slice view is activated. The Up key moves the slice in the direction of the white arrow shown in the slice view. The Down key moves the slice in the opposite direction of the arrow
 * O key: return to the default view when the slice view is activated.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Tomo3d_dynamo.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Dynamo_tomoviz_vesicles.png
    :align: center
    :alt: tomoviz viewer dynamo
-   :width: 400
+   :width: 500
 
 Step 5: From coordinates to subtomograms
 -----------------------------------------
@@ -307,10 +302,6 @@ Now that you have generated and checked your oriented `SetOfCoordinates3D`, we c
     * **Invert contrast?**: Determine if you want to invert the contrast of your subtomograms with respect to the contrast of your tomograms. We will use the default value `No` for this tutorial
 
 Apart from the previously described parameters, you can also specify the number of threads involved in the coordinates extraction to reduce the execution time.
-
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Dynamo_extraction.png
-   :align: center
-   :alt: dynamo extraction
 
 Once the protocol is finished, Scipion will generate a `SetOfSubtomograms` that you can further process in the Subtomogram averaging pipeline. If you want to check how the subtomograms look, click on |results| as we did for the coordinates. This will open an interface that will allow you to inspect your subtomograms.
 
@@ -332,7 +323,7 @@ It is worth mentioning that these alignments will not consider the in-plane rota
 
 To apply the alignment stored in the `SetOfSubtomograms` metadata, we can use the protocol **xmipptomo - apply alignment to subtomo** available in **scipion-em-xmipptomo** plugin.
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Xmipptomo_apply.png
+.. figure:: /docs/user/tutorials/tomo/Picking_tutorial_lite/Emantomo_average.png
    :align: center
    :alt: xmipptomo apply alignment
    :width: 400
