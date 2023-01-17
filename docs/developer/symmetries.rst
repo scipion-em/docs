@@ -70,7 +70,7 @@ Dihedral of order N (Dn)
 
     **Scipion Definition (DNy)**: first axis = *Z*, second axis = *Y*.
 
-    **PDB**: `link to D7x model </docs/images/Conventions/Symmetry/d7y.pdb>`_
+    **PDB**: `link to D7y model </docs/images/Conventions/Symmetry/d7y.pdb>`_
 
     .. figure:: /docs/images/Conventions/Symmetry/d7y.png
        :width: 250
@@ -113,6 +113,13 @@ Octahedral (O)
     .. figure:: /docs/images/Conventions/Symmetry/o.png
        :width: 250
        :alt: o symmetry image
+       
+    **Plane normal vectors**::
+
+        .arrow 0 0 0 -60   60    0 0.200000 0.400000 0.750000
+        .arrow 0 0 0 60   60    0 0.200000 0.400000 0.750000
+        .arrow 0 0 0  0   -100  100  0.200000 0.400000 0.750000
+
 
 Icosahedral (I)
 ---------------
