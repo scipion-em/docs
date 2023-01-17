@@ -22,6 +22,7 @@ For each type we show in this page:
   viewers such as Chimera. `Link </docs/docs/images/Conventions/Symmetry/axis.bild>`_ to chimera axis file).
 - Definition including the elements of symmetry.
 - *X*, *Y* and *Z* axes are colored in red, yellow and blue respectively.
+- Nomal vectors to the planes that define the unit cell.
 
 Note: Is really hard to see the difference symmetries just looking to the images,
 instead download the PDB files, the axis.bild file and visualize them in chimera.
@@ -43,6 +44,10 @@ Cyclic of order N (Cn)
        :width: 250
        :alt: c7 symmetry image
 
+    **Plane normal vectors**::
+    
+        v1 = 43.388373911755814   90.096886790241911   -0.0
+        v2 = 43.388373911755814  -90.096886790241911    0.0
 
 Dihedral of order N (Dn)
 ------------------------
@@ -56,6 +61,8 @@ Dihedral of order N (Dn)
     .. figure:: /docs/images/Conventions/Symmetry/d7x.png
        :width: 250
        :alt: d7x symmetry image
+       
+       unit cell defined by two planes. Plane normal vectors v1=43.388373911755814   90.096886790241911   -0.0, v2= 43.388373911755814  -90.096886790241911    0.0
 
     **Scipion Definition (DNy)**: first axis = *Z*, second axis = *Y*.
 
