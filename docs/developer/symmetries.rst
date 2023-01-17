@@ -62,7 +62,11 @@ Dihedral of order N (Dn)
        :width: 250
        :alt: d7x symmetry image
        
-       unit cell defined by two planes. Plane normal vectors v1=43.388373911755814   90.096886790241911   -0.0, v2= 43.388373911755814  -90.096886790241911    0.0
+    **Plane normal vectors**::
+    
+        v1 = -90.096886790241911   43.388373911755835    0.000000000000000
+        v2 = 90.096886790241911   43.388373911755806   -0.000000000000000
+        v3 = 0 0 1
 
     **Scipion Definition (DNy)**: first axis = *Z*, second axis = *Y*.
 
@@ -72,6 +76,10 @@ Dihedral of order N (Dn)
        :width: 250
        :alt: d7y symmetry image
 
+    **Plane normal vectors**::
+
+         I guess the result for DNx is valid here but I do not have the software to test this claim.
+         
 Tetrahedral (T)
 ---------------
 
