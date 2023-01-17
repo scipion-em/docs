@@ -12,7 +12,7 @@ Overview
 This page describes the different symmetries
 that a polyhedron with fixed center may have
 and the symmetry conventions followed by Scipion. There are five fundamental symmetry classes: cyclical, dihedral, tetrahedral, octahedral and
-icosahedral.
+icosahedral. Auxiliary data used to create this page is available at https://github.com/I2PC/testDataSym .
 
 For each type we show in this page:
 
