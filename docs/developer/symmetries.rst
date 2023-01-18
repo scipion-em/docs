@@ -134,6 +134,13 @@ Icosahedral (I)
        :width: 250
        :alt: i222 symmetry image
 
+    **Plane normal vectors**::
+
+        v1 = -9.56540190374910  -25.04254730006809    15.47714539631899 
+        v2 = -9.56540190374910  -25.04254730006809   -15.47714539631899 
+        v3 =  0.0                45.094037546245751    0.0
+
+
    **Scipion Definition (I222r)**:  2-fold axes on *X*, *Y* and *Z* axes. With the positive *Z*-axis pointing at the viewer, the front-most 5-fold vertices are in *XZ* plane, and the front-most 3-fold axis is in the *YZ* plane. As known as no Crowther 222, standard in Heymman et al 2005 article).
 
    **PDB**: `link to I222r model </docs/images/Conventions/Symmetry/i222r.pdb>`_
