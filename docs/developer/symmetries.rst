@@ -149,6 +149,14 @@ Icosahedral (I)
        :width: 250
        :alt: i222r symmetry image
 
+    **Plane normal vectors**::
+
+       v1 = -15.47714539631899  -25.04254730006809   9.56540190374910 
+       v2 =  40.51969269638708   -1.54232144954710  25.04254730006809 
+       v3 =   0.00000000000000   45.094037546245751  0.00000000000000 
+
+
+
    **Scipion Definition (In25)**: 5fold axis in *Z* and 2-fold in *Y*. With the positive *Z*-axis pointing at the viewer and without taken into account the 5-fold vertex in *Z*, there is one of the front-most 5-fold vertices in -*XZ* plane (note the minus *X*)
 
    **PDB**: `link to In25 model </docs/images/Conventions/Symmetry/in25.pdb>`_
