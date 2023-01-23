@@ -14,15 +14,14 @@ that a polyhedron with fixed center may have
 and the symmetry conventions followed by Scipion. There are five fundamental symmetry classes: cyclical, dihedral, tetrahedral, octahedral and
 icosahedral. Auxiliary data used to create this page is available at https://github.com/I2PC/testDataSym .
 
-For each type we show in this page:
+For each type we show in this page teo images and several links:
 
-- Surface rendering of a volume that displays the symmetry.
-- Atomic structure file (pb format) containing an atomic structure that
-  satisfies the symmetry. (The PDB files may be visualized with
-  viewers such as Chimera. `Link </docs/docs/images/Conventions/Symmetry/axis.bild>`_ to chimera axis file).
-- Definition including the elements of symmetry.
+- The first image is a surface rendering of a volume that displays the symmetry.
+- The second image shows the unit cell. The unit cell is delimited by planes (circles in the images) and two vectors are show for each plane the first one is include in the plane and the second is perpendicular to it. small yellow spheres represent direction projections from an actual reconstruction odf the phantom.
+- The phantom is also avaialble as a PDB file. These PDB files may be visualized with
+  viewers such as Chimera and axis in bild format are available :download:`here <axis.bild>`.
+- A link with a file containing the symmetry matrices and vectors normal to the planes that define the unit cell is available
 - *X*, *Y* and *Z* axes are colored in red, yellow and blue respectively.
-- Nomal vectors to the planes that define the unit cell.
 
 Note: Is really hard to see the difference symmetries just looking to the images,
 instead download the PDB files, the axis.bild file and visualize them in chimera.
@@ -34,23 +33,22 @@ In chimera command line type "represent sphere" to increase the atoms size.
 Cyclic of order N (Cn)
 ----------------------
 
-    **Definition**: N rotations of magnitude 360/N degrees around an axis.
+    **Definition**: N rotations of magnitude 360/N degrees 
 
-    **Scipion Definition (CN)**: rotation axis = *Z* axis.
-
-    **PDB**: `link to C7 model </docs/images/Conventions/Symmetry/c7.pdb>`__
-    `link to C7 model <../images/Conventions/Symmetry/c7.pdb>`__
-    `link to C7 model <../../images/Conventions/Symmetry/c7.pdb>
-    `link to C7 model <../../../images/Conventions/Symmetry/c7.pdb>`__
-
-    .. figure:: /docs/images/Conventions/Symmetry/c7.png
-       :width: 250
-       :alt: c7 symmetry image
-
-    **Plane normal vectors**::
+    **Scipion Definition (CN)**:  N rotations of magnitude 360/N degrees around *Z* axis.
     
-        v1 = 43.388373911755814   90.096886790241911   -0.0
-        v2 = 43.388373911755814  -90.096886790241911    0.0
+    .. image:: /docs/images/Conventions/Symmetry/c7.png
+       :width: 45%
+       :alt: c7 phantom
+
+    .. image:: /docs/images/Conventions/Symmetry/c7_unicell.png
+       :width: 45%
+       :alt: c7 unit cell
+
+:download: `phantom <c7.pdb>`
+:download: `symmetry Matrices <c7_mat.txt>`  
+:download: `unit cell normal vector <c7_normal.txt>`
+
 
 Dihedral of order N (Dn)
 ------------------------
