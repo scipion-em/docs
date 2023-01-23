@@ -126,7 +126,7 @@ It is better to use:
 
 8.- Process a single file
 
-.. code-blok::
+.. code-block::
 
     ~/scipion/scipion3 run sphinx-build .  build docs/developer/symmetries.rst
     
