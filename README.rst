@@ -128,6 +128,6 @@ It is better to use:
 
 .. code-block::
 
-    ~/scipion/scipion3 run sphinx-build .  build docs/developer/symmetries.rst
+    scipion3 run sphinx-build .  build docs/developer/symmetries.rst
     
 will only update the "symmetry" page
