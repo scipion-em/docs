@@ -35,7 +35,7 @@ Cyclic of order N (Cn)
 
     **Definition**: N rotations of magnitude 360/N degrees 
 
-    **Scipion Definition (CN)**:  N rotations of magnitude 360/N degrees around *Z* axis.
+    **Scipion Definition**:  N rotations of magnitude 360/N degrees around *Z* axis. Nomenglature **CN** where **N** is the symmetry number.
     
     .. image:: /docs/images/Conventions/Symmetry/c7.png
        :width: 45%
@@ -45,23 +45,33 @@ Cyclic of order N (Cn)
        :width: 45%
        :alt: c7 unit cell
 
-:download: `phantom <c7.pdb>`
-:download: `symmetry Matrices <c7_mat.txt>`  
-:download: `unit cell normal vector <c7_normal.txt>`
+
+- :download:`phantom <c7.pdb>`
+- :download:`symmetry Matrices <c7_mat.txt>`
+- :download:`unit cell normal vectorS <c7_normal.txt>`
 
 
 Dihedral of order N (Dn)
 ------------------------
 
-    **Definition**: N rotations of magnitude 360/N degrees around an axis followed by a 180 rotation around a second axis. Both axes are perpendicular.
+    **Definition**: N rotations of magnitude 360/N degrees around an axis followed by a **reflection** (not a rotation) around a second axis. Rotation and reflexion axis are perpendicular.
 
-    **Scipion Definition (DNx)**: first axis = *Z*, second axis = *X*.
+    **Scipion Definition (DNp)**: rotation axis = **Z**, reflexion axis may be **X** or **Y**. Nomenglature **DNX** or **DNY** where **N** is the rotation symmetry order and **X** or **Y** refers to the reflection axis.
 
     **PDB**: `link to D7x model </docs/images/Conventions/Symmetry/d7x.pdb>`_
 
     .. figure:: /docs/images/Conventions/Symmetry/d7x.png
        :width: 250
        :alt: d7x symmetry image
+
+    .. figure:: /docs/images/Conventions/Symmetry/d7x.png
+       :width: 250
+       :alt: d7x symmetry image
+
+- :download:`phantom <d7x.pdb>`
+- :download:`symmetry Matrices <d7x_mat.txt>`
+
+
        
     **Plane normal vectors**::
     
