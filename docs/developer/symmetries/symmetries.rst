@@ -48,69 +48,75 @@ Cyclic of order N (Cn)
 
 - :download:`phantom <c7.pdb>`
 - :download:`symmetry Matrices <c7_mat.txt>`
-- :download:`unit cell normal vectorS <c7_normal.txt>`
+- :download:`unit cell normal vectors <c7_normal.txt>`
 
 
 Dihedral of order N (Dn)
 ------------------------
 
-    **Definition**: N rotations of magnitude 360/N degrees around an axis followed by a **reflection** (not a rotation) around a second axis. Rotation and reflexion axis are perpendicular.
+    **Definition**: N rotations of magnitude 360/N degrees around an axis followed by a **reflection** (not a rotation).
 
-    **Scipion Definition (DNp)**: rotation axis = **Z**, reflexion axis may be **X** or **Y**. Nomenglature **DNX** or **DNY** where **N** is the rotation symmetry order and **X** or **Y** refers to the reflection axis.
+    **Scipion Definition (DNp)**: rotation axis = **Z**, reflexion may keep  **X** or **Y** fix, that is, Volume(x,y,z) = Volume(x,-y,-z) (**DNX**) or Volume(x,y,z) = Volume(-x,y,-z) (**DNY**). Nomenglature **DNX** or **DNY** where **N** is the rotation symmetry order and **X** or **Y** refers to the not reflected axis.
 
-    **PDB**: `link to D7x model </docs/images/Conventions/Symmetry/d7x.pdb>`_
+D7X
+---
 
-    .. figure:: /docs/images/Conventions/Symmetry/d7x.png
+    .. image:: /docs/images/Conventions/Symmetry/d7x.png
        :width: 250
        :alt: d7x symmetry image
 
-    .. figure:: /docs/images/Conventions/Symmetry/d7x.png
+    .. image:: /docs/images/Conventions/Symmetry/d7x_unicell.png
        :width: 250
        :alt: d7x symmetry image
 
 - :download:`phantom <d7x.pdb>`
 - :download:`symmetry Matrices <d7x_mat.txt>`
+- :download:`unit cell normal vectors <d7x_normal.txt>`
 
 
-       
-    **Plane normal vectors**::
-    
-        v1 = -90.096886790241911   43.388373911755835    0.000000000000000
-        v2 = 90.096886790241911   43.388373911755806   -0.000000000000000
-        v3 = 0 0 1
 
-    **Scipion Definition (DNy)**: first axis = *Z*, second axis = *Y*.
 
-    **PDB**: `link to D7y model </docs/images/Conventions/Symmetry/d7y.pdb>`_
-
+D7Y
+---
     .. figure:: /docs/images/Conventions/Symmetry/d7y.png
        :width: 250
        :alt: d7y symmetry image
 
-    **Plane normal vectors**::
+- :download:`phantom <d7y.pdb>`
+- :download:`symmetry Matrices <d7y_mat.txt>`
+- Symmetry unit cell and normal vectors are the same than **D7Y** (NOTE: not verified, test cryospark)
 
-         I guess the result for DNx is valid here but I do not have the software to test this claim.
          
 Tetrahedral (T)
 ---------------
 
-    **Definition**: There are three orthogonal 2-fold rotation axes with in addition four 3-fold axes, centered between the three orthogonal directions
+    **Definition**: There are three orthogonal 2-fold rotation axes  in addition to four 3-fold axes, centered between the three orthogonal directions.
 
-    **Scipion Definition (T222)**: two-fold symmetry axes along the *X*, *Y*, and *Z* axes, a three-fold along axis (1,1,1)
+    **Scipion Definition)**: 
 
-    **PDB**: `link to T222 model </docs/images/Conventions/Symmetry/t222.pdb>`_
+    **T222**: two-fold symmetry axis along the **X**, **Y**, and **Z** axis, and a three-fold along vector (1,1,1)
+
+    **T222r**: two-fold symmetry axis along the **X**, **Y**, and **Z** axis, and a three-fold along vector (-1,-1,-1)
+
+
+T222
+----
 
     .. figure:: /docs/images/Conventions/Symmetry/t222.png
-       :width: 250
-       :alt: t222 symmetry image
 
-    **Scipion Definition (Tz3)**: a three-fold symmetry axis along *Z*, another three-fold axis in the *YZ* plane such that rotation about the *X* axis by ~110° is a symmetry operation
+- :download:`phantom <t222.pdb>`
+- :download:`symmetry Matrices <t222_mat.txt>`
+- :download:`unit cell normal vectors <t222_normal.txt>`
 
-    **PDB**: `link to Tz3 </docs/images/Conventions/Symmetry/tz3.pdb>`_
+Tz3
+----
 
     .. figure:: /docs/images/Conventions/Symmetry/tz3.png
-       :width: 250
-       :alt: tz3 symmetry image
+
+- :download:`phantom <tz3.pdb>`
+- :download:`symmetry Matrices <tz3_mat.txt>`
+- :download:`unit cell normal vectors <tz3_normal.txt>`
+
 
 Octahedral (O)
 --------------
