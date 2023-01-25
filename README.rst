@@ -122,3 +122,12 @@ It is better to use:
 .. code-block::
 
     `my-new.pdf <../../_static/pdfs/my-new.pdf>`__
+
+
+8.- Process a single file
+
+.. code-block::
+
+    scipion3 run sphinx-build .  build docs/developer/symmetries.rst
+    
+will only update the "symmetry" page
