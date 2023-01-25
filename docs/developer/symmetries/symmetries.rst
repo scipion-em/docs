@@ -67,7 +67,7 @@ D7X
 
     .. image:: /docs/images/Conventions/Symmetry/d7x_unicell.png
        :width: 250
-       :alt: d7x symmetry image
+       :alt: d7x unit cell
 
 - :download:`phantom <d7x.pdb>`
 - :download:`symmetry Matrices <d7x_mat.txt>`
@@ -96,9 +96,9 @@ Tetrahedral (T)
 
     **T222**: two-fold symmetry axis along the **X**, **Y**, and **Z** axis, and a three-fold along vector (1,1,1)
 
-    **TZ3**:  three-fold along vector (0, 0, 1), another threefold axis in the **YZ** plane, the **(y, z)** coordinates of these three-fold vector satisfy sign(y)=sign(z)
+    **TZ3**:  three-fold along vector (0, 0, 1), another threefold axis in the **YZ** plane, the **(y, z)** coordinates of this three-fold vector satisfy sign(y)=sign(z)
 
-    **TZ3R**:  three-fold along vector (0, 0, 1), another threefold axis in the **YZ** plane, the **(y, z)** coordinates of these three-fold vector satisfy sign(y)!=sign(z)
+    **TZ3R**:  three-fold along vector (0, 0, 1), another threefold axis in the **YZ** plane, the **(y, z)** coordinates of this three-fold vector satisfy sign(y)!=sign(z)
 
 
 T222
@@ -107,6 +107,9 @@ T222
     .. image:: /docs/images/Conventions/Symmetry/t222.png
        :width: 250
        :alt: t222 symmetry image
+    .. image:: /docs/images/Conventions/Symmetry/t222_unitcell.png
+       :width: 250
+       :alt: t222 unit cell
 
 - :download:`phantom <t222.pdb>`
 - :download:`symmetry Matrices <t222_mat.txt>`
