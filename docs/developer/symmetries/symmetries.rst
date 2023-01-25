@@ -78,7 +78,7 @@ D7X
 
 D7Y
 ---
-    .. figure:: /docs/images/Conventions/Symmetry/d7y.png
+    .. image:: /docs/images/Conventions/Symmetry/d7y.png
        :width: 250
        :alt: d7y symmetry image
 
@@ -96,22 +96,39 @@ Tetrahedral (T)
 
     **T222**: two-fold symmetry axis along the **X**, **Y**, and **Z** axis, and a three-fold along vector (1,1,1)
 
-    **T222r**: two-fold symmetry axis along the **X**, **Y**, and **Z** axis, and a three-fold along vector (-1,-1,-1)
+    **TZ3**:  three-fold along vector (0, 0, 1), another threefold axis in the **YZ** plane, the **(y, z)** coordinates of these three-fold vector satisfy sign(y)=sign(z)
+
+    **TZ3R**:  three-fold along vector (0, 0, 1), another threefold axis in the **YZ** plane, the **(y, z)** coordinates of these three-fold vector satisfy sign(y)!=sign(z)
 
 
 T222
 ----
 
-    .. figure:: /docs/images/Conventions/Symmetry/t222.png
+    .. image:: /docs/images/Conventions/Symmetry/t222.png
+       :width: 250
+       :alt: t222 symmetry image
 
 - :download:`phantom <t222.pdb>`
 - :download:`symmetry Matrices <t222_mat.txt>`
 - :download:`unit cell normal vectors <t222_normal.txt>`
 
-Tz3
+TZ3
 ----
 
-    .. figure:: /docs/images/Conventions/Symmetry/tz3.png
+    .. image:: /docs/images/Conventions/Symmetry/tz3.png
+       :width: 250
+       :alt: tz3 symmetry image
+
+- :download:`phantom <tz3.pdb>`
+- :download:`symmetry Matrices <tz3_mat.txt>`
+- :download:`unit cell normal vectors <tz3_normal.txt>`
+
+TZ3R
+----
+
+    .. image:: /docs/images/Conventions/Symmetry/tz3r.png
+       :width: 250
+       :alt: tz3r symmetry image
 
 - :download:`phantom <tz3.pdb>`
 - :download:`symmetry Matrices <tz3_mat.txt>`
