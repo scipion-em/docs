@@ -130,8 +130,8 @@ TZ3R
        :width: 250
        :alt: tz3r symmetry image
 
-- :download:`phantom <tz3.pdb>`
-- :download:`symmetry Matrices <tz3_mat.txt>`
+- :download:`phantom <tz3r.pdb>`
+- :download:`symmetry Matrices <tz3r_mat.txt>`
 - :download:`unit cell normal vectors <tz3_normal.txt>`
 
 
