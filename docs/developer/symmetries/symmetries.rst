@@ -96,9 +96,9 @@ Tetrahedral (T)
 
     **T222**: two-fold symmetry axis along the **X**, **Y**, and **Z** axis, and a three-fold along vector (1,1,1)
 
-    **TZ3**:  three-fold along vector (0, 0, 1), another threefold axis in the **YZ** plane, the **(y, z)** coordinates of this three-fold vector satisfy sign(y)=sign(z)
+    **TZ3**:  three-fold along vector (0, 0, 1), another threefold axis in the **YZ** plane, the **(y, z)** coordinates of this three-fold vector satisfy sign(y)!=sign(z)
 
-    **TZ3R**:  three-fold along vector (0, 0, 1), another threefold axis in the **YZ** plane, the **(y, z)** coordinates of this three-fold vector satisfy sign(y)!=sign(z)
+    **TZ3R**:  three-fold along vector (0, 0, 1), another threefold axis in the **YZ** plane, the **(y, z)** coordinates of this three-fold vector satisfy sign(y)=sign(z)
 
 
 T222
