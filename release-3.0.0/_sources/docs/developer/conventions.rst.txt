@@ -14,6 +14,6 @@ Overview
 XXX
 
 
-* `Symmetries <symmetries>`_
-* `Rotations, shifts and projections <rotations>`_
+* :doc:`Symmetries <symmetries/symmetries>`
+* :doc:`Rotations, shifts and projections <rotations>`
 
