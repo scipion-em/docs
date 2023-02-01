@@ -121,6 +121,9 @@ TZ3
     .. image:: /docs/images/Conventions/Symmetry/tz3.png
        :width: 250
        :alt: tz3 symmetry image
+    .. image:: /docs/images/Conventions/Symmetry/tz3_unitcell.png
+       :width: 250
+       :alt: tz3 unit cell
 
 - :download:`phantom <tz3.pdb>`
 - :download:`symmetry Matrices <tz3_mat.txt>`
@@ -132,6 +135,9 @@ TZ3R
     .. image:: /docs/images/Conventions/Symmetry/tz3r.png
        :width: 250
        :alt: tz3r symmetry image
+    .. image:: /docs/images/Conventions/Symmetry/tz3r_unitcell.png
+       :width: 250
+       :alt: tz3r unit cell
 
 - :download:`phantom <tz3r.pdb>`
 - :download:`symmetry Matrices <tz3r_mat.txt>`
@@ -151,11 +157,9 @@ Octahedral (O)
        :width: 250
        :alt: o symmetry image
        
-    **Plane normal vectors**::
-
-        .arrow 0 0 0 -60   60    0 0.200000 0.400000 0.750000
-        .arrow 0 0 0 60   60    0 0.200000 0.400000 0.750000
-        .arrow 0 0 0  0   -100  100  0.200000 0.400000 0.750000
+- :download:`phantom <o.pdb>`
+- :download:`symmetry Matrices <o_mat.txt>`
+- :download:`unit cell normal vectors <o_normal.txt>`
 
 
 Icosahedral (I)
