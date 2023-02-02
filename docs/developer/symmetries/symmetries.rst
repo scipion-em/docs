@@ -153,11 +153,11 @@ Octahedral (O)
 
     **PDB**: `link to O model </docs/images/Conventions/Symmetry/o.pdb>`_
 
-    .. figure:: /docs/images/Conventions/Symmetry/o.png
+    .. image:: /docs/images/Conventions/Symmetry/o.png
        :width: 250
        :alt: o symmetry image
        
-    .. figure:: /docs/images/Conventions/Symmetry/o_unitcell.png
+    .. image:: /docs/images/Conventions/Symmetry/o_unitcell.png
        :width: 250
        :alt: o unit cell
        
