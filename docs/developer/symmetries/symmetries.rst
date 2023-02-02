@@ -173,67 +173,72 @@ Icosahedral (I)
 
    **Scipion Definition (I222)**:  2-fold axes on *X*, *Y* and *Z* axes. With the positive *Z*-axis pointing at the viewer, the front-most 5-fold vertices are in *YZ* plane, and the front-most 3-fold axis is in the *XZ* plane. As known as no Crowther 222, standard in Heymman et al 2005 article).
 
-   **PDB**: `link to I222 model </docs/images/Conventions/Symmetry/i222.pdb>`_
 
-   .. figure:: /docs/images/Conventions/Symmetry/i222.png
+   .. image:: /docs/images/Conventions/Symmetry/i222.png
        :width: 250
        :alt: i222 symmetry image
 
-    **Plane normal vectors**::
-
-        v1 = -9.56540190374910  -25.04254730006809    15.47714539631899 
-        v2 = -9.56540190374910  -25.04254730006809   -15.47714539631899 
-        v3 =  0.0                45.094037546245751    0.0
+- :download:`phantom <i222.pdb>`
+- :download:`symmetry Matrices <i222_mat.txt>`
+- :download:`unit cell normal vectors <i222_normal.txt>`
 
 
    **Scipion Definition (I222r)**:  2-fold axes on *X*, *Y* and *Z* axes. With the positive *Z*-axis pointing at the viewer, the front-most 5-fold vertices are in *XZ* plane, and the front-most 3-fold axis is in the *YZ* plane. As known as no Crowther 222, standard in Heymman et al 2005 article).
 
-   **PDB**: `link to I222r model </docs/images/Conventions/Symmetry/i222r.pdb>`_
 
-   .. figure:: /docs/images/Conventions/Symmetry/i222r.png
+   .. image:: /docs/images/Conventions/Symmetry/i222r.png
        :width: 250
        :alt: i222r symmetry image
 
-    **Plane normal vectors**::
-
-       v1 = -15.47714539631899  -25.04254730006809   9.56540190374910 
-       v2 =  40.51969269638708   -1.54232144954710  25.04254730006809 
-       v3 =   0.00000000000000   45.094037546245751  0.00000000000000 
-
+- :download:`phantom <i222r.pdb>`
+- :download:`symmetry Matrices <i222r_mat.txt>`
+- :download:`unit cell normal vectors <i222r_normal.txt>`
 
 
    **Scipion Definition (In25)**: 5fold axis in *Z* and 2-fold in *Y*. With the positive *Z*-axis pointing at the viewer and without taken into account the 5-fold vertex in *Z*, there is one of the front-most 5-fold vertices in -*XZ* plane (note the minus *X*)
 
-   **PDB**: `link to In25 model </docs/images/Conventions/Symmetry/in25.pdb>`_
 
-   .. figure:: /docs/images/Conventions/Symmetry/in25.png
+   .. image:: /docs/images/Conventions/Symmetry/in25.png
        :width: 250
        :alt: in25 symmetry image
 
+- :download:`phantom <in25.pdb>`
+- :download:`symmetry Matrices <in25_mat.txt>`
+- :download:`unit cell normal vectors <in25_normal.txt>`
+
    **Scipion Definition (In25r)**: 5fold axis in *Z* and 2-fold in *Y*. With the positive *Z*-axis pointing at the viewer and without taken into account the 5-fold vertex in *Z*, there is one of the front-most 5-fold vertices in +*XZ* plane (note the plus *X*)
 
-   **PDB**: `link to In25r model </docs/images/Conventions/Symmetry/in25r.pdb>`_
 
-   .. figure:: /docs/images/Conventions/Symmetry/in25r.png
+   .. image:: /docs/images/Conventions/Symmetry/in25r.png
        :width: 250
        :alt: in25r symmetry image
+
+- :download:`phantom <in25r.pdb>`
+- :download:`symmetry Matrices <in25r_mat.txt>`
+- :download:`unit cell normal vectors <in25r_normal.txt>`
 
    **Scipion Definition (I2n3)**: 3-fold axis in *Z* and 2-fold in *X*.
    With the positive *Z*-axis pointing at the viewer and without taken into account the 3-fold
    vertex in *Z*, there is one of the front-most 3-fold vertices in -*YZ* plane (note the minus *Y*)
 
-   **PDB**: `link to I2n3 model </docs/images/Conventions/Symmetry/i2n3.pdb>`_
-
-   .. figure:: /docs/images/Conventions/Symmetry/i2n3.png
+   .. image:: /docs/images/Conventions/Symmetry/i2n3.png
        :width: 250
        :alt: i2 symmetry image
+
+- :download:`phantom <i2n3.pdb>`
+- :download:`symmetry Matrices <i2n3_mat.txt>`
+- :download:`unit cell normal vectors <i2n3_normal.txt>`
 
    **Scipion Definition (I2n3r)**: 3-fold axis in *Z* and 2-fold in *X*.
    With the positive *Z*-axis pointing at the viewer and without taken into account the 3-fold
    vertex in *Z*, there is one of the front-most 3-fold vertices in +*YZ* plane (note the plu *Y*)
 
-   **PDB**: `link to I2n3 model </docs/images/Conventions/Symmetry/i2n3.pdb>`_
 
-   .. figure:: /docs/images/Conventions/Symmetry/i2n3r.png
+   .. image:: /docs/images/Conventions/Symmetry/i2n3r.png
        :width: 250
        :alt: i2n3r symmetry image
+
+- :download:`phantom <i2n3r.pdb>`
+- :download:`symmetry Matrices <i2n3r_mat.txt>`
+- :download:`unit cell normal vectors <i2n3r_normal.txt>`
+
