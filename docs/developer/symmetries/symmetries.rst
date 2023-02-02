@@ -157,6 +157,10 @@ Octahedral (O)
        :width: 250
        :alt: o symmetry image
        
+    .. figure:: /docs/images/Conventions/Symmetry/o_unitcell.png
+       :width: 250
+       :alt: o unit cell
+       
 - :download:`phantom <o.pdb>`
 - :download:`symmetry Matrices <o_mat.txt>`
 - :download:`unit cell normal vectors <o_normal.txt>`
