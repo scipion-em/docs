@@ -195,7 +195,7 @@ Icosahedral (I)
 - :download:`unit cell normal vectors <i222r_normal.txt>`
 
 
-   **Scipion Definition (In25)**: 5fold axis in *Z* and 2-fold in *Y*. With the positive *Z*-axis pointing at the viewer and without taken into account the 5-fold vertex in *Z*, there is one of the front-most 5-fold vertices in -*XZ* plane (note the minus *X*)
+   **Scipion Definition (In25)**: 5fold axis in *Z* and 2-fold in *Y*. With the positive *Z*-axis pointing at the viewer and without taken into account the 5-fold vertex in *Z*,  the front-most 5-fold vertice is in -*XZ* plane (note the minus *X*)
 
 
    .. image:: /docs/images/Conventions/Symmetry/in25.png
@@ -206,7 +206,7 @@ Icosahedral (I)
 - :download:`symmetry Matrices <in25_mat.txt>`
 - :download:`unit cell normal vectors <in25_normal.txt>`
 
-   **Scipion Definition (In25r)**: 5fold axis in *Z* and 2-fold in *Y*. With the positive *Z*-axis pointing at the viewer and without taken into account the 5-fold vertex in *Z*, there is one of the front-most 5-fold vertices in +*XZ* plane (note the plus *X*)
+   **Scipion Definition (In25r)**:  5fold axis in *Z* and 2-fold in *Y*. With the positive *Z*-axis pointing at the viewer and without taken into account the 5-fold vertex in *Z*,  the front-most 5-fold vertice is in +*XZ* plane (note the plus *X*)
 
 
    .. image:: /docs/images/Conventions/Symmetry/in25r.png
@@ -219,11 +219,11 @@ Icosahedral (I)
 
    **Scipion Definition (I2n3)**: 3-fold axis in *Z* and 2-fold in *X*.
    With the positive *Z*-axis pointing at the viewer and without taken into account the 3-fold
-   vertex in *Z*, there is one of the front-most 3-fold vertices in -*YZ* plane (note the minus *Y*)
+   vertex in *Z*, the front-most 3-fold vertices is in -*YZ* plane (note the minus *Y*)
 
    .. image:: /docs/images/Conventions/Symmetry/i2n3.png
        :width: 250
-       :alt: i2 symmetry image
+       :alt: i2n3 symmetry image
 
 - :download:`phantom <i2n3.pdb>`
 - :download:`symmetry Matrices <i2n3_mat.txt>`
@@ -231,7 +231,7 @@ Icosahedral (I)
 
    **Scipion Definition (I2n3r)**: 3-fold axis in *Z* and 2-fold in *X*.
    With the positive *Z*-axis pointing at the viewer and without taken into account the 3-fold
-   vertex in *Z*, there is one of the front-most 3-fold vertices in +*YZ* plane (note the plu *Y*)
+   vertex in *Z*, the front-most 3-fold vertices in +*YZ* plane (note the plus *Y*)
 
 
    .. image:: /docs/images/Conventions/Symmetry/i2n3r.png
@@ -241,4 +241,28 @@ Icosahedral (I)
 - :download:`phantom <i2n3r.pdb>`
 - :download:`symmetry Matrices <i2n3r_mat.txt>`
 - :download:`unit cell normal vectors <i2n3r_normal.txt>`
+
+
+
+   **Scipion Definition (I2n5)**: 2-fold symmetry along x and 5-fold along z. It has a 2-fold axis in +Z-Y plane (note signs)
+
+
+   .. image:: /docs/images/Conventions/Symmetry/i2n5.png
+       :width: 250
+       :alt:  i2n5 symmetry image
+
+- :download:`phantom <i2n5.pdb>`
+- :download:`symmetry Matrices <i2n5_mat.txt>`
+- :download:`unit cell normal vectors <i2n5_normal.txt>`
+
+   **Scipion Definition (I2n5r)**: 2-fold symmetry along x and 5-fold along z. It has a 2-fold axis in +Z+Y plane (note plus signs)
+
+
+   .. image:: /docs/images/Conventions/Symmetry/i2n5r.png
+       :width: 250
+       :alt: i2n5r symmetry image
+
+- :download:`phantom <i2n5r.pdb>`
+- :download:`symmetry Matrices <i2n5r_mat.txt>`
+- :download:`unit cell normal vectors <i2n5r_normal.txt>`
 
