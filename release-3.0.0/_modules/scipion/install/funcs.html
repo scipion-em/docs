@@ -125,6 +125,9 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">redStr</span>
+
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">platform</span>
@@ -172,22 +175,15 @@
                    <span class="n">stdout</span><span class="o">=</span><span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">devnull</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">),</span> <span class="n">stderr</span><span class="o">=</span><span class="n">STDOUT</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">OSError</span>
+        <span class="k">return</span> <span class="kc">True</span>
     <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">ret</span> <span class="o">=</span> <span class="n">call</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">-config&#39;</span> <span class="o">%</span> <span class="n">lib</span><span class="p">,</span> <span class="s1">&#39;--cflags&#39;</span><span class="p">])</span>
             <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">OSError</span>
+            <span class="k">return</span> <span class="kc">True</span>
         <span class="k">except</span> <span class="ne">OSError</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
-<span class="s2">  ************************************************************************</span>
-<span class="s2">    Warning: </span><span class="si">%s</span><span class="s2"> not found. Please consider installing it first.</span>
-<span class="s2">  ************************************************************************</span>
-
-<span class="s2">Continue anyway? (y/n)&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">lib</span><span class="p">)</span>
-            <span class="k">if</span> <span class="nb">input</span><span class="p">()</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">!=</span> <span class="s1">&#39;Y&#39;</span><span class="p">:</span>
-                <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span></div>
-    <span class="c1"># TODO: maybe write the result of the check in</span>
-    <span class="c1"># software/log/lib_...log so we don&#39;t check again if we already said &quot;no&quot;</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
 
 
 <div class="viewcode-block" id="Command"><a class="viewcode-back" href="../../../api/scipion/scipion.install.funcs.html#scipion.install.funcs.Command">[docs]</a><span class="k">class</span> <span class="nc">Command</span><span class="p">:</span>
@@ -677,6 +673,7 @@
 <span class="sd">            :param buildDir: Optional folder where build/extraction happens. If not passed will be inferred from tgz&#39;s name</span>
 <span class="sd">            :param neededProgs: Optional, list of programs needed. E.g: make, cmake,...</span>
 <span class="sd">            :param version: Optional, version of the package.</span>
+<span class="sd">            :param libChecks: Optional, a list of the libraries needed. E.g: libjpeg62, gsl (GSL - GNU Scientific Library)</span>
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># Add to the list of available packages, for reference (used in --help).</span>
@@ -698,6 +695,21 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">version</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
             <span class="n">extName</span> <span class="o">=</span> <span class="n">name</span>
+
+        <span class="c1"># Check the required libraries</span>
+        <span class="n">commands</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;commands&#39;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">if</span> <span class="s1">&#39;libChecks&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="n">cmdLibChecks</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">libChecks</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;libChecks&#39;</span><span class="p">]</span>
+            <span class="n">libChecks</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">libChecks</span><span class="p">)</span> <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">libChecks</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span> <span class="k">else</span> <span class="n">libChecks</span>
+            <span class="k">for</span> <span class="n">libName</span> <span class="ow">in</span> <span class="n">libChecks</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">checkLib</span><span class="p">(</span><span class="n">libName</span><span class="p">):</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;ERROR! Required library </span><span class="si">%s</span><span class="s1"> was not found. Please consider to install it &#39;</span> \
+                          <span class="s1">&#39;(sudo apt-get install in Ubuntu, sudo yum install in centOS, etc).&#39;</span> <span class="o">%</span> <span class="n">libName</span>
+                    <span class="n">cmdLibChecks</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s1">&#39;echo &quot;</span><span class="si">%s</span><span class="s1">&quot; &amp;&amp; exit 1&#39;</span> <span class="o">%</span> <span class="n">redStr</span><span class="p">(</span><span class="n">msg</span><span class="p">),</span> <span class="n">libName</span><span class="p">))</span>
+
+            <span class="k">if</span> <span class="n">cmdLibChecks</span><span class="p">:</span>
+                <span class="n">commands</span> <span class="o">=</span> <span class="n">cmdLibChecks</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_packages</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">name</span><span class="p">,</span> <span class="n">version</span><span class="p">))</span>
 
@@ -730,7 +742,6 @@
         <span class="n">libArgs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_addDownloadUntar</span><span class="p">(</span><span class="n">extName</span><span class="p">,</span> <span class="o">**</span><span class="n">libArgs</span><span class="p">)</span>
-        <span class="n">commands</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;commands&#39;</span><span class="p">,</span> <span class="p">[])</span>
         <span class="k">for</span> <span class="n">cmd</span><span class="p">,</span> <span class="n">tgt</span> <span class="ow">in</span> <span class="n">commands</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tgt</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
                 <span class="n">tgt</span> <span class="o">=</span> <span class="p">[</span><span class="n">tgt</span><span class="p">]</span>
