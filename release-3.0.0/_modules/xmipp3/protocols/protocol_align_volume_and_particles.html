@@ -125,23 +125,19 @@
 <span class="c1"># *  e-mail address &#39;scipion@cnb.csic.es&#39;</span>
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
+<span class="kn">import</span> <span class="nn">enum</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
-<span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">VERSION_2_0</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.protocol</span> <span class="kn">import</span> <span class="n">STEPS_PARALLEL</span>
+<span class="kn">from</span> <span class="nn">pwem.convert.headers</span> <span class="kn">import</span> <span class="n">setMRCSamplingRate</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="kn">import</span> <span class="n">LEVEL_ADVANCED</span>
 
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">ProtAlignVolume</span>
 <span class="kn">from</span> <span class="nn">pwem.emlib.image</span> <span class="kn">import</span> <span class="n">ImageHandler</span>
-<span class="kn">import</span> <span class="nn">pwem.emlib.metadata</span> <span class="k">as</span> <span class="nn">md</span>
-<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">Transform</span><span class="p">,</span> <span class="n">Volume</span>
-<span class="kn">from</span> <span class="nn">pwem.constants</span> <span class="kn">import</span> <span class="n">ALIGN_PROJ</span>
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">Transform</span><span class="p">,</span> <span class="n">Volume</span><span class="p">,</span> <span class="n">SetOfParticles</span>
 
 <span class="kn">from</span> <span class="nn">pyworkflow.utils.path</span> <span class="kn">import</span> <span class="n">cleanPath</span>
 
-<span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="kn">import</span> <span class="p">(</span><span class="n">rowToAlignment</span><span class="p">,</span> <span class="n">alignmentToRow</span><span class="p">,</span> <span class="n">writeSetOfParticles</span><span class="p">,</span>
-                            <span class="n">readSetOfParticles</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">xmipp3.constants</span> <span class="kn">import</span> <span class="n">SYM_URL</span>
 
 <span class="n">ALIGN_MASK_CIRCULAR</span> <span class="o">=</span> <span class="mi">0</span>
@@ -150,22 +146,29 @@
 <span class="n">ALIGN_GLOBAL</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">ALIGN_LOCAL</span> <span class="o">=</span> <span class="mi">1</span>
 
+<div class="viewcode-block" id="AlignVolPartOutputs"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_align_volume_and_particles.html#xmipp3.protocols.protocol_align_volume_and_particles.AlignVolPartOutputs">[docs]</a><span class="k">class</span> <span class="nc">AlignVolPartOutputs</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">Volume</span> <span class="o">=</span> <span class="n">Volume</span>
+    <span class="n">Particles</span> <span class="o">=</span> <span class="n">SetOfParticles</span></div>
 
 <div class="viewcode-block" id="XmippProtAlignVolumeParticles"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_align_volume_and_particles.html#xmipp3.protocols.protocol_align_volume_and_particles.XmippProtAlignVolumeParticles">[docs]</a><span class="k">class</span> <span class="nc">XmippProtAlignVolumeParticles</span><span class="p">(</span><span class="n">ProtAlignVolume</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; </span>
 <span class="sd">    Aligns a volume (inputVolume) using a Fast Fourier method</span>
 <span class="sd">    with respect to a reference one (inputReference).</span>
-<span class="sd">     The obtained alignment parameters are used to align the set of particles</span>
+<span class="sd">     The obtained alignment parameters are used to align the set of particles or subtomograms</span>
 <span class="sd">     (inputParticles) that generated the input volume.</span>
 <span class="sd">     &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;align volume and particles&#39;</span>
-    <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_2_0</span>
+    <span class="n">_possibleOutputs</span> <span class="o">=</span> <span class="n">AlignVolPartOutputs</span>
     <span class="n">nVols</span> <span class="o">=</span> <span class="mi">0</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
         <span class="n">ProtAlignVolume</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">stepsExecutionMode</span> <span class="o">=</span> <span class="n">STEPS_PARALLEL</span>
-    
+
+        <span class="c1"># These 2 must match the output enum above.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_alignmentMatrix</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Volume</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Particles</span> <span class="o">=</span> <span class="kc">None</span>
+
     <span class="c1">#--------------------------- DEFINE param functions --------------------------------------------</span>
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Volume parameters&#39;</span><span class="p">)</span>
@@ -175,7 +178,7 @@
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputVolume&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;Volume&#39;</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Input volume&quot;</span><span class="p">,</span> <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select one volume to be aligned against the reference volume.&#39;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputParticles&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;SetOfParticles&#39;</span><span class="p">,</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputParticles&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;SetOfParticles, SetOfSubTomograms&#39;</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Input particles&quot;</span><span class="p">,</span> <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select one set of particles to be aligned against &#39;</span>
                            <span class="s1">&#39;the reference set of particles using the transformation &#39;</span>
@@ -217,31 +220,19 @@
         <span class="c1">#Some definitions of filenames</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fnRefVol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;refVolume.vol&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">fnInputVol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;inputVolume.vol&quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">imgsInputFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;inputParticles.xmd&quot;</span><span class="p">)</span>
 
         <span class="n">maskArgs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMaskArgs</span><span class="p">()</span>
-        <span class="n">alignSteps</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="n">stepId0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;convertStep&#39;</span><span class="p">,</span> <span class="n">prerequisites</span><span class="o">=</span><span class="p">[])</span>
-        <span class="n">alignSteps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stepId0</span><span class="p">)</span> 
-        <span class="n">stepId1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;alignVolumeStep&#39;</span><span class="p">,</span> <span class="n">maskArgs</span><span class="p">,</span>
-                                           <span class="n">prerequisites</span><span class="o">=</span><span class="n">alignSteps</span><span class="p">)</span>
-        <span class="n">alignSteps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stepId1</span><span class="p">)</span>     
-        <span class="n">stepId2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;alignParticlesStep&#39;</span><span class="p">,</span>
-                                           <span class="n">prerequisites</span><span class="o">=</span><span class="n">alignSteps</span><span class="p">)</span>
-        <span class="n">alignSteps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stepId2</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;createOutputStep&#39;</span><span class="p">,</span> <span class="n">prerequisites</span><span class="o">=</span><span class="n">alignSteps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">convertStep</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alignVolumeStep</span><span class="p">,</span> <span class="n">maskArgs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">createOutputStep</span><span class="p">)</span>
         
     <span class="c1">#--------------------------- STEPS functions --------------------------------------------</span>
 
 
 <div class="viewcode-block" id="XmippProtAlignVolumeParticles.convertStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_align_volume_and_particles.html#xmipp3.protocols.protocol_align_volume_and_particles.XmippProtAlignVolumeParticles.convertStep">[docs]</a>    <span class="k">def</span> <span class="nf">convertStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
-        <span class="n">inputParts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputParticles</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="n">writeSetOfParticles</span><span class="p">(</span><span class="n">inputParts</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">imgsInputFn</span><span class="p">)</span>
-
-        <span class="c1">#Resizing inputs</span>
+        <span class="c1"># Resizing inputs</span>
         <span class="n">ih</span> <span class="o">=</span> <span class="n">ImageHandler</span><span class="p">()</span>
         <span class="n">ih</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputReference</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnRefVol</span><span class="p">)</span>
         <span class="n">XdimRef</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputReference</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getDim</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
@@ -255,8 +246,8 @@
 
 <div class="viewcode-block" id="XmippProtAlignVolumeParticles.alignVolumeStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_align_volume_and_particles.html#xmipp3.protocols.protocol_align_volume_and_particles.XmippProtAlignVolumeParticles.alignVolumeStep">[docs]</a>    <span class="k">def</span> <span class="nf">alignVolumeStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maskArgs</span><span class="p">):</span>
 
-        <span class="n">fhInputTranMat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;transformation-matrix.txt&#39;</span><span class="p">)</span>
-        <span class="n">outVolFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;inputVolumeAligned.mrc&quot;</span><span class="p">)</span>
+        <span class="n">fhInputTranMat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getTransformationFile</span><span class="p">()</span>
+        <span class="n">outVolFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getOutputAlignedVolumePath</span><span class="p">()</span>
       
         <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot;--i1 </span><span class="si">%s</span><span class="s2"> --i2 </span><span class="si">%s</span><span class="s2"> --apply </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> \
                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fnRefVol</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fnInputVol</span><span class="p">,</span> <span class="n">outVolFn</span><span class="p">)</span>
@@ -272,41 +263,31 @@
         <span class="n">cleanPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fnRefVol</span><span class="p">)</span>
         <span class="n">cleanPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fnInputVol</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="XmippProtAlignVolumeParticles.alignParticlesStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_align_volume_and_particles.html#xmipp3.protocols.protocol_align_volume_and_particles.XmippProtAlignVolumeParticles.alignParticlesStep">[docs]</a>    <span class="k">def</span> <span class="nf">alignParticlesStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="XmippProtAlignVolumeParticles.getAlignmentMatrix"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_align_volume_and_particles.html#xmipp3.protocols.protocol_align_volume_and_particles.XmippProtAlignVolumeParticles.getAlignmentMatrix">[docs]</a>    <span class="k">def</span> <span class="nf">getAlignmentMatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
-        <span class="n">fhInputTranMat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;transformation-matrix.txt&#39;</span><span class="p">)</span>
-        <span class="n">outParticlesFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;outputParticles.xmd&#39;</span><span class="p">)</span>
-        <span class="n">transMatFromFile</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">fhInputTranMat</span><span class="p">)</span>
-        <span class="n">transformationMat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">transMatFromFile</span><span class="p">,(</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
-        <span class="n">transform</span> <span class="o">=</span> <span class="n">Transform</span><span class="p">()</span>
-        <span class="n">transform</span><span class="o">.</span><span class="n">setMatrix</span><span class="p">(</span><span class="n">transformationMat</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignmentMatrix</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fhInputTranMat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getTransformationFile</span><span class="p">()</span>
+            <span class="n">transMatFromFile</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">fhInputTranMat</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_alignmentMatrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">transMatFromFile</span><span class="p">,</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
 
-        <span class="n">resultMat</span> <span class="o">=</span> <span class="n">Transform</span><span class="p">()</span>
-        <span class="n">outputParts</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">()</span>
-        <span class="n">mdToAlign</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imgsInputFn</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">md</span><span class="o">.</span><span class="n">iterRows</span><span class="p">(</span><span class="n">mdToAlign</span><span class="p">):</span>
-            <span class="n">inMat</span> <span class="o">=</span> <span class="n">rowToAlignment</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">ALIGN_PROJ</span><span class="p">)</span>
-            <span class="n">partTransformMat</span> <span class="o">=</span> <span class="n">inMat</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">()</span>
-            <span class="n">partTransformMatrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">partTransformMat</span><span class="p">)</span>
-            <span class="n">newTransformMatrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">transformationMat</span><span class="p">,</span> <span class="n">partTransformMatrix</span><span class="p">)</span>
-            <span class="n">resultMat</span><span class="o">.</span><span class="n">setMatrix</span><span class="p">(</span><span class="n">newTransformMatrix</span><span class="p">)</span>
-            <span class="n">rowOut</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">Row</span><span class="p">()</span>
-            <span class="n">rowOut</span><span class="o">.</span><span class="n">copyFromRow</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
-            <span class="n">alignmentToRow</span><span class="p">(</span><span class="n">resultMat</span><span class="p">,</span> <span class="n">rowOut</span><span class="p">,</span> <span class="n">ALIGN_PROJ</span><span class="p">)</span>
-            <span class="n">rowOut</span><span class="o">.</span><span class="n">addToMd</span><span class="p">(</span><span class="n">outputParts</span><span class="p">)</span>
-        <span class="n">outputParts</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">outParticlesFn</span><span class="p">)</span>
-        <span class="n">cleanPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">imgsInputFn</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignmentMatrix</span></div>
+
+<div class="viewcode-block" id="XmippProtAlignVolumeParticles.getTransformationFile"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_align_volume_and_particles.html#xmipp3.protocols.protocol_align_volume_and_particles.XmippProtAlignVolumeParticles.getTransformationFile">[docs]</a>    <span class="k">def</span> <span class="nf">getTransformationFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;transformation-matrix.txt&#39;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="XmippProtAlignVolumeParticles.createOutputStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_align_volume_and_particles.html#xmipp3.protocols.protocol_align_volume_and_particles.XmippProtAlignVolumeParticles.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>   
 
-        <span class="n">outVolFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;inputVolumeAligned.mrc&quot;</span><span class="p">)</span>
+        <span class="c1"># VOLUME aligned to the reference</span>
+        <span class="n">outVolFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getOutputAlignedVolumePath</span><span class="p">()</span>
         <span class="n">Ts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputVolume</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_image_header&quot;</span><span class="p">,</span><span class="s2">&quot;-i </span><span class="si">%s</span><span class="s2"> --sampling_rate </span><span class="si">%f</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">outVolFn</span><span class="p">,</span><span class="n">Ts</span><span class="p">))</span>
         <span class="n">outVol</span> <span class="o">=</span> <span class="n">Volume</span><span class="p">()</span>
         <span class="n">outVol</span><span class="o">.</span><span class="n">setLocation</span><span class="p">(</span><span class="n">outVolFn</span><span class="p">)</span>
-        <span class="c1">#set transformation matrix             </span>
-        <span class="n">fhInputTranMat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;transformation-matrix.txt&#39;</span><span class="p">)</span>
+        <span class="c1"># Set the mrc header for sampling rate.</span>
+        <span class="n">setMRCSamplingRate</span><span class="p">(</span><span class="n">outVolFn</span><span class="p">,</span> <span class="n">Ts</span><span class="p">)</span>
+
+        <span class="c1"># Set transformation matrix</span>
+        <span class="n">fhInputTranMat</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getTransformationFile</span><span class="p">()</span>
         <span class="n">transMatFromFile</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">loadtxt</span><span class="p">(</span><span class="n">fhInputTranMat</span><span class="p">)</span>
         <span class="n">transformationMat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">transMatFromFile</span><span class="p">,(</span><span class="mi">4</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
         <span class="n">transform</span> <span class="o">=</span> <span class="n">Transform</span><span class="p">()</span>
@@ -314,20 +295,34 @@
         <span class="n">outVol</span><span class="o">.</span><span class="n">setTransform</span><span class="p">(</span><span class="n">transform</span><span class="p">)</span>
         <span class="n">outVol</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">Ts</span><span class="p">)</span>
 
-        <span class="n">outputArgs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;outputVolume&#39;</span><span class="p">:</span> <span class="n">outVol</span><span class="p">}</span>
+        <span class="n">outputArgs</span> <span class="o">=</span> <span class="p">{</span><span class="n">AlignVolPartOutputs</span><span class="o">.</span><span class="n">Volume</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">outVol</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="n">outputArgs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputVolume</span><span class="p">,</span> <span class="n">outVol</span><span class="p">)</span>
 
-        <span class="c1">#particles....</span>
-        <span class="n">outParticlesFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;outputParticles.xmd&#39;</span><span class="p">)</span>
-        <span class="n">outputParticles</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfParticles</span><span class="p">()</span>
+        <span class="c1"># PARTICLES ....</span>
+        <span class="n">inputParts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputParticles</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">outputParticles</span> <span class="o">=</span> <span class="n">inputParts</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">())</span>
         <span class="n">outputParticles</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputParticles</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
         <span class="n">outputParticles</span><span class="o">.</span><span class="n">setAlignmentProj</span><span class="p">()</span>
-        <span class="n">readSetOfParticles</span><span class="p">(</span><span class="n">outParticlesFn</span><span class="p">,</span> <span class="n">outputParticles</span><span class="p">)</span>
-        <span class="n">outputArgs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;outputParticles&#39;</span><span class="p">:</span> <span class="n">outputParticles</span><span class="p">}</span>
+
+        <span class="c1"># Clone set</span>
+        <span class="c1">#readSetOfParticles(outParticlesFn, outputParticles)</span>
+        <span class="n">outputParticles</span><span class="o">.</span><span class="n">copyItems</span><span class="p">(</span><span class="n">inputParts</span><span class="p">,</span><span class="n">updateItemCallback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_updateParticleTransform</span><span class="p">)</span>
+        <span class="n">outputArgs</span> <span class="o">=</span> <span class="p">{</span><span class="n">AlignVolPartOutputs</span><span class="o">.</span><span class="n">Particles</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">outputParticles</span><span class="p">}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="n">outputArgs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputParticles</span><span class="p">,</span> <span class="n">outputParticles</span><span class="p">)</span></div>
 
+    <span class="k">def</span> <span class="nf">_updateParticleTransform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">particle</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+
+        <span class="n">aliMatrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getAlignmentMatrix</span><span class="p">()</span>
+        <span class="n">partTransformMat</span> <span class="o">=</span> <span class="n">particle</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">()</span>
+        <span class="n">partTransformMatrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matrix</span><span class="p">(</span><span class="n">partTransformMat</span><span class="p">)</span>
+        <span class="n">newTransformMatrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">aliMatrix</span><span class="p">,</span> <span class="n">partTransformMatrix</span><span class="p">)</span>
+        <span class="n">particle</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span><span class="o">.</span><span class="n">setMatrix</span><span class="p">(</span><span class="n">newTransformMatrix</span><span class="p">)</span>
+
+<div class="viewcode-block" id="XmippProtAlignVolumeParticles.getOutputAlignedVolumePath"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_align_volume_and_particles.html#xmipp3.protocols.protocol_align_volume_and_particles.XmippProtAlignVolumeParticles.getOutputAlignedVolumePath">[docs]</a>    <span class="k">def</span> <span class="nf">getOutputAlignedVolumePath</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">outVolFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;inputVolumeAligned.mrc&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">outVolFn</span></div>
 
     <span class="c1">#--------------------------- INFO functions --------------------------------------------</span>
     

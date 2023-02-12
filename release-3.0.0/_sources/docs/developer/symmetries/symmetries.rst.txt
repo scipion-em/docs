@@ -219,7 +219,7 @@ In25r
 - :download:`unit cell view <in25r.cxs>`
 
 
-In23
+I2n3
 ----
 
    **Scipion Definition (I2n3)**: 3-fold axis in *Z* and 2-fold in *X*.
@@ -236,7 +236,7 @@ In23
 - :download:`unit cell view <i2n3.cxs>`
 
 
-In23r
+I2n3r
 ----
 
    **Scipion Definition (I2n3r)**: 3-fold axis in *Z* and 2-fold in *X*.
