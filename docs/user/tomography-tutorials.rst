@@ -21,6 +21,19 @@ This tutorial shows how Scipion incorporates etomo (scipion-em-imod) and how the
  *Guide*:
  `Manual Tomogram Reconstruction <https://docs.google.com/document/d/1TvdtTAojfAwSeQMfGdkXWIWTC7vobgicbYTq4aX1-H8>`_
 
+
+Tomogram reconstruction with SCIPION: from raw movies to a tomogram
+-------------------------------------------------------------------
+This tutorial aims to familiarize you with initial steps of cryo-electron tomogra-
+phy (cryo-ET) analysis using Scipion framework.
+We assume you are familiar with Scipion GUI and have some experience with
+cryo-ET data processing. Here we will demonstrate the workflow starting from raw
+data up to the tomogram reconstruction, highlighting the features of our software
+framework. After that, you should be able to run Scipion with your own data.
+
+ *Guide*:
+ `From raw movies to a tomogram <../../_static/pdfs/Scipion_Tutorial_Tomogram_Reconstruction.pdf>`_
+
 Tomogram Reconstruction and Local Resolution Analysis with MonoTomo
 -------------------------------------------------------------------
 This tutorial shows how to reconstruct a tomogram in Scipion evaluating its local resolution
