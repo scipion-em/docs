@@ -35,11 +35,6 @@ Single particle tutorials
 Tomography tutorials
 --------------------
 
-.. warning::
-
-   Tomography functionality is almost ready to be open for betatesting. For now, betatesting is only open upon request. If you
-   are willing to help this project, please contact us at scipion@cnb.csic.es
-
 .. toctree::
     :maxdepth: 1
 
