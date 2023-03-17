@@ -125,12 +125,14 @@
 <span class="c1"># *  e-mail address &#39;scipion@cnb.csic.es&#39;</span>
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
-
-<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">radians</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">radians</span><span class="p">,</span> <span class="n">degrees</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">matplotlib.cm</span> <span class="k">as</span> <span class="nn">cm</span>
 <span class="kn">from</span> <span class="nn">scipy.ndimage.filters</span> <span class="kn">import</span> <span class="n">gaussian_filter</span>
 
+<span class="kn">from</span> <span class="nn">pwem.convert.transformations</span> <span class="kn">import</span> <span class="n">euler_from_matrix</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.gui.plotter</span> <span class="kn">import</span> <span class="n">Plotter</span><span class="p">,</span> <span class="n">plt</span>
 <span class="kn">import</span> <span class="nn">pwem.emlib.metadata</span> <span class="k">as</span> <span class="nn">md</span>
 <span class="kn">import</span> <span class="nn">numbers</span>
@@ -145,7 +147,7 @@
 <div class="viewcode-block" id="EmPlotter.plotAngularDistribution"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.EmPlotter.plotAngularDistribution">[docs]</a>    <span class="k">def</span> <span class="nf">plotAngularDistribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">rot</span><span class="p">,</span>
                                 <span class="n">tilt</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="p">[],</span> <span class="n">max_p</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
                                 <span class="n">min_p</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Create an special type of subplot, representing the angular</span>
+        <span class="sd">&quot;&quot;&quot; Create a special type of subplot, representing the angular</span>
 <span class="sd">        distribution of weight projections. &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">weight</span><span class="p">:</span>
             <span class="n">max_w</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">weight</span><span class="p">)</span>
@@ -153,17 +155,20 @@
             <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createSubPlot</span><span class="p">(</span><span class="n">title</span><span class="p">,</span>
                                    <span class="s1">&#39;Min weight=</span><span class="si">%(min_w).2f</span><span class="s1">, Max weight=</span><span class="si">%(max_w).2f</span><span class="s1">&#39;</span>
                                    <span class="o">%</span> <span class="nb">locals</span><span class="p">(),</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;polar&#39;</span><span class="p">)</span>
+
+            <span class="n">pointSizes</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
-                <span class="n">pointsize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">w</span> <span class="o">-</span> <span class="n">min_w</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">max_w</span> <span class="o">-</span> <span class="n">min_w</span> <span class="o">+</span> <span class="mf">0.001</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">max_p</span> <span class="o">-</span> <span class="n">min_p</span><span class="p">)</span> <span class="o">+</span> <span class="n">min_p</span><span class="p">)</span>
-                <span class="n">a</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">markerfacecolor</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="n">pointsize</span><span class="p">)</span>
+                 <span class="n">pointsize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">w</span> <span class="o">-</span> <span class="n">min_w</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">max_w</span> <span class="o">-</span> <span class="n">min_w</span> <span class="o">+</span> <span class="mf">0.001</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">max_p</span> <span class="o">-</span> <span class="n">min_p</span><span class="p">)</span> <span class="o">+</span> <span class="n">min_p</span><span class="p">)</span>
+                 <span class="n">pointSizes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pointsize</span><span class="p">)</span>
+
+            <span class="n">a</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">pointSizes</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createSubPlot</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="s1">&#39;Empty plot&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;polar&#39;</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">):</span>
-                <span class="n">a</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">markerfacecolor</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+            <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createSubPlot</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="s1">&#39;Non weighted plot&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;polar&#39;</span><span class="p">)</span>
+            <span class="n">a</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">a</span></div>
 
 <div class="viewcode-block" id="EmPlotter.plotAngularDistributionHistogram"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.EmPlotter.plotAngularDistributionHistogram">[docs]</a>    <span class="k">def</span> <span class="nf">plotAngularDistributionHistogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Create an special type of subplot, representing the angular</span>
+        <span class="sd">&quot;&quot;&quot; Create a special type of subplot, representing the angular</span>
 <span class="sd">        distribution of weight projections. &quot;&quot;&quot;</span>
         <span class="n">heatmap</span><span class="p">,</span> <span class="n">xedges</span><span class="p">,</span> <span class="n">yedges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram2d</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
         <span class="n">sigma</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">xedges</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">xedges</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">yedges</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">yedges</span><span class="p">))</span> <span class="o">/</span> <span class="mi">20</span>
@@ -176,6 +181,39 @@
         <span class="n">a</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Rotational angle&#39;</span><span class="p">)</span>
         <span class="n">a</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Tilt angle&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mappable</span></div>
+
+
+<div class="viewcode-block" id="EmPlotter.plotAngularDistributionFromSet"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.EmPlotter.plotAngularDistributionFromSet">[docs]</a>    <span class="k">def</span> <span class="nf">plotAngularDistributionFromSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mdSet</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">weightAttr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">histogram</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Read the values of the transformation matrix</span>
+<span class="sd">         and plot its histogram or its angular distribution.</span>
+
+<span class="sd">         :param mdSet: Set with alignment information at with item.getTransform()</span>
+<span class="sd">         :param title: Title of the plot</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">rots</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">tilts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">histogram</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">mdSet</span><span class="p">:</span>
+                <span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">psi</span> <span class="o">=</span> <span class="n">euler_from_matrix</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">())</span>
+                <span class="n">rots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rot</span><span class="p">)</span>
+                <span class="n">tilts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tilt</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotAngularDistributionHistogram</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">rots</span><span class="p">,</span> <span class="n">tilts</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">mdSet</span><span class="p">:</span>
+                <span class="n">psi</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">rot</span> <span class="o">=</span> <span class="n">euler_from_matrix</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">(),</span> <span class="n">axes</span><span class="o">=</span><span class="s2">&quot;szyz&quot;</span> <span class="p">)</span>
+
+                <span class="n">rots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rot</span><span class="p">)</span>
+                <span class="n">tilts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">degrees</span><span class="p">(</span><span class="n">tilt</span><span class="p">))</span>
+
+                <span class="k">if</span> <span class="n">weightAttr</span><span class="p">:</span>
+                    <span class="n">weight</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">weightAttr</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+                    <span class="n">weights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">weight</span><span class="p">)</span>
+
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotAngularDistribution</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">rots</span><span class="p">,</span> <span class="n">tilts</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EmPlotter.plotAngularDistributionFromMd"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.EmPlotter.plotAngularDistributionFromMd">[docs]</a>    <span class="k">def</span> <span class="nf">plotAngularDistributionFromMd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mdFile</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Read the values of rot, tilt and weights from</span>

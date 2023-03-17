@@ -131,6 +131,8 @@
 <span class="sd">was first called xmipp_show. And later was re-written using Java and </span>
 <span class="sd">became xmipp_showj.</span>
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
@@ -139,13 +141,14 @@
 <span class="kn">import</span> <span class="nn">subprocess</span>
 
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">Config</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">getFreePort</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">getFreePort</span><span class="p">,</span> <span class="n">runCommand</span>
 <span class="kn">from</span> <span class="nn">pwem</span> <span class="kn">import</span> <span class="n">Config</span> <span class="k">as</span> <span class="n">emConfig</span>
 <span class="kn">import</span> <span class="nn">threading</span>
 <span class="kn">import</span> <span class="nn">shlex</span>
 <span class="kn">import</span> <span class="nn">socketserver</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.constants</span> <span class="kn">import</span> <span class="n">SCIPION_DOMAIN</span><span class="p">,</span> <span class="n">SCIPION_HOME_VAR</span><span class="p">,</span> <span class="n">SCIPION_DEBUG</span>
 
+<span class="n">javaVersion</span> <span class="o">=</span> <span class="kc">None</span>
 
 <span class="c1"># ----------------------- Showj constants ---------------------------</span>
 <span class="n">COL_RENDER_NONE</span> <span class="o">=</span> <span class="mi">0</span>
@@ -355,6 +358,20 @@
             <span class="k">return</span> <span class="n">a</span>
     <span class="k">return</span> <span class="s1">&#39;NO_ARCH&#39;</span></div>
 
+<div class="viewcode-block" id="getJavaVersion"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.showj.html#pwem.viewers.showj.getJavaVersion">[docs]</a><span class="k">def</span> <span class="nf">getJavaVersion</span><span class="p">():</span>
+    <span class="k">global</span> <span class="n">javaVersion</span>
+
+    <span class="k">if</span> <span class="n">javaVersion</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">version</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="n">getJavaBin</span><span class="p">(),</span> <span class="s1">&#39;-version&#39;</span><span class="p">],</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">)</span>
+        <span class="n">javaVersion</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">javaVersion</span></div>
+<div class="viewcode-block" id="getJavaBin"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.showj.html#pwem.viewers.showj.getJavaBin">[docs]</a><span class="k">def</span> <span class="nf">getJavaBin</span><span class="p">():</span>
+
+    <span class="k">if</span> <span class="n">emConfig</span><span class="o">.</span><span class="n">JAVA_HOME</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">join</span><span class="p">(</span><span class="n">emConfig</span><span class="o">.</span><span class="n">JAVA_HOME</span><span class="p">,</span> <span class="s2">&quot;bin&quot;</span><span class="p">,</span> <span class="s2">&quot;java&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span>  <span class="s2">&quot;java&quot;</span></div>
 
 <div class="viewcode-block" id="getJavaIJappArguments"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.showj.html#pwem.viewers.showj.getJavaIJappArguments">[docs]</a><span class="k">def</span> <span class="nf">getJavaIJappArguments</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">appName</span><span class="p">,</span> <span class="n">appArgs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Build the command line arguments to launch</span>
@@ -374,10 +391,7 @@
     <span class="n">plugins_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">imagej_home</span><span class="p">,</span> <span class="s2">&quot;plugins&quot;</span><span class="p">)</span>
     <span class="n">arch</span> <span class="o">=</span> <span class="n">getArchitecture</span><span class="p">()</span>
 
-    <span class="kn">import</span> <span class="nn">subprocess</span>
-    <span class="n">version</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">check_output</span><span class="p">([</span><span class="s1">&#39;java&#39;</span><span class="p">,</span> <span class="s1">&#39;-version&#39;</span><span class="p">],</span> <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">STDOUT</span><span class="p">)</span>
-    <span class="n">majorVersion</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">version</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="k">if</span> <span class="n">majorVersion</span> <span class="o">&gt;</span> <span class="mi">9</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">getJavaVersion</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">9</span><span class="p">:</span>
         <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot;-Xmx</span><span class="si">%(memory)s</span><span class="s2">g -Djava.library.path=</span><span class="si">%(lib)s</span><span class="s2"> -Dplugins.dir=</span><span class="si">%(plugins_dir)s</span><span class="s2"> -cp </span><span class="si">%(jdkLib)s</span><span class="s2">/*:</span><span class="si">%(imagej_home)s</span><span class="s2">/*:</span><span class="si">%(javaLib)s</span><span class="s2">/* </span><span class="si">%(appName)s</span><span class="s2"> </span><span class="si">%(appArgs)s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot;-Xmx</span><span class="si">%(memory)s</span><span class="s2">g -d</span><span class="si">%(arch)s</span><span class="s2"> -Djava.library.path=</span><span class="si">%(lib)s</span><span class="s2"> -Dplugins.dir=</span><span class="si">%(plugins_dir)s</span><span class="s2"> -cp </span><span class="si">%(jdkLib)s</span><span class="s2">/*:</span><span class="si">%(imagej_home)s</span><span class="s2">/*:</span><span class="si">%(javaLib)s</span><span class="s2">/* </span><span class="si">%(appName)s</span><span class="s2"> </span><span class="si">%(appArgs)s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
@@ -407,9 +421,10 @@
         <span class="k">pass</span>
 
     <span class="n">args</span> <span class="o">=</span> <span class="n">getJavaIJappArguments</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">appName</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;java </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">args</span><span class="p">)</span>
-    <span class="c1"># return subprocess.Popen(&#39;java &#39; + args, shell=True, env=env)</span>
-    <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;java&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">shlex</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+    <span class="n">javaBin</span> <span class="o">=</span> <span class="n">getJavaBin</span><span class="p">()</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">javaBin</span><span class="p">,</span> <span class="n">args</span><span class="p">))</span>
+    <span class="n">cmd</span> <span class="o">=</span> <span class="p">[</span><span class="n">javaBin</span><span class="p">]</span> <span class="o">+</span> <span class="n">shlex</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
     <span class="k">return</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">)</span></div>
 
 

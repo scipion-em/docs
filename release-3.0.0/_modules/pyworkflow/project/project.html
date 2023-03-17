@@ -762,9 +762,6 @@
             <span class="n">label</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getObjLabel</span><span class="p">()</span>
             <span class="n">comment</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getObjComment</span><span class="p">()</span>
 
-            <span class="k">if</span> <span class="n">checkPid</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">checkPid</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
-
             <span class="k">if</span> <span class="n">skipUpdatedProtocols</span><span class="p">:</span>
                 <span class="c1"># If we are already updated, comparing timestamps</span>
                 <span class="k">if</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">isProtocolUpToDate</span><span class="p">(</span><span class="n">protocol</span><span class="p">):</span>
@@ -800,9 +797,13 @@
             <span class="n">protocol</span><span class="o">.</span><span class="n">setObjLabel</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
             <span class="n">protocol</span><span class="o">.</span><span class="n">setObjComment</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span>
             <span class="c1"># Use the run.db timestamp instead of the system TS to prevent</span>
-            <span class="c1"># possible inconsistencies</span>
-            <span class="c1"># protocol.lastUpdateTimeStamp.set(datetime.datetime.now())</span>
+            <span class="c1"># possible inconsistencies.</span>
             <span class="n">protocol</span><span class="o">.</span><span class="n">lastUpdateTimeStamp</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">lastUpdateTime</span><span class="p">)</span>
+
+            <span class="c1"># Check pid at the end, once updated</span>
+            <span class="k">if</span> <span class="n">checkPid</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">checkPid</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+
 
             <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
 
@@ -919,38 +920,53 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_checkProtocolsDependencies</span><span class="p">(</span><span class="n">protocols</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_getWorkflowFromProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">fixProtParam</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_getSubworkflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">fixProtParam</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">letItPass</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function get the workflow from &quot;protocol&quot; and determine the</span>
 <span class="sd">        protocol level into the graph. Also, checks if there are active</span>
 <span class="sd">        protocols excluding interactive protocols.</span>
+
+<span class="sd">        :param protocol from where to start the subworkflow (included)</span>
+<span class="sd">        :param letItPass: a callback receiving the protocol and returning false if protocol should not pass</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">activeProtList</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">configuredProtList</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">affectedProtocols</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">affectedProtocolsActive</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">auxProtList</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c1"># store the protocol and your level into the workflow</span>
-        <span class="n">configuredProtList</span><span class="p">[</span><span class="n">protocol</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()]</span> <span class="o">=</span> <span class="p">[</span><span class="n">protocol</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
-        <span class="n">auxProtList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
+        <span class="n">affectedProtocols</span><span class="p">[</span><span class="n">protocol</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()]</span> <span class="o">=</span> <span class="p">[</span><span class="n">protocol</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="n">auxProtList</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">protocol</span><span class="o">.</span><span class="n">getObjId</span><span class="p">(),</span> <span class="mi">0</span><span class="p">])</span>
         <span class="n">runGraph</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getRunsGraph</span><span class="p">()</span>
 
         <span class="k">while</span> <span class="n">auxProtList</span><span class="p">:</span>
-            <span class="n">protocol</span> <span class="o">=</span> <span class="n">runGraph</span><span class="o">.</span><span class="n">getNode</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">auxProtList</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)))</span><span class="o">.</span><span class="n">run</span>
-            <span class="n">level</span> <span class="o">=</span> <span class="n">configuredProtList</span><span class="p">[</span><span class="n">protocol</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">protId</span><span class="p">,</span> <span class="n">level</span> <span class="o">=</span> <span class="n">auxProtList</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">protocol</span> <span class="o">=</span> <span class="n">runGraph</span><span class="o">.</span><span class="n">getNode</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">protId</span><span class="p">))</span><span class="o">.</span><span class="n">run</span>
+
+            <span class="c1"># Increase the level for the children</span>
+            <span class="n">level</span> <span class="o">=</span> <span class="n">level</span> <span class="o">+</span> <span class="mi">1</span>
+
             <span class="k">if</span> <span class="n">fixProtParam</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_fixProtParamsConfiguration</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isActive</span><span class="p">()</span> <span class="ow">and</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getStatus</span><span class="p">()</span> <span class="o">!=</span> <span class="n">STATUS_INTERACTIVE</span><span class="p">:</span>
-                <span class="n">activeProtList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+
+            <span class="n">passesFilter</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">letItPass</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">letItPass</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">passesFilter</span> <span class="ow">and</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isActive</span><span class="p">()</span> <span class="ow">and</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getStatus</span><span class="p">()</span> <span class="o">!=</span> <span class="n">STATUS_INTERACTIVE</span><span class="p">:</span>
+                <span class="n">affectedProtocolsActive</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+
             <span class="n">node</span> <span class="o">=</span> <span class="n">runGraph</span><span class="o">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">strId</span><span class="p">())</span>
             <span class="n">dependencies</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">run</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">getChilds</span><span class="p">()]</span>
             <span class="k">for</span> <span class="n">dep</span> <span class="ow">in</span> <span class="n">dependencies</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">dep</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span> <span class="ow">in</span> <span class="n">auxProtList</span><span class="p">:</span>
-                    <span class="n">auxProtList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dep</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">dep</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span> <span class="ow">in</span> <span class="n">configuredProtList</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                    <span class="n">configuredProtList</span><span class="p">[</span><span class="n">dep</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()]</span> <span class="o">=</span> <span class="p">[</span><span class="n">dep</span><span class="p">,</span> <span class="n">level</span><span class="p">]</span>
-                <span class="k">elif</span> <span class="n">level</span> <span class="o">&gt;</span> <span class="n">configuredProtList</span><span class="p">[</span><span class="n">dep</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()][</span><span class="mi">1</span><span class="p">]:</span>
-                    <span class="n">configuredProtList</span><span class="p">[</span><span class="n">dep</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">level</span>
+                    <span class="n">auxProtList</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">dep</span><span class="o">.</span><span class="n">getObjId</span><span class="p">(),</span> <span class="n">level</span><span class="p">])</span>
 
-        <span class="k">return</span> <span class="n">configuredProtList</span><span class="p">,</span> <span class="n">activeProtList</span>
+                <span class="k">if</span> <span class="n">letItPass</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">letItPass</span><span class="p">(</span><span class="n">dep</span><span class="p">):</span>
+                    <span class="k">continue</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">dep</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span> <span class="ow">in</span> <span class="n">affectedProtocols</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                    <span class="n">affectedProtocols</span><span class="p">[</span><span class="n">dep</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()]</span> <span class="o">=</span> <span class="p">[</span><span class="n">dep</span><span class="p">,</span> <span class="n">level</span><span class="p">]</span>
+                <span class="k">elif</span> <span class="n">level</span> <span class="o">&gt;</span> <span class="n">affectedProtocols</span><span class="p">[</span><span class="n">dep</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()][</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">affectedProtocols</span><span class="p">[</span><span class="n">dep</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()][</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">level</span>
+
+        <span class="k">return</span> <span class="n">affectedProtocols</span><span class="p">,</span> <span class="n">affectedProtocolsActive</span>
 
 <div class="viewcode-block" id="Project.deleteProtocol"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.deleteProtocol">[docs]</a>    <span class="k">def</span> <span class="nf">deleteProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">protocols</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_checkModificationAllowed</span><span class="p">(</span><span class="n">protocols</span><span class="p">,</span> <span class="s1">&#39;Cannot DELETE protocols&#39;</span><span class="p">)</span>
