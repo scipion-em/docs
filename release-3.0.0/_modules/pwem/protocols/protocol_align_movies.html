@@ -273,6 +273,106 @@
 
         <span class="k">return</span> <span class="n">outputSet</span>
 
+    <span class="k">def</span> <span class="nf">_updateOutputMicSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newDone</span><span class="p">,</span> <span class="n">sqliteFn</span><span class="p">,</span> <span class="n">getOutputMicName</span><span class="p">,</span>
+                            <span class="n">outputName</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Updated the output micrographs set with new items found. &quot;&quot;&quot;</span>
+        <span class="n">micSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">emobj</span><span class="o">.</span><span class="n">SetOfMicrographs</span><span class="p">,</span> <span class="n">sqliteFn</span><span class="p">)</span>
+        <span class="n">doneFailed</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">movie</span> <span class="ow">in</span> <span class="n">newDone</span><span class="p">:</span>
+            <span class="n">mic</span> <span class="o">=</span> <span class="n">micSet</span><span class="o">.</span><span class="n">ITEM_TYPE</span><span class="p">()</span>
+            <span class="n">mic</span><span class="o">.</span><span class="n">copyObjId</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
+            <span class="n">mic</span><span class="o">.</span><span class="n">setMicName</span><span class="p">(</span><span class="n">movie</span><span class="o">.</span><span class="n">getMicName</span><span class="p">())</span>
+            <span class="c1"># The subclass protocol is responsible for generating the output</span>
+            <span class="c1"># micrograph file in the extra path with the required name</span>
+            <span class="n">extraMicFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">getOutputMicName</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
+            <span class="n">mic</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">extraMicFn</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">extraMicFn</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">yellowStr</span><span class="p">(</span><span class="s2">&quot;WARNING: Micrograph </span><span class="si">%s</span><span class="s2"> was not generated, &quot;</span>
+                                        <span class="s2">&quot;can&#39;t add it to output set.&quot;</span> <span class="o">%</span> <span class="n">extraMicFn</span><span class="p">))</span>
+                <span class="n">doneFailed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="c1"># Tolerate errors here. Usually here some plots are generated.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_preprocessOutputMicrograph</span><span class="p">(</span><span class="n">mic</span><span class="p">,</span> <span class="n">movie</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t prepare output details: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
+                <span class="n">doneFailed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+            <span class="n">micSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mic</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="n">outputName</span><span class="p">,</span> <span class="n">micSet</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">doneFailed</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_writeFailedList</span><span class="p">(</span><span class="n">doneFailed</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_firstTimeOutput</span><span class="p">:</span>
+            <span class="c1"># We consider that Movies are &#39;transformed&#39; into the Micrographs</span>
+            <span class="c1"># This will allow to extend the CTF associated to a set of</span>
+            <span class="c1"># micrographs to another set of micrographs generated from a</span>
+            <span class="c1"># different movie alignment</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_defineTransformRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="p">,</span> <span class="n">micSet</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_updateOutputMovieSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newDone</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">):</span>
+        <span class="n">saveMovie</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="s1">&#39;doSaveMovie&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">movieSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">emobj</span><span class="o">.</span><span class="n">SetOfMovies</span><span class="p">,</span> <span class="s1">&#39;movies.sqlite&#39;</span><span class="p">,</span>
+                                       <span class="n">fixSampling</span><span class="o">=</span><span class="n">saveMovie</span><span class="p">)</span>
+
+        <span class="c1"># If we need to save the movies</span>
+        <span class="k">if</span> <span class="n">saveMovie</span><span class="p">:</span>
+            <span class="n">movieSet</span><span class="o">.</span><span class="n">setGain</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+            <span class="n">movieSet</span><span class="o">.</span><span class="n">setDark</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">movie</span> <span class="ow">in</span> <span class="n">newDone</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">newMovie</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createOutputMovie</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">newMovie</span><span class="o">.</span><span class="n">getAlignment</span><span class="p">()</span><span class="o">.</span><span class="n">getShifts</span><span class="p">()[</span><span class="mi">0</span><span class="p">]:</span>
+                    <span class="n">movieSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newMovie</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">yellowStr</span><span class="p">(</span><span class="s2">&quot;WARNING: Movie </span><span class="si">%s</span><span class="s2"> has empty alignment &quot;</span>
+                                            <span class="s2">&quot;data, can&#39;t add it to output set.&quot;</span>
+                                            <span class="o">%</span> <span class="n">movie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()))</span>
+
+            <span class="c1"># Warn about any exception creating the movie</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">redStr</span><span class="p">(</span><span class="s2">&quot;ERROR: Movie </span><span class="si">%s</span><span class="s2"> couldn&#39;t be &quot;</span>
+                                     <span class="s2">&quot;added to the output set.</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span>
+                                     <span class="o">%</span> <span class="p">(</span><span class="n">movie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span> <span class="n">e</span><span class="p">)))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="n">OUT_MOVIES</span><span class="p">,</span> <span class="n">movieSet</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_firstTimeOutput</span><span class="p">:</span>
+            <span class="c1"># Probably is a good idea to store a cached summary for the</span>
+            <span class="c1"># first resulting movie of the processing.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_storeSummary</span><span class="p">(</span><span class="n">newDone</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="c1"># If the movies are not written out, then dimensions can be</span>
+            <span class="c1"># copied from the input movies</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">saveMovie</span><span class="p">:</span>
+                <span class="n">movieSet</span><span class="o">.</span><span class="n">setDim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getDim</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_defineTransformRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="p">,</span> <span class="n">movieSet</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_updateOutputSets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newDone</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createOutputMovies</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputMovieSet</span><span class="p">(</span><span class="n">newDone</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createOutputMicrographs</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputMicSet</span><span class="p">(</span><span class="n">newDone</span><span class="p">,</span> <span class="s1">&#39;micrographs.sqlite&#39;</span><span class="p">,</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicName</span><span class="p">,</span>
+                                <span class="n">OUT_MICS</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createOutputWeightedMicrographs</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputMicSet</span><span class="p">(</span><span class="n">newDone</span><span class="p">,</span> <span class="s1">&#39;micrographs_dose-weighted.sqlite&#39;</span><span class="p">,</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicWtName</span><span class="p">,</span>
+                                <span class="n">OUT_MICS_DW</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_doSplitEvenOdd</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputMicSet</span><span class="p">(</span><span class="n">newDone</span><span class="p">,</span> <span class="s1">&#39;micrographs_even.sqlite&#39;</span><span class="p">,</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicEvenName</span><span class="p">,</span>
+                                <span class="n">OUT_MICS_EVEN</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputMicSet</span><span class="p">(</span><span class="n">newDone</span><span class="p">,</span> <span class="s1">&#39;micrographs_odd.sqlite&#39;</span><span class="p">,</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicOddName</span><span class="p">,</span>
+                                <span class="n">OUT_MICS_ODD</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">_checkNewOutput</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;finished&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="k">return</span>
@@ -289,7 +389,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;   listOfMovies: </span><span class="si">%s</span><span class="s1">, doneList: </span><span class="si">%s</span><span class="s1">, newDone: </span><span class="si">%s</span><span class="s1">&#39;</span>
                    <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfMovies</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">doneList</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">newDone</span><span class="p">)))</span>
 
-        <span class="n">firstTime</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">doneList</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_firstTimeOutput</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">doneList</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
         <span class="n">allDone</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">doneList</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">newDone</span><span class="p">)</span>
         <span class="c1"># We have finished when there is not more input movies (stream closed)</span>
         <span class="c1"># and the number of processed movies is equal to the number of inputs</span>
@@ -311,100 +411,7 @@
                    <span class="o">%</span> <span class="p">(</span><span class="n">allDone</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfMovies</span><span class="p">)))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;   streamMode: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">streamMode</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createOutputMovies</span><span class="p">():</span>
-            <span class="n">saveMovie</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="s1">&#39;doSaveMovie&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-            <span class="n">movieSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">emobj</span><span class="o">.</span><span class="n">SetOfMovies</span><span class="p">,</span> <span class="s1">&#39;movies.sqlite&#39;</span><span class="p">,</span>
-                                           <span class="n">fixSampling</span><span class="o">=</span><span class="n">saveMovie</span><span class="p">)</span>
-
-            <span class="c1"># If need to save the movie</span>
-            <span class="k">if</span> <span class="n">saveMovie</span><span class="p">:</span>
-                <span class="n">movieSet</span><span class="o">.</span><span class="n">setGain</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
-                <span class="n">movieSet</span><span class="o">.</span><span class="n">setDark</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
-
-            <span class="k">for</span> <span class="n">movie</span> <span class="ow">in</span> <span class="n">newDone</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">newMovie</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createOutputMovie</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">newMovie</span><span class="o">.</span><span class="n">getAlignment</span><span class="p">()</span><span class="o">.</span><span class="n">getShifts</span><span class="p">()[</span><span class="mi">0</span><span class="p">]:</span>
-                        <span class="n">movieSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newMovie</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="nb">print</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">yellowStr</span><span class="p">(</span><span class="s2">&quot;WARNING: Movie </span><span class="si">%s</span><span class="s2"> has empty alignment &quot;</span>
-                                                <span class="s2">&quot;data, can&#39;t add it to output set.&quot;</span>
-                                                <span class="o">%</span> <span class="n">movie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()))</span>
-
-                <span class="c1"># Warn about any exception creating the movie</span>
-                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">redStr</span><span class="p">(</span><span class="s2">&quot;ERROR: Movie </span><span class="si">%s</span><span class="s2"> couldn&#39;t be &quot;</span>
-                                         <span class="s2">&quot;added to the output set.</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span>
-                                         <span class="o">%</span> <span class="p">(</span><span class="n">movie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span> <span class="n">e</span><span class="p">)))</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="n">OUT_MOVIES</span><span class="p">,</span> <span class="n">movieSet</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">firstTime</span><span class="p">:</span>
-                <span class="c1"># Probably is a good idea to store a cached summary for the</span>
-                <span class="c1"># first resulting movie of the processing.</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_storeSummary</span><span class="p">(</span><span class="n">newDone</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-                <span class="c1"># If the movies are not written out, then dimensions can be</span>
-                <span class="c1"># copied from the input movies</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">saveMovie</span><span class="p">:</span>
-                    <span class="n">movieSet</span><span class="o">.</span><span class="n">setDim</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getDim</span><span class="p">())</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_defineTransformRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="p">,</span> <span class="n">movieSet</span><span class="p">)</span>
-
-        <span class="k">def</span> <span class="nf">_updateOutputMicSet</span><span class="p">(</span><span class="n">sqliteFn</span><span class="p">,</span> <span class="n">getOutputMicName</span><span class="p">,</span> <span class="n">outputName</span><span class="p">):</span>
-            <span class="sd">&quot;&quot;&quot; Updated the output micrographs set with new items found. &quot;&quot;&quot;</span>
-            <span class="n">micSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">emobj</span><span class="o">.</span><span class="n">SetOfMicrographs</span><span class="p">,</span> <span class="n">sqliteFn</span><span class="p">)</span>
-            <span class="n">doneFailed</span> <span class="o">=</span> <span class="p">[]</span>
-
-            <span class="k">for</span> <span class="n">movie</span> <span class="ow">in</span> <span class="n">newDone</span><span class="p">:</span>
-                <span class="n">mic</span> <span class="o">=</span> <span class="n">micSet</span><span class="o">.</span><span class="n">ITEM_TYPE</span><span class="p">()</span>
-                <span class="n">mic</span><span class="o">.</span><span class="n">copyObjId</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
-                <span class="n">mic</span><span class="o">.</span><span class="n">setMicName</span><span class="p">(</span><span class="n">movie</span><span class="o">.</span><span class="n">getMicName</span><span class="p">())</span>
-                <span class="c1"># The subclass protocol is responsible of generating the output</span>
-                <span class="c1"># micrograph file in the extra path with the required name</span>
-                <span class="n">extraMicFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">getOutputMicName</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
-                <span class="n">mic</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">extraMicFn</span><span class="p">)</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">extraMicFn</span><span class="p">):</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">yellowStr</span><span class="p">(</span><span class="s2">&quot;WARNING: Micrograph </span><span class="si">%s</span><span class="s2"> was not generated, &quot;</span>
-                                            <span class="s2">&quot;can&#39;t add it to output set.&quot;</span> <span class="o">%</span> <span class="n">extraMicFn</span><span class="p">))</span>
-                    <span class="n">doneFailed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
-                    <span class="k">continue</span>
-                <span class="c1"># Tolerate errors here. Usually here some plots are generated.</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_preprocessOutputMicrograph</span><span class="p">(</span><span class="n">mic</span><span class="p">,</span> <span class="n">movie</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t prepare output details: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
-                    <span class="n">doneFailed</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
-                    <span class="k">continue</span>
-
-                <span class="n">micSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mic</span><span class="p">)</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="n">outputName</span><span class="p">,</span> <span class="n">micSet</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">doneFailed</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_writeFailedList</span><span class="p">(</span><span class="n">doneFailed</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">firstTime</span><span class="p">:</span>
-                <span class="c1"># We consider that Movies are &#39;transformed&#39; into the Micrographs</span>
-                <span class="c1"># This will allow to extend the CTF associated to a set of</span>
-                <span class="c1"># micrographs to another set of micrographs generated from a</span>
-                <span class="c1"># different movie alignment</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_defineTransformRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="p">,</span> <span class="n">micSet</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createOutputMicrographs</span><span class="p">():</span>
-            <span class="n">_updateOutputMicSet</span><span class="p">(</span><span class="s1">&#39;micrographs.sqlite&#39;</span><span class="p">,</span>
-                                <span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicName</span><span class="p">,</span>
-                                <span class="n">OUT_MICS</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createOutputWeightedMicrographs</span><span class="p">():</span>
-            <span class="n">_updateOutputMicSet</span><span class="p">(</span><span class="s1">&#39;micrographs_dose-weighted.sqlite&#39;</span><span class="p">,</span>
-                                <span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicWtName</span><span class="p">,</span>
-                                <span class="n">OUT_MICS_DW</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_doSplitEvenOdd</span><span class="p">():</span>
-            <span class="n">_updateOutputMicSet</span><span class="p">(</span><span class="s1">&#39;micrographs_even.sqlite&#39;</span><span class="p">,</span>
-                                <span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicEvenName</span><span class="p">,</span>
-                                <span class="n">OUT_MICS_EVEN</span><span class="p">)</span>
-            <span class="n">_updateOutputMicSet</span><span class="p">(</span><span class="s1">&#39;micrographs_odd.sqlite&#39;</span><span class="p">,</span>
-                                <span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicOddName</span><span class="p">,</span>
-                                <span class="n">OUT_MICS_ODD</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSets</span><span class="p">(</span><span class="n">newDone</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>  <span class="c1"># Unlock createOutputStep if finished all jobs</span>
             <span class="n">outputStep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFirstJoinStep</span><span class="p">()</span>
@@ -514,7 +521,6 @@
         <span class="k">return</span> <span class="n">first</span><span class="p">,</span> <span class="n">last</span>
 
     <span class="k">def</span> <span class="nf">_createOutputMovie</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
-
         <span class="c1"># Parse the alignment parameters and store the log files</span>
         <span class="n">alignedMovie</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
         <span class="n">n</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">getNumberOfFrames</span><span class="p">()</span>
@@ -526,7 +532,7 @@
         <span class="c1"># function for allow the protocol to not define this flag</span>
         <span class="c1"># and use False as default</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">getAttributeValue</span><span class="p">(</span><span class="s1">&#39;doSaveMovie&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-            <span class="c1"># The subclass protocol is responsible of generating the output</span>
+            <span class="c1"># The subclass protocol is responsible for generating the output</span>
             <span class="c1"># movie file in the extra path with the required name</span>
             <span class="n">extraMovieFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMovieName</span><span class="p">(</span><span class="n">movie</span><span class="p">))</span>
             <span class="n">alignedMovie</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">extraMovieFn</span><span class="p">)</span>
@@ -567,7 +573,7 @@
         <span class="c1"># Remove the first extension</span>
         <span class="n">fnRoot</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
         <span class="c1"># Check if there is a second extension</span>
-        <span class="c1"># (Assuming is is only a dot and 3 or 4 characters after it</span>
+        <span class="c1"># (Assuming it is only a dot and 3 or 4 characters after it</span>
         <span class="c1"># Do not perform this check if the file name is short</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fnRoot</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">5</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">fnRoot</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;.&#39;</span> <span class="ow">or</span> <span class="n">fnRoot</span><span class="p">[</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;.&#39;</span><span class="p">:</span>
