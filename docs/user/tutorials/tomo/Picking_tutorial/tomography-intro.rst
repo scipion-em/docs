@@ -62,8 +62,8 @@ in this case Relion's 2D classification, but could have used Cryosparc as well. 
 we go back to 3D world filtering the subtomograms based on their 2d SPA averages.
 
 
-Visualization
-=============
+Results and its Visualization
+=============================
 Visualization is quite important in any image processing pipeline. Scipion has a visualization engine that
 with little effort allow developer to integrate existing visualization tools from 3rd party software, or define
 new way of visualizing the results.
@@ -166,10 +166,10 @@ NO! But for now you can start enjoying tomography processing but be sure more in
 In the oven, we have, deepict, per-particle per tilt in eman, subtomogram averaging in xmipp,
 streamifying more protocols ... and more importantly, that new "new method" that will appear and
 revolutionise the field .... will very likely be integrated.... and YES! M, as soon as
-`can run on linux<https://groups.google.com/g/warp-em/c/dAsmMnlULJA/m/CzlgVkJMCAAJ>`_ it will be here too
+`can run on linux<https://groups.google.com/g/warp-em/c/dAsmMnlULJA/m/CzlgVkJMCAAJ>`__ it will be here too
 
 If you like what you've read, either if you are facility staff, a regular image processing user or a developer,
-please, join us at our `discord workspace<https://discord.gg/TzS5VTKQbY>`_: You are very welcome! and the people
+please, join us at our `discord workspace<https://discord.gg/TzS5VTKQbY>`__: You are very welcome! and the people
 there will be happy to assist you.
 
 
