@@ -4,85 +4,8 @@
 
 .. _single-particle-tutorials:
 
-Introduction to Scipion
------------------------
-
-.. figure:: /docs/images/12.VolumeChimera.png
-   :align: right
-   :height: 96
-   :alt: 12.VolumeChimera.png
-
-This tutorial provides a quick
-introduction to processing with Scipion. It is designed to take a
-short time while illustrating the main concepts. The tutorial uses 3
-micrographs from the Grigorieff `BPV
-dataset <http://grigoriefflab.janelia.org/papillomavirus>`__. A final
-virus 3D map is obtained.
-
-| *Guide*:
-  `scipion\_tutorial\_intro.pdf <https://github.com/I2PC/scipion/wiki/tutorials/scipion_tutorial_intro.pdf>`__
-
-
-Initial model estimation
-------------------------
-
-.. figure:: /docs/images/00.ReconstructedVolume.png
-   :align: right
-   :height: 96
-   :alt: 00.ReconstructedVolume.png
-
-This tutorial uses different methods to
-obtain an initial 3D map. Methods covered are RCT, Ransac, Eman and
-Reconstruct Significant.
-
-*Guide*:
-`scipion\_tutorial\_initialvolume.pdf <https://github.com/I2PC/scipion/wiki/tutorials/scipion_tutorial_initialvolume.pdf>`__\
-
-
-Mix-and-match in Scipion
-------------------------
-
-.. figure:: /docs/images/betagal.png
-   :align: right
-   :height: 96
-   :alt: 00.ReconstructedVolume.png
-
-This tutorial presents a more complete
-workflow of Cryo-EM single particles inside Scipion. It is focused on
-demonstrate the combination of different EM-packages. This tutorial
-follows the processing pipeline described for Relion 1.3 tutorial with
-Beta-galactosidase data. \
-
-*Guide*:
-`scipion\_tutorial\_betagal.pdf <https://github.com/I2PC/scipion/wiki/tutorials/scipion_tutorial_betagal.pdf>`__
-
-You may download a fully solved project of this tutorial from
-`here <http://scipion.cnb.csic.es/downloads/scipion/data/FEICourse.tgz>`__.
-
-
-Relion in Scipion
------------------
-
-This tutorial is focused on using Relion 4 single particle workflow inside Scipion. It follows the 
-processing pipeline described for Relion 4.0 tutorial with
-Beta-galactosidase data. \
-
-*Guide*:
-`scipion\_tutorial\_relion.pdf <../../_static/pdfs/scipion_tutorial_relion.pdf>`__
-
-
-Full processing video tutorial
-------------------------------
-    4 video tutorials in a
-    `list <https://www.youtube.com/watch?v=LAwe9DroypI&list=PLyJiuGnB9hAyxHotd--gKMzCRFpXrSo15>`__
-    to go from movies to a 3D volume using betagalactosidase data.
-
-    Take a look at our `tutorial videos <https://www.youtube.com/user/BiocompWebs>`_ in the Scipion youtube channel.
-
-Know more about the `theory and practice <http://i2pc.es/coss/Docencia/ImageProcessing/imageProcessingInEM.pdf>`_ behind Image Processing in EM.
-
-Mouse apoferritin image processing in Scipion 3.0.0
-----------------------------------------------------
+Mouse apoferritin image processing in Scipion 3
+-----------------------------------------------
 
 .. figure:: /docs/images/Cover_apoferritin.png
    :align: right
@@ -102,6 +25,70 @@ You may download a fully solved compressed project (Example_10248_Scipion3.tgz) 
 
 *Workflow*:
 `download <http://workflows.scipion.i2pc.es/workflow_detail/36/atom-struct-modeling-demo/>`__\
+
+
+
+Relion in Scipion
+-----------------
+
+This tutorial is focused on using Relion 4 single particle workflow inside Scipion. It follows the 
+processing pipeline described for Relion 4.0 tutorial with
+Beta-galactosidase data. \
+
+*Guide*:
+`scipion\_tutorial\_relion.pdf <../../_static/pdfs/scipion_tutorial_relion.pdf>`__
+
+
+Full SPA processing video tutorial
+----------------------------------
+    4 video tutorials in a
+    `list <https://www.youtube.com/watch?v=LAwe9DroypI&list=PLyJiuGnB9hAyxHotd--gKMzCRFpXrSo15>`__
+    to go from movies to a 3D volume using betagalactosidase data.
+
+    Part1: Micrograph processing
+
+    .. image:: https://img.youtube.com/vi/LAwe9DroypI/maxresdefault.jpg
+        :alt: Part1: Micrograph processing
+        :target: https://www.youtube.com/watch?v=LAwe9DroypI
+
+    Part2: Particle picking
+
+    .. image:: https://img.youtube.com/vi/Y1jCY2cZlC0/maxresdefault.jpg
+        :alt: Part2: Particle picking
+        :target: https://www.youtube.com/watch?v=Y1jCY2cZlC0
+
+    Part3: 2D classification and initial volume
+
+    .. image:: https://img.youtube.com/vi/1fxOmKxqsPY/maxresdefault.jpg
+        :alt: Part3: 2D classification and initial volume
+        :target: https://www.youtube.com/watch?v=1fxOmKxqsPY
+
+    Part4: 3D Reconstruction and validation
+
+    .. image:: https://img.youtube.com/vi/AmYqywBA10o/maxresdefault.jpg
+        :alt: Part4: 3D Reconstruction and validation
+        :target: https://www.youtube.com/watch?v=AmYqywBA10o
+
+    Take a look at our `tutorial videos <https://www.youtube.com/user/BiocompWebs>`_ in the Scipion youtube channel.
+
+Know more about the `theory and practice <http://i2pc.es/coss/Docencia/ImageProcessing/imageProcessingInEM.pdf>`_ behind Image Processing in EM.
+
+
+Initial model estimation
+------------------------
+
+.. figure:: /docs/images/00.ReconstructedVolume.png
+   :align: right
+   :height: 96
+   :alt: 00.ReconstructedVolume.png
+
+This tutorial uses different methods to
+obtain an initial 3D map. Methods covered are RCT, Ransac, Eman and
+Reconstruct Significant.
+
+*Guide*:
+`scipion\_tutorial\_initialvolume.pdf <https://github.com/I2PC/scipion/wiki/tutorials/scipion_tutorial_initialvolume.pdf>`__\
+
 
 Initial volume validation by SAXS
 ---------------------------------
