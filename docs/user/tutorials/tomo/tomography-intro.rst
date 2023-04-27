@@ -14,16 +14,16 @@
 Tomography in Scipion
 =====================
 
-Scipion now talks cryo electron tomography!. It s been a long journey of developing and betatesting the new set
-of plugins to make cryoET user friendly and remove some of the main obstacles of this image processing pipepline:
+Scipion now talks cryo-electron tomography! It s been a long journey of developing and beta-testing the new set
+of plugins to make cryo-ET user-friendly and remove some of the main obstacles of this image processing pipepline:
 traceability, software interoperability and results visualization.
 
 
 Integration
 ===========
-In the same way as we've done it for single particle analysis (SPA) we (a set of developers and betatesters) have
+In the same way as we've done it for single-particle analysis (SPA) we (a set of developers and beta-testers) have
 integrated most of the relevant software used in cryoET so you, as a user, can forget about moving files around,
-launching complicated commands or convert data and metadata. Scipion tomo does it for you. Here is a short list of
+launching complicated commands or convert data and metadata. Scipion Tomo does it for you. Here is a short list of
 the software integrated today (26th April 2023), but since Scipion is exensible by plugins we hope more developers
 will join the project to integrate their nice software into this platform.
 
@@ -56,30 +56,30 @@ Here you can see how one of our tutorials workflows mixes some of the software i
    :alt: Tomography workflow with SPA showing software interoperability.
 
 Please, note that relion methods in this case are SPA ones (2D classification and 2D class ranker)
-in what we have called the "SPA leap". This is projecting subtomograms on any of the 3 axis
-to get 2D particles. Once "flattened" the particles can be send to ANY SPA available protocol,
+in what we have called the "SPA leap". This is done by projecting subtomograms on any of the 3 axis
+to get 2D particles. Once flattened, particles can be send to ANY SPA available protocol,
 in this case Relion's 2D classification, but could have used Cryosparc as well. Then with the "subset"
-we go back to 3D world filtering the subtomograms based on their 2d SPA averages.
+we go back to 3D world filtering subtomograms based on their 2d SPA averages.
 
 
 Results and its Visualization
 =============================
 Visualization is quite important in any image processing pipeline. Scipion has a visualization engine that
-with little effort allow developer to integrate existing visualization tools from 3rd party software, or define
+with little effort allow developer to integrate existing visualization tools from a 3rd party software, or define
 new way of visualizing the results.
 
-Here you can se how easily you can visualise a tilt series using the versatile Imod's 3dmod program.
+Here you can see how easily you can visualise tilt series using the versatile Imod's 3dmod program.
 
 .. image:: /docs/images/tomography/3dmod.gif
    :alt: 3dmod showing a tilt series
 
-However, for viewing a set of tomography CTFs we have developed a custom viewer that plots the
-defocus values and resolution along the selected tilt serie and its basic metadata.
+Moreover, for viewing a set of tomography CTFs we have developed a custom viewer that plots the
+defocus values and resolution along the selected tilt series and its basic metadata.
 
 .. image:: /docs/images/tomography/tomo-ctf-viewer.png
    :alt: Scipion viewer for a Set of tomography CTFs.
 
-See how many different ways you can visualise any set of 3D coordinates:
+See in how many different ways you can visualise any set of 3D coordinates:
 Tomoviz (with and without orientations), Dynamo or Eman2, napari, your choice!!.
 
 .. image:: /docs/images/tomography/3dcoordinates-viewers.gif
@@ -93,14 +93,14 @@ Be aware that you can enter relion4 tomogram pipeline having aligned you tilt se
 .. image:: /docs/images/tomography/relion4-projected-particles.gif
    :alt: Visualisation of 3d coordinates as fiducials in 3dmod.
 
-Of course, ChimeraX is integrated to render subtomogram averages like the one at 3.7 Å reached
+Of course, ChimeraX is integrated to render subtomogram averages as the one at 3.7 Å reached
 100% inside Scipion (staring from relion4's HIV capsid tutorial dataset) and before any CTF or tilt series
 refinement.
 
 .. image:: /docs/images/tomography/chimerax.gif
    :alt: Zoomed in section in ChimeraX of the HIV capsid at 3.7 Å.
 
-Once you have a decent average you could also map it back to the original tomogram to see in situ features
+Once you have the proper average you could also map it back to the original tomogram to see in situ features
 using xmipptomo map back protocol.
 
 .. image:: /docs/images/tomography/mapback.png
@@ -136,12 +136,12 @@ How to get it?
 ==============
 As simple as installing the plugins you want to use. Obviously you first need to get :ref:`scipion installed<how-to-install>`
 and then use the :ref:`plugin manager<plugin-manager>` to install the tomography plugins. Each plugin will install the software
-behind it integrates (by default) but can be canceled in case you already have it. In this case, see how to
+behind it integrates (by default) but can be canceled in case you already have it. In this case, see how to do it here:
 :ref:`link existing software<linking-existing-software>`
 
 One more thing
 ==============
-Please, please ... only cite us, and cite **all the great software we integrate** too!. Citations is what fuels all the software.
+Please, please ... cite us! and cite **all the great software we integrate** too!. Citations is what fuels all the software.
 Yes, Scipion kind of "hides" in many cases the software it integrates but there is no way to do it otherwise.
 For every protocol you have all the references in bibtex format available and quite easily you can get all the references
 involved in your project. Please do so!.
