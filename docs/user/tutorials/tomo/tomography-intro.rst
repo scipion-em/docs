@@ -3,7 +3,7 @@
 .. |results| image:: /docs/user/tutorials/tomo/Picking_tutorial/Analyze_results.png
 .. |wizard| image:: /docs/user/tutorials/tomo/Picking_tutorial/Wizard.png
 
-.. figure:: /docs/images/tomography/scipion-tomo-color.png
+.. image:: /docs/images/tomography/scipion-tomo-color.png
    :width: 100
    :align: right
    :alt: scipion tomo logo
