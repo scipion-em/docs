@@ -3,7 +3,7 @@
 .. |results| image:: /docs/user/tutorials/tomo/Picking_tutorial/Analyze_results.png
 .. |wizard| image:: /docs/user/tutorials/tomo/Picking_tutorial/Wizard.png
 
-.. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Scipion_tomo.gif
+.. figure:: /docs/images/tomography/scipion-tomo-color.png
    :width: 100
    :align: right
    :alt: scipion tomo logo
@@ -136,12 +136,12 @@ How to get it?
 ==============
 As simple as installing the plugins you want to use. Obviously you first need to get :ref:`scipion installed<how-to-install>`
 and then use the :ref:`plugin manager<plugin-manager>` to install the tomography plugins. Each plugin will install the software
-beit integrates (by default) but can be canceled in case you already have it. In this case, see how to
+behind it integrates (by default) but can be canceled in case you already have it. In this case, see how to
 :ref:`link existing software<linking-existing-software>`
 
 One more thing
 ==============
-Please, please ... not only cite us, but **all the great software we integrate**!. Citations is what fuels all the software.
+Please, please ... only cite us, and cite **all the great software we integrate** too!. Citations is what fuels all the software.
 Yes, Scipion kind of "hides" in many cases the software it integrates but there is no way to do it otherwise.
 For every protocol you have all the references in bibtex format available and quite easily you can get all the references
 involved in your project. Please do so!.
