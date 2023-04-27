@@ -56,7 +56,7 @@ Here you can see how one of our tutorials workflows mixes some of the software i
    :alt: Tomography workflow with SPA showing software interoperability.
 
 Please, note that relion methods in this case are SPA ones (2D classification and 2D class ranker)
-in what we have called the "SPA leap". This is projecting subtomograms on any on any of the 3 axis
+in what we have called the "SPA leap". This is projecting subtomograms on any of the 3 axis
 to get 2D particles. Once "flattened" the particles can be send to ANY SPA available protocol,
 in this case Relion's 2D classification, but could have used Cryosparc as well. Then with the "subset"
 we go back to 3D world filtering the subtomograms based on their 2d SPA averages.
@@ -68,10 +68,10 @@ Visualization is quite important in any image processing pipeline. Scipion has a
 with little effort allow developer to integrate existing visualization tools from 3rd party software, or define
 new way of visualizing the results.
 
-Here you can se how easily you can visualise a tilt series using the versatile Imod's eTomo program.
+Here you can se how easily you can visualise a tilt series using the versatile Imod's 3dmod program.
 
 .. image:: /docs/images/tomography/3dmod.gif
-   :alt: eTomo showing a tilt series
+   :alt: 3dmod showing a tilt series
 
 However, for viewing a set of tomography CTFs we have developed a custom viewer that plots the
 defocus values and resolution along the selected tilt serie and its basic metadata.
