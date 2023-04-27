@@ -5,6 +5,13 @@
 .. _tomography-tutorials:
 
 
+Tomography in Scipion
+---------------------
+Introduction to how Scipion integration and visualization capabilities can simplify your cryo electron
+tomography pipeline.
+
+ *Guide*: :ref:`Tomography intro <tomography-intro>`
+
 Tomogram Reconstruction
 -----------------------
 The main goal of this tutorial is to illustrate the combination of different tomography software
@@ -78,4 +85,4 @@ capsid of the HIV virus, so our particles will have to maintain the orientation
 with respect to the virus internal membrane.
 
  *Guide*:
- `Subtomogram Averaging HIV <https://docs.google.com/document/d/14hFAyyb19SZsXe1i82NN9RP9VW1ZyCEAJJznnEOeA7Q>`_
+ `Subtomogram Averaging HIV <https://docs.google.com/document/d/1i7nzRV5NWgmw7tPfvlVcVKSkX7_YJUMUenGPZfGN8qw>`_
