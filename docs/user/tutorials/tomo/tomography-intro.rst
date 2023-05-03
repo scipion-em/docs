@@ -1,7 +1,3 @@
-.. include:: <isonum.txt>
-.. |icon| image:: /docs/user/tutorials/tomo/Picking_tutorial/Toggle_icon.png
-.. |results| image:: /docs/user/tutorials/tomo/Picking_tutorial/Analyze_results.png
-.. |wizard| image:: /docs/user/tutorials/tomo/Picking_tutorial/Wizard.png
 
 .. image:: /docs/images/tomography/scipion-tomo-color.png
    :width: 100
