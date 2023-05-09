@@ -4,10 +4,12 @@ Predicting initial models with ModelAngelo
 ==========================================
 
 ModelAngelo is an automatic model building program for cryo-EM maps (:cite:p:`jamali2023modelangelo`). 
-In this tutorial we show how to generate ModelAngelo models with or without using a sequence as input for a 3D density map. We use the *Scipion* framework and the approach described in the `PHENIX  <https://phenix-online.org/documentation/reference/alphafold.html>`_ web site
+In this tutorial we show how to generate ModelAngelo models, with or without using a sequence as input, for a 3D density map using the
+*Scipion* framework.
 
 
-* Get the initial ModelAngelo model
+* Get ModelAngelo initial models
+* Compare initial models with already traced models
 
 
 Contents
@@ -22,6 +24,8 @@ Contents
    011-problem2solve
    012-generalWorflow
    020-initialModel
+   030-modelComparison
+
 
 
 Appendices
