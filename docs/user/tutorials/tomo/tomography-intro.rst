@@ -20,7 +20,7 @@ Integration
 In the same way as we've done it for single-particle analysis (SPA) we (a set of developers and beta-testers) have
 integrated most of the relevant software used in cryoET so you, as a user, can forget about moving files around,
 launching complicated commands or convert data and metadata. Scipion Tomo does it for you. Here is a short list of
-the software integrated today (26th April 2023), but since Scipion is exensible by plugins we hope more developers
+the software integrated today (26th April 2023), but since Scipion is extensible by plugins we hope more developers
 will join the project to integrate their nice software into this platform.
 
 * Motioncor2 (scipion-em-motioncorr)
@@ -56,6 +56,16 @@ in what we have called the "SPA leap". This is done by projecting subtomograms o
 to get 2D particles. Once flattened, particles can be send to ANY SPA available protocol,
 in this case Relion's 2D classification, but could have used Cryosparc as well. Then with the "subset"
 we go back to 3D world filtering subtomograms based on their 2d SPA averages.
+
+Current status
+==============
+Note that current status is BETA. Many of the protocols are even more stable but we are not that sure
+for others. Ad today (3rd May 2023) the following are the detailed weaknesses of the workflow we are aware of:
+
+* Eman: Refinement does not take into account the CTF. Best approach would be to CTF correct the images. Although even this has to be tested.
+* Deepfinder, although test are passing might need a review.
+* CryoCARE: also might need a review.
+* Continuousflex needs adaptation to tomography model.
 
 
 Results and its Visualization
