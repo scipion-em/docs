@@ -51,6 +51,7 @@ Model Building
 
     Model Building by Homology <tutorials/modelBuilding/Homology/index>
     Build initial model with Alphafold <tutorials/modelBuilding/Alphafold/index>
+    Build initial model with ModelAngelo <tutorials/modelBuilding/ModelAngelo/index>
 
 Processing How To's
 ===================
