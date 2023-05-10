@@ -22,7 +22,7 @@ Contents
    007-requirements
    010-introduction
    011-problem2solve
-   012-generalWorflow
+   012-generalWorkflow
    020-initialModel
    030-modelComparison
 
