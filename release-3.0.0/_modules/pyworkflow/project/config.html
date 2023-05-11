@@ -46,6 +46,7 @@
 <p class="caption" role="heading"><span class="caption-text">User documentation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../docs/user/user-documentation.html">Graphical interface manuals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../docs/user/user-documentation.html#image-processing-resources">Image processing resources</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../docs/user/user-documentation.html#tutorials">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../docs/user/user-documentation.html#processing-how-to-s">Processing How To’s</a></li>
 </ul>
@@ -125,12 +126,10 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 
-
-<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">datetime</span> <span class="k">as</span> <span class="nn">dt</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
-<span class="kn">from</span> <span class="nn">configparser</span> <span class="kn">import</span> <span class="n">ConfigParser</span>
 
 <span class="kn">import</span> <span class="nn">pyworkflow.object</span> <span class="k">as</span> <span class="nn">pwobj</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.mapper</span> <span class="kn">import</span> <span class="n">SqliteMapper</span>
@@ -249,11 +248,42 @@
 <div class="viewcode-block" id="ProjectSettings.getNodes"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.config.html#pyworkflow.project.config.ProjectSettings.getNodes">[docs]</a>    <span class="k">def</span> <span class="nf">getNodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodeList</span></div>
 
+<div class="viewcode-block" id="ProjectSettings.cleanUpNodes"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.config.html#pyworkflow.project.config.ProjectSettings.cleanUpNodes">[docs]</a>    <span class="k">def</span> <span class="nf">cleanUpNodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">runsIds</span><span class="p">,</span> <span class="n">toRemove</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; This will clean up all the nodes that do not have a matching run.</span>
+<span class="sd">        This is because until now, the nodes here weren&#39;t removes when protocols were removed.</span>
+
+<span class="sd">        :param runsIds: iterable with protocol&#39;s objId to be removed.</span>
+<span class="sd">        :param toRemove: Passed is are to be removed. Otherwise, are the ones to keep</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Cleaning up unused graphical nodes.&quot;</span><span class="p">)</span>
+
+            <span class="n">nodesToDelete</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">node</span>  <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">getNodes</span><span class="p">():</span>
+                <span class="n">nodeId</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">getId</span><span class="p">())</span>
+                <span class="c1"># if it is not the root node</span>
+                <span class="k">if</span> <span class="n">nodeId</span> <span class="o">!=</span> <span class="s1">&#39;0&#39;</span><span class="p">:</span>
+
+                    <span class="k">if</span> <span class="p">(</span><span class="n">nodeId</span> <span class="ow">in</span> <span class="n">runsIds</span><span class="p">)</span> <span class="o">==</span> <span class="n">toRemove</span><span class="p">:</span>
+                        <span class="n">nodesToDelete</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="o">.</span><span class="n">getId</span><span class="p">())</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Following graphical nodes </span><span class="si">%s</span><span class="s2"> unmatched. Deleting them&quot;</span> <span class="o">%</span> <span class="n">nodesToDelete</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">nodesToDelete</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">getNodes</span><span class="p">()</span><span class="o">.</span><span class="n">removeNode</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t clean up graphical nodes.&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">e</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="ProjectSettings.getNodeById"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.config.html#pyworkflow.project.config.ProjectSettings.getNodeById">[docs]</a>    <span class="k">def</span> <span class="nf">getNodeById</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodeId</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodeList</span><span class="o">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">nodeId</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ProjectSettings.addNode"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.config.html#pyworkflow.project.config.ProjectSettings.addNode">[docs]</a>    <span class="k">def</span> <span class="nf">addNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodeId</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nodeList</span><span class="o">.</span><span class="n">addNode</span><span class="p">(</span><span class="n">nodeId</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ProjectSettings.removeNode"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.config.html#pyworkflow.project.config.ProjectSettings.removeNode">[docs]</a>    <span class="k">def</span> <span class="nf">removeNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodeId</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Removes a graphical node based on its id&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nodeList</span><span class="o">.</span><span class="n">removeNode</span><span class="p">(</span><span class="n">nodeId</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ProjectSettings.getLabels"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.config.html#pyworkflow.project.config.ProjectSettings.getLabels">[docs]</a>    <span class="k">def</span> <span class="nf">getLabels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">labelsList</span></div>
@@ -428,6 +458,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_nodesDict</span><span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">getId</span><span class="p">()]</span> <span class="o">=</span> <span class="n">node</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">node</span></div>
+
+<div class="viewcode-block" id="NodeConfigList.removeNode"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.config.html#pyworkflow.project.config.NodeConfigList.removeNode">[docs]</a>    <span class="k">def</span> <span class="nf">removeNode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodeId</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Removes a node with the id = nodeId&quot;&quot;&quot;</span>
+        <span class="n">nodeToRemove</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nodesDict</span><span class="p">[</span><span class="n">nodeId</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nodesDict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">nodeId</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">nodeToRemove</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="NodeConfigList.updateDict"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.config.html#pyworkflow.project.config.NodeConfigList.updateDict">[docs]</a>    <span class="k">def</span> <span class="nf">updateDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_nodesDict</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>

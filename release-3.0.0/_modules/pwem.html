@@ -46,6 +46,7 @@
 <p class="caption" role="heading"><span class="caption-text">User documentation</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../docs/user/user-documentation.html">Graphical interface manuals</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../docs/user/user-documentation.html#image-processing-resources">Image processing resources</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../docs/user/user-documentation.html#tutorials">Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../docs/user/user-documentation.html#processing-how-to-s">Processing How To’s</a></li>
 </ul>
@@ -133,7 +134,7 @@
 
 <span class="kn">import</span> <span class="nn">pyworkflow</span> <span class="k">as</span> <span class="nn">pw</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol</span> <span class="kn">import</span> <span class="n">Protocol</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">weakImport</span><span class="p">,</span> <span class="n">getSubclasses</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span>  <span class="n">getSubclasses</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.viewer</span> <span class="kn">import</span> <span class="n">Viewer</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.wizard</span> <span class="kn">import</span> <span class="n">Wizard</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.plugin</span>
@@ -222,11 +223,15 @@
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_defineVariables</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_defineVar</span><span class="p">(</span><span class="n">EM_ROOT_VAR</span><span class="p">,</span> <span class="n">pwem</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">EM_ROOT</span><span class="p">)</span>
-        <span class="bp">cls</span><span class="o">.</span><span class="n">_defineEmVar</span><span class="p">(</span><span class="n">MAXIT_HOME</span><span class="p">,</span> <span class="s1">&#39;maxit-10.1&#39;</span><span class="p">)</span>
+        <span class="c1"># Avoid defining variables from children that does not define variables.</span>
+        <span class="k">if</span> <span class="bp">cls</span> <span class="o">==</span> <span class="n">Plugin</span><span class="p">:</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_defineVar</span><span class="p">(</span><span class="n">EM_ROOT_VAR</span><span class="p">,</span> <span class="n">pwem</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">EM_ROOT</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_defineEmVar</span><span class="p">(</span><span class="n">MAXIT_HOME</span><span class="p">,</span> <span class="s1">&#39;maxit-10.1&#39;</span><span class="p">)</span>
 
-        <span class="c1"># Take this initialization event to define own datasets</span>
-        <span class="n">defineDatasets</span><span class="p">()</span>
+            <span class="c1"># Take this initialization event to define own datasets</span>
+            <span class="n">defineDatasets</span><span class="p">()</span>
+            <span class="c1"># Register filehandlers too</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_registerFileHandlers</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Plugin.defineBinaries"><a class="viewcode-back" href="../api/pwem/pwem.html#pwem.Plugin.defineBinaries">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">defineBinaries</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
@@ -301,8 +306,22 @@
             <span class="n">versionStr</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
             <span class="k">return</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">versionStr</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">default</span><span class="p">)</span></div></div>
+            <span class="k">return</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">default</span><span class="p">)</span></div>
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_registerFileHandlers</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="c1"># register file handlers to preview info in the Filebrowser....</span>
+        <span class="kn">from</span> <span class="nn">pyworkflow.gui.browser</span> <span class="kn">import</span> <span class="n">FileTreeProvider</span><span class="p">,</span> <span class="n">STANDARD_IMAGE_EXTENSIONS</span>
+        <span class="kn">from</span> <span class="nn">.viewers.filehandlers</span> <span class="kn">import</span> <span class="n">MdFileHandler</span><span class="p">,</span> <span class="n">ParticleFileHandler</span><span class="p">,</span> <span class="n">VolFileHandler</span><span class="p">,</span> <span class="n">StackHandler</span><span class="p">,</span> <span class="n">ChimeraHandler</span>
 
+        <span class="n">register</span> <span class="o">=</span> <span class="n">FileTreeProvider</span><span class="o">.</span><span class="n">registerFileHandler</span>
+        <span class="n">register</span><span class="p">(</span><span class="n">MdFileHandler</span><span class="p">(),</span> <span class="s1">&#39;.xmd&#39;</span><span class="p">,</span> <span class="s1">&#39;.star&#39;</span><span class="p">,</span> <span class="s1">&#39;.pos&#39;</span><span class="p">,</span> <span class="s1">&#39;.ctfparam&#39;</span><span class="p">,</span> <span class="s1">&#39;.doc&#39;</span><span class="p">)</span>
+        <span class="n">register</span><span class="p">(</span><span class="n">ParticleFileHandler</span><span class="p">(),</span>
+                 <span class="s1">&#39;.xmp&#39;</span><span class="p">,</span> <span class="s1">&#39;.tif&#39;</span><span class="p">,</span> <span class="s1">&#39;.tiff&#39;</span><span class="p">,</span> <span class="s1">&#39;.spi&#39;</span><span class="p">,</span> <span class="s1">&#39;.mrc&#39;</span><span class="p">,</span> <span class="s1">&#39;.map&#39;</span><span class="p">,</span> <span class="s1">&#39;.raw&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;.inf&#39;</span><span class="p">,</span> <span class="s1">&#39;.dm3&#39;</span><span class="p">,</span> <span class="s1">&#39;.em&#39;</span><span class="p">,</span> <span class="s1">&#39;.pif&#39;</span><span class="p">,</span> <span class="s1">&#39;.psd&#39;</span><span class="p">,</span> <span class="s1">&#39;.spe&#39;</span><span class="p">,</span> <span class="s1">&#39;.ser&#39;</span><span class="p">,</span> <span class="s1">&#39;.img&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;.hed&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">STANDARD_IMAGE_EXTENSIONS</span><span class="p">)</span>
+        <span class="n">register</span><span class="p">(</span><span class="n">VolFileHandler</span><span class="p">(),</span> <span class="s1">&#39;.vol&#39;</span><span class="p">,</span> <span class="s1">&#39;.hdf&#39;</span><span class="p">,</span> <span class="s1">&#39;.rec&#39;</span><span class="p">)</span>
+        <span class="n">register</span><span class="p">(</span><span class="n">StackHandler</span><span class="p">(),</span> <span class="s1">&#39;.stk&#39;</span><span class="p">,</span> <span class="s1">&#39;.mrcs&#39;</span><span class="p">,</span> <span class="s1">&#39;.st&#39;</span><span class="p">,</span> <span class="s1">&#39;.pif&#39;</span><span class="p">,</span> <span class="s1">&#39;.dm4&#39;</span><span class="p">,</span> <span class="s1">&#39;.ali&#39;</span><span class="p">)</span>
+        <span class="n">register</span><span class="p">(</span><span class="n">ChimeraHandler</span><span class="p">(),</span> <span class="s1">&#39;.bild&#39;</span><span class="p">,</span> <span class="s1">&#39;.mrc&#39;</span><span class="p">,</span> <span class="s1">&#39;.pdb&#39;</span><span class="p">,</span> <span class="s1">&#39;.vol&#39;</span><span class="p">,</span> <span class="s1">&#39;.hdf&#39;</span><span class="p">,</span> <span class="s1">&#39;.cif&#39;</span><span class="p">,</span> <span class="s1">&#39;.mmcif&#39;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="findFolderWithPattern"><a class="viewcode-back" href="../api/pwem/pwem.html#pwem.findFolderWithPattern">[docs]</a><span class="k">def</span> <span class="nf">findFolderWithPattern</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">pattern</span><span class="p">):</span>
@@ -326,24 +345,6 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">findFolderWithPattern</span><span class="p">(</span><span class="n">previous</span><span class="p">,</span> <span class="n">pattern</span><span class="p">)</span></div>
 
-<span class="c1"># NOTE: This should not happen in production since tifffile is in the requirements and end up in the package metadata</span>
-<span class="c1"># The case for this is the &quot;devel installation&quot;, that is not using requirements.txt (maybe it should) but directly</span>
-<span class="c1"># running pip install -e path/to/scipion-em</span>
-<span class="c1"># This triggers the import of tifffile not yet installed, but about to do so.</span>
-<span class="k">with</span> <span class="n">weakImport</span><span class="p">(</span><span class="s2">&quot;tifffile&quot;</span><span class="p">):</span>
-    <span class="c1"># register file handlers to preview info in the Filebrowser....</span>
-    <span class="kn">from</span> <span class="nn">pyworkflow.gui.browser</span> <span class="kn">import</span> <span class="n">FileTreeProvider</span><span class="p">,</span> <span class="n">STANDARD_IMAGE_EXTENSIONS</span>
-    <span class="kn">from</span> <span class="nn">.viewers.filehandlers</span> <span class="kn">import</span> <span class="o">*</span>
-
-    <span class="n">register</span> <span class="o">=</span> <span class="n">FileTreeProvider</span><span class="o">.</span><span class="n">registerFileHandler</span>
-    <span class="n">register</span><span class="p">(</span><span class="n">MdFileHandler</span><span class="p">(),</span> <span class="s1">&#39;.xmd&#39;</span><span class="p">,</span> <span class="s1">&#39;.star&#39;</span><span class="p">,</span> <span class="s1">&#39;.pos&#39;</span><span class="p">,</span> <span class="s1">&#39;.ctfparam&#39;</span><span class="p">,</span> <span class="s1">&#39;.doc&#39;</span><span class="p">)</span>
-    <span class="n">register</span><span class="p">(</span><span class="n">ParticleFileHandler</span><span class="p">(),</span>
-             <span class="s1">&#39;.xmp&#39;</span><span class="p">,</span> <span class="s1">&#39;.tif&#39;</span><span class="p">,</span> <span class="s1">&#39;.tiff&#39;</span><span class="p">,</span> <span class="s1">&#39;.spi&#39;</span><span class="p">,</span> <span class="s1">&#39;.mrc&#39;</span><span class="p">,</span> <span class="s1">&#39;.map&#39;</span><span class="p">,</span> <span class="s1">&#39;.raw&#39;</span><span class="p">,</span>
-             <span class="s1">&#39;.inf&#39;</span><span class="p">,</span> <span class="s1">&#39;.dm3&#39;</span><span class="p">,</span> <span class="s1">&#39;.em&#39;</span><span class="p">,</span> <span class="s1">&#39;.pif&#39;</span><span class="p">,</span> <span class="s1">&#39;.psd&#39;</span><span class="p">,</span> <span class="s1">&#39;.spe&#39;</span><span class="p">,</span> <span class="s1">&#39;.ser&#39;</span><span class="p">,</span> <span class="s1">&#39;.img&#39;</span><span class="p">,</span>
-             <span class="s1">&#39;.hed&#39;</span><span class="p">,</span> <span class="o">*</span><span class="n">STANDARD_IMAGE_EXTENSIONS</span><span class="p">)</span>
-    <span class="n">register</span><span class="p">(</span><span class="n">VolFileHandler</span><span class="p">(),</span> <span class="s1">&#39;.vol&#39;</span><span class="p">,</span> <span class="s1">&#39;.hdf&#39;</span><span class="p">)</span>
-    <span class="n">register</span><span class="p">(</span><span class="n">StackHandler</span><span class="p">(),</span> <span class="s1">&#39;.stk&#39;</span><span class="p">,</span> <span class="s1">&#39;.mrcs&#39;</span><span class="p">,</span> <span class="s1">&#39;.st&#39;</span><span class="p">,</span> <span class="s1">&#39;.pif&#39;</span><span class="p">,</span> <span class="s1">&#39;.dm4&#39;</span><span class="p">)</span>
-    <span class="n">register</span><span class="p">(</span><span class="n">ChimeraHandler</span><span class="p">(),</span> <span class="s1">&#39;.bild&#39;</span><span class="p">,</span> <span class="s1">&#39;.mrc&#39;</span><span class="p">,</span> <span class="s1">&#39;.pdb&#39;</span><span class="p">,</span> <span class="s1">&#39;.vol&#39;</span><span class="p">,</span> <span class="s1">&#39;.hdf&#39;</span><span class="p">,</span> <span class="s1">&#39;.cif&#39;</span><span class="p">,</span> <span class="s1">&#39;.mmcif&#39;</span><span class="p">)</span>
 </pre></div>
 
            </div>

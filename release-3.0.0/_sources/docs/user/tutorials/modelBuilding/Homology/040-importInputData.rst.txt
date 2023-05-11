@@ -1,3 +1,5 @@
+.. _`importInputData`:
+
 Import Input data
 =================
 
