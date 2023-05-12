@@ -17,6 +17,10 @@ The following guides show you how to perform certain actions using the GUI:
     Using the default viewer for Coordinates objects <picker>
     How to install plugins <plugin-manager>
 
+Image processing resources
+==========================
+
+`Very complete Youtube list about cryoem image processing videos <https://www.youtube.com/playlist?list=PLQjWIcrmtc4JjyC-_BM99_XW-VsDa4_i3>`__
 
 Tutorials
 =========

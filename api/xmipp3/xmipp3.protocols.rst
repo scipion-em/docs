@@ -34,7 +34,7 @@ Submodules
    xmipp3.protocols.protocol_classification_gpuCorr_semi
    xmipp3.protocols.protocol_compare_angles
    xmipp3.protocols.protocol_compare_reprojections
-   xmipp3.protocols.protocol_consensus_classes3D
+   xmipp3.protocols.protocol_consensus_classes
    xmipp3.protocols.protocol_consensus_local_ctf
    xmipp3.protocols.protocol_convert_pdb
    xmipp3.protocols.protocol_core_analysis
@@ -61,6 +61,7 @@ Submodules
    xmipp3.protocols.protocol_metaprotocol_create_subset
    xmipp3.protocols.protocol_metaprotocol_golden_highres
    xmipp3.protocols.protocol_ml2d
+   xmipp3.protocols.protocol_movie_dose_analysis
    xmipp3.protocols.protocol_movie_gain
    xmipp3.protocols.protocol_movie_max_shift
    xmipp3.protocols.protocol_movie_opticalflow
