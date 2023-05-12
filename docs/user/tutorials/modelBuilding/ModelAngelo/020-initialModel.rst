@@ -20,12 +20,12 @@ First open the **import volumes** protocol (:numref:`model_building_modelangelo_
 import the map from the database, and include the ID number for the TACAN homodimer (2). Finally, execute the protocol.
 
 .. figure:: Images/Fig2_import_volume.svg
-   :alt: Importing TACAN 3D volume in *Scipion*.
+   :alt: Importing TACAN 3D volume in *Scipion* (workflow step 1; :numref:`model_building_modelangelo_fig1_workflow`).
    :name: model_building_modelangelo_import_volume
    :align: center
    :width: 95.0%
 
-   Importing the volume in *Scipion* (workflow step 1; :numref:`model_building_modelangelo_fig1_workflow`).
+   Importing TACAN 3D volume in *Scipion* (workflow step 1; :numref:`model_building_modelangelo_fig1_workflow`).
 
 Then you may visualize the volume with *ChimeraX* :cite:p:`Goddard2018` clicking **Analyze Results**. The 3D map of the TACAN homodimer 
 (:numref:`model_building_TACAN_figure`, A) appears inserted in the lipid nanodisc on the right side of the coordinate axes.
@@ -36,12 +36,12 @@ TACAN (1) aminoacid sequence (2) with *UniprotKB* (3) accession code `Q9BXJ8 <ht
 Execute the process and visualize the sequence in a text editor. The sequence will appear in *fasta* format. 
 
 .. figure:: Images/Fig3_import_sequence.svg
-   :alt: Importing TACAN *UniprotKB* sequence in *Scipion*.
+   :alt: Importing TACAN *UniprotKB* sequence in *Scipion* (workflow step 2; :numref:`model_building_modelangelo_fig1_workflow`).
    :name: model_building_modelangelo_import_sequence
    :align: center
    :width: 95.0%
 
-   Importing a sequence in *Scipion* (workflow step 2; :numref:`model_building_modelangelo_fig1_workflow`).
+   Importing TACAN *UniprotKB* sequence in *Scipion* (workflow step 2; :numref:`model_building_modelangelo_fig1_workflow`).
 
 Once we have map and sequence we can run **modelangelo - model builder** protocol (:numref:`model_building_modelangelo_prediction`). Details about the parameters
 of this protocol are shown in Appendix :ref:`ModelAngelo <app:modelAngeloPredictionProtocol>`. Complete the form selecting the GPU 
@@ -102,7 +102,7 @@ Modelangelo initial model using only the 3D map as starting input
 
 We are going to start this example running again the **modelangelo - model builder** protocol. 
 As we have seen above (:numref:`model_building_modelangelo_prediction`), this time we have to complete the form selecting the GPU 
-that you plan to use (1) and the 3D map (2), to finally, execute the process. 
+that you plan to use (1) and the 3D map (2), to finally execute the process (workflow step 4; :numref:`model_building_modelangelo_fig1_workflow`). 
 
 After executing the protocol, we can visualize the results in a similar way as we have done before. Clicking **Analyze Results**, *ChimeraX* 
 :cite:p:`Goddard2018` viewer will open by default (:numref:`model_building_modelangelo_results_3`). 
@@ -123,8 +123,8 @@ This unique prediction is similar to the raw prediction obtained when the sequen
 on the sequence matching. Then, the pruned structure thus cannot be generated. In addition, the whole structure is constituted by a high number 
 of small fragments that have to be manually assessed. The goodness of this prediction of sequence and structure will depend on the map resolution. 
 The better the resolution, the higher number of residues could be inequivocally assigned to the map density. Since the map `EMD-31441 <https://www.ebi.ac.uk/emdb/EMD-31441>`_  
-has already been traced (`PDB 7F3U <https://www.rcsb.org/structure/7F3U>`_), we can compare the published structure with our ModelAngelo prediction
-(:numref:`model_building_modelangelo_results_4`) in the background of the map density.
+has already been traced (`PDB 7F3U <https://www.rcsb.org/structure/7F3U>`_), we can :ref:`compare <compareInitialModel>` the published structure with our ModelAngelo prediction
+in the background of the map density (:numref:`model_building_modelangelo_results_4`) .
 
    .. figure:: Images/Fig8_modelangelo_results_4.svg
       :alt: Comparison of PDB ID 7F3U atomic structure (chain A, residues 217-235, blue) with ModelAngelo prediction (chain Af, residues 315-334, pink).

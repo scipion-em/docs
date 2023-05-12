@@ -24,8 +24,7 @@ Contents
    011-problem2solve
    012-generalWorkflow
    020-initialModel
-   030-modelComparison
-
+   030-compareModel
 
 
 Appendices
