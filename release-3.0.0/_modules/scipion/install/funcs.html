@@ -140,7 +140,7 @@
 
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">Config</span>
 <span class="kn">import</span> <span class="nn">pwem</span>
-
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Dict</span>
 
 <span class="c1"># Then we get some OS vars</span>
 <span class="n">MACOSX</span> <span class="o">=</span> <span class="p">(</span><span class="n">platform</span><span class="o">.</span><span class="n">system</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;Darwin&#39;</span><span class="p">)</span>
@@ -214,7 +214,7 @@
 <div class="viewcode-block" id="Command.execute"><a class="viewcode-back" href="../../../api/scipion/scipion.install.funcs.html#scipion.install.funcs.Command.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_always</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_targets</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_existsAll</span><span class="p">():</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Skipping command: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">cyan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cmd</span><span class="p">))</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  All targets exist.&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  All targets </span><span class="si">%s</span><span class="s2"> exist.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_targets</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">cwd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">()</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cwd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -311,7 +311,7 @@
 <div class="viewcode-block" id="Target.execute"><a class="viewcode-back" href="../../../api/scipion/scipion.install.funcs.html#scipion.install.funcs.Target.execute">[docs]</a>    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">t1</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="n">green</span><span class="p">(</span><span class="s2">&quot;Building </span><span class="si">%s</span><span class="s2"> ...&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">))</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">green</span><span class="p">(</span><span class="s2">&quot;Installing </span><span class="si">%s</span><span class="s2"> ...&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_name</span><span class="p">))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_always</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_existsAll</span><span class="p">():</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  All targets exist, skipping.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -976,6 +976,408 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
         <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">path</span></div>
+
+<div class="viewcode-block" id="InstallHelper"><a class="viewcode-back" href="../../../api/scipion/scipion.install.funcs.html#scipion.install.funcs.InstallHelper">[docs]</a><span class="k">class</span> <span class="nc">InstallHelper</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    ### This class is intended to be used to ease the plugin installation process.</span>
+
+<span class="sd">    #### Usage:</span>
+<span class="sd">    InstallHelper class needs to be instanciated before it can be used.</span>
+<span class="sd">    After that, commands can be chained together to run them in the defined order.</span>
+<span class="sd">    The last command always needs to be addPackage().</span>
+
+<span class="sd">    #### Example:</span>
+<span class="sd">    installer = InstallHelper() # Instanciating class\n</span>
+<span class="sd">    installer.getCloneCommand(&#39;test-package&#39;, &#39;/home/user/myCustomPath&#39;, &#39;github.com/myRepo&#39;) # Cloning GitHub repository\n</span>
+<span class="sd">    installer.getCondaenvCommand(&#39;test-package&#39;) # Creating conda enviroment\n</span>
+<span class="sd">    installer.addPackage(env, &#39;test-package&#39;) # Install package\n</span>
+
+<span class="sd">    #### It can also be done in a single line:</span>
+<span class="sd">    installer.getCloneCommand(&#39;test-package&#39;, &#39;/home/user/myCustomPath&#39;, &#39;github.com/myRepo&#39;).getCondaenvCommand(&#39;test-package&#39;).addPackage(env, &#39;test-package&#39;)\n</span>
+
+<span class="sd">    #### If you want to check the command strings you are producing, use the function getCommandList() instead of addPackage() and assign it to a variable so you can print it.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Global variables</span>
+    <span class="n">DEFAULT_VERSION</span> <span class="o">=</span> <span class="s1">&#39;1.0&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">packageName</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">packageHome</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">packageVersion</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="n">DEFAULT_VERSION</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### Constructor for the InstallHelper class.</span>
+
+<span class="sd">        #### Parameters:</span>
+<span class="sd">        packageName (str): Name of the package.</span>
+<span class="sd">        packageHome (str): Optional. Path to the package. It can be absolute or relative to current directory.</span>
+<span class="sd">        packageVersion (str): Optional. Package version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Private list of tuples containing commands with targets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__commandList</span> <span class="o">=</span> <span class="p">[]</span>
+        
+        <span class="c1"># Package name, version, and home</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__packageName</span> <span class="o">=</span> <span class="n">packageName</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__packageVersion</span> <span class="o">=</span> <span class="n">packageVersion</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__packageHome</span> <span class="o">=</span> <span class="n">packageHome</span> <span class="k">if</span> <span class="n">packageHome</span> <span class="k">else</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">pwem</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">EM_ROOT</span><span class="p">,</span> <span class="n">packageName</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="n">packageVersion</span><span class="p">)</span>
+    
+    <span class="c1">#--------------------------------------- PRIVATE FUNCTIONS ---------------------------------------#</span>
+    <span class="k">def</span> <span class="nf">__getTargetCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">targetName</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### This private function returns the neccessary command to create a target file given its name.</span>
+<span class="sd">        ### Targets are always in uppercase and underscore format.</span>
+
+<span class="sd">        #### Parameters:</span>
+<span class="sd">        targetName (str): Name of the target file.</span>
+
+<span class="sd">        #### Returns:</span>
+<span class="sd">        (str): The command needed to create the target file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;touch </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">targetName</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__getBinaryEnvName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binaryName</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">binaryVersion</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="n">DEFAULT_VERSION</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### This function returns the env name for a given package and repo.</span>
+
+<span class="sd">        #### Parameters:</span>
+<span class="sd">        binaryName (str): Name of the binary inside the package.</span>
+<span class="sd">        binaryVersion (str): Optional. Binary&#39;s version.</span>
+
+<span class="sd">        #### Returns:</span>
+<span class="sd">        (str): The enviroment name for this binary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">binaryName</span> <span class="o">+</span> <span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="n">binaryVersion</span>
+    
+    <span class="k">def</span> <span class="nf">__getEnvActivationCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binaryName</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">binaryVersion</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="n">DEFAULT_VERSION</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### Returns the conda activation command for the given enviroment.</span>
+
+<span class="sd">        #### Parameters:</span>
+<span class="sd">        binaryName (str): Name of the binary inside the package.</span>
+<span class="sd">        binaryVersion (str): Optional. Version of the binary inside the package.</span>
+
+<span class="sd">        #### Returns:</span>
+<span class="sd">        (str): The enviroment activation command.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;conda activate &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getBinaryEnvName</span><span class="p">(</span><span class="n">binaryName</span><span class="p">,</span> <span class="n">binaryVersion</span><span class="o">=</span><span class="n">binaryVersion</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">__getBinaryNameAndVersion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binaryName</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">binaryVersion</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>  <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### Returns the binary name and version from an optionally introduced binary name and version.</span>
+
+<span class="sd">        #### Parameters:</span>
+<span class="sd">        binaryName (str): Name of the binary inside the package.</span>
+<span class="sd">        binaryVersion (str): Optional. Version of the binary inside the package.</span>
+
+<span class="sd">        #### Returns:</span>
+<span class="sd">        tuple(str, str): The binary name and binary version.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">binaryName</span> <span class="o">=</span> <span class="n">binaryName</span> <span class="k">if</span> <span class="n">binaryName</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">__packageName</span>
+        <span class="n">binaryVersion</span> <span class="o">=</span> <span class="n">binaryVersion</span> <span class="k">if</span> <span class="n">binaryVersion</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">__packageVersion</span>
+        <span class="k">return</span> <span class="n">binaryName</span><span class="p">,</span> <span class="n">binaryVersion</span>
+    
+    <span class="c1">#--------------------------------------- PUBLIC FUNCTIONS ---------------------------------------#</span>
+<div class="viewcode-block" id="InstallHelper.getCommandList"><a class="viewcode-back" href="../../../api/scipion/scipion.install.funcs.html#scipion.install.funcs.InstallHelper.getCommandList">[docs]</a>    <span class="k">def</span> <span class="nf">getCommandList</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### This function returns the list of commands with targets for debugging purposes.</span>
+
+<span class="sd">        #### Returns:</span>
+<span class="sd">        (list[tuple[str, str]]): Command list with target files.</span>
+
+<span class="sd">        #### Usage:</span>
+<span class="sd">        commandList = installer.getCommandList()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__commandList</span></div>
+    
+<div class="viewcode-block" id="InstallHelper.addCommand"><a class="viewcode-back" href="../../../api/scipion/scipion.install.funcs.html#scipion.install.funcs.InstallHelper.addCommand">[docs]</a>    <span class="k">def</span> <span class="nf">addCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">command</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">targetName</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">workDir</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### This function adds the given command with target to the command list.</span>
+<span class="sd">        ### The target file needs to be located inside packageHome&#39;s directory so Scipion can detect it.</span>
+
+<span class="sd">        #### Parameters:</span>
+<span class="sd">        command (str): Command to be added.</span>
+<span class="sd">        targetName (str): Name of the target file to be produced after commands are completed successfully.</span>
+<span class="sd">        workDir (str): Optional. Directory where the command will be executed from.</span>
+
+<span class="sd">        #### Usage:</span>
+<span class="sd">        installer.addCommand(&#39;python3 myScript.py&#39;, &#39;MYSCRIPT_COMPLETED&#39;, workDir=&#39;/home/user/Documents/otherDirectory&#39;)</span>
+
+<span class="sd">        #### This function call will generate the following commands:</span>
+<span class="sd">        cd /home/user/Documents/otherDirectory &amp;&amp; python3 myScript.py &amp;&amp; touch /home/user/scipion/software/em/test-package-1.0/MYSCRIPT_COMPLETED</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Getting work directory</span>
+        <span class="n">workDirCmd</span> <span class="o">=</span> <span class="s1">&#39;cd </span><span class="si">{}</span><span class="s1"> &amp;&amp; &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">workDir</span><span class="p">)</span> <span class="k">if</span> <span class="n">workDir</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="c1"># Getting target name</span>
+        <span class="n">fullTargetName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__packageHome</span><span class="p">,</span> <span class="n">targetName</span><span class="p">)</span>
+
+        <span class="n">command</span> <span class="o">=</span> <span class="p">(</span><span class="n">workDirCmd</span> <span class="o">+</span> <span class="n">command</span><span class="p">)</span> <span class="k">if</span> <span class="n">workDir</span> <span class="k">else</span> <span class="n">command</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">__commandList</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">command</span> <span class="o">+</span> <span class="s2">&quot; &amp;&amp; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__getTargetCommand</span><span class="p">(</span><span class="n">fullTargetName</span><span class="p">)),</span> <span class="n">targetName</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+    
+<div class="viewcode-block" id="InstallHelper.addCommands"><a class="viewcode-back" href="../../../api/scipion/scipion.install.funcs.html#scipion.install.funcs.InstallHelper.addCommands">[docs]</a>    <span class="k">def</span> <span class="nf">addCommands</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">commandList</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">binaryName</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workDir</span><span class="p">:</span><span class="nb">str</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">targetNames</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### This function adds the given commands with targets to the command list.</span>
+
+<span class="sd">        #### Parameters:</span>
+<span class="sd">        commandList (list[str]): List containing the commands to add.</span>
+<span class="sd">        binaryName (str): Optional. Name of the binary. Default is package name.</span>
+<span class="sd">        workDir (str): Optional. Directory where the commands will be executed from.</span>
+<span class="sd">        targetNames (list[str]): Optional. List containing the name of the target files for this commands.</span>
+
+<span class="sd">        #### Usage:</span>
+<span class="sd">        installer.addCommands([&#39;python3 myScript.py&#39;, &#39;ls&#39;], binaryName=&#39;myBinary&#39;, workDir=&#39;/home/user/Documents/otherDirectory&#39;,</span>
+<span class="sd">            targetNames=[&#39;MYSCRIPT_COMPLETED&#39;, &#39;DIRECTORY_LISTED&#39;])</span>
+
+<span class="sd">        #### This function call will generate the following commands:</span>
+<span class="sd">        cd /home/user/Documents/otherDirectory &amp;&amp; python3 myScript.py &amp;&amp; touch /home/user/scipion/software/em/test-package-1.0/MYSCRIPT_COMPLETED\n</span>
+<span class="sd">        cd /home/user/Documents/otherDirectory &amp;&amp; ls &amp;&amp; touch /home/user/scipion/software/em/test-package-1.0/DIRECTORY_LISTED</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Defining binary name</span>
+        <span class="n">binaryName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getBinaryNameAndVersion</span><span class="p">(</span><span class="n">binaryName</span><span class="o">=</span><span class="n">binaryName</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Defining default target name preffix</span>
+        <span class="n">defaultTargetPreffix</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_EXTRA_COMMAND_&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">binaryName</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+
+        <span class="c1"># Executing commands</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">commandList</span><span class="p">)):</span>
+            <span class="n">targetName</span> <span class="o">=</span> <span class="n">targetNames</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">if</span> <span class="n">targetNames</span> <span class="k">else</span> <span class="p">(</span><span class="n">defaultTargetPreffix</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">addCommand</span><span class="p">(</span><span class="n">commandList</span><span class="p">[</span><span class="n">idx</span><span class="p">],</span> <span class="n">targetName</span><span class="p">,</span> <span class="n">workDir</span><span class="o">=</span><span class="n">workDir</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+    
+<div class="viewcode-block" id="InstallHelper.getCloneCommand"><a class="viewcode-back" href="../../../api/scipion/scipion.install.funcs.html#scipion.install.funcs.InstallHelper.getCloneCommand">[docs]</a>    <span class="k">def</span> <span class="nf">getCloneCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">binaryFolderName</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">targeName</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### This function creates the neccessary command to clone a repository from Github.</span>
+
+<span class="sd">        #### Parameters:</span>
+<span class="sd">        url (str): URL to the git repository.</span>
+<span class="sd">        binaryFolderName (str): Optional. Name of the binary directory.</span>
+<span class="sd">        targetName (str): Optional. Name of the target file for this command.</span>
+
+<span class="sd">        #### Usage:</span>
+<span class="sd">        installer.getCloneCommand(&#39;https://github.com/myRepo.git&#39;, binaryFolderName=&#39;myCustomBinary&#39;, targeName=&#39;BINARY_CLONED&#39;)</span>
+
+<span class="sd">        #### This function call will generate the following command:</span>
+<span class="sd">        cd /home/user/scipion/software/em/test-package-1.0 &amp;&amp; git clone https://github.com/myRepo.git myCustomBinary &amp;&amp; touch BINARY_CLONED</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Defining target name</span>
+        <span class="n">targeName</span> <span class="o">=</span> <span class="n">targeName</span> <span class="k">if</span> <span class="n">targeName</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_CLONED&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">binaryFolderName</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+
+        <span class="c1"># Modifying binary name with a space for the command</span>
+        <span class="n">binaryFolderName</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">binaryFolderName</span><span class="p">)</span> <span class="k">if</span> <span class="n">binaryFolderName</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="c1"># Adding command</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addCommand</span><span class="p">(</span><span class="s1">&#39;git clone </span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">binaryFolderName</span><span class="p">),</span> <span class="n">targeName</span><span class="p">,</span> <span class="n">workDir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__packageHome</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+    
+<div class="viewcode-block" id="InstallHelper.getCondaEnvCommand"><a class="viewcode-back" href="../../../api/scipion/scipion.install.funcs.html#scipion.install.funcs.InstallHelper.getCondaEnvCommand">[docs]</a>    <span class="k">def</span> <span class="nf">getCondaEnvCommand</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">binaryName</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">binaryPath</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">binaryVersion</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pythonVersion</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">requirementsFile</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                           <span class="n">requirementFileName</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;requirements.txt&#39;</span><span class="p">,</span> <span class="n">requirementList</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span><span class="p">[],</span> <span class="n">extraCommands</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span><span class="p">[],</span> <span class="n">targetName</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### This function creates the command string for creating a Conda enviroment and installing required dependencies for a given binary inside a package.</span>
+
+<span class="sd">        #### Parameters:</span>
+<span class="sd">        binaryName (str): Optional. Name of the binary. Default is package name.</span>
+<span class="sd">        binaryPath (str): Optional. Path to the binary. It can be absolute or relative to current directory.</span>
+<span class="sd">        binaryVersion (str): Optional. Binary&#39;s version. Default is package version.</span>
+<span class="sd">        pythonVersion (str): Optional. Python version needed for the package.</span>
+<span class="sd">        requirementsFile (bool): Optional. Defines if a Python requirements file exists.</span>
+<span class="sd">        requirementFileName (bool): Optional. Name of the Python requirements file.</span>
+<span class="sd">        requirementList (list[str]): Optional. List of Python packages to be installed. Can be used together with requirements file, but packages cannot be repeated.</span>
+<span class="sd">        extraCommands (list[str]): Optional. List of extra conda-related commands to execute within the conda enviroment.</span>
+<span class="sd">        targetName (str): Optional. Name of the target file for this command.</span>
+
+<span class="sd">        #### Usage:</span>
+<span class="sd">        installer.getCondaEnvCommand(binaryName=&#39;myBinary&#39;, binaryPath=&#39;/home/user/scipion/software/em/test-package-1.0/myBinary&#39;, binaryVersion=&#39;1.5&#39;, pythonVersion=&#39;3.11&#39;,</span>
+<span class="sd">            requirementsFile=True, requirementFileName=&#39;requirements.txt&#39;, requirementList=[&#39;torch==1.2.0&#39;, &#39;numpy&#39;],</span>
+<span class="sd">            extraCommands=[&#39;conda info --envs&#39;], targetName=&#39;CONDA_ENV_CREATED&#39;)</span>
+
+<span class="sd">        #### This function call will generate the following command:</span>
+<span class="sd">        eval &quot;$(/home/user/miniconda/bin/conda shell.bash hook)&quot;&amp;&amp; conda create -y -n myBinary-1.5 python=3.11 &amp;&amp; conda activate myBinary-1.5 &amp;&amp;</span>
+<span class="sd">        cd /home/user/scipion/software/em/test-package-1.0/myBinary &amp;&amp; conda install pip -y &amp;&amp; $CONDA_PREFIX/bin/pip install -r requirements.txt &amp;&amp;</span>
+<span class="sd">        $CONDA_PREFIX/bin/pip install torch==1.2.0 numpyconda info --envs &amp;&amp; cd /home/user/scipion/software/em/test-package-1.0 &amp;&amp; touch CONDA_ENV_CREATED</span>
+<span class="sd">        #### The path in the first command (eval ...) might vary, depending on the value of CONDA_ACTIVATION_CMD in your scipion.conf file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Binary name and version definition</span>
+        <span class="n">binaryName</span><span class="p">,</span> <span class="n">binaryVersion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getBinaryNameAndVersion</span><span class="p">(</span><span class="n">binaryName</span><span class="o">=</span><span class="n">binaryName</span><span class="p">,</span> <span class="n">binaryVersion</span><span class="o">=</span><span class="n">binaryVersion</span><span class="p">)</span>
+
+        <span class="c1"># Conda env creation</span>
+        <span class="n">createEnvCmd</span> <span class="o">=</span> <span class="s1">&#39;conda create -y -n </span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__getBinaryEnvName</span><span class="p">(</span><span class="n">binaryName</span><span class="p">,</span> <span class="n">binaryVersion</span><span class="o">=</span><span class="n">binaryVersion</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39; python=</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pythonVersion</span><span class="p">))</span> <span class="k">if</span> <span class="n">pythonVersion</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+
+        <span class="c1"># Command to install pip</span>
+        <span class="n">pipInstallCmd</span> <span class="o">=</span> <span class="s1">&#39;conda install pip -y&#39;</span>
+
+        <span class="c1"># Command prefix for Python packages installation</span>
+        <span class="n">requirementPrefixCmd</span> <span class="o">=</span> <span class="s1">&#39;$CONDA_PREFIX/bin/pip install&#39;</span>
+
+        <span class="c1"># Requirements file name</span>
+        <span class="n">requirementFileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">binaryPath</span><span class="p">,</span> <span class="n">requirementFileName</span><span class="p">)</span> <span class="k">if</span> <span class="n">requirementFileName</span> <span class="ow">and</span> <span class="n">binaryPath</span> <span class="k">else</span> <span class="n">requirementFileName</span>
+
+        <span class="c1"># Command for installing Python packages with requirements file</span>
+        <span class="n">installWithFile</span> <span class="o">=</span> <span class="p">(</span><span class="n">requirementPrefixCmd</span> <span class="o">+</span> <span class="s1">&#39; -r &#39;</span> <span class="o">+</span> <span class="n">requirementFileName</span><span class="p">)</span> <span class="k">if</span> <span class="n">requirementsFile</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="c1"># Command for installing Python packages manually</span>
+        <span class="n">installManual</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">requirementList</span><span class="p">)</span>
+        <span class="n">installManual</span> <span class="o">=</span> <span class="p">(</span><span class="n">requirementPrefixCmd</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">+</span> <span class="n">installManual</span><span class="p">)</span> <span class="k">if</span> <span class="n">installManual</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="c1"># Only install pip and Python packages if requiremenst file or manual list has been provided</span>
+        <span class="n">pythonCommands</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39; &amp;&amp; &#39;</span> <span class="o">+</span> <span class="n">pipInstallCmd</span><span class="p">)</span> <span class="k">if</span> <span class="p">(</span><span class="n">installWithFile</span> <span class="ow">or</span> <span class="n">installManual</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">if</span> <span class="n">pythonCommands</span><span class="p">:</span>
+            <span class="n">pythonCommands</span> <span class="o">+=</span> <span class="s1">&#39; &amp;&amp; </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">installWithFile</span><span class="p">)</span> <span class="k">if</span> <span class="n">installWithFile</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+            <span class="n">pythonCommands</span> <span class="o">+=</span> <span class="s1">&#39; &amp;&amp; </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">installManual</span><span class="p">)</span> <span class="k">if</span> <span class="n">installManual</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+        
+        <span class="c1"># Defining target name</span>
+        <span class="n">targetName</span> <span class="o">=</span> <span class="n">targetName</span> <span class="k">if</span> <span class="n">targetName</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_CONDA_ENV_CREATED&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">binaryName</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+        
+        <span class="c1"># Crafting final command string</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="n">pwem</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getCondaActivationCmd</span><span class="p">()</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span> <span class="o">+</span> <span class="n">createEnvCmd</span>                          <span class="c1"># Basic commands: hook and env creation</span>
+        <span class="n">command</span> <span class="o">+=</span> <span class="s1">&#39; &amp;&amp; &#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getEnvActivationCommand</span><span class="p">(</span><span class="n">binaryName</span><span class="p">,</span> <span class="n">binaryVersion</span><span class="o">=</span><span class="n">binaryVersion</span><span class="p">)</span> <span class="c1"># Env activation</span>
+        <span class="n">command</span> <span class="o">+=</span> <span class="s1">&#39; &amp;&amp; cd </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">binaryPath</span><span class="p">)</span> <span class="k">if</span> <span class="n">binaryPath</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>                             <span class="c1"># cd to binary path if proceeds</span>
+        <span class="n">command</span> <span class="o">+=</span> <span class="n">pythonCommands</span>                                                                   <span class="c1"># Python related commands</span>
+        <span class="n">command</span> <span class="o">+=</span> <span class="s2">&quot; &amp;&amp; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">extraCommands</span><span class="p">)</span>                                                       <span class="c1"># Extra conda commands</span>
+        <span class="n">command</span> <span class="o">+=</span> <span class="s1">&#39; &amp;&amp; cd </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__packageHome</span><span class="p">)</span> <span class="k">if</span> <span class="n">binaryPath</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>                     <span class="c1"># Return to package&#39;s root directory</span>
+        
+        <span class="c1"># Adding command</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addCommand</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">targetName</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span></div>
+    
+<div class="viewcode-block" id="InstallHelper.addCondaPackages"><a class="viewcode-back" href="../../../api/scipion/scipion.install.funcs.html#scipion.install.funcs.InstallHelper.addCondaPackages">[docs]</a>    <span class="k">def</span> <span class="nf">addCondaPackages</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">packages</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">binaryName</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">binaryVersion</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">channel</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">targetName</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### This function returns the command used for installing extra packages in a conda enviroment.</span>
+
+<span class="sd">        #### Parameters:</span>
+<span class="sd">        binaryName (str): Name of the binary. Default is package name.</span>
+<span class="sd">        packages (list[str]): List of conda packages to install.</span>
+<span class="sd">        binaryVersion (str): Optional. Binary&#39;s version. Default is package version.</span>
+<span class="sd">        channel (str): Optional. Channel to download the package from.</span>
+<span class="sd">        targetName (str): Optional. Name of the target file for this command.</span>
+
+<span class="sd">        #### Usage:</span>
+<span class="sd">        installer.addCondaPackages(packages=[&#39;pytorch==1.1.0&#39;, &#39;cudatoolkit=10.0&#39;], binaryName=&#39;myBinary&#39;,</span>
+<span class="sd">            binaryVersion=&#39;1.5&#39;, channel=&#39;conda-forge&#39;, targetName=&#39;CONDA_PACKAGES_INSTALLED&#39;)</span>
+
+<span class="sd">        #### This function call will generate the following command:</span>
+<span class="sd">        eval &quot;$(/home/user/miniconda/bin/conda shell.bash hook)&quot;&amp;&amp; conda activate myBinary-1.5 &amp;&amp;</span>
+<span class="sd">        conda install -y pytorch==1.1.0 cudatoolkit=10.0 -c conda-forge &amp;&amp; touch CONDA_PACKAGES_INSTALLED</span>
+<span class="sd">        #### The path in the first command (eval ...) might vary, depending on the value of CONDA_ACTIVATION_CMD in your scipion.conf file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Binary name and version definition</span>
+        <span class="n">binaryName</span><span class="p">,</span> <span class="n">binaryVersion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getBinaryNameAndVersion</span><span class="p">(</span><span class="n">binaryName</span><span class="o">=</span><span class="n">binaryName</span><span class="p">,</span> <span class="n">binaryVersion</span><span class="o">=</span><span class="n">binaryVersion</span><span class="p">)</span>
+
+        <span class="c1"># Defininig target name</span>
+        <span class="n">targetName</span> <span class="o">=</span> <span class="n">targetName</span> <span class="k">if</span> <span class="n">targetName</span> <span class="k">else</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">_CONDA_PACKAGES_INSTALLED&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">binaryName</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+
+        <span class="c1"># Adding installation command</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2"> &amp;&amp; conda install -y </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pwem</span><span class="o">.</span><span class="n">Plugin</span><span class="o">.</span><span class="n">getCondaActivationCmd</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getEnvActivationCommand</span><span class="p">(</span><span class="n">binaryName</span><span class="p">,</span> <span class="n">binaryVersion</span><span class="o">=</span><span class="n">binaryVersion</span><span class="p">),</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">packages</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">channel</span><span class="p">:</span>
+            <span class="n">command</span> <span class="o">+=</span> <span class="s2">&quot; -c </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">channel</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addCommand</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">targetName</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span></div>
+    
+<div class="viewcode-block" id="InstallHelper.getExtraFile"><a class="viewcode-back" href="../../../api/scipion/scipion.install.funcs.html#scipion.install.funcs.InstallHelper.getExtraFile">[docs]</a>    <span class="k">def</span> <span class="nf">getExtraFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">targetName</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">location</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="n">workDir</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">fileName</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### This function creates the command to download with wget the file in the given link into the given path.</span>
+<span class="sd">        ### The downloaded file will overwrite a local one if they have the same name.</span>
+<span class="sd">        ### This is done to overwrite potential corrupt files whose download was not fully completed.</span>
+
+<span class="sd">        #### Parameters:</span>
+<span class="sd">        url (str): URL of the resource to download.</span>
+<span class="sd">        targetName (str): Name of the target file for this command.</span>
+<span class="sd">        location (str): Optional. Location where the file will be downloaded. It can be absolute or relative to current directory.</span>
+<span class="sd">        workDir (str): Optional. Directory where the file will be downloaded from.</span>
+<span class="sd">        fileName (str): Optional. Name of the file after the download. Use intended for cases when expected name differs from url name.</span>
+
+<span class="sd">        #### Usage:</span>
+<span class="sd">        installer.getExtraFile(&#39;https://site.com/myfile.tar&#39;, &#39;FILE_DOWNLOADED&#39;, location=&#39;/home/user/scipion/software/em/test-package-1.0/subdirectory&#39;, workDir=&#39;/home/user&#39;, fileName=&#39;test.tar&#39;)</span>
+
+<span class="sd">        #### This function call will generate the following command:</span>
+<span class="sd">        cd /home/user &amp;&amp; mkdir -p /home/user/scipion/software/em/test-package-1.0/subdirectory &amp;&amp;</span>
+<span class="sd">        wget -O /home/user/scipion/software/em/test-package-1.0/subdirectory/test.tar https://site.com/myfile.tar &amp;&amp; touch /home/user/scipion/software/em/test-package-1.0/FILE_DOWNLOADED</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Getting filename for wget</span>
+        <span class="n">fileName</span> <span class="o">=</span> <span class="n">fileName</span> <span class="k">if</span> <span class="n">fileName</span> <span class="k">else</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+        <span class="n">mkdirCmd</span> <span class="o">=</span> <span class="s2">&quot;mkdir -p </span><span class="si">{}</span><span class="s2"> &amp;&amp; &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">location</span><span class="p">)</span> <span class="k">if</span> <span class="n">location</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+
+        <span class="n">downloadCmd</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">wget -O </span><span class="si">{}</span><span class="s2"> </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mkdirCmd</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">fileName</span><span class="p">),</span> <span class="n">url</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">addCommand</span><span class="p">(</span><span class="n">downloadCmd</span><span class="p">,</span> <span class="n">targetName</span><span class="p">,</span> <span class="n">workDir</span><span class="o">=</span><span class="n">workDir</span><span class="p">)</span>
+    
+        <span class="k">return</span> <span class="bp">self</span></div>
+
+<div class="viewcode-block" id="InstallHelper.getExtraFiles"><a class="viewcode-back" href="../../../api/scipion/scipion.install.funcs.html#scipion.install.funcs.InstallHelper.getExtraFiles">[docs]</a>    <span class="k">def</span> <span class="nf">getExtraFiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fileList</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]],</span> <span class="n">binaryName</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">workDir</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">targetNames</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### This function creates the command to download with wget the file in the given link into the given path.</span>
+<span class="sd">        ### The downloaded file will overwrite a local one if they have the same name.</span>
+<span class="sd">        ### This is done to overwrite potential corrupt files whose download was not fully completed.</span>
+
+<span class="sd">        #### Parameters:</span>
+<span class="sd">        fileList (list[dict[str, str, str]]): List containing files to be downloaded. Example: [{&#39;url&#39;: url1, &#39;path&#39;: path1, &#39;name&#39;: &#39;test.tar&#39;}, {&#39;url&#39;: url2, &#39;path&#39;: path2, &#39;name&#39;: &#39;test2.tar&#39;}]</span>
+<span class="sd">        binaryName (str): Optional. Name of the binary.</span>
+<span class="sd">        Each file is a list contaning url and location to download it. Paths can be an empty string for default location.</span>
+<span class="sd">        workDir (str): Optional. Directory where the files will be downloaded from.</span>
+<span class="sd">        targetNames (list[str]): Optional. List containing the name of the target files for this commands.</span>
+
+<span class="sd">        #### Usage:</span>
+<span class="sd">        installer.getExtraFiles(</span>
+<span class="sd">            [</span>
+<span class="sd">                {&#39;url&#39;: &#39;https://site.com/myfile.tar&#39;, &#39;path&#39;: &#39;/home/user/scipion/software/em/test-package-1.0/subdirectory1&#39;, &#39;name&#39;: &#39;test.tar&#39;},</span>
+<span class="sd">                {&#39;url&#39;: &#39;https://site.com/myfile.tar2&#39;, &#39;path&#39;: &#39;/home/user/scipion/software/em/test-package-1.0/subdirectory2&#39;, &#39;name&#39;: &#39;test2.tar2&#39;}</span>
+<span class="sd">            ],</span>
+<span class="sd">            binaryName=&#39;myBinary&#39;, workDir=&#39;/home/user&#39;, targetNames=[&#39;DOWNLOADED_FILE_1&#39;, &#39;DOWNLOADED_FILE_2&#39;])</span>
+
+<span class="sd">        #### This function call will generate the following commands:</span>
+<span class="sd">        cd /home/user &amp;&amp; mkdir -p /home/user/scipion/software/em/test-package-1.0/subdirectory1 &amp;&amp;</span>
+<span class="sd">        wget -O /home/user/scipion/software/em/test-package-1.0/subdirectory1/test.tar https://site.com/myfile.tar &amp;&amp; touch /home/user/scipion/software/em/test-package-1.0/DOWNLOADED_FILE_1</span>
+<span class="sd">        </span>
+<span class="sd">        cd /home/user &amp;&amp; mkdir -p /home/user/scipion/software/em/test-package-1.0/subdirectory2 &amp;&amp;</span>
+<span class="sd">        wget -O /home/user/scipion/software/em/test-package-1.0/subdirectory2/test2.tar2 https://site.com/myfile.tar2 &amp;&amp; touch /home/user/scipion/software/em/test-package-1.0/DOWNLOADED_FILE_2</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Defining binary name</span>
+        <span class="n">binaryName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getBinaryNameAndVersion</span><span class="p">(</span><span class="n">binaryName</span><span class="o">=</span><span class="n">binaryName</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Default preffix for target names</span>
+        <span class="n">defaultTargetPreffix</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_FILE_&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">binaryName</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+
+        <span class="c1"># For each file in the list, download file</span>
+        <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">fileList</span><span class="p">)):</span>
+            <span class="c1"># Checking if file dictionary contains url</span>
+            <span class="k">if</span> <span class="s1">&#39;url&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">fileList</span><span class="p">[</span><span class="n">idx</span><span class="p">]:</span>
+                <span class="k">raise</span> <span class="ne">KeyError</span><span class="p">(</span><span class="s2">&quot;ERROR: Download url has not been set for at least one file. You can create the appropiate dictionary calling function getFileDict.&quot;</span><span class="p">)</span>
+            
+            <span class="c1"># Getting proper file dictionary</span>
+            <span class="n">kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">if</span> <span class="s1">&#39;name&#39;</span> <span class="ow">in</span> <span class="n">fileList</span><span class="p">[</span><span class="n">idx</span><span class="p">]:</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fileList</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s1">&#39;path&#39;</span> <span class="ow">in</span> <span class="n">fileList</span><span class="p">[</span><span class="n">idx</span><span class="p">]:</span>
+                <span class="n">kwargs</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">fileList</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;path&#39;</span><span class="p">]</span>
+            <span class="n">downloadable</span> <span class="o">=</span> <span class="n">fileList</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;path&#39;</span> <span class="ow">in</span> <span class="n">fileList</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="ow">and</span> <span class="s1">&#39;name&#39;</span> <span class="ow">in</span> <span class="n">fileList</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">getFileDict</span><span class="p">(</span><span class="n">fileList</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="s1">&#39;url&#39;</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="n">targetName</span> <span class="o">=</span> <span class="n">targetNames</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">if</span> <span class="n">targetNames</span> <span class="k">else</span> <span class="p">(</span><span class="n">defaultTargetPreffix</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">idx</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">getExtraFile</span><span class="p">(</span><span class="n">downloadable</span><span class="p">[</span><span class="s1">&#39;url&#39;</span><span class="p">],</span> <span class="n">targetName</span><span class="p">,</span> <span class="n">location</span><span class="o">=</span><span class="n">downloadable</span><span class="p">[</span><span class="s1">&#39;path&#39;</span><span class="p">],</span> <span class="n">workDir</span><span class="o">=</span><span class="n">workDir</span><span class="p">,</span> <span class="n">fileName</span><span class="o">=</span><span class="n">downloadable</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+    
+        <span class="k">return</span> <span class="bp">self</span></div>
+    
+<div class="viewcode-block" id="InstallHelper.addPackage"><a class="viewcode-back" href="../../../api/scipion/scipion.install.funcs.html#scipion.install.funcs.InstallHelper.addPackage">[docs]</a>    <span class="k">def</span> <span class="nf">addPackage</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="p">,</span> <span class="n">dependencies</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span><span class="o">=</span><span class="p">[],</span> <span class="n">default</span><span class="p">:</span> <span class="nb">bool</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### This function adds the given package to scipion installation with some provided parameters.</span>
+<span class="sd">        </span>
+<span class="sd">        #### Parameters:</span>
+<span class="sd">        env: Scipion enviroment.</span>
+<span class="sd">        dependencies (list[str]): Optional. List of dependencies the package has.</span>
+<span class="sd">        default (bool): Optional. Defines if this package version is automatically installed with the plugin.</span>
+<span class="sd">        **kwargs: Optional. Other possible keyword parameters that will be directly passed to env.addPackage.</span>
+<span class="sd">        Intended for cases where multiple versions of the same package coexist in the same plugin.</span>
+
+<span class="sd">        #### Usage:</span>
+<span class="sd">        installer.addPackage(env, dependencies=[&#39;wget&#39;, &#39;conda&#39;], default=True)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">env</span><span class="o">.</span><span class="n">addPackage</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__packageName</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__packageVersion</span><span class="p">,</span> <span class="n">tar</span><span class="o">=</span><span class="s1">&#39;void.tgz&#39;</span><span class="p">,</span> <span class="n">commands</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">__commandList</span><span class="p">,</span> <span class="n">neededProgs</span><span class="o">=</span><span class="n">dependencies</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">default</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    
+    <span class="c1">#--------------------------------------- PUBLIC UTILS FUNCTIONS ---------------------------------------#</span>
+<div class="viewcode-block" id="InstallHelper.getFileDict"><a class="viewcode-back" href="../../../api/scipion/scipion.install.funcs.html#scipion.install.funcs.InstallHelper.getFileDict">[docs]</a>    <span class="k">def</span> <span class="nf">getFileDict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">fileName</span><span class="p">:</span> <span class="nb">str</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot; This function generates the dictionary for a downloadable file. &quot;&quot;&quot;</span>
+        <span class="c1"># Getting file name</span>
+        <span class="n">fileName</span> <span class="o">=</span> <span class="n">fileName</span> <span class="k">if</span> <span class="n">fileName</span> <span class="k">else</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="c1"># Returning dictionary</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="n">url</span><span class="p">,</span> <span class="s1">&#39;path&#39;</span><span class="p">:</span> <span class="n">path</span><span class="p">,</span> <span class="s1">&#39;name&#39;</span><span class="p">:</span> <span class="n">fileName</span><span class="p">}</span>        </div></div>
 </pre></div>
 
            </div>
