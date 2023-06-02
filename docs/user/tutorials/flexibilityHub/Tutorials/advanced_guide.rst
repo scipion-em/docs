@@ -1,10 +1,10 @@
 .. include:: <isonum.txt>
 
-.. |results| image:: ./docs/user/tutorials/flexibilityHub/Images/Analyze_results.png
+.. |results| image:: ./user/tutorials/flexibilityHub/Images/Analyze_results.png
 
-.. |volumes| image:: ./docs/user/tutorials/flexibilityHub/Images/Volumes_button.png
+.. |volumes| image:: ./user/tutorials/flexibilityHub/Images/Volumes_button.png
 
-.. |particles| image:: ./docs/user/tutorials/flexibilityHub/Images/Particles_button.png
+.. |particles| image:: ./user/tutorials/flexibilityHub/Images/Particles_button.png
 
 .. _Flexibility_Hub_advanced_guide:
 
@@ -45,9 +45,9 @@ Flexibility Hub related protocols have been grouped in a new *View* tab in the S
 
 The first step in our workflow is to import our particles, volumes, and structural models in Scipion.
 
-`Here <../importingData.rst>`__ we provide a tutorial for importing data inside Scipion. Below it is also provided the filled form to import our particles, which also includes the sampling rate that will be needed to import the map and mask.
+`Here <./user/importingData.rst>`__ we provide a tutorial for importing data inside Scipion. Below it is also provided the filled form to import our particles, which also includes the sampling rate that will be needed to import the map and mask.
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Import_particles_form.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Import_particles_form.png
    :align: center
    :alt: particles import
 
@@ -68,7 +68,7 @@ The Zernike3Deep pipeline is divided into two different protocols:
 In our workflow, we will exemplify the use of both protocols. Let's start with the training of the Zernike3Deep network. An example of the form is provided below:
 
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Zernike3Deep_input.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Zernike3Deep_input.png
    :align: center
    :alt: Zernike3Deep input
 
@@ -89,7 +89,7 @@ Once filled up, you can click on the :code:`Execute` button to start tranining t
 
 One way to check the initial shape of our landscape is to use the Flexutils visualization tools. At the current step, we can visualize the estimated landscape by clicking on |results|. You should see a form like this:
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Analyze_landscape.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Analyze_landscape.png
    :align: center
    :alt: Analyze results landscape
 
@@ -108,7 +108,7 @@ The CryoDRGN implementation is divided into two different steps, represented by 
 
 We will start the CryoDRGN pipeline by executing the preprocess step to prepare our particles. An example of the form is provided below:
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Preprocess_cryodrgn.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Preprocess_cryodrgn.png
    :align: center
    :alt: CryoDRGN preprocess step
 
@@ -118,7 +118,7 @@ The parameter *Split in chunks* controls the number of particles that will be pr
 
 Once the particle preparation step is done, we can start training the CryoDRGN neural network. The form of the **Training VAE** step is provided below:
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Training_cryodrgn.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Training_cryodrgn.png
    :align: center
    :alt: CryoDRGN training vae step
 
@@ -139,7 +139,7 @@ Once filled up, you can click on the :code:`Execute` button to start tranining t
 
 One way to check the initial shape of our landscape is to use the CryoDRGN visualization tools. At the current step, we can visualize the estimated landscape by clicking on |results|. You should see a form like this:
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Analyze_cryodrgn.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Analyze_cryodrgn.png
    :align: center
    :alt: Analyze results CryoDRGN
 
@@ -159,7 +159,7 @@ The HetSIREN pipeline is divided into two different protocols:
 In our workflow, we will exemplify the use of both protocols. Let's start with the training of the HetSIREN network. An example of the form is provided below:
 
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Hetsiren_input.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Hetsiren_input.png
    :align: center
    :alt: HetSIREN input
 
@@ -177,7 +177,7 @@ Once filled up, you can click on the :code:`Execute` button to start tranining t
 
 Similarly to the previous sections, it is possible to check the initial shape of our landscape is to use the Flexutils visualization tools. At the current step, we can visualize the estimated landscape by clicking on |results|. You should see a form like this:
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Analyze_landscape.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Analyze_landscape.png
    :align: center
    :alt: Analyze results landscape
 
@@ -197,7 +197,7 @@ The flexibility consensus pipeline is divided into two different step:
 
 Let's start by training our flexibility consensus network with the three landscape estimation obtained from the Zernike3Deep, CryoDRGN, and HetSIREN algorithms. Below we provide and example of the filled form of the protocol:
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Train_flexconsensus.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Train_flexconsensus.png
    :align: center
    :alt: Train FlexConsensus form
 
@@ -205,7 +205,7 @@ The training protocol will not register any output in Scipion once it finishes. 
 
 Once the training has finished, we can execute the interactive particle selection step. The form of the protocol is provided below:
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Interactive_flexconsensus.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Interactive_flexconsensus.png
    :align: center
    :alt: Interactive FlexConsensus form
 
@@ -213,7 +213,7 @@ In the form, we can provide a set of particles (with landscape) generated from a
 
 The interactive consensus protocol will estimate the consistency measurements for the input particles provided based on a trained flexibility consensus network. Once the protocol has finished, we can click on |results| to start the interactive selection tool. This will open the following window:
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Analyze_flexconsensus.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Analyze_flexconsensus.png
    :align: center
    :alt: Analyze results FlexConsensus
 
@@ -225,7 +225,7 @@ We have two ways of displaying the estimated particle consistency histogram:
 
 After opening the interactive tool on any of the previous two modes, we should get something similar to the following image:
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Hist_flexconsensus.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Hist_flexconsensus.png
    :align: center
    :alt: Consistency histogram FlexConsensus
 
@@ -246,15 +246,15 @@ Since the dimensionality reduction is fast, we recommend running the three metho
 
 We provide below some images of the forms filled to run any of the different dimensionality reduction methods for the tutorial dataset:
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Dimred_pca.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Dimred_pca.png
    :align: left
    :alt: Dimensionality reduction PCA
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Dimred_umap.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Dimred_umap.png
    :align: center
    :alt: Dimensionality reduction UMAP
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Dimred_deep_elastic.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Dimred_deep_elastic.png
    :align: right
    :alt: Dimensionality reduction DeepElastic
 
@@ -277,7 +277,7 @@ Video tutorials explaining the usage of the different tools are available `here 
 
 We provide below the filled form of the **Cluster space** protocol as an example:
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Cluster_space.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Cluster_space.png
    :align: center
    :alt: Cluster space
 
@@ -308,7 +308,7 @@ By clicking on |results|, it is possible to inspect in different ways the new st
 
 We provide below an example of the strain visualization in ChimeraX:
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Strain.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Strain.png
    :align: center
    :alt: Strain analysis ribosome
 
@@ -325,7 +325,7 @@ The extracted particles cna be further analyzed by several means to better under
 
 The protocol *motion statistics - Zernike3D* has been designed to compute and represent an average deformation field coming from a set of particles. We provide below an example of a **motion statistics** protocol form:
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Motion_statistics_protocol.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Motion_statistics_protocol.png
    :align: center
    :alt: Motion statistics protocol
 
@@ -336,7 +336,7 @@ The protocol form includes two different parameters:
 
 Once the protocol is executed, it will display an interactive visualization displaying the deformation fields together with the CryoEM map or structural model. We provide and example of the window below:
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Motion_statistics_window.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Motion_statistics_window.png
    :align: center
    :alt: Motion statistics window
 
@@ -353,7 +353,7 @@ Instead of working with a reduced particle dataset during a refinement, the Flex
 
 The protocol *reconstruct ZART* is the responsible for this task. An example of a ZART protocol form is provided below:
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Zart_protocol.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Zart_protocol.png
    :align: center
    :alt: ZART protocol
 
@@ -375,6 +375,6 @@ Here finishes the Flexibility Hub Advanced guide!
 
 Below we provide an example of the workflow we have defined along the tutorial.
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Workflow.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Advanced_Guide/Workflow.png
    :align: center
    :alt: Workflow

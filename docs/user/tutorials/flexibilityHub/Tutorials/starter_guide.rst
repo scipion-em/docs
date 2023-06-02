@@ -1,8 +1,8 @@
 .. include:: <isonum.txt>
 
-.. |results| image:: ./docs/user/tutorials/flexibilityHub/Images/Analyze_results.png
+.. |results| image:: ./user/tutorials/flexibilityHub/Images/Analyze_results.png
 
-.. |volumes| image:: ./docs/user/tutorials/flexibilityHub/Images/Volumes_button.png
+.. |volumes| image:: ./user/tutorials/flexibilityHub/Images/Volumes_button.png
 
 .. _Flexibility_Hub_starter_guide:
 
@@ -43,9 +43,9 @@ Flexibility Hub related protocols have been grouped in a new *View* tab in the S
 
 The first step in our workflow is to import our particles, volumes, and structural models in Scipion.
 
-`Here <../importingData.rst>`__ we provide a tutorial for importing data inside Scipion. Below it is also provided the filled form to import our particles, which also includes the sampling rate that will be needed to import the map and mask.
+`Here <./user/importingData.rst>`__ we provide a tutorial for importing data inside Scipion. Below it is also provided the filled form to import our particles, which also includes the sampling rate that will be needed to import the map and mask.
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Starter_Guide/Import_particles_form.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Starter_Guide/Import_particles_form.png
    :align: center
    :alt: particles import
 
@@ -66,7 +66,7 @@ The Zernike3Deep pipeline is divided into two different protocols:
 In our workflow, we will exemplify the use of both protocols. Let's start with the training of the Zernike3Deep network. An example of the form is provided below:
 
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Starter_Guide/Zernike3Deep_input.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Starter_Guide/Zernike3Deep_input.png
    :align: center
    :alt: Zernike3Deep input
 
@@ -87,7 +87,7 @@ Once filled up, you can click on the :code:`Execute` button to start tranining t
 
 One way to check the initial shape of our landscape is to use the Flexutils visualization tools. At the current step, we can visualize the estimated landscape by clicking on |results|. You should see a form like this:
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Starter_Guide/Analyze_landscape.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Starter_Guide/Analyze_landscape.png
    :align: center
    :alt: Analyze results landscape
 
@@ -106,15 +106,15 @@ Since the dimensionality reduction is fast, we recommend running the three metho
 
 We provide below some images of the forms filled to run any of the different dimensionality reduction methods for the tutorial dataset:
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Starter_Guide/Dimred_pca.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Starter_Guide/Dimred_pca.png
    :align: left
    :alt: Dimensionality reduction PCA
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Starter_Guide/Dimred_umap.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Starter_Guide/Dimred_umap.png
    :align: center
    :alt: Dimensionality reduction UMAP
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Starter_Guide/Dimred_deep_elastic.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Starter_Guide/Dimred_deep_elastic.png
    :align: right
    :alt: Dimensionality reduction DeepElastic
 
@@ -137,7 +137,7 @@ Video tutorials explaining the usage of the different tools are available `here 
 
 We provide below the filled form of the **Cluster space** protocol as an example:
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Starter_Guide/Cluster_space.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Starter_Guide/Cluster_space.png
    :align: center
    :alt: Cluster space
 
@@ -173,6 +173,6 @@ Here finishes the Flexibility Hub starter guide!
 
 Below we provide an example of the workflow we have defined along the tutorial. We also recommend moving to the `advanced guide <./advanced_guide>`__ to continue learning about the Flexibility Hub strategies when dealing with experimental data.
 
-.. figure:: ./docs/user/tutorials/flexibilityHub/Images/Starter_Guide/Workflow.png
+.. figure:: ./user/tutorials/flexibilityHub/Images/Starter_Guide/Workflow.png
    :align: center
    :alt: Workflow
