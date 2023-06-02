@@ -43,7 +43,7 @@ Flexibility Hub related protocols have been grouped in a new *View* tab in the S
 
 The first step in our workflow is to import our particles, volumes, and structural models in Scipion.
 
-`Here </docs/user/tutorials/importingData.rst>`__ we provide a tutorial for importing data inside Scipion. Below it is also provided the filled form to import our particles, which also includes the sampling rate that will be needed to import the map and mask.
+`Here </docs/user/importingData.rst>`__ we provide a tutorial for importing data inside Scipion. Below it is also provided the filled form to import our particles, which also includes the sampling rate that will be needed to import the map and mask.
 
 .. figure:: /docs/user/tutorials/flexibilityHub/Images/Starter_Guide/Import_particles_form.png
    :align: center
