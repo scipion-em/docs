@@ -41,8 +41,8 @@ Tutorials
 
 There are two different tutorials available:
 
-* `Flexibility Hub Starter guide <./Tutorials/starter_guide>`__: Simple workflow focusing on the analysis of ideal landscapes from synthetic particles.
-* `Flexibility Hub advanced guide <./Tutorials/advanced_guide>`__: Workflow with real CryoEM data from Empiar, showing the common strategies to address molecular flexibility from experimental particles
+* `Flexibility Hub Starter guide <./Tutorials/starter_guide.rst>`__: Simple workflow focusing on the analysis of ideal landscapes from synthetic particles.
+* `Flexibility Hub advanced guide <./Tutorials/advanced_guide.rst>`__: Workflow with real CryoEM data from Empiar, showing the common strategies to address molecular flexibility from experimental particles
 
 In addition, each Plugin integrated in the Flexibility Hub includes guides on the usage of the different protocols it integrates.
 
