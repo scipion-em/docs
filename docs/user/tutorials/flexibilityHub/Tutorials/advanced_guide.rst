@@ -96,7 +96,7 @@ One way to check the initial shape of our landscape is to use the Flexutils visu
 3. CryoDRGN landscape estimation
 --------------
 
-CryoDRGN [X] is a heterogeneity algorithm able to estimate compositional and continuous variability from a CryoEM particle dataset.
+CryoDRGN is a heterogeneity algorithm able to estimate compositional and continuous variability from a CryoEM particle dataset.
 
 To that end, CryoDRGN relies on a neural network designed to learn how to reconstruct CryoEM maps from particles, given the CTF and the angular information previously estimated. In addition, the network is able to account for the conformational variability thanks to a latent space that captures the conformational landscape representation, allowing to perform heterogeneous reconstructions.
 
