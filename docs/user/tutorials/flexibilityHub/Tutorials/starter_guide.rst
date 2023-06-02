@@ -171,7 +171,7 @@ By clicking on |results|, it is possible to inspect in different ways the new st
 
 Here finishes the Flexibility Hub starter guide!
 
-Below we provide an example of the workflow we have defined along the tutorial. We also recommend moving to the `advanced guide <./advanced_guide>`__ to continue learning about the Flexibility Hub strategies when dealing with experimental data.
+Below we provide an example of the workflow we have defined along the tutorial. We also recommend moving to the `advanced guide <./advanced_guide.rst>`__ to continue learning about the Flexibility Hub strategies when dealing with experimental data.
 
 .. figure:: /docs/user/tutorials/flexibilityHub/Images/Starter_Guide/Workflow.png
    :align: center
