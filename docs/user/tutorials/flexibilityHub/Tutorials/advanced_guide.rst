@@ -373,7 +373,7 @@ If the input particles provided have Zernike3D information associated, a new for
 
 Here finishes the Flexibility Hub Advanced guide!
 
-Below we provide an example of the workflow we have defined along the tutorial.
+Below we provide an example of the workflow we have defined along the tutorial. The complete template workflow is avaialable inside the scipion-em-flexutils plugin, inside the *templates* folder (the path to your template in your system should be : `path/to/scipion-em-flexutils/flextuils/templates/advanced_guide.json`).
 
 .. figure:: /docs/user/tutorials/flexibilityHub/Images/Advanced_Guide/Workflow.png
    :align: center
