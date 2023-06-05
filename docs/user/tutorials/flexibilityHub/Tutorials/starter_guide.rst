@@ -10,7 +10,7 @@
 Flexibility Hub: Starter guide
 ====================================================
 
-This tutorial is structured around a workflow defined with synthetic data. Both, the data and the wokflow template of the tutorial are available `here <>`__.
+This tutorial is structured around a workflow defined with synthetic data. The data for this tutorial can be downloaded with :code:`scipion3 testdata --download FlexHub_Tutorials`.
 
 Note that the workflow tutorial focuses mostly on the way flexibility information can be analysed from CryoEM particle data. To that end, the Zernike3D algorithm will be used to exemplify the workflow. Nevertheless, steps that could be analyzed with a different software will be explicitly marked.
 
