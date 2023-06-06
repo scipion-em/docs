@@ -185,7 +185,7 @@ you can find a very simple tutorial about installing Slurm in Ubuntu.
         "quadro": [["JOB_MEMORY", "8192", "Memory (MB)", "Select amount of memory (in megabytes) for this job"],
                    ["JOB_TIME", "120", "Time (hours)", "Select the time expected (in hours) for this job"],
                    ["GPU_COUNT", "1", "Number of GPUs", "Select the number of GPUs if protocol has been set up to use them"]]
-    }
+        }
 
 
 
