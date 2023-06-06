@@ -1,3 +1,5 @@
+.. _indexAlphaFold:
+
 Predicting initial models with AlphaFold
 ========================================
 

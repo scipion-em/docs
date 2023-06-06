@@ -4,7 +4,8 @@ Structure Prediction by Sequence Homology. Searching for Homologues
 ===================================================================
 
 As we have mentioned previously, in this tutorial we are going to use tools
-that allow to predict the atomic structure from sequence homology.
+that allow to predict the atomic structure from sequence homology. 
+If you want to predict the initial model with AlphaFold or ModelAngelo, follow instructions in :ref:`indexAlphaFold` and :ref:`indexModelAngelo`, respectively.
 
 Structure prediction by sequence homology only requires the sequence
 itself of the specimen that we would like to model, from now ahead the *target sequence*,

@@ -11,12 +11,12 @@ Submodules
    xmipp3.viewers.viewer
    xmipp3.viewers.viewer_analyze_local_ctf
    xmipp3.viewers.viewer_cl2d
-   xmipp3.viewers.viewer_classes3D
-   xmipp3.viewers.viewer_consensus_classes3D
+   xmipp3.viewers.viewer_consensus_classes
    xmipp3.viewers.viewer_ctf_consensus
    xmipp3.viewers.viewer_deepEMHancer
    xmipp3.viewers.viewer_deep_consensus
    xmipp3.viewers.viewer_deep_micrograph_cleaner
+   xmipp3.viewers.viewer_dose_analysis
    xmipp3.viewers.viewer_eliminate_empty_images
    xmipp3.viewers.viewer_extract_asymmetric_unit
    xmipp3.viewers.viewer_local_sharpening
