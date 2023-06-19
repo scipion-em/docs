@@ -128,7 +128,8 @@
 <span class="kn">import</span> <span class="nn">threading</span>
 
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">Config</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.gui</span> <span class="kn">import</span> <span class="n">TextFileViewer</span><span class="p">,</span> <span class="n">getDefaultFont</span><span class="p">,</span> <span class="n">LIST_TREEVIEW</span><span class="p">,</span> <span class="n">ShortCut</span><span class="p">,</span> <span class="n">ToolTip</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.gui</span> <span class="kn">import</span> <span class="n">TextFileViewer</span><span class="p">,</span> <span class="n">getDefaultFont</span><span class="p">,</span> <span class="n">LIST_TREEVIEW</span><span class="p">,</span> \
+    <span class="n">ShortCut</span><span class="p">,</span> <span class="n">ToolTip</span><span class="p">,</span> <span class="n">RESULT_RUN_ALL</span><span class="p">,</span> <span class="n">RESULT_RUN_SINGLE</span><span class="p">,</span> <span class="n">RESULT_CANCEL</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.gui.project.constants</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol</span> <span class="kn">import</span> <span class="n">SIZE_1MB</span><span class="p">,</span> <span class="n">SIZE_1GB</span><span class="p">,</span> <span class="n">SIZE_1TB</span>
 
@@ -1739,6 +1740,7 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Paste failed, maybe clipboard content is not valid content? See GUI log for details.&quot;</span><span class="p">)</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Clipboard content couldn&#39;t be pasted.&quot;</span> <span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">_copyProtocolsToClipboard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 
         <span class="n">protocols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getSelectedProtocols</span><span class="p">()</span>
@@ -1769,7 +1771,8 @@
 
         <span class="c1"># TODO: use filterCallback param and we may not need to return 2 elements</span>
         <span class="n">workflowProtocolList</span><span class="p">,</span> <span class="n">activeProtList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">_getSubworkflow</span><span class="p">(</span><span class="n">protocols</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                                                                            <span class="kc">False</span><span class="p">)</span>
+                                                                            <span class="n">fixProtParam</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                                                            <span class="n">getStopped</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">activeProtList</span><span class="p">:</span>
             <span class="n">errorProtList</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">if</span> <span class="n">pwgui</span><span class="o">.</span><span class="n">dialog</span><span class="o">.</span><span class="n">askYesNo</span><span class="p">(</span><span class="n">Message</span><span class="o">.</span><span class="n">TITLE_STOP_WORKFLOW_FORM</span><span class="p">,</span>
@@ -1813,34 +1816,8 @@
 <span class="sd">        modes depending on the &#39;action&#39; value (RESTART, CONTINUE)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">protocols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getSelectedProtocols</span><span class="p">()</span>
-        <span class="n">errorList</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">defaultMode</span> <span class="o">=</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">MODE_RESUME</span>
-        <span class="n">workflowProtocolList</span><span class="p">,</span> <span class="n">activeProtList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">_getSubworkflow</span><span class="p">(</span><span class="n">protocols</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-
-        <span class="c1"># Check if exists active protocols</span>
-        <span class="k">if</span> <span class="n">activeProtList</span><span class="p">:</span>
-            <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
-            <span class="k">for</span> <span class="n">activeProt</span> <span class="ow">in</span> <span class="n">activeProtList</span><span class="p">:</span>
-                <span class="n">msg</span> <span class="o">+=</span> <span class="nb">str</span><span class="p">(</span><span class="n">activeProt</span><span class="o">.</span><span class="n">getObjLabel</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span>
-            <span class="n">pwgui</span><span class="o">.</span><span class="n">dialog</span><span class="o">.</span><span class="n">MessageDialog</span><span class="p">(</span>
-                <span class="bp">self</span><span class="p">,</span> <span class="n">Message</span><span class="o">.</span><span class="n">TITLE_LAUNCHED_WORKFLOW_FAILED_FORM</span><span class="p">,</span>
-                <span class="n">Message</span><span class="o">.</span><span class="n">TITLE_LAUNCHED_WORKFLOW_FAILED</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span>
-                <span class="n">Message</span><span class="o">.</span><span class="n">TITLE_ACTIVE_PROTOCOLS</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">msg</span><span class="p">,</span>
-                <span class="n">Icon</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
-
-        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="n">ACTION_RESTART_WORKFLOW</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">pwgui</span><span class="o">.</span><span class="n">dialog</span><span class="o">.</span><span class="n">askYesNo</span><span class="p">(</span><span class="n">Message</span><span class="o">.</span><span class="n">TITLE_RESTART_WORKFLOW_FORM</span><span class="p">,</span>
-                                     <span class="n">Message</span><span class="o">.</span><span class="n">TITLE_RESTART_WORKFLOW</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">):</span>
-                <span class="n">defaultMode</span> <span class="o">=</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">MODE_RESTART</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Restarting...&#39;</span><span class="p">)</span>
-                <span class="n">errorList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">launchWorkflow</span><span class="p">(</span><span class="n">workflowProtocolList</span><span class="p">,</span>
-                                                        <span class="n">defaultMode</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">cleanInfo</span><span class="p">()</span>
-        <span class="k">elif</span> <span class="n">action</span> <span class="o">==</span> <span class="n">ACTION_CONTINUE_WORKFLOW</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Continuing...&#39;</span><span class="p">)</span>
-            <span class="n">errorList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">launchWorkflow</span><span class="p">(</span><span class="n">workflowProtocolList</span><span class="p">,</span>
-                                                    <span class="n">defaultMode</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">cleanInfo</span><span class="p">()</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">MODE_RESTART</span> <span class="k">if</span> <span class="n">action</span> <span class="o">==</span> <span class="n">ACTION_RESTART_WORKFLOW</span> <span class="k">else</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">MODE_RESUME</span>
+        <span class="n">errorList</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_launchSubWorkflow</span><span class="p">(</span><span class="n">protocols</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">mode</span><span class="p">,</span>  <span class="bp">self</span><span class="o">.</span><span class="n">root</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">errorList</span><span class="p">:</span>
             <span class="n">msg</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
@@ -1851,6 +1828,70 @@
                 <span class="n">Message</span><span class="o">.</span><span class="n">TITLE_LAUNCHED_WORKFLOW_FAILED</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="n">msg</span><span class="p">,</span>
                 <span class="n">Icon</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">refreshRuns</span><span class="p">()</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_launchSubWorkflow</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">askSingleAll</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method to launch a subworkflow</span>
+<span class="sd">        mode: mode value (RESTART, CONTINUE)</span>
+<span class="sd">        askSingleAll: specify if this method was launched from the form or from the menu</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">project</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getProject</span><span class="p">()</span>
+        <span class="n">workflowProtocolList</span><span class="p">,</span> <span class="n">activeProtList</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">_getSubworkflow</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+
+        <span class="c1"># Check if exists active protocols</span>
+        <span class="n">activeProtocols</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">activeProtList</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">protId</span><span class="p">,</span> <span class="n">activeProt</span> <span class="ow">in</span> <span class="n">activeProtList</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">activeProtocols</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">* &quot;</span> <span class="o">+</span> <span class="n">activeProt</span><span class="o">.</span><span class="n">getRunName</span><span class="p">())</span>
+
+        <span class="c1"># by default, we assume RESTART workflow option</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="n">Message</span><span class="o">.</span><span class="n">TITLE_RESTART_WORKFLOW_FORM</span>
+        <span class="n">message</span> <span class="o">=</span> <span class="n">Message</span><span class="o">.</span><span class="n">MESSAGE_RESTART_WORKFLOW_WITH_RESULTS</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">activeProtocols</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">activeProtList</span><span class="p">)</span> <span class="k">else</span> <span class="n">Message</span><span class="o">.</span><span class="n">MESSAGE_RESTART_WORKFLOW</span>
+
+        <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">MODE_RESUME</span><span class="p">:</span>
+             <span class="n">message</span> <span class="o">=</span> <span class="n">Message</span><span class="o">.</span><span class="n">MESSAGE_CONTINUE_WORKFLOW_WITH_RESULTS</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">activeProtocols</span><span class="p">)</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">activeProtList</span><span class="p">)</span> <span class="k">else</span> <span class="n">Message</span><span class="o">.</span><span class="n">MESSAGE_CONTINUE_WORKFLOW</span>
+             <span class="n">title</span> <span class="o">=</span> <span class="n">Message</span><span class="o">.</span><span class="n">TITLE_CONTINUE_WORKFLOW_FORM</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">askSingleAll</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">pwgui</span><span class="o">.</span><span class="n">dialog</span><span class="o">.</span><span class="n">askYesNo</span><span class="p">(</span><span class="n">title</span><span class="p">,</span>  <span class="n">message</span><span class="p">,</span> <span class="n">root</span><span class="p">):</span>
+                <span class="n">project</span><span class="o">.</span><span class="n">launchWorkflow</span><span class="p">(</span><span class="n">workflowProtocolList</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+                <span class="k">return</span> <span class="p">[],</span> <span class="n">RESULT_RUN_ALL</span>
+            <span class="k">return</span> <span class="p">[],</span> <span class="n">RESULT_CANCEL</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c1"># launching from a form</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">workflowProtocolList</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">title</span> <span class="o">=</span> <span class="n">Message</span><span class="o">.</span><span class="n">TITLE_RESTART_FORM</span> <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">MODE_RESTART</span> <span class="k">else</span> <span class="n">Message</span><span class="o">.</span><span class="n">TITLE_CONTINUE_FORM</span>
+                <span class="n">message</span> <span class="o">+=</span> <span class="n">Message</span><span class="o">.</span><span class="n">MESSAGE_ASK_SINGLE_ALL</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">pwgui</span><span class="o">.</span><span class="n">dialog</span><span class="o">.</span><span class="n">askSingleAllCancel</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">message</span><span class="p">,</span>
+                                                         <span class="n">root</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">result</span> <span class="o">==</span> <span class="n">RESULT_RUN_ALL</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">MODE_RESTART</span><span class="p">:</span>
+                        <span class="n">project</span><span class="o">.</span><span class="n">_restartWorkflow</span><span class="p">(</span><span class="n">workflowProtocolList</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">project</span><span class="o">.</span><span class="n">_continueWorkflow</span><span class="p">(</span><span class="n">workflowProtocolList</span><span class="p">)</span>
+
+                    <span class="k">return</span> <span class="p">[],</span> <span class="n">RESULT_RUN_ALL</span>
+
+                <span class="k">elif</span> <span class="n">result</span> <span class="o">==</span> <span class="n">RESULT_RUN_SINGLE</span><span class="p">:</span>
+                    <span class="n">errorList</span> <span class="o">=</span> <span class="n">project</span><span class="o">.</span><span class="n">resetWorkFlow</span><span class="p">(</span><span class="n">workflowProtocolList</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">errorList</span><span class="p">,</span> <span class="n">RESULT_RUN_SINGLE</span>
+
+                <span class="k">elif</span> <span class="n">result</span> <span class="o">==</span> <span class="n">RESULT_CANCEL</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="p">[],</span> <span class="n">RESULT_CANCEL</span>
+
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># is a single protocol</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isSaved</span><span class="p">():</span>
+                    <span class="n">title</span> <span class="o">=</span> <span class="n">Message</span><span class="o">.</span><span class="n">TITLE_RESTART_FORM</span>
+                    <span class="n">message</span> <span class="o">=</span> <span class="n">Message</span><span class="o">.</span><span class="n">MESSAGE_RESTART_FORM</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getRunName</span><span class="p">())</span>
+                    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">MODE_RESUME</span><span class="p">:</span>
+                        <span class="n">title</span> <span class="o">=</span> <span class="n">Message</span><span class="o">.</span><span class="n">TITLE_CONTINUE_FORM</span>
+                        <span class="n">message</span> <span class="o">=</span> <span class="n">Message</span><span class="o">.</span><span class="n">MESSAGE_CONTINUE_FORM</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getRunName</span><span class="p">())</span>
+
+                    <span class="n">result</span> <span class="o">=</span> <span class="n">pwgui</span><span class="o">.</span><span class="n">dialog</span><span class="o">.</span><span class="n">askYesNo</span><span class="p">(</span><span class="n">title</span><span class="p">,</span>  <span class="n">message</span><span class="p">,</span>  <span class="n">root</span><span class="p">)</span>
+                    <span class="n">resultRun</span> <span class="o">=</span> <span class="n">RESULT_RUN_SINGLE</span> <span class="k">if</span> <span class="n">result</span> <span class="k">else</span> <span class="n">RESULT_CANCEL</span>
+                    <span class="k">return</span> <span class="p">[],</span> <span class="n">resultRun</span>
+
+                <span class="k">return</span> <span class="p">[],</span> <span class="n">RESULT_RUN_SINGLE</span>
 
     <span class="k">def</span> <span class="nf">_selectLabels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">selectedNodes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getSelectedNodes</span><span class="p">()</span>

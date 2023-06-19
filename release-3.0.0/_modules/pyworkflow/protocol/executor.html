@@ -386,6 +386,17 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">runJobs</span> <span class="o">=</span> <span class="n">StepExecutor</span><span class="o">.</span><span class="n">runSteps</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">renameGpuIds</span><span class="p">()</span>
+
+<div class="viewcode-block" id="QueueStepExecutor.renameGpuIds"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.executor.html#pyworkflow.protocol.executor.QueueStepExecutor.renameGpuIds">[docs]</a>    <span class="k">def</span> <span class="nf">renameGpuIds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Reorganize the gpus ids starting from 0 since the queue engine is the one assigning them.</span>
+<span class="sd">        https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#env-vars &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">threadId</span><span class="p">,</span> <span class="n">gpuList</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpuDict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">gpuList</span><span class="p">)):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">gpuDict</span><span class="p">[</span><span class="n">threadId</span><span class="p">][</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Updated gpus ids rebase starting from 0: </span><span class="si">%s</span><span class="s2"> per thread&quot;</span> <span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">gpuDict</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="QueueStepExecutor.runJob"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.executor.html#pyworkflow.protocol.executor.QueueStepExecutor.runJob">[docs]</a>    <span class="k">def</span> <span class="nf">runJob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">programName</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">numberOfThreads</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">threadId</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">current_thread</span><span class="p">()</span><span class="o">.</span><span class="n">thId</span>
         <span class="n">submitDict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hostConfig</span><span class="o">.</span><span class="n">getQueuesDefault</span><span class="p">())</span>
@@ -418,23 +429,26 @@
         <span class="k">return</span> <span class="n">status</span></div>
 
     <span class="k">def</span> <span class="nf">_checkJobStatus</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hostConfig</span><span class="p">,</span> <span class="n">jobid</span><span class="p">):</span>
-
         <span class="n">command</span> <span class="o">=</span> <span class="n">hostConfig</span><span class="o">.</span><span class="n">getCheckCommand</span><span class="p">()</span> <span class="o">%</span> <span class="p">{</span><span class="s2">&quot;JOB_ID&quot;</span><span class="p">:</span> <span class="n">jobid</span><span class="p">}</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;checking job status for </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">jobid</span><span class="p">,</span> <span class="n">command</span><span class="p">))</span>
         <span class="n">p</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">,</span> <span class="n">preexec_fn</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">setsid</span><span class="p">)</span>
 
         <span class="n">out</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">communicate</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">errors</span><span class="o">=</span><span class="s1">&#39;backslashreplace&#39;</span><span class="p">)</span>
 
         <span class="n">jobDoneRegex</span> <span class="o">=</span> <span class="n">hostConfig</span><span class="o">.</span><span class="n">getJobDoneRegex</span><span class="p">()</span>
-
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Queue engine replied </span><span class="si">%s</span><span class="s2">, variable JOB_DONE_REGEX has </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">jobDoneRegex</span><span class="p">))</span>
         <span class="c1"># If nothing is returned we assume job is no longer in queue and thus finished</span>
         <span class="k">if</span> <span class="n">out</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Empty response from queue system to job (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span><span class="n">jobid</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">cts</span><span class="o">.</span><span class="n">STATUS_FINISHED</span>
         <span class="c1"># If some string is returned we use the JOB_DONE_REGEX variable (if present) to infer the status</span>
         <span class="k">elif</span> <span class="n">jobDoneRegex</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">s</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">jobDoneRegex</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">s</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Job (</span><span class="si">%s</span><span class="s2">) finished&quot;</span> <span class="o">%</span><span class="n">jobid</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">cts</span><span class="o">.</span><span class="n">STATUS_FINISHED</span>
             <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Job (</span><span class="si">%s</span><span class="s2">) still running&quot;</span> <span class="o">%</span><span class="n">jobid</span><span class="p">)</span>
                 <span class="k">return</span> <span class="n">cts</span><span class="o">.</span><span class="n">STATUS_RUNNING</span>
         <span class="c1"># If JOB_DONE_REGEX is not defined and queue has returned something we assume that job is still running</span>
         <span class="k">else</span><span class="p">:</span>

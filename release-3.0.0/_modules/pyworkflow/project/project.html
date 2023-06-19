@@ -516,6 +516,8 @@
         <span class="k">if</span> <span class="n">continuedProtList</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">level</span> <span class="ow">in</span> <span class="n">continuedProtList</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isInteractive</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isScheduled</span><span class="p">():</span>
+                        <span class="k">continue</span>
                     <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">worksInStreaming</span><span class="p">():</span>
                         <span class="n">attrSet</span> <span class="o">=</span> <span class="p">[</span><span class="n">attr</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span>
                                    <span class="n">protocol</span><span class="o">.</span><span class="n">iterOutputAttributes</span><span class="p">(</span><span class="n">pwprot</span><span class="o">.</span><span class="n">Set</span><span class="p">)]</span>
@@ -541,6 +543,8 @@
                         <span class="k">if</span> <span class="n">level</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                             <span class="c1"># we make sure that at least one protocol in streaming</span>
                             <span class="c1"># has been launched</span>
+                            <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isActive</span><span class="p">():</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">stopProtocol</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_restartWorkflow</span><span class="p">({</span><span class="n">protocol</span><span class="o">.</span><span class="n">getObjId</span><span class="p">():</span> <span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">level</span><span class="p">)},</span>
                                                   <span class="n">errorsList</span><span class="p">)</span>
 
@@ -565,6 +569,10 @@
             <span class="k">for</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">level</span> <span class="ow">in</span> <span class="n">restartedProtList</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isInteractive</span><span class="p">():</span>
                     <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isScheduled</span><span class="p">():</span>
+                            <span class="k">continue</span>
+                        <span class="k">elif</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isActive</span><span class="p">():</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">stopProtocol</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
                         <span class="n">protocol</span><span class="o">.</span><span class="n">runMode</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">MODE_RESTART</span><span class="p">)</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">scheduleProtocol</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span>
                                               <span class="n">initialSleepTime</span><span class="o">=</span><span class="n">level</span><span class="o">*</span><span class="n">INITIAL_SLEEP_TIME</span><span class="p">)</span>
@@ -614,7 +622,7 @@
 <span class="sd">        :param initialProtocol: selected protocol</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">errorProtList</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">protocol</span> <span class="ow">in</span> <span class="n">activeProtList</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">protocol</span> <span class="ow">in</span> <span class="n">activeProtList</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">stopProtocol</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
@@ -923,17 +931,17 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_checkProtocolsDependencies</span><span class="p">(</span><span class="n">protocols</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_getSubworkflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">fixProtParam</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">letItPass</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_getSubworkflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">fixProtParam</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">getStopped</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function get the workflow from &quot;protocol&quot; and determine the</span>
 <span class="sd">        protocol level into the graph. Also, checks if there are active</span>
 <span class="sd">        protocols excluding interactive protocols.</span>
-
 <span class="sd">        :param protocol from where to start the subworkflow (included)</span>
-<span class="sd">        :param letItPass: a callback receiving the protocol and returning false if protocol should not pass</span>
+<span class="sd">        :param fixProtParam fix the old parameters configuration in the protocols</span>
+<span class="sd">        :param getStopped takes into account protocols that aren&#39;t stopped</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">affectedProtocols</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">affectedProtocolsActive</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">affectedProtocolsActive</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="n">auxProtList</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c1"># store the protocol and your level into the workflow</span>
         <span class="n">affectedProtocols</span><span class="p">[</span><span class="n">protocol</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()]</span> <span class="o">=</span> <span class="p">[</span><span class="n">protocol</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
@@ -950,19 +958,17 @@
             <span class="k">if</span> <span class="n">fixProtParam</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_fixProtParamsConfiguration</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
 
-            <span class="n">passesFilter</span> <span class="o">=</span> <span class="kc">True</span> <span class="k">if</span> <span class="n">letItPass</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">letItPass</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">passesFilter</span> <span class="ow">and</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isActive</span><span class="p">()</span> <span class="ow">and</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getStatus</span><span class="p">()</span> <span class="o">!=</span> <span class="n">STATUS_INTERACTIVE</span><span class="p">:</span>
-                <span class="n">affectedProtocolsActive</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">getStopped</span> <span class="ow">and</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isActive</span><span class="p">():</span>
+                <span class="n">affectedProtocolsActive</span><span class="p">[</span><span class="n">protocol</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()]</span> <span class="o">=</span> <span class="n">protocol</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span> <span class="ow">in</span> <span class="n">affectedProtocolsActive</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="ow">and</span> <span class="n">getStopped</span> <span class="ow">and</span> \
+                    <span class="ow">not</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isSaved</span><span class="p">()</span> <span class="ow">and</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getStatus</span><span class="p">()</span> <span class="o">!=</span> <span class="n">STATUS_INTERACTIVE</span><span class="p">:</span>
+                <span class="n">affectedProtocolsActive</span><span class="p">[</span><span class="n">protocol</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()]</span> <span class="o">=</span> <span class="n">protocol</span>
 
             <span class="n">node</span> <span class="o">=</span> <span class="n">runGraph</span><span class="o">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">strId</span><span class="p">())</span>
             <span class="n">dependencies</span> <span class="o">=</span> <span class="p">[</span><span class="n">node</span><span class="o">.</span><span class="n">run</span> <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">getChilds</span><span class="p">()]</span>
             <span class="k">for</span> <span class="n">dep</span> <span class="ow">in</span> <span class="n">dependencies</span><span class="p">:</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">dep</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span> <span class="ow">in</span> <span class="n">auxProtList</span><span class="p">:</span>
                     <span class="n">auxProtList</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">dep</span><span class="o">.</span><span class="n">getObjId</span><span class="p">(),</span> <span class="n">level</span><span class="p">])</span>
-
-                <span class="k">if</span> <span class="n">letItPass</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">letItPass</span><span class="p">(</span><span class="n">dep</span><span class="p">):</span>
-                    <span class="k">continue</span>
 
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">dep</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span> <span class="ow">in</span> <span class="n">affectedProtocols</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
                     <span class="n">affectedProtocols</span><span class="p">[</span><span class="n">dep</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()]</span> <span class="o">=</span> <span class="p">[</span><span class="n">dep</span><span class="p">,</span> <span class="n">level</span><span class="p">]</span>
