@@ -65,7 +65,7 @@ workflow template by clicking “Others”-> “import workflow template’ ->
 parameters, you can already enter the path to the particle .star file
 and the pixel size (2.0 A)
 
-.. image:: media/image1.png
+.. image:: ../Images/media/image1.png
    :width: 5.12537in
    :height: 2.68868in
 
@@ -73,7 +73,7 @@ Figure : Creation of a Scipion project. 1) Create an empty project by
 selecting “Create Project”. 2) Set the project name and location and
 press “Create”.
 
-.. image:: media/image2.png
+.. image:: ../Images/media/image2.png
    :width: 6.48958in
    :height: 3.6875in
 
@@ -84,7 +84,7 @@ Select the input parameters for the template and press “Accept”
 Once the workflow is imported, you can select the view to “MDSPACE” to
 have a quick access to MDSPACE protocols (see Figure 3)
 
-.. image:: media/image3.png
+.. image:: ../Images/media/image3.png
    :width: 5.10417in
    :height: 4.54167in
 
@@ -106,7 +106,7 @@ execute. You can view the structure in ChimeraX by opening the protocol
 viewer (the button “Analyze Results” in Scipion opens the viewer of a
 protocol) (See Figure 4).
 
-.. image:: media/image4.png
+.. image:: ../Images/media/image4.png
    :width: 3.05054in
    :height: 2.68259in
 
@@ -121,7 +121,7 @@ that scipion-em-relion plugin is required to import data from relion.
 You can obtain it with scipion3 installp -p scipion-em-relion). Click on
 “Analyze results” to open the viewer (see Figure 5)
 
-.. image:: media/image5.png
+.. image:: ../Images/media/image5.png
    :width: 4.30955in
    :height: 3.23216in
 
@@ -150,7 +150,7 @@ the EM map and the PDB as inputs. By opening ChimeraX, you can see that
 the model is misaligned with the map. The Figure 4 shows the procedure
 to align the model with the EM map.
 
-.. image:: media/image6.png
+.. image:: ../Images/media/image6.png
    :width: 6.74167in
    :height: 3.4434in
 
@@ -192,7 +192,7 @@ used to run different type of simulation. Here, you can select the
 simulation type to “Minimization” and leave all the other parameters to
 default (See Figure 5).
 
-.. image:: media/image7.png
+.. image:: ../Images/media/image7.png
    :width: 6.2769in
    :height: 3.60377in
 
@@ -219,7 +219,7 @@ need to first perform NMA. For that, run the protocol “Normal Mode
 Analysis” with the default parameters. The NMA viewer allows to observe
 each computed normal mode in VMD (see Figure 8)
 
-.. image:: media/image8.png
+.. image:: ../Images/media/image8.png
    :width: 6.33443in
    :height: 2.92899in
 
@@ -305,7 +305,7 @@ When running on clusters with multiple nodes, it is recommended to set
 If you are using the queuing system of Scipion, you still have to enter
 all the fields according to your cluster configuration.
 
-.. image:: media/image9.png
+.. image:: ../Images/media/image9.png
    :width: 6.5in
    :height: 3.65223in
 
@@ -330,7 +330,7 @@ button to open the protocol viewer (see Figure 10). This viewer allows
 to observe the trajectory of each simulation (3D structure, energy,
 correlation coefficient, RMSD,
 
-.. image:: media/image10.png
+.. image:: ../Images/media/image10.png
    :width: 6.5in
    :height: 3.94786in
 
@@ -360,7 +360,7 @@ to get rid of rigid-body motions that could be present. Then run the
 protocol “PCA” and “UMAP”. To observe the conformational space, atomic
 trajectories and 3D reconstructed trajectories, see Figure 11.
 
-.. image:: media/image11.png
+.. image:: ../Images/media/image11.png
    :width: 6.5in
    :height: 2.99653in
 
