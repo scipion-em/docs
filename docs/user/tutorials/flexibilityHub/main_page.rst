@@ -14,7 +14,7 @@ Currently, the following softwares have been integrated in the FLexibility Hub f
 
 * `Zernike3D <>`__ (available at `scipion-em-flexutils <https://github.com/scipion-em/scipion-em-flexutils>`__)
 * `CryoDRGN <>`__ (available at `scipion-em-cryodrgn <https://github.com/scipion-em/scipion-em-cryodrgn>`__)
-* `ContinuousFlex <>`__ (available at `scipion-em-cryodrgn <https://github.com/scipion-em/scipion-em-continuousflex>`__)
+* `ContinuousFlex <>`__ (available at `scipion-em-continuousflex <https://github.com/scipion-em/scipion-em-continuousflex>`__)
 * `ProDy <>`__ (available at `scipion-em-prody <https://github.com/scipion-em/scipion-em-prody>`__)
 
 Joining the Discord workspace
