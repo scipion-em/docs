@@ -53,6 +53,13 @@ Model Building
     Build initial model with Alphafold <tutorials/modelBuilding/Alphafold/index>
     Build initial model with ModelAngelo <tutorials/modelBuilding/ModelAngelo/index>
 
+Flexibility Hub
+--------------
+.. toctree::
+    :maxdepth: 1
+
+    Flexibility Hub tutorial main page <tutorials/flexibilityHub/main_page>
+
 Processing How To's
 ===================
 
