@@ -12,10 +12,10 @@ Here we introduce the **Flexiblity Hub**, a new section of Scipion specifically 
 
 Currently, the following softwares have been integrated in the FLexibility Hub framework:
 
-* `Zernike3D <>`__ (available at `scipion-em-flexutils <https://github.com/scipion-em/scipion-em-flexutils>`__)
-* `CryoDRGN <>`__ (available at `scipion-em-cryodrgn <https://github.com/scipion-em/scipion-em-cryodrgn>`__)
-* `ContinuousFlex <>`__ (available at `scipion-em-continuousflex <https://github.com/scipion-em/scipion-em-continuousflex>`__)
-* `ProDy <>`__ (available at `scipion-em-prody <https://github.com/scipion-em/scipion-em-prody>`__)
+* Zernike3D (available at `scipion-em-flexutils <https://github.com/scipion-em/scipion-em-flexutils>`__)
+* CryoDRGN (available at `scipion-em-cryodrgn <https://github.com/scipion-em/scipion-em-cryodrgn>`__)
+* :doc:`ContinuousFlex <Tutorials/MDSPACE_Tutorial_v0>` (available at `scipion-em-continuousflex <https://github.com/scipion-em/scipion-em-continuousflex>`__)
+* ProDy (available at `scipion-em-prody <https://github.com/scipion-em/scipion-em-prody>`__)
 
 Joining the Discord workspace
 =============================
@@ -41,8 +41,8 @@ Tutorials
 
 There are two different tutorials available:
 
-* `Flexibility Hub Starter guide <./Tutorials/starter_guide.rst>`__: Simple workflow focusing on the analysis of ideal landscapes from synthetic particles.
-* `Flexibility Hub advanced guide <./Tutorials/advanced_guide.rst>`__: Workflow with real CryoEM data from Empiar, showing the common strategies to address molecular flexibility from experimental particles
+* :doc:`Flexibility Hub Starter guide <Tutorials/starter_guide>`: Simple workflow focusing on the analysis of ideal landscapes from synthetic particles.
+* :doc:`Flexibility Hub advanced guide <Tutorials/advanced_guide>`: Workflow with real CryoEM data from Empiar, showing the common strategies to address molecular flexibility from experimental particles
 
 In addition, each Plugin integrated in the Flexibility Hub includes guides on the usage of the different protocols it integrates.
 
