@@ -47,3 +47,13 @@ There are two different tutorials available:
 In addition, each Plugin integrated in the Flexibility Hub includes guides on the usage of the different protocols it integrates.
 
 Video tutorials are also available `here <https://www.youtube.com/playlist?list=PLuu0votIJpSxTmPLvKRHV3ijadqlxxHfb>`__ describing the interactive tools to explore conformational landscapes.
+
+
+Additional materials
+=============================
+
+* Instruct course on flexibility analysis and integrative modelling using Scipion. Madrid, June 19 – 23, 2023:
+    - Introductory slides to the Flexibility Hub (available `here <https://docs.google.com/presentation/d/1lTuMyWJejke9fMbjKW2Eqpj17I4Eknl3/edit?usp=sharing&ouid=109388499505764890294&rtpof=true&sd=true>`__)
+    - Theory on heterogeneity approaches (available `here <https://docs.google.com/presentation/d/1RVUAvAz4zREwGZ4L5IBFcnSPYLcq8Mgj/edit?usp=sharing&ouid=109388499505764890294&rtpof=true&sd=true>`__)
+    - Theory slides on flexibility consensus (available `here <https://docs.google.com/presentation/d/1FVUaDBvBOhEuf8SvH24Xel08IaAcGKtr/edit?usp=sharing&ouid=109388499505764890294&rtpof=true&sd=true>`__)
+    - Theory slides on ZART and heterogeneity correction (available `here <https://docs.google.com/presentation/d/141Iz7fYErqAJPK24WU3LYMvYMf30QEwL/edit?usp=sharing&ouid=109388499505764890294&rtpof=true&sd=true>`__)
