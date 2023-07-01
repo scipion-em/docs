@@ -108,5 +108,10 @@ To configure Scipion for a cluster you will need to edit the :ref:`host file <ho
 Test the installation
 =====================
 
--  Test your installation by running at least the *Small* and *Medium* tests mentioned in the :ref:`Verify installation page <Verify-Installation>`.
+- Complete some of the Scipion tests:
+
+    - Verify Scipion core plugins by running: ``scipion3 test --grep pyworkflowtests --run`` (<1 min)
+    - Verify Xmipp compilation by running ``scipion3 tests pwem.tests.protocols.test_protocols_import_volumes`` (<1 min). Double check by opening the test project and displaying output volumes with Scipion viewer.
+    - Check whether CUDA and MPI work properly: ``scipion3 tests xmipp3.tests.test_protocols_xmipp_3d.TestXmippProjMatching`` (2 min)
+
 -  Complete some of the :ref:`Scipion Tutorials <User-Documentation>`.
