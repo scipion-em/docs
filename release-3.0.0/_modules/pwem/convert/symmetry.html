@@ -131,6 +131,8 @@
 <span class="sd">point symmetries. Code based on chimera file sym.py</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sin</span><span class="p">,</span> <span class="n">cos</span><span class="p">,</span> <span class="n">pi</span><span class="p">,</span> <span class="n">acos</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">,</span> <span class="n">asin</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="kn">import</span> <span class="n">inv</span> <span class="k">as</span> <span class="n">matrix_inverse</span>
@@ -293,31 +295,81 @@
 
 <span class="c1"># ==================== End of utility functions ====================</span>
 
+<div class="viewcode-block" id="SymmetryHelper"><a class="viewcode-back" href="../../../api/pwem/pwem.convert.symmetry.html#pwem.convert.symmetry.SymmetryHelper">[docs]</a><span class="k">class</span> <span class="nc">SymmetryHelper</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; This is a static class so there is no need to instantiate it. </span>
+<span class="sd">        Given a symmetry the class provides methods to &quot;move&quot; projection</span>
+<span class="sd">        directions to the equivalent orientation that lays within the unit </span>
+<span class="sd">        cells defined at https://scipion-em.github.io/docs/release-3.0.0/docs/developer/symmetries/symmetries.html?highlight=symmetry.&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="moveParticlesInsideUnitCell"><a class="viewcode-back" href="../../../api/pwem/pwem.convert.symmetry.html#pwem.convert.symmetry.moveParticlesInsideUnitCell">[docs]</a><span class="k">def</span> <span class="nf">moveParticlesInsideUnitCell</span><span class="p">(</span><span class="n">setIN</span><span class="p">,</span> <span class="n">setOUT</span><span class="p">,</span> <span class="n">sym</span><span class="o">=</span><span class="n">cts</span><span class="o">.</span><span class="n">SYM_CYCLIC</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Move particles projection direction inside the unit cell associated</span>
-<span class="sd">    to symmetry sym.</span>
-<span class="sd">    This function (1) gets the symmetry matrices and (2) applies them to</span>
-<span class="sd">         each proejction direction until is inside the unit cell.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">matrixSet</span> <span class="o">=</span> <span class="n">getSymmetryMatrices</span><span class="p">(</span><span class="n">sym</span><span class="o">=</span><span class="n">sym</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
-    <span class="c1"># get unit cell vectors</span>
-    <span class="n">_</span><span class="p">,</span> <span class="p">(</span><span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span> <span class="o">=</span> <span class="n">getUnitCell</span><span class="p">(</span><span class="n">sym</span><span class="o">=</span><span class="n">sym</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">generalize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-    <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># counter for the number of particles</span>
-    <span class="n">totalNumberOfParticles</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">setIN</span><span class="p">)</span>
-    <span class="n">totalNumberOFMatrices</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">matrixSet</span><span class="p">)</span>
-    <span class="c1"># for each particle in set</span>
-    <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">setIN</span><span class="p">:</span>
-        <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
-        <span class="k">if</span> <span class="n">counter</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="c1"># print something to keep the user engaged</span>
-            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">counter</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">totalNumberOfParticles</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="c1"># Dictionary to cache all the symmetry matrices and unit cell </span>
+    <span class="c1"># planes for a particular symmetry</span>
+    <span class="n">_matricesAndPlanes</span> <span class="o">=</span> <span class="p">{}</span>  
+
+<div class="viewcode-block" id="SymmetryHelper.getSymmetryKey"><a class="viewcode-back" href="../../../api/pwem/pwem.convert.symmetry.html#pwem.convert.symmetry.SymmetryHelper.getSymmetryKey">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getSymmetryKey</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span><span class="n">sym</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sym</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SymmetryHelper.getSymmetryMatricesAndPlanes"><a class="viewcode-back" href="../../../api/pwem/pwem.convert.symmetry.html#pwem.convert.symmetry.SymmetryHelper.getSymmetryMatricesAndPlanes">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getSymmetryMatricesAndPlanes</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">sym</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Lazy return a tuple of symmetry matrices and unit cell planes for the symmetry and order passed</span>
+
+<span class="sd">        :param sym: Symmetry type</span>
+<span class="sd">        :param n: symmetry order</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">key</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getSymmetryKey</span><span class="p">(</span><span class="n">sym</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_matricesAndPlanes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Gettting symmetry matrices and unitcell planes for </span><span class="si">%s</span><span class="s2">, </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">sym</span><span class="p">,</span><span class="n">n</span><span class="p">))</span>
+            <span class="n">matrixSet</span> <span class="o">=</span> <span class="n">getSymmetryMatrices</span><span class="p">(</span><span class="n">sym</span><span class="o">=</span><span class="n">sym</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
+            <span class="c1"># get unit cell vectors</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">unitCellPlanes</span> <span class="o">=</span> <span class="n">getUnitCell</span><span class="p">(</span><span class="n">sym</span><span class="o">=</span><span class="n">sym</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">generalize</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_matricesAndPlanes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">matrixSet</span><span class="p">,</span> <span class="n">unitCellPlanes</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_matricesAndPlanes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="SymmetryHelper.moveParticleInsideUnitCell"><a class="viewcode-back" href="../../../api/pwem/pwem.convert.symmetry.html#pwem.convert.symmetry.SymmetryHelper.moveParticleInsideUnitCell">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">moveParticleInsideUnitCell</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">particle</span><span class="p">,</span> <span class="n">symmetry</span><span class="p">,</span> <span class="n">symmetryOrder</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; apply to the projection direction the symmetry matrix that &quot;moves&quot; the projection</span>
+<span class="sd">        direction to the equivalent orientation that lays within the &quot;canonical&quot; unit</span>
+<span class="sd">        This is useful to move for example Cryosparc angles to a same unit cell</span>
+<span class="sd">        and therefore been able to plot angular distribution. This method can be used in the typical &quot;updateParticle&quot;</span>
+<span class="sd">        callback when generating any output set.</span>
+
+<span class="sd">        :param particle: Particle to move.</span>
+<span class="sd">        :param symmetry: symmetry type in scipion&#39;s convention.</span>
+<span class="sd">        :param symmetryOrder: order of the symmetry</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c1"># For C1 particles we do not move angles to unit cell.</span>
+        <span class="k">if</span> <span class="n">symmetry</span><span class="o">==</span><span class="n">cts</span><span class="o">.</span><span class="n">SYM_CYCLIC</span> <span class="ow">and</span> <span class="n">symmetryOrder</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Cancelling unit cell migration due to C1 symmetry.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">matrices</span><span class="p">,</span> <span class="n">unitCellPlanes</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getSymmetryMatricesAndPlanes</span><span class="p">(</span><span class="n">symmetry</span><span class="p">,</span> <span class="n">symmetryOrder</span><span class="p">)</span>
+        <span class="bp">cls</span><span class="o">.</span><span class="n">_moveParticleInsideUnitCell</span><span class="p">(</span><span class="n">particle</span><span class="p">,</span> <span class="n">matrices</span><span class="p">,</span> <span class="n">unitCellPlanes</span><span class="p">)</span></div>
+
+
+    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">_moveParticleInsideUnitCell</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">particle</span><span class="p">,</span> <span class="n">matrixSet</span><span class="p">,</span> <span class="n">unitCellPlanes</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Move the particle projection direction so it lays inside the canonical unit cell,</span>
+<span class="sd">            symmetry matrices and unit cell planes needs to be precomputed</span>
+<span class="sd">            :param particle: to move</span>
+<span class="sd">            :param matrixSet: value returned when calling getSymmetryMatrices with the right symmetry and order</span>
+<span class="sd">            :param unitCellPlanes: second term returned by getUnitCell when called with the right symmetry and order</span>
+<span class="sd">            &quot;&quot;&quot;</span>
         <span class="c1"># get projection direction</span>
-        <span class="n">colunm</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="n">colunm</span> <span class="o">=</span> <span class="n">particle</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">()[</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+        <span class="n">u</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">unitCellPlanes</span>
+
         <span class="k">if</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">colunm</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> \
            <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">colunm</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> \
            <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">colunm</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
-            <span class="k">pass</span>  <span class="c1"># particle is inside unit cell so nothing needs to be done</span>
+            <span class="c1"># particle is inside unit cell so nothing needs to be done</span>
+            <span class="k">return</span> <span class="n">particle</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># loop over symmetry matrices</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">matrix</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">matrixSet</span><span class="p">):</span>
@@ -327,18 +379,40 @@
                 <span class="k">if</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">columPrime</span><span class="p">,</span> <span class="n">u</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> \
                    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">columPrime</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> \
                    <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">columPrime</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">):</span>
-                    <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">par</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">())</span>
-                    <span class="n">t</span> <span class="o">=</span> <span class="n">par</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span>
+                    <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">particle</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">())</span>
+                    <span class="n">t</span> <span class="o">=</span> <span class="n">particle</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span>
                     <span class="n">t</span><span class="o">.</span><span class="n">setMatrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
-                    <span class="n">par</span><span class="o">.</span><span class="n">setTransform</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
-                    <span class="n">setOUT</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">par</span><span class="p">)</span>
-                    <span class="k">break</span>
-                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">totalNumberOFMatrices</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Error: something went wrong in &quot;</span>
-                          <span class="s2">&quot;moveParticlesInsideUnitCell&quot;</span><span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;       no matrix move particle direction &quot;</span>
-                          <span class="s2">&quot;inside the unit cell&quot;</span><span class="p">)</span>
-                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;       particle id: &quot;</span><span class="p">,</span> <span class="n">par</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span></div>
+                    <span class="n">particle</span><span class="o">.</span><span class="n">setTransform</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">particle</span>
+
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Error: something went wrong in moveParticlesInsideUnitCell.&quot;</span>
+                        <span class="s2">&quot; No matrix found to move the particle projection direction inside the unit cell.&quot;</span>
+                        <span class="s2">&quot;       particle id: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">particle</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span></div>
+
+
+<div class="viewcode-block" id="moveParticlesInsideUnitCell"><a class="viewcode-back" href="../../../api/pwem/pwem.convert.symmetry.html#pwem.convert.symmetry.moveParticlesInsideUnitCell">[docs]</a><span class="k">def</span> <span class="nf">moveParticlesInsideUnitCell</span><span class="p">(</span><span class="n">setIN</span><span class="p">,</span> <span class="n">setOUT</span><span class="p">,</span> <span class="n">sym</span><span class="o">=</span><span class="n">cts</span><span class="o">.</span><span class="n">SYM_CYCLIC</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Move particles projection direction inside the unit cell associated</span>
+<span class="sd">    to symmetry sym.</span>
+<span class="sd">    This function (1) gets the symmetry matrices and (2) applies them to</span>
+<span class="sd">         each projection direction until is inside the unit cell.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># counter for the number of particles</span>
+    <span class="n">totalNumberOfParticles</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">setIN</span><span class="p">)</span>
+    <span class="c1"># for each particle in set</span>
+    <span class="k">for</span> <span class="n">par</span> <span class="ow">in</span> <span class="n">setIN</span><span class="p">:</span>
+        <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="n">counter</span> <span class="o">%</span> <span class="mi">1000</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># print something to keep the user engaged</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">counter</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">totalNumberOfParticles</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">particle</span> <span class="o">=</span> <span class="n">SymmetryHelper</span><span class="o">.</span><span class="n">moveParticleInsideUnitCell</span><span class="p">(</span><span class="n">par</span><span class="p">,</span> <span class="n">sym</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">particle</span><span class="p">:</span>
+            <span class="n">setOUT</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">particle</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="moveParticleInsideUnitCell"><a class="viewcode-back" href="../../../api/pwem/pwem.convert.symmetry.html#pwem.convert.symmetry.moveParticleInsideUnitCell">[docs]</a><span class="k">def</span> <span class="nf">moveParticleInsideUnitCell</span><span class="p">(</span><span class="n">particle</span><span class="p">,</span> <span class="n">matrixSet</span><span class="p">,</span> <span class="n">unitCellPlanes</span><span class="p">):</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;FOR DEVELOPERS: This method is deprecated. Call SymmetryHelper.moveParticleInsideUnitCell for convenience.&quot;</span><span class="p">)</span>
+    <span class="n">SymmetryHelper</span><span class="o">.</span><span class="n">_moveParticleInsideUnitCell</span><span class="p">(</span><span class="n">particle</span><span class="p">,</span> <span class="n">matrixSet</span><span class="p">,</span> <span class="n">unitCellPlanes</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="getSymmetryMatrices"><a class="viewcode-back" href="../../../api/pwem/pwem.convert.symmetry.html#pwem.convert.symmetry.getSymmetryMatrices">[docs]</a><span class="k">def</span> <span class="nf">getSymmetryMatrices</span><span class="p">(</span><span class="n">sym</span><span class="o">=</span><span class="n">cts</span><span class="o">.</span><span class="n">SYM_CYCLIC</span><span class="p">,</span>
@@ -416,12 +490,15 @@
                    <span class="n">circumscribed_radius</span><span class="o">=</span><span class="n">circumscribed_radius</span><span class="p">,</span>
                    <span class="n">offset</span><span class="o">=</span><span class="n">offset</span><span class="p">)</span>
         <span class="n">vectorsEdge</span><span class="p">,</span> <span class="n">vectorsPlane</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">unitCellPlanes</span><span class="p">()</span>
+        <span class="c1"># This function return a three vector planes, but cyclic symmetry only</span>
+        <span class="c1"># need two, so we duplicate the last one</span>
+        <span class="n">vectorsPlane</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vectorsPlane</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
             <span class="n">bildFileName</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;/tmp/C</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s1">.bild&#39;</span>
             <span class="n">vLabels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;v1&#39;</span><span class="p">,</span> <span class="s1">&#39;v2&#39;</span><span class="p">,</span> <span class="s1">&#39;v3&#39;</span><span class="p">]</span>
             <span class="n">pLabels</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;p1&#39;</span><span class="p">,</span> <span class="s1">&#39;p2&#39;</span><span class="p">]</span>
     <span class="k">elif</span> <span class="n">sym</span> <span class="o">==</span> <span class="n">cts</span><span class="o">.</span><span class="n">SYM_DIHEDRAL_X</span> <span class="ow">or</span> <span class="n">sym</span> <span class="o">==</span> <span class="n">cts</span><span class="o">.</span><span class="n">SYM_DIHEDRAL_Y</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;getUnitCell:&quot;</span><span class="p">,</span> <span class="n">cts</span><span class="o">.</span><span class="n">SCIPION_SYM_NAME</span><span class="p">[</span><span class="n">sym</span><span class="p">])</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;getUnitCell: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">cts</span><span class="o">.</span><span class="n">SCIPION_SYM_NAME</span><span class="p">[</span><span class="n">sym</span><span class="p">])</span>
         <span class="n">d</span> <span class="o">=</span> <span class="n">Dihedral</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span>
                      <span class="n">center</span><span class="o">=</span><span class="n">center</span><span class="p">,</span>
                      <span class="n">circumscribed_radius</span><span class="o">=</span><span class="n">circumscribed_radius</span><span class="p">,</span>
@@ -603,11 +680,11 @@
         <span class="n">plane1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">v1</span><span class="p">,</span> <span class="n">v3</span><span class="p">)</span>
         <span class="n">plane2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">v3</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;v1&quot;</span><span class="p">,</span> <span class="n">v1</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;v2&quot;</span><span class="p">,</span> <span class="n">v2</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;v3&quot;</span><span class="p">,</span> <span class="n">v3</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;plane1&quot;</span><span class="p">,</span> <span class="n">plane1</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;plane2&quot;</span><span class="p">,</span> <span class="n">plane2</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;v1 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">v1</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;v2 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">v2</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;v3 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">v3</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;plane1 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plane1</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;plane2 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plane2</span><span class="p">)</span>
         <span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">circumscribed_radius</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">v1</span><span class="o">*</span><span class="n">c</span><span class="p">,</span> <span class="n">v2</span><span class="o">*</span><span class="n">c</span><span class="p">,</span> <span class="n">v3</span><span class="o">*</span><span class="n">c</span><span class="p">],</span> <span class="p">[</span><span class="n">plane1</span><span class="o">*</span><span class="n">c</span><span class="p">,</span> <span class="n">plane2</span><span class="o">*</span><span class="n">c</span><span class="p">]</span></div></div>
 
@@ -639,7 +716,7 @@
             <span class="c1"># matrix that reflect in the x axis</span>
             <span class="n">reflect</span> <span class="o">=</span> <span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Be carefull untested code&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Be carefull untested code&quot;</span><span class="p">)</span>
             <span class="c1"># matrix that reflect in the y axis</span>
             <span class="n">reflect</span> <span class="o">=</span> <span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
 
@@ -655,20 +732,17 @@
         <span class="n">vectorsEdge</span><span class="p">,</span> <span class="n">vectorsPlane</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">unitCellPlanes</span><span class="p">()</span>
         <span class="n">vectorsPlane</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">circumscribed_radius</span><span class="p">]))</span>
         <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;v1&quot;</span><span class="p">,</span> <span class="n">vectorsEdge</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;v2&quot;</span><span class="p">,</span> <span class="n">vectorsEdge</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;eigenvector&quot;</span><span class="p">,</span> <span class="n">vectorsEdge</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;plane1&quot;</span><span class="p">,</span> <span class="n">vectorsPlane</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;plane2&quot;</span><span class="p">,</span> <span class="n">vectorsPlane</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;plane3&quot;</span><span class="p">,</span> <span class="n">vectorsPlane</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;v1 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">vectorsEdge</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;v2 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">vectorsEdge</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;eigenvector </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">vectorsEdge</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;plane1 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">vectorsPlane</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;plane2 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">vectorsPlane</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;plane3 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">vectorsPlane</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
 
         <span class="k">return</span> <span class="n">vectorsEdge</span><span class="p">,</span> <span class="n">vectorsPlane</span></div>
 
 <div class="viewcode-block" id="Dihedral.coordinateSystemTransform"><a class="viewcode-back" href="../../../api/pwem/pwem.convert.symmetry.html#pwem.convert.symmetry.Dihedral.coordinateSystemTransform">[docs]</a>    <span class="k">def</span> <span class="nf">coordinateSystemTransform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">origSym</span><span class="p">,</span> <span class="n">targetSym</span><span class="p">):</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;========================&quot;</span><span class="p">,</span>
-              <span class="n">cts</span><span class="o">.</span><span class="n">SCIPION_SYM_NAME</span><span class="p">[</span><span class="n">origSym</span><span class="p">],</span>
-              <span class="s2">&quot;-&gt;&quot;</span><span class="p">,</span>
-              <span class="n">cts</span><span class="o">.</span><span class="n">SCIPION_SYM_NAME</span><span class="p">[</span><span class="n">targetSym</span><span class="p">])</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;========================</span><span class="si">%s</span><span class="s2">-&gt;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">cts</span><span class="o">.</span><span class="n">SCIPION_SYM_NAME</span><span class="p">[</span><span class="n">origSym</span><span class="p">],</span> <span class="n">cts</span><span class="o">.</span><span class="n">SCIPION_SYM_NAME</span><span class="p">[</span><span class="n">targetSym</span><span class="p">]))</span>
         <span class="k">if</span> <span class="n">origSym</span> <span class="o">==</span> <span class="n">targetSym</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">origSym</span> <span class="o">==</span> <span class="n">cts</span><span class="o">.</span><span class="n">SYM_DIHEDRAL_X</span> <span class="ow">and</span> <span class="n">targetSym</span> <span class="o">==</span> <span class="n">cts</span><span class="o">.</span><span class="n">SYM_DIHEDRAL_Y</span><span class="p">:</span>
@@ -745,7 +819,7 @@
         <span class="sd">&quot;&quot;&quot; get planes that define a unit cell for tetrahedral symmetry of</span>
 <span class="sd">            order n</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Unit cell sym&quot;</span><span class="p">,</span> <span class="n">cts</span><span class="o">.</span><span class="n">SCIPION_SYM_NAME</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">sym</span><span class="p">])</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Unit cell sym </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">cts</span><span class="o">.</span><span class="n">SCIPION_SYM_NAME</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">sym</span><span class="p">])</span>
         <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symmetryMatrices</span><span class="p">()</span>
         <span class="c1"># four corners tetahedron</span>
         <span class="n">v0</span> <span class="o">=</span> <span class="n">_normalizeVector</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aa</span><span class="p">[</span><span class="mi">4</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span> <span class="o">*</span>\
@@ -781,13 +855,13 @@
         <span class="n">plane2</span> <span class="o">=</span> <span class="n">_normalizeVector</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">_3fold_2</span><span class="p">,</span> <span class="n">vp</span><span class="p">))</span>  <span class="c1"># green</span>
         <span class="n">plane3</span> <span class="o">=</span> <span class="n">_normalizeVector</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">vp</span><span class="p">,</span> <span class="n">_3fold_1</span><span class="p">))</span>  <span class="c1"># magenta</span>
         <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;v0&quot;</span><span class="p">,</span> <span class="n">_3fold_1</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;v1&quot;</span><span class="p">,</span> <span class="n">_3fold_2</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;v2&quot;</span><span class="p">,</span> <span class="n">vp</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;v0 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">_3fold_1</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;v1 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">_3fold_2</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;v2 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">vp</span><span class="p">)</span>
 
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;plane1&quot;</span><span class="p">,</span> <span class="n">plane1</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;plane2&quot;</span><span class="p">,</span> <span class="n">plane2</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;plane3&quot;</span><span class="p">,</span> <span class="n">plane3</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;plane1 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plane1</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;plane2 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plane2</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;plane3 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plane3</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">_3fold_1</span><span class="p">,</span> <span class="n">vp</span><span class="p">,</span> <span class="n">_3fold_2</span><span class="p">],</span> <span class="p">[</span><span class="n">plane1</span><span class="p">,</span> <span class="n">plane2</span><span class="p">,</span> <span class="n">plane3</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Tetrahedral.coordinateSystemTransform"><a class="viewcode-back" href="../../../api/pwem/pwem.convert.symmetry.html#pwem.convert.symmetry.Tetrahedral.coordinateSystemTransform">[docs]</a>    <span class="k">def</span> <span class="nf">coordinateSystemTransform</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">origSym</span><span class="p">,</span> <span class="n">targetSym</span><span class="p">):</span>
@@ -798,7 +872,7 @@
               <span class="n">targetSym</span> <span class="o">==</span> <span class="n">cts</span><span class="o">.</span><span class="n">SYM_TETRAHEDRAL_Z3</span> <span class="ow">or</span>
               <span class="n">origSym</span> <span class="o">==</span> <span class="n">cts</span><span class="o">.</span><span class="n">SYM_TETRAHEDRAL_222</span> <span class="ow">and</span>
               <span class="n">targetSym</span> <span class="o">==</span> <span class="n">cts</span><span class="o">.</span><span class="n">SYM_TETRAHEDRAL_Z3R</span><span class="p">):</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;========================222 -&gt; &quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;========================222 -&gt; &quot;</span><span class="p">)</span>
             <span class="n">matrix</span> <span class="o">=</span> <span class="n">_multiplyMatrices</span><span class="p">(</span>
                      <span class="n">_rotationTransform</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
                                         <span class="o">-</span><span class="n">acos</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">sqrt</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span> <span class="o">*</span> <span class="mi">180</span> <span class="o">/</span> <span class="n">pi</span><span class="p">),</span>
@@ -895,13 +969,13 @@
         <span class="n">plane3</span> <span class="o">=</span> <span class="n">_normalizeVector</span><span class="p">(</span>
             <span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">_4fold_1</span><span class="p">,</span> <span class="n">_3fold_1</span><span class="p">))</span>  <span class="c1"># magenta</span>
         <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;v0&quot;</span><span class="p">,</span> <span class="n">_4fold_1</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;v1&quot;</span><span class="p">,</span> <span class="n">_3fold_2</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;v2&quot;</span><span class="p">,</span> <span class="n">_3fold_1</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;v0 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">_4fold_1</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;v1 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">_3fold_2</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;v2 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">_3fold_1</span><span class="p">)</span>
 
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;plane1&quot;</span><span class="p">,</span> <span class="n">plane1</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;plane2&quot;</span><span class="p">,</span> <span class="n">plane2</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;plane3&quot;</span><span class="p">,</span> <span class="n">plane3</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;plane1 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plane1</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;plane2 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plane2</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;plane3 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plane3</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">_4fold_1</span><span class="p">,</span> <span class="n">_3fold_2</span><span class="p">,</span> <span class="n">_3fold_1</span><span class="p">],</span> <span class="p">[</span><span class="n">plane1</span><span class="p">,</span> <span class="n">plane2</span><span class="p">,</span> <span class="n">plane3</span><span class="p">]</span></div></div>
 
 
@@ -1430,13 +1504,13 @@
         <span class="n">plane2</span> <span class="o">=</span> <span class="n">_normalizeVector</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">_3fold</span><span class="p">,</span> <span class="n">_5fold_2</span><span class="p">))</span>  <span class="c1"># magenta</span>
         <span class="n">plane3</span> <span class="o">=</span> <span class="n">_normalizeVector</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">cross</span><span class="p">(</span><span class="n">_5fold_2</span><span class="p">,</span> <span class="n">_5fold_1</span><span class="p">))</span>  <span class="c1"># green</span>
         <span class="k">if</span> <span class="n">DEBUG</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;v0&quot;</span><span class="p">,</span> <span class="n">_3fold</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;v1&quot;</span><span class="p">,</span> <span class="n">_5fold_1</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;v2&quot;</span><span class="p">,</span> <span class="n">_5fold_2</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;v0 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">_3fold</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;v1 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">_5fold_1</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;v2 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">_5fold_2</span><span class="p">)</span>
 
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;plane1&quot;</span><span class="p">,</span> <span class="n">plane1</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;plane2&quot;</span><span class="p">,</span> <span class="n">plane2</span><span class="p">)</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;plane3&quot;</span><span class="p">,</span> <span class="n">plane3</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;plane1 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plane1</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;plane2 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plane2</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;plane3 </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">plane3</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">_3fold</span><span class="p">,</span> <span class="n">_5fold_1</span><span class="p">,</span> <span class="n">_5fold_2</span><span class="p">],</span> <span class="p">[</span><span class="n">plane1</span><span class="p">,</span> <span class="n">plane2</span><span class="p">,</span> <span class="n">plane3</span><span class="p">]</span></div></div>
 </pre></div>
 

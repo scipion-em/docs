@@ -333,9 +333,21 @@
             <span class="n">itemClassName</span> <span class="o">=</span> <span class="n">db</span><span class="o">.</span><span class="n">getSelfClassName</span><span class="p">()</span>
 
             <span class="k">if</span> <span class="n">itemClassName</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;Class&#39;</span><span class="p">):</span>
+
                 <span class="k">if</span> <span class="n">outputClassName</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;SetOfParticles&#39;</span><span class="p">):</span>
+                    <span class="c1"># Just to be sure, we check first if we want to create a subset of the items of the class</span>
+                    <span class="c1"># If this check is not done in first place, it might be possible to enter through the second</span>
+                    <span class="c1"># check (if REP_SET_TYPE is set), generating a SetOfVolumes like instead of a SetOfParticles like</span>
+                    <span class="c1"># object</span>
                     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createImagesFromClasses</span><span class="p">(</span><span class="n">inputClasses</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">inputClasses</span><span class="p">,</span> <span class="s2">&quot;REP_SET_TYPE&quot;</span><span class="p">):</span>
+                    <span class="c1"># Second check determines if we want to create a subset of representatives. In addition, we consider</span>
+                    <span class="c1"># that the SetOfClasses stores the information about the type of set to be created</span>
+                    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createRepresentativesFromClasses</span><span class="p">(</span><span class="n">inputClasses</span><span class="p">,</span>
+                                                                  <span class="nb">getattr</span><span class="p">(</span><span class="n">inputClasses</span><span class="p">,</span> <span class="s2">&quot;REP_SET_TYPE&quot;</span><span class="p">))</span>
                 <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Third check determines if we want to create a subset of representatives. By default,</span>
+                    <span class="c1"># a SetOfVolumes is generated</span>
                     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createRepresentativesFromClasses</span><span class="p">(</span><span class="n">inputClasses</span><span class="p">,</span>
                                                                   <span class="n">outputClassName</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
             <span class="k">else</span><span class="p">:</span>
@@ -391,18 +403,24 @@
 <span class="sd">        assigned to each class.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">inputImages</span> <span class="o">=</span> <span class="n">inputClasses</span><span class="o">.</span><span class="n">getImages</span><span class="p">()</span>
-        <span class="n">createFunc</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_create&#39;</span> <span class="o">+</span> <span class="n">outputClassName</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">outputClassName</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">createFunc</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_create&#39;</span> <span class="o">+</span> <span class="n">outputClassName</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">createFunc</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">outputClassName</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getPath</span><span class="p">())</span>
+
         <span class="n">modifiedSet</span> <span class="o">=</span> <span class="n">inputClasses</span><span class="o">.</span><span class="n">getClass</span><span class="p">()(</span><span class="n">filename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dbName</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_dbPrefix</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Creating REPRESENTATIVES of images from classes, &quot;</span>
                   <span class="s2">&quot;sqlite file: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dbName</span><span class="p">)</span>
 
         <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">output</span> <span class="o">=</span> <span class="n">createFunc</span><span class="p">()</span>
+
         <span class="n">output</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="n">inputImages</span><span class="p">)</span>
         <span class="n">output</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
         <span class="c1"># For now this is to avoid having a wrong alignment.</span>
         <span class="c1"># THis is because is getting the alignment info from the input images and this does not have to match.</span>
-        <span class="c1"># This created a error when scaling averages #903</span>
+        <span class="c1"># This created an error when scaling averages #903</span>
         <span class="n">output</span><span class="o">.</span><span class="n">setAlignment</span><span class="p">(</span><span class="n">ALIGN_NONE</span><span class="p">)</span>
         <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="n">modifiedSet</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">isEnabled</span><span class="p">():</span>

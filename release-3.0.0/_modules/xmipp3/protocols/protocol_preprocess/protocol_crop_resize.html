@@ -129,12 +129,14 @@
 <span class="c1"># *  e-mail address &#39;scipion@cnb.csic.es&#39;</span>
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
+<span class="kn">import</span> <span class="nn">os</span>
 
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="k">as</span> <span class="nn">const</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="n">String</span>
 <span class="kn">from</span> <span class="nn">pwem.convert.headers</span> <span class="kn">import</span> <span class="n">setMRCSamplingRate</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="p">(</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span>
                                         <span class="n">IntParam</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">Volume</span>
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">Volume</span><span class="p">,</span> <span class="n">SetOfParticles</span><span class="p">,</span> <span class="n">Mask</span>
 
 <span class="kn">from</span> <span class="nn">.protocol_process</span> <span class="kn">import</span> <span class="n">XmippProcessParticles</span><span class="p">,</span> <span class="n">XmippProcessVolumes</span>
 
@@ -151,9 +153,9 @@
 
     <span class="n">WINDOW_OP_CROP</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">WINDOW_OP_WINDOW</span> <span class="o">=</span> <span class="mi">1</span>
-
-    <span class="c1">#--------------------------- DEFINE param functions --------------------------------------------</span>
-    <span class="nd">@classmethod</span>
+    
+    <span class="c1">#--------------------------- DEFINE param functions --------------------------------------------       </span>
+    <span class="nd">@classmethod</span>   
     <span class="k">def</span> <span class="nf">_defineProcessParams</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
         <span class="c1"># Resize operation</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;doResize&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -345,13 +347,28 @@
 
 <div class="viewcode-block" id="XmippProtCropResizeParticles"><a class="viewcode-back" href="../../../../api/xmipp3/xmipp3.protocols.protocol_preprocess.protocol_crop_resize.html#xmipp3.protocols.protocol_preprocess.protocol_crop_resize.XmippProtCropResizeParticles">[docs]</a><span class="k">class</span> <span class="nc">XmippProtCropResizeParticles</span><span class="p">(</span><span class="n">XmippProcessParticles</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Crop or resize a set of particles &quot;&quot;&quot;</span>
+    <span class="c1"># Protocol constants</span>
+    <span class="n">OUTPUT_PARTICLES_NAME</span> <span class="o">=</span> <span class="s1">&#39;outputParticles&#39;</span>
+    <span class="n">OUTPUT_MASK_NAME</span> <span class="o">=</span> <span class="s1">&#39;outputMask&#39;</span>
+
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;crop/resize particles&#39;</span>
     <span class="n">_inputLabel</span> <span class="o">=</span> <span class="s1">&#39;particles&#39;</span>
+    <span class="n">_possibleOutputs</span> <span class="o">=</span> <span class="p">{</span><span class="n">OUTPUT_PARTICLES_NAME</span><span class="p">:</span> <span class="n">SetOfParticles</span><span class="p">,</span> <span class="n">OUTPUT_MASK_NAME</span><span class="p">:</span> <span class="n">Mask</span><span class="p">}</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">XmippProcessParticles</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     
     <span class="c1">#--------------------------- DEFINE param functions --------------------------------------------</span>
+    <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="c1"># Creating super form</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_defineParams</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
+       
+        <span class="c1"># Obtaining input particles param to accept also a mask</span>
+        <span class="n">inputParticles</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">getParam</span><span class="p">(</span><span class="s1">&#39;inputParticles&#39;</span><span class="p">)</span>
+        <span class="n">inputParticles</span><span class="o">.</span><span class="n">pointerClass</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">inputParticles</span><span class="o">.</span><span class="n">pointerClass</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;,Mask&#39;</span><span class="p">)</span>
+        <span class="n">inputParticles</span><span class="o">.</span><span class="n">label</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">inputParticles</span><span class="o">.</span><span class="n">label</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;/Mask&#39;</span><span class="p">)</span>
+        <span class="n">inputParticles</span><span class="o">.</span><span class="n">help</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="s1">&#39;Input particles or 2D Mask to be cropped/resized.&#39;</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">_defineProcessParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
         <span class="n">XmippResizeHelper</span><span class="o">.</span><span class="n">_defineProcessParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
@@ -368,12 +385,40 @@
     
 <div class="viewcode-block" id="XmippProtCropResizeParticles.windowStep"><a class="viewcode-back" href="../../../../api/xmipp3/xmipp3.protocols.protocol_preprocess.protocol_crop_resize.html#xmipp3.protocols.protocol_preprocess.protocol_crop_resize.XmippProtCropResizeParticles.windowStep">[docs]</a>    <span class="k">def</span> <span class="nf">windowStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">isFirstStep</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
         <span class="n">XmippResizeHelper</span><span class="o">.</span><span class="n">windowStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ioArgs</span><span class="p">(</span><span class="n">isFirstStep</span><span class="p">)</span><span class="o">+</span><span class="n">args</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="XmippProtCropResizeParticles.convertInputStep"><a class="viewcode-back" href="../../../../api/xmipp3/xmipp3.protocols.protocol_preprocess.protocol_crop_resize.html#xmipp3.protocols.protocol_preprocess.protocol_crop_resize.XmippProtCropResizeParticles.convertInputStep">[docs]</a>    <span class="k">def</span> <span class="nf">convertInputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; convert if necessary&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isMask</span><span class="p">():</span>
+            <span class="c1"># If input is a Mask, modify filter params</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inputFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputParticles</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
+            <span class="n">inputName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputFn</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+
+            <span class="c1"># Set output mask path</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outputStk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">inputName</span> <span class="o">+</span> <span class="s1">&#39;.mrc&#39;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outputMd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s1">&#39;tmp.xmd&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If input is not Mask, keep default behaviour</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">convertInputStep</span><span class="p">()</span></div>
+    
+<div class="viewcode-block" id="XmippProtCropResizeParticles.createOutputStep"><a class="viewcode-back" href="../../../../api/xmipp3/xmipp3.protocols.protocol_preprocess.protocol_crop_resize.html#xmipp3.protocols.protocol_preprocess.protocol_crop_resize.XmippProtCropResizeParticles.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isMask</span><span class="p">():</span>
+            <span class="c1"># If input is a Mask, create output Mask</span>
+            <span class="n">outputMask</span> <span class="o">=</span> <span class="n">Mask</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputStk</span><span class="p">)</span>
+            <span class="n">outputMask</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputParticles</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_preprocessOutput</span><span class="p">(</span><span class="n">outputMask</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTPUT_MASK_NAME</span><span class="p">:</span> <span class="n">outputMask</span><span class="p">})</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_defineTransformRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputParticles</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">outputMask</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># If input is not Mask, keep default behaviour</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">createOutputStep</span><span class="p">()</span></div>
         
     <span class="k">def</span> <span class="nf">_preprocessOutput</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; We need to update the sampling rate of the </span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        We need to update the sampling rate of the </span>
 <span class="sd">        particles if the Resize option was used.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">inputHasAlign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputParticles</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">hasAlignment</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">isMask</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inputHasAlign</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputParticles</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">hasAlignment</span><span class="p">()</span>
         
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doResize</span><span class="p">:</span>
             <span class="n">output</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span><span class="p">)</span>
@@ -441,9 +486,22 @@
         <span class="k">return</span> <span class="p">[</span><span class="nb">str</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">XmippResizeHelper</span><span class="o">.</span><span class="n">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot; This function validates the input parameters so only allowed operations take place. &quot;&quot;&quot;</span>
+        <span class="c1"># Getting default errors</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="n">XmippResizeHelper</span><span class="o">.</span><span class="n">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="c1"># Checking if at least one of the operations has been selected</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">doResize</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">doWindow</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;At least one of the possible operations needs to be selected.&#39;</span><span class="p">)</span>
+        
+        <span class="c1"># Returning errors</span>
+        <span class="k">return</span> <span class="n">errors</span>
     
     <span class="c1">#--------------------------- UTILS functions ---------------------------------------------------</span>
+<div class="viewcode-block" id="XmippProtCropResizeParticles.isMask"><a class="viewcode-back" href="../../../../api/xmipp3/xmipp3.protocols.protocol_preprocess.protocol_crop_resize.html#xmipp3.protocols.protocol_preprocess.protocol_crop_resize.XmippProtCropResizeParticles.isMask">[docs]</a>    <span class="k">def</span> <span class="nf">isMask</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; This function returns True if the input object is a Mask. False otherwise. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputParticles</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">Mask</span><span class="p">)</span></div>
+      
     <span class="k">def</span> <span class="nf">_ioArgs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">isFirstStep</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">isFirstStep</span><span class="p">:</span>
             <span class="k">return</span> <span class="s2">&quot;-i </span><span class="si">%s</span><span class="s2"> -o </span><span class="si">%s</span><span class="s2"> --save_metadata_stack </span><span class="si">%s</span><span class="s2"> --keep_input_columns &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputFn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputStk</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputMd</span><span class="p">)</span>
