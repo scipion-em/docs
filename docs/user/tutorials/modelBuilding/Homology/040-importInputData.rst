@@ -15,7 +15,7 @@ of these two protocols are shown in Appendices :ref:`Import volumes <app:importV
 
    *Scipion* framework with import workflow.
 
-(``NOTE:`` In the following we will use the notation **Fig. X (a)** to reffer to the figure number X and there will be an arrow labeled with “a” pointing to the region of interest.)
+.. note:: In the following we will use the notation **Fig. X (a)** to refer to the figure number X and there will be an arrow labeled with “a” pointing to the region of interest.
 
 Volume
 ------

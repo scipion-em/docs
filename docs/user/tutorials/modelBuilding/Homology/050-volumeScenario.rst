@@ -74,8 +74,7 @@ similar to the starting volume (:numref:`model_building_create3Dmask_2`).
 
    Visualizing the mask of the initial volume.
 
-| ``NOTE:`` In case you would like to use a previous computed mask, you can do
-  it simply by importing it using the protocol **import mask** (Appendix :ref:`Import mask <app:importMask>`).
+.. note:: In case you would like to use a previous computed mask, you can do it simply by importing it using the protocol **import mask** (Appendix :ref:`Import mask <app:importMask>`).
 
 | Once the mask of the starting map has been created, the protocol of **xmipp-local MonoRes** 
   can be completed to get the estimation of local resolution. Open the

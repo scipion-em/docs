@@ -192,7 +192,11 @@ Selections in this view can be deleted by following the procedure described for 
 
 Another attractive property of the montage view is the possibility of automatically "tracking" the membrane after several slices have been picked. To do so, activate the next slice (i.e., click it so that its frame becomes red), and press the **O key**.
 
-Before exiting the montage view, we need to define an extra point so Dynamo can orient the particles properly. This new marker will tell Dynamo which side of the membrane is the interior and exterior. You can use the **Shift key + C key** in the desired region to place this marker. **Note**: Orientations are defined pointing towards the outer part of the membrane (i.e., the opposite side of the membrane with respect to the area where we place the previous marker).
+Before exiting the montage view, we need to define an extra point so Dynamo can orient the particles properly. This new marker will tell Dynamo which side of the membrane is the interior and exterior. You can use the **Shift key + C key** in the desired region to place this marker.
+
+.. note::
+    Orientations are defined pointing towards the outer part of the membrane
+    (i.e., the opposite side of the membrane with respect to the area where we place the previous marker).
 
 .. figure:: /docs/user/tutorials/tomo/Picking_tutorial/Montage_view_picked.png
    :align: center

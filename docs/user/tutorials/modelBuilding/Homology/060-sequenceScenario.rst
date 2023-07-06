@@ -66,7 +66,7 @@ following questions: (Answers in appendix :ref:`Solutions <app:solutions>`; :ref
    -  How many chains does it include?
 
 | 
-| ``NOTE:`` *ChimeraX* also incorporates the possibility of running the *BLAST* algoritnm, although
+.. note:: *ChimeraX* also incorporates the possibility of running the *BLAST* algorithm, although
   with lower number of options than those shown in :numref:`model_building_blastp`. Nevertheless, if
   you know that there are high similar homologous sequences with
   associated structure, you can skip this searching step “outside” *Scipion* and
