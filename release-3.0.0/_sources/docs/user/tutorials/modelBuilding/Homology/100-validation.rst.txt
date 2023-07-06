@@ -31,14 +31,14 @@ Structure validation and comparison
 
    *Scipion* framework detailing the workflow to validate the model of the human *Hgb* :math:`\alpha` subunit.
 
-``NOTE:`` Structure validation is a model building step that you have to
-perform recursively during the refinement process to assess if you are
-improving your structure or not. Once you finish the refinement process
-you’ll obtain the final assessment values. These values should be in a
-certain range if you want to submit the atomic structure to databases.
-These final validation scores should be computed regarding the density
-map that you submit as main map, although during the recursive process
-you might have used the sharpened maps for refinement/validation.
+.. note:: Structure validation is a model building step that you have to
+    perform recursively during the refinement process to assess if you are
+    improving your structure or not. Once you finish the refinement process
+    you’ll obtain the final assessment values. These values should be in a
+    certain range if you want to submit the atomic structure to databases.
+    These final validation scores should be computed regarding the density
+    map that you submit as main map, although during the recursive process
+    you might have used the sharpened maps for refinement/validation.
  
 .. _`requestion4`:
  

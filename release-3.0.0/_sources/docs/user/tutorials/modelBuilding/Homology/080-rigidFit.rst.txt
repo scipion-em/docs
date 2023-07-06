@@ -59,14 +59,14 @@ in this purpose.
 Completing rigid fit with *CHIMERAX rigid fit*
 ----------------------------------------------
 
-| ``NOTE before starting!!!:`` As we already advised previously, we are going to use a *ChimeraX*-derived
-  protocol (**chimerax-rigid fit**, Appendix :ref:`CHIMERA Rigid fit <app:chimeraRigidFit>`). Remark that this
-  use of *ChimeraX* is completely different from the use of *ChimeraX* as a visualization
-  tool. By using the *ChimeraX* graphics window, opening it from the *Scipion* button *Analyze Results*, we
-  can observe protocol results but we CANNOT save anything in *Scipion*. However,
-  using *ChimeraX* as a tool, as it is the case in *Scipion* *ChimeraX*-derived protocols, we can
-  perform different tasks, taking advantage of the available *ChimeraX* tools and,
-  finally, we CAN save the obtained results and the working session in *Scipion*.
+ .. important:: before starting!!! As we already advised previously, we are going to use a *ChimeraX*-derived
+    protocol (**chimerax-rigid fit**, Appendix :ref:`CHIMERA Rigid fit <app:chimeraRigidFit>`). Remark that this
+    use of *ChimeraX* is completely different from the use of *ChimeraX* as a visualization
+    tool. By using the *ChimeraX* graphics window, opening it from the *Scipion* button *Analyze Results*, we
+    can observe protocol results but we CANNOT save anything in *Scipion*. However,
+    using *ChimeraX* as a tool, as it is the case in *Scipion* *ChimeraX*-derived protocols, we can
+    perform different tasks, taking advantage of the available *ChimeraX* tools and,
+    finally, we CAN save the obtained results and the working session in *Scipion*.
 
 | To complete the rigid fitting of the *model* generated in the previous step,
   open the protocol **chimerax-rigid fit**, include again the map of the asymmetrical unit

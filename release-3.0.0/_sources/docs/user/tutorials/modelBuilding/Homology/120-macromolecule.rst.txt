@@ -62,7 +62,7 @@ density occupancy of the new macromolecule generated.
    | Remark that we have changed the *ids* of symmetric chains *A* and
      *B* by *C* and *D*, respectively.
 
-   | ``NOTE:`` In this small example selected for modeling it doesn’t
+   .. note:: In this small example selected for modeling it doesn’t
      matter if we model the map asymmetric unit or the whole molecule.
      In real life, however, to model the whole molecule doesn’t make
      sense because of its huge size. In that case, we will limit our

@@ -208,7 +208,7 @@ to *Validate -> Density fit analysis* and check if the orange bar shown in *MET*
 | A similar refinement process to that followed in *Coot* for *metHgb* :math:`\alpha`
   subunit chain *A*, has to be carried out for the *metHgb* :math:`\beta` subunit.
 
-| ``NOTE`` about *chain IDs*: Check the *id* of each chain. Although you have the possibility of
+.. note:: about *chain IDs*: Check the *id* of each chain. Although you have the possibility of
   changing this *id* in *ChimeraX*, as we have seen in the subsection :ref:`Structural
   models of human metHgb subunits from templates <section_structural_models>` (*metHgb* :math:`\beta`
   subunit), you also have the possibility of performing this task in *Coot*,
@@ -316,7 +316,7 @@ the normalized map asymmetric unit saved in *Coot*.
   that this process takes much more time (around 6 times more) than the
   previous one. (Answer in appendix :ref:`Solutions <app:solutions>`; :ref:`Question4 <question4>`)
 
-| ``NOTE:`` An interesting application of the *PHENIX real space refine* visualization tools is the
+.. note:: An interesting application of the *PHENIX real space refine* visualization tools is the
   possibility of load *Coot* from the *PHENIX* viewer and correct the structure of
   outliers residues and clashes. A recursively use of *PHENIX real space refine* and *Coot* protocols is
   thus possible.

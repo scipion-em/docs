@@ -63,14 +63,14 @@ structure prediction by sequence homology. Requirements for this type of
 modeling are the *template* structure and a sequence alignment including sequences
 of *target* and *template*.
 
-``NOTE before starting:`` We are going to use a *ChimeraX*-derived *Scipion* protocol for the first time in this
-tutorial (**chimerax-model from template**, Appendix :ref:`Model from template <app:modelFromTemplate>`). Remark that this use of *ChimeraX* is completely different from the use of *ChimeraX* as a visualization tool,
-as we have seen previously. By using the *ChimeraX* graphics window, opening it
-from the *Scipion* button *Analyze Results* we can observe protocol results but we CANNOT save
-anything in *Scipion*. However, using *ChimeraX* as a tool, as it is the case in *Scipion* *ChimeraX*-derived
-protocols, we can perform different tasks, taking advantage of the
-available *ChimeraX* tools and, finally, we CAN save the obtained results and the
-working session in *Scipion*.
+.. important:: before starting!! We are going to use a *ChimeraX*-derived *Scipion* protocol for the first time in this
+    tutorial (**chimerax-model from template**, Appendix :ref:`Model from template <app:modelFromTemplate>`). Remark that this use of *ChimeraX* is completely different from the use of *ChimeraX* as a visualization tool,
+    as we have seen previously. By using the *ChimeraX* graphics window, opening it
+    from the *Scipion* button *Analyze Results* we can observe protocol results but we CANNOT save
+    anything in *Scipion*. However, using *ChimeraX* as a tool, as it is the case in *Scipion* *ChimeraX*-derived
+    protocols, we can perform different tasks, taking advantage of the
+    available *ChimeraX* tools and, finally, we CAN save the obtained results and the
+    working session in *Scipion*.
 
 -  | Preparing your sequence alignment:
    | In addition to the ways to obtain the sequence alignment using *ChimeraX*,
@@ -198,9 +198,9 @@ models, an alternative option to have the model with the *HEME* group (residue
 
         scipionwrite #6 prefix Hgb_alpha_
 
-``NOTE:`` We have saved the *HEME* group of the *template chain A* in a new file that will be opened as *model #5*.
-Finally, the combination of *models #4* (retrieved aminoacid *model* of the *target* sequence) and *#5 (HEME* 
-group of the *template chain A*) generates a new model *#6* that will be saved in *Scipion*. A different *model ID* could be selected by the user adding to the last command line *modelid n*.
+.. note:: We have saved the *HEME* group of the *template chain A* in a new file that will be opened as *model #5*.
+    Finally, the combination of *models #4* (retrieved aminoacid *model* of the *target* sequence) and *#5 (HEME*
+    group of the *template chain A*) generates a new model *#6* that will be saved in *Scipion*. A different *model ID* could be selected by the user adding to the last command line *modelid n*.
 
 After closing *ChimeraX*, you can visualize (:numref:`model_building_model_from_template_protocol` (8)) your full predicted *model* (:numref:`model_building_chimera_model`) that
 includes the *HEME* group (1). The string that we have included as *prefix* in the
