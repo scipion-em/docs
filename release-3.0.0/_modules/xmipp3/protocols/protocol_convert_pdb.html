@@ -131,68 +131,76 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
-
-<span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
-<span class="kn">import</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="k">as</span> <span class="nn">const</span>
+<span class="c1"># Scipion em imports</span>
 <span class="kn">from</span> <span class="nn">pwem.convert.headers</span> <span class="kn">import</span> <span class="n">setMRCSamplingRate</span>
 <span class="kn">from</span> <span class="nn">pwem.emlib.image</span> <span class="kn">import</span> <span class="n">ImageHandler</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">replaceBaseExt</span><span class="p">,</span> <span class="n">removeExt</span><span class="p">,</span> <span class="n">getExt</span><span class="p">,</span> <span class="n">createLink</span>
-
-<span class="kn">from</span> <span class="nn">pwem.convert</span> <span class="kn">import</span> <span class="n">cifToPdb</span><span class="p">,</span> <span class="n">downloadPdb</span><span class="p">,</span> <span class="n">headers</span>
-<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">Volume</span><span class="p">,</span> <span class="n">Transform</span>
+<span class="kn">from</span> <span class="nn">pwem.convert</span> <span class="kn">import</span> <span class="n">cifToPdb</span><span class="p">,</span> <span class="n">headers</span>
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">Volume</span><span class="p">,</span> <span class="n">Transform</span><span class="p">,</span> <span class="n">SetOfVolumes</span><span class="p">,</span> <span class="n">AtomStruct</span><span class="p">,</span> <span class="n">SetOfAtomStructs</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">ProtInitialVolume</span>
-
+<span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
+<span class="kn">import</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="k">as</span> <span class="nn">const</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">replaceBaseExt</span><span class="p">,</span> <span class="n">removeExt</span><span class="p">,</span> <span class="n">getExt</span><span class="p">,</span> <span class="n">createLink</span><span class="p">,</span> <span class="n">replaceExt</span><span class="p">,</span> <span class="n">removeBaseExt</span>
 
 <div class="viewcode-block" id="XmippProtConvertPdb"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_convert_pdb.html#xmipp3.protocols.protocol_convert_pdb.XmippProtConvertPdb">[docs]</a><span class="k">class</span> <span class="nc">XmippProtConvertPdb</span><span class="p">(</span><span class="n">ProtInitialVolume</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Convert a PDB file into a volume.  &quot;&quot;&quot;</span>
-    <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;convert a PDB&#39;</span>
-    <span class="n">IMPORT_FROM_ID</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">IMPORT_OBJ</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">IMPORT_FROM_FILES</span> <span class="o">=</span> <span class="mi">2</span>
-    <span class="n">OUTPUT_NAME</span> <span class="o">=</span> <span class="s2">&quot;outputVolume&quot;</span>
-    <span class="n">_possibleOutputs</span> <span class="o">=</span> <span class="p">{</span><span class="n">OUTPUT_NAME</span><span class="p">:</span> <span class="n">Volume</span><span class="p">}</span>
+    <span class="sd">&quot;&quot;&quot; Convert atomic structure(s) into volume(s) &quot;&quot;&quot;</span>
+    <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;convert pdbs to volumes&#39;</span>
+    <span class="n">OUTPUT_NAME1</span> <span class="o">=</span> <span class="s2">&quot;outputVolume&quot;</span>
+    <span class="n">OUTPUT_NAME2</span> <span class="o">=</span> <span class="s2">&quot;outputVolumes&quot;</span>
+    <span class="n">OUTPUT_NAME3</span> <span class="o">=</span> <span class="s2">&quot;outputPdb&quot;</span>
+    <span class="n">OUTPUT_NAME4</span> <span class="o">=</span> <span class="s2">&quot;outputAtomStructs&quot;</span>
+    <span class="n">_possibleOutputs</span> <span class="o">=</span> <span class="p">{</span><span class="n">OUTPUT_NAME1</span><span class="p">:</span> <span class="n">Volume</span><span class="p">,</span> <span class="n">OUTPUT_NAME2</span><span class="p">:</span> <span class="n">SetOfVolumes</span><span class="p">,</span>
+                        <span class="n">OUTPUT_NAME3</span><span class="p">:</span> <span class="n">AtomStruct</span><span class="p">,</span> <span class="n">OUTPUT_NAME4</span><span class="p">:</span> <span class="n">SetOfAtomStructs</span><span class="p">}</span>
+
+    <span class="c1"># --------------------------- Class constructor --------------------------------------------</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
+        <span class="c1"># Calling parent class constructor</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="c1"># Defining execution mode. Steps will take place in parallel now</span>
+        <span class="c1"># Full tutorial on how to parallelize protocols can be read here:</span>
+        <span class="c1"># https://scipion-em.github.io/docs/release-3.0.0/docs/developer/parallelization.html</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stepsExecutionMode</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">STEPS_PARALLEL</span>
        
     <span class="c1"># --------------------------- DEFINE param functions --------------------------------------------</span>
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Define the parameters that will be input for the Protocol.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Define the parameters that will be input for the Protocol.</span>
 <span class="sd">        This definition is also used to generate automatically the GUI.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Defining condition string for x, y, z coords</span>
+        <span class="n">coordsCondition</span> <span class="o">=</span> <span class="s1">&#39;setSize and not vol&#39;</span>
+
+        <span class="c1"># Defining parallel arguments</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
+        <span class="c1"># Generating form</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Input&#39;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputPdbData&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span> <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;object&#39;</span><span class="p">,</span> <span class="s1">&#39;file&#39;</span><span class="p">],</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Retrieve PDB from&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">IMPORT_FROM_ID</span><span class="p">,</span>
-                      <span class="n">display</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="o">.</span><span class="n">DISPLAY_HLIST</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Retrieve PDB data from server, use a pdb Object, or a local file&#39;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;pdbId&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">StringParam</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;inputPdbData == IMPORT_FROM_ID&#39;</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Pdb Id &quot;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Type a pdb Id (four alphanumeric characters).&#39;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;pdbObj&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;AtomStruct&#39;</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Input pdb &quot;</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;inputPdbData == IMPORT_OBJ&#39;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Specify a pdb object.&#39;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;pdbFile&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FileParam</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;File path&quot;</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;inputPdbData == IMPORT_FROM_FILES&#39;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Specify a path to desired PDB structure.&#39;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;sampling&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> 
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;pdbObj&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;AtomStruct, SetOfAtomStructs&#39;</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Input structure(s) &quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Specify input atomic structure(s).&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;sampling&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Sampling rate (Å/px)&quot;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Sampling rate (Angstroms/pixel)&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;vol&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Use a volume as an empty template?&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;not isinstance(pdbObj, SetOfAtomStructs)&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Use an existing volume to define the size and origin for the output volume. If this option&#39;</span>
                            <span class="s1">&#39;is selected, make sure that &quot;Center PDB&quot; in advanced parameters is set to *No*.&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;volObj&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;Volume&#39;</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Input volume &quot;</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;vol&#39;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Input volume &quot;</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;not isinstance(pdbObj, SetOfAtomStructs) and vol&#39;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The origin and the final size of the output volume will be taken from this volume.&#39;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;setSize&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Set final size?&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;vol == False&#39;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;size_z&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;setSize and not vol&#39;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Final size (px) Z&quot;</span><span class="p">,</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;setSize&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Set final size?&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;not vol and not isinstance(pdbObj, SetOfAtomStructs)&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Box side size (px)&quot;</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;isinstance(pdbObj, SetOfAtomStructs)&#39;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;This size should apply to all volumes&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;size_z&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="n">coordsCondition</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Final size (px) Z&quot;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Final size in Z in pixels. If no value is provided, protocol will estimate it.&#39;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;size_y&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;setSize and not vol&#39;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Final size (px) Y&quot;</span><span class="p">,</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;size_y&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="n">coordsCondition</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Final size (px) Y&quot;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Final size in Y in pixels. If no value is provided, protocol will estimate it.&#39;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;size_x&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;setSize and not vol&#39;</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Final size (px) X&quot;</span><span class="p">,</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;size_x&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="n">coordsCondition</span><span class="p">,</span> <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Final size (px) X&quot;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Final size in X in pixels. If desired output size is x = y = z you can only fill this &#39;</span>
                            <span class="s1">&#39;field. If no value is provided, protocol will estimate it.&#39;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;centerPdb&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;centerPdb&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                       <span class="n">expertLevel</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span> 
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Center PDB&quot;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Center PDB with the center of mass&#39;</span><span class="p">)</span>
@@ -201,93 +209,123 @@
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Store centered PDB&quot;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Set to </span><span class="se">\&#39;</span><span class="s1">Yes</span><span class="se">\&#39;</span><span class="s1"> if you want to save centered PDB. &#39;</span>
                            <span class="s1">&#39;It will be stored in the output directory of this protocol&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;clean&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">const</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span> 
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Clean tmp files&quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Delete all non-output files once the protocol has finished producing them.&#39;</span><span class="p">)</span>
     
     <span class="c1"># --------------------------- INSERT steps functions --------------------------------------------</span>
     <span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; In this function the steps that are going to be executed should</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        In this function the steps that are going to be executed should</span>
 <span class="sd">        be defined. Two of the most used functions are: _insertFunctionStep or _insertRunJobStep</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputPdbData</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">IMPORT_FROM_ID</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdbDownloadStep</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">convertPdbStep</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">createOutput</span><span class="p">)</span>
-    
-    <span class="c1"># --------------------------- STEPS functions --------------------------------------------</span>
-<div class="viewcode-block" id="XmippProtConvertPdb.pdbDownloadStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_convert_pdb.html#xmipp3.protocols.protocol_convert_pdb.XmippProtConvertPdb.pdbDownloadStep">[docs]</a>    <span class="k">def</span> <span class="nf">pdbDownloadStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Download all pdb files in file_list and unzip them.&quot;&quot;&quot;</span>
-        <span class="n">downloadPdb</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdbId</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPdbFileName</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_log</span><span class="p">)</span></div>
-        
-<div class="viewcode-block" id="XmippProtConvertPdb.convertPdbStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_convert_pdb.html#xmipp3.protocols.protocol_convert_pdb.XmippProtConvertPdb.convertPdbStep">[docs]</a>    <span class="k">def</span> <span class="nf">convertPdbStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Although is not mandatory, usually is used by the protocol to</span>
-<span class="sd">        register the resulting outputs in the database.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">pdbFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPdbFileName</span><span class="p">()</span>
-        <span class="n">outFile</span> <span class="o">=</span> <span class="n">removeExt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVolName</span><span class="p">())</span>
-        <span class="k">if</span> <span class="n">getExt</span><span class="p">(</span><span class="n">pdbFn</span><span class="p">)</span><span class="o">==</span><span class="s2">&quot;.cif&quot;</span><span class="p">:</span>
-            <span class="n">pdbFn2</span><span class="o">=</span><span class="n">replaceBaseExt</span><span class="p">(</span><span class="n">pdbFn</span><span class="p">,</span> <span class="s1">&#39;pdb&#39;</span><span class="p">)</span>
-            <span class="n">cifToPdb</span><span class="p">(</span><span class="n">pdbFn</span><span class="p">,</span> <span class="n">pdbFn2</span><span class="p">)</span>
-            <span class="n">pdbFn</span> <span class="o">=</span> <span class="n">pdbFn2</span>
+        <span class="c1"># Checking if input is set or not</span>
+        <span class="n">isSet</span> <span class="o">=</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdbObj</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">AtomStruct</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="s2">&quot; &quot;</span> <span class="ow">in</span> <span class="n">pdbFn</span><span class="p">:</span>
-            <span class="n">pdbFn_extra</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">pdbFn</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">pdbFn_extra</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">pdbFn</span><span class="p">))</span>
-
-        <span class="n">createLink</span><span class="p">(</span><span class="n">pdbFn</span><span class="p">,</span> <span class="n">pdbFn_extra</span><span class="p">)</span>
-
+        <span class="c1"># Generating pdb list and obtaining input sampling rate</span>
+        <span class="n">pdbList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPdbFileNames</span><span class="p">()</span>
         <span class="n">samplingR</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 
-        <span class="n">args</span> <span class="o">=</span> <span class="s1">&#39;-i &quot;</span><span class="si">%s</span><span class="s1">&quot; --sampling </span><span class="si">%f</span><span class="s1"> -o &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pdbFn_extra</span><span class="p">,</span> <span class="n">samplingR</span><span class="p">,</span> <span class="n">outFile</span><span class="p">)</span>
+        <span class="c1"># Defining list of function ids to be waited by the createOutput function</span>
+        <span class="n">deps</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">pdbFn</span> <span class="ow">in</span> <span class="n">pdbList</span><span class="p">:</span>
+            <span class="c1"># Calling processConversion in parallel with each input data</span>
+            <span class="n">deps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">processConversion</span><span class="p">,</span> <span class="n">pdbFn</span><span class="p">,</span> <span class="n">samplingR</span><span class="p">,</span> <span class="n">isSet</span><span class="p">,</span> <span class="n">prerequisites</span><span class="o">=</span><span class="p">[]))</span>
         
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">centerPdb</span><span class="p">:</span>
-            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --centerPDB&#39;</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">outPdb</span><span class="p">:</span>
-                <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --oPDB&#39;</span>
+        <span class="c1"># Insert output conversion step</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">createOutput</span><span class="p">,</span> <span class="n">isSet</span><span class="p">,</span> <span class="n">samplingR</span><span class="p">,</span> <span class="n">prerequisites</span><span class="o">=</span><span class="n">deps</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vol</span><span class="p">:</span>
-            <span class="n">vol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">volObj</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-            <span class="n">size</span> <span class="o">=</span> <span class="n">vol</span><span class="o">.</span><span class="n">getDim</span><span class="p">()</span>
-            <span class="n">ccp4header</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">Ccp4Header</span><span class="p">(</span><span class="n">vol</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span> <span class="n">readHeader</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">shifts</span> <span class="o">=</span> <span class="n">ccp4header</span><span class="o">.</span><span class="n">getOrigin</span><span class="p">()</span>
-            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --size </span><span class="si">%d</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> --orig </span><span class="si">%d</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">size</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-                                                          <span class="bp">self</span><span class="o">.</span><span class="n">shifts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">samplingR</span><span class="p">,</span>
-                                                          <span class="bp">self</span><span class="o">.</span><span class="n">shifts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">samplingR</span><span class="p">,</span>
-                                                          <span class="bp">self</span><span class="o">.</span><span class="n">shifts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="n">samplingR</span><span class="p">)</span>
+    <span class="c1"># --------------------------- STEPS functions --------------------------------------------</span>
+<div class="viewcode-block" id="XmippProtConvertPdb.processConversion"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_convert_pdb.html#xmipp3.protocols.protocol_convert_pdb.XmippProtConvertPdb.processConversion">[docs]</a>    <span class="k">def</span> <span class="nf">processConversion</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pdb</span><span class="p">,</span> <span class="n">samplingR</span><span class="p">,</span> <span class="n">isSet</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; This step runs the pdb conversion. &quot;&quot;&quot;</span>
+        <span class="c1"># Converting all input atomic structures to .pdb</span>
+        <span class="n">pdb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convertToPdb</span><span class="p">(</span><span class="n">pdb</span><span class="p">)</span>
+        
+        <span class="c1"># Generating output file for each input</span>
+        <span class="n">outFile</span> <span class="o">=</span> <span class="n">removeExt</span><span class="p">(</span><span class="n">pdb</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setSize</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">vol</span><span class="p">:</span>
-            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --size&#39;</span>
+        <span class="c1"># Getting args for program call</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getConversionArgs</span><span class="p">(</span><span class="n">pdb</span><span class="p">,</span> <span class="n">samplingR</span><span class="p">,</span> <span class="n">outFile</span><span class="p">,</span> <span class="n">isSet</span><span class="o">=</span><span class="n">isSet</span><span class="p">)</span>
 
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_x</span><span class="o">.</span><span class="n">hasValue</span><span class="p">():</span>
-                <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_x</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_y</span><span class="o">.</span><span class="n">hasValue</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_z</span><span class="o">.</span><span class="n">hasValue</span><span class="p">():</span>
-                <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; </span><span class="si">%d</span><span class="s1"> </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size_y</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_z</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Input file: &quot;</span> <span class="o">+</span> <span class="n">pdbFn</span><span class="p">)</span>
+        <span class="c1"># Showing input and output file names</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Input file: &quot;</span> <span class="o">+</span> <span class="n">pdb</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Output file: &quot;</span> <span class="o">+</span> <span class="n">outFile</span><span class="p">)</span>
-        
-        <span class="n">program</span> <span class="o">=</span> <span class="s2">&quot;xmipp_volume_from_pdb&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="n">program</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="XmippProtConvertPdb.createOutput"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_convert_pdb.html#xmipp3.protocols.protocol_convert_pdb.XmippProtConvertPdb.createOutput">[docs]</a>    <span class="k">def</span> <span class="nf">createOutput</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">volume</span> <span class="o">=</span> <span class="n">Volume</span><span class="p">()</span>
-        <span class="n">volume</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sampling</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="c1"># Calling program</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_volume_from_pdb&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></div>
 
-        <span class="c1"># Since xmipp generates always a .vol we do the conversion here</span>
+<div class="viewcode-block" id="XmippProtConvertPdb.createOutput"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_convert_pdb.html#xmipp3.protocols.protocol_convert_pdb.XmippProtConvertPdb.createOutput">[docs]</a>    <span class="k">def</span> <span class="nf">createOutput</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">isSet</span><span class="p">,</span> <span class="n">samplingR</span><span class="p">):</span>
+        <span class="n">extraPath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span>
+
+        <span class="c1"># Saving centered pdbs if wanted</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">centerPdb</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">outPdb</span><span class="p">:</span>
+            <span class="n">centeredPdbs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;centerted&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;mkdir -p&#39;</span><span class="p">,</span>  <span class="n">centeredPdbs</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;mv&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/*_centered.pdb </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">extraPath</span><span class="p">,</span> <span class="n">centeredPdbs</span><span class="p">))</span>
+
+        <span class="c1"># Generating output objects</span>
+        <span class="n">outputVol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfVolumes</span><span class="p">()</span> <span class="k">if</span> <span class="n">isSet</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="n">pdbOut</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">centerPdb</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">outPdb</span>
+        <span class="k">if</span> <span class="n">pdbOut</span><span class="p">:</span>
+            <span class="n">outputPdb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfPDBs</span><span class="p">()</span> <span class="k">if</span> <span class="n">isSet</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="c1"># Instantiating image handler</span>
         <span class="n">ih</span> <span class="o">=</span> <span class="n">ImageHandler</span><span class="p">()</span>
-        <span class="n">mrcFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getVolName</span><span class="p">(</span><span class="n">extension</span><span class="o">=</span><span class="s2">&quot;mrc&quot;</span><span class="p">)</span>
-        <span class="n">ih</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getVolName</span><span class="p">(),</span> <span class="n">mrcFn</span><span class="p">)</span>
-        <span class="n">volume</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">mrcFn</span><span class="p">)</span>
-        <span class="n">volume</span><span class="o">.</span><span class="n">fixMRCVolume</span><span class="p">(</span><span class="n">setSamplingRate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">setMRCSamplingRate</span><span class="p">(</span><span class="n">mrcFn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sampling</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vol</span><span class="p">:</span>
-            <span class="n">origin</span> <span class="o">=</span> <span class="n">Transform</span><span class="p">()</span>
-            <span class="n">origin</span><span class="o">.</span><span class="n">setShiftsTuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shifts</span><span class="p">)</span>
-            <span class="n">volume</span><span class="o">.</span><span class="n">setOrigin</span><span class="p">(</span><span class="n">origin</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">OUTPUT_NAME</span><span class="p">:</span><span class="n">volume</span><span class="p">})</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputPdbData</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">IMPORT_OBJ</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdbObj</span><span class="p">,</span> <span class="n">volume</span><span class="p">)</span></div>
-    
+
+        <span class="c1"># Generating input list</span>
+        <span class="n">pdbFns</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPdbFileNames</span><span class="p">()</span>
+
+        <span class="c1"># Converting volumes. Since xmipp generates always a .vol we do the conversion here</span>
+        <span class="k">for</span> <span class="n">pdbFn</span> <span class="ow">in</span> <span class="n">pdbFns</span><span class="p">:</span>
+            <span class="c1"># Generating ouput mrc</span>
+            <span class="n">volumeFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">replaceBaseExt</span><span class="p">(</span><span class="n">pdbFn</span><span class="p">,</span> <span class="s1">&#39;vol&#39;</span><span class="p">))</span>
+            <span class="n">mrcFn</span> <span class="o">=</span> <span class="n">replaceExt</span><span class="p">(</span><span class="n">volumeFn</span><span class="p">,</span> <span class="s1">&#39;mrc&#39;</span><span class="p">)</span>
+            <span class="n">ih</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">volumeFn</span><span class="p">,</span> <span class="n">mrcFn</span><span class="p">)</span>
+            <span class="n">setMRCSamplingRate</span><span class="p">(</span><span class="n">mrcFn</span><span class="p">,</span> <span class="n">samplingR</span><span class="p">)</span>
+            <span class="c1"># Generating output volume object from mrc</span>
+            <span class="n">volume</span> <span class="o">=</span> <span class="n">Volume</span><span class="p">()</span>
+            <span class="n">volume</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">samplingR</span><span class="p">)</span>
+            <span class="n">volume</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">mrcFn</span><span class="p">)</span>
+            <span class="n">volume</span><span class="o">.</span><span class="n">fixMRCVolume</span><span class="p">(</span><span class="n">setSamplingRate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="c1"># If input is set, append volume to set</span>
+            <span class="k">if</span> <span class="n">isSet</span><span class="p">:</span>
+                <span class="n">outputVol</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">volume</span><span class="p">)</span>
+            <span class="c1"># Generating output PDB</span>
+            <span class="k">if</span> <span class="n">pdbOut</span><span class="p">:</span>
+                <span class="n">centeredPdbFn</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/</span><span class="si">{}</span><span class="s1">_centered.pdb&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">centeredPdbs</span><span class="p">,</span> <span class="n">removeBaseExt</span><span class="p">(</span><span class="n">pdbFn</span><span class="p">))</span>
+                <span class="n">atom</span> <span class="o">=</span> <span class="n">AtomStruct</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">centeredPdbFn</span><span class="p">)</span>
+                <span class="n">atom</span><span class="o">.</span><span class="n">setVolume</span><span class="p">(</span><span class="n">volume</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">isSet</span><span class="p">:</span>
+                    <span class="n">outputPdb</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">atom</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">isSet</span><span class="p">:</span>
+            <span class="c1"># If input is single atom struct, get produced volume as output</span>
+            <span class="n">outputVol</span> <span class="o">=</span> <span class="n">volume</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vol</span><span class="p">:</span>
+                <span class="n">origin</span> <span class="o">=</span> <span class="n">Transform</span><span class="p">()</span>
+                <span class="n">origin</span><span class="o">.</span><span class="n">setShiftsTuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">shifts</span><span class="p">)</span>
+                <span class="n">outputVol</span><span class="o">.</span><span class="n">setOrigin</span><span class="p">(</span><span class="n">origin</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">pdbOut</span><span class="p">:</span>
+                <span class="n">outputPdb</span> <span class="o">=</span> <span class="n">atom</span>
+
+        <span class="c1"># Setting ouput sampling rate</span>
+        <span class="n">outputVol</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">samplingR</span><span class="p">)</span>
+
+        <span class="c1"># Removing temporary files</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">clean</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;rm&#39;</span><span class="p">,</span> <span class="s1">&#39;-rf </span><span class="si">{}</span><span class="s1">/*.vol </span><span class="si">{}</span><span class="s1">/*.cif </span><span class="si">{}</span><span class="s1">/*.pdb&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">extraPath</span><span class="p">,</span> <span class="n">extraPath</span><span class="p">,</span> <span class="n">extraPath</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">pdbOut</span><span class="p">:</span>
+            <span class="n">outputPdbName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">OUTPUT_NAME4</span> <span class="k">if</span> <span class="n">isSet</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">OUTPUT_NAME3</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">outputPdbName</span><span class="p">:</span> <span class="n">outputPdb</span><span class="p">})</span>
+
+        <span class="c1"># Defining output</span>
+        <span class="n">outputVolName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">OUTPUT_NAME2</span> <span class="k">if</span> <span class="n">isSet</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">OUTPUT_NAME1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="n">outputVolName</span><span class="p">:</span> <span class="n">outputVol</span><span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdbObj</span><span class="p">,</span> <span class="n">outputVol</span><span class="p">)</span></div>
+
     <span class="c1"># --------------------------- INFO functions --------------------------------------------</span>
     <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Even if the full set of parameters is available, this function provides</span>
@@ -295,15 +333,8 @@
 <span class="sd">        &quot;&quot;&quot;</span> 
         <span class="n">summary</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c1"># Add some lines of summary information</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">OUTPUT_NAME</span><span class="p">):</span>
-            <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;outputVolume not ready yet.&quot;</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputPdbData</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">IMPORT_FROM_ID</span><span class="p">:</span>
-                <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Input PDB ID: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdbId</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
-            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputPdbData</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">IMPORT_OBJ</span><span class="p">:</span>
-                <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Input PDB File: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdbObj</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Input PDB File: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdbFile</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">OUTPUT_NAME1</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">OUTPUT_NAME2</span><span class="p">)):</span>
+            <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The output is not ready yet.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">summary</span>
       
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -312,24 +343,75 @@
 <span class="sd">        empty the protocol can be executed.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputPdbData</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">IMPORT_FROM_ID</span><span class="p">:</span>
-            <span class="n">lenStr</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pdbId</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
-            <span class="k">if</span> <span class="n">lenStr</span> <span class="o">!=</span> <span class="mi">4</span><span class="p">:</span>
-                <span class="n">errors</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Pdb id is composed only by four alphanumeric characters&quot;</span><span class="p">]</span>
-        
+
+        <span class="c1"># Checking if MPI is selected (only threads are allowed)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;MPI cannot be selected, because Scipion is going to drop support for it. Select threads instead.&#39;</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="n">errors</span>
     
     <span class="c1"># --------------------------- UTLIS functions --------------------------------------------</span>
-    <span class="k">def</span> <span class="nf">_getPdbFileName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputPdbData</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">IMPORT_FROM_ID</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">.cif&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdbId</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputPdbData</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">IMPORT_OBJ</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdbObj</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
+    <span class="k">def</span> <span class="nf">_getPdbFileNames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; This function returns the input file/s stored in a list. &quot;&quot;&quot;</span>
+        <span class="n">pbdObj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdbObj</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pbdObj</span><span class="p">,</span> <span class="n">AtomStruct</span><span class="p">):</span>
+            <span class="c1"># If it is a single AtomStruct, place it inside a list of 1 element</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">pbdObj</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdbFile</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="c1"># If it is a SetOfAtom Structs, get all of the elements iterating the set</span>
+            <span class="k">return</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">pbdObj</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_convertToPdb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pdbRaw</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; This function receives an atomic struct file, and converts it to .pdb if it is in .cif format. &quot;&quot;&quot;</span>
+        <span class="c1"># Get output path for pdb file</span>
+        <span class="n">convertedPdb</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">replaceBaseExt</span><span class="p">(</span><span class="n">pdbRaw</span><span class="p">,</span> <span class="s1">&#39;pdb&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span>
+
+        <span class="c1"># If file extension is .cif, convert to .pdb, or else we link it as is</span>
+        <span class="k">if</span> <span class="n">getExt</span><span class="p">(</span><span class="n">pdbRaw</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;.cif&quot;</span><span class="p">:</span>
+            <span class="n">cifToPdb</span><span class="p">(</span><span class="n">pdbRaw</span><span class="p">,</span> <span class="n">convertedPdb</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">createLink</span><span class="p">(</span><span class="n">pdbRaw</span><span class="p">,</span> <span class="n">convertedPdb</span><span class="p">)</span>
+
+        <span class="c1"># Return optionally converted file</span>
+        <span class="k">return</span> <span class="n">convertedPdb</span>
     
-    <span class="k">def</span> <span class="nf">_getVolName</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">extension</span><span class="o">=</span><span class="s2">&quot;vol&quot;</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">replaceBaseExt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPdbFileName</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">),</span> <span class="n">extension</span><span class="p">))</span></div>
+    <span class="k">def</span> <span class="nf">_getConversionArgs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pdb</span><span class="p">,</span> <span class="n">samplingRate</span><span class="p">,</span> <span class="n">outputFile</span><span class="p">,</span> <span class="n">isSet</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; This function generates the arguments to convert an input pdb to a volume. &quot;&quot;&quot;</span>
+        <span class="c1"># Main arguments</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="s1">&#39;-i &quot;</span><span class="si">%s</span><span class="s1">&quot; --sampling </span><span class="si">%f</span><span class="s1"> -o &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">pdb</span><span class="p">,</span> <span class="n">samplingRate</span><span class="p">,</span> <span class="n">outputFile</span><span class="p">)</span>
+
+        <span class="c1"># Flag for centered pdbs</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">centerPdb</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --centerPDB&#39;</span>
+            <span class="c1"># Flag for output pdbs</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">outPdb</span><span class="p">:</span>
+                <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --oPDB&#39;</span>
+        
+        <span class="c1"># Setting size and origin if selected</span>
+        <span class="k">if</span> <span class="n">isSet</span><span class="p">:</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --size </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">vol</span><span class="p">:</span>
+                <span class="n">vol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">volObj</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+                <span class="n">size</span> <span class="o">=</span> <span class="n">vol</span><span class="o">.</span><span class="n">getDim</span><span class="p">()</span>
+                <span class="n">ccp4header</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">Ccp4Header</span><span class="p">(</span><span class="n">vol</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span> <span class="n">readHeader</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">shifts</span> <span class="o">=</span> <span class="n">ccp4header</span><span class="o">.</span><span class="n">getOrigin</span><span class="p">()</span>
+                <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --size </span><span class="si">%d</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> --orig </span><span class="si">%d</span><span class="s1"> </span><span class="si">%d</span><span class="s1"> </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">size</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">size</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">size</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                                            <span class="bp">self</span><span class="o">.</span><span class="n">shifts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">/</span><span class="n">samplingRate</span><span class="p">,</span>
+                                                            <span class="bp">self</span><span class="o">.</span><span class="n">shifts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">/</span><span class="n">samplingRate</span><span class="p">,</span>
+                                                            <span class="bp">self</span><span class="o">.</span><span class="n">shifts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">/</span><span class="n">samplingRate</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">setSize</span><span class="p">:</span>
+                    <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --size&#39;</span>
+
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_x</span><span class="o">.</span><span class="n">hasValue</span><span class="p">():</span>
+                        <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_x</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_y</span><span class="o">.</span><span class="n">hasValue</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_z</span><span class="o">.</span><span class="n">hasValue</span><span class="p">():</span>
+                        <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; </span><span class="si">%d</span><span class="s1"> </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">size_y</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">size_z</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        
+        <span class="c1"># Returning produced args</span>
+        <span class="k">return</span> <span class="n">args</span></div>
 </pre></div>
 
            </div>

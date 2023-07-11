@@ -8,71 +8,84 @@
 Parallelization
 ===============
 
-By default, each function step is executed just after the previous one
-is fully completed. If you would like to execute any steps on parallel
-you have to add an extra parameter called ``prerequisites``. This parameters
-will identify the dependent id, i.e. the id of the previous step which
-has to be completed before executing this step.
-
-Here you can see an example which tries to illustrate how to create a
-parallel step:
-
-.. code-block:: python
-
-         ....
-
-         def _insertAllSteps(self):
-            ....
-            self._insertFunctionStep('downloadMoviesStep')
-            self._insertFunctionStep('closeSetStep', wait=True)
-
-        def downloadMoviesStep(self):
-            """
-            Download a set of movies located an a specific path
-            """
-            path = '/home/user/images/'
-            readXmlFileStep = self._insertFunctionStep("readXmlFileStep")
-            depStepsList = [] # Store all steps ids, final step closeSetStep depends on all of them
-            # Move for a directory finding files to add
-            for file in os.listdir(path):
-                if file not in self.registerFiles:
-                    self.registerFiles.append(file)
-                    # Make estimation steps independent
-                    newStep = self._insertFunctionStep('registerImageStep',
-                                                         file, prerequisites=[readXmlFileStep])
-                    depStepsList.append(newStep)
-                # Updating the total of protocol steps
-                self.updateSteps()
-
-        ....
-
-``readXmlFileStep`` is executed just after the previous step is completed.
-On the other hand, ``registerImageStep`` is executed  _number_of_files_ times.
-All these executions are performed on parallel because they only depend on
-``readXmlFileStep`` (id of the ``readXmlFileStep`` function). If we do not
-provide the ``prerequisites`` parameter, each ``registerImageStep`` execution
-would depend on the previous ``registerImageStep`` execution and therefore they
-would not be executed in parallel.
-
-Two details to take into account when creating a protocol where some of its
-steps are in parallel, are the following:
+By default, each function step is executed only after the previous one is fully completed. If any amount of steps should be executed in parallel, the following steps detailed below must be met:
 
 * In the protocol ``__init__`` definition add the following instruction:
 
 .. code-block:: python
 
-    def __init__(self, **args):
-        ....
-        self.stepsExecutionMode = STEPS_PARALLEL
-        ....
+   def __init__(self, **args):
+      super().__init__(**args)
+      # ...
+      self.stepsExecutionMode = STEPS_PARALLEL
+      # ...
+This attribute will make all the steps functions run at the same time by default now, and it will be necessary to define the dependencies between them to only parallelize the functions that can be parallelized.
 
 * In the protocol ``_defineParams`` method  add the parallelization section defining
-  the number of threads and mpi to use.
+  the number of threads to use.
 
 .. code:: python
 
-    def _defineParams(self, form):
-        ....
-        form.addParallelSection(threads=2, mpi=1)
-        ...
+   def _defineParams(self, form):
+      # Subsitute N for the number of threads you want
+      # your protocol's form to use by default.
+      # It has to be an integer greater than 0.
+      form.addParallelSection(threads=N)
+      # ...
+Note, Scipion also allows for MPI usage, but support is going to drop soon, so this guide will not cover how to use it since it won't be possible for much longer.
 
+* Due to the same lack of future support for MPI within Scipion, it is recommended to add the following lines inside the protocol's ``_validate`` function, even if it is not strictly needed:
+
+.. code:: python
+
+   def _validate(self):
+      # Defining empty list to store validation errors
+      errors = []
+      # ...
+
+      # Checking if MPI is selected (only threads are allowed)
+      if self.numberOfMpi > 1:
+         errors.append('MPI cannot be selected, because Scipion is going to drop support for it. Select threads instead.')
+      # ...
+      
+      return errors
+This will prevent any user from selecting MPI in the protocol's form, showing an error that can be easily understood.
+
+* In the protocol's ``_insertAllSteps`` function, the steps to be executed by the protocol need to be inserted with their dependencies. An example is provided below:
+
+.. code-block:: python
+
+   def _insertAllSteps(self):
+      """
+      In this function the steps that are going to be executed should
+      be defined. Two of the most used functions are: _insertFunctionStep or _insertRunJobStep
+      """      
+      # Defining list of function ids to be waited for by the createOutputStep function
+      deps = []
+      for element in myList:
+         # Calling processConversion in parallel with each input data
+         deps.append(self._insertFunctionStep(self.processStep, element, prerequisites=[]))
+      
+      # Insert output generation step
+      self._insertFunctionStep(self.createOutputStep, prerequisites=deps)
+
+   def processStep(self, element):
+      # Do something with that element
+
+   def createOutputStep(self):
+      # Generate ouputs
+
+In this example, we have two functions:
+
+   - processStep
+   - createOutputStep
+
+``processStep`` is a function that has to be executed once for each element in the list, and, in this case, it is going to happen in parallel.
+
+Calling function ``_insertFunctionStep``, returns an id given by Scipion to the function being inserted. Also, when calling that function, a param named ``prerequisites`` has to be supplied. This param must be a list containing all the ids corresponding to functions that need to be executed before the function being inserted can start. If that function has no dependencies, the list needs to be empty, but it still needs to be supplied, or else some errors will occur (this will get fixed soon, but, in the mean time, keep in mind that at least an empty list has to be passed).
+
+Going back to the example above, ``processStep`` has no dependencies, so the ``prerequisites`` param has an empty list for each of them. Additionally, this function takes one positional param (``element``), so that param needs to be passed before the keyword argument ``prerequisites``.
+
+Every function id being generated by the insertion of each instance of ``processStep`` has to be stored in a list, in this case ``deps``. This list will be the param ``prerequisites`` of function ``createOutputStep``. Which means that ``createOutputStep`` will only start once every instance of ``processStep`` has finished. If an empty list was passed instead of those function ids, ``createOutputStep`` will start at the same time than the rest of functions, resulting in errors if it needs some data produced by other ones.
+
+**Note:** Every step function needs to be inserted within ``_insertAllSteps``. That is, because, the protocol's GUI while running, shows a progress status in the format of StepsCompleted/TotalSteps, and TotalSteps only take account the steps introduced within the ``_insertAllSteps`` function. If there is any call to ``_insertFunctionStep`` from another function, even it that function is being called inside ``_insertAllSteps``, the protocol GUI will end up with more completed steps than total steps (i.e. 100/80). This does not break protocol's results at all, but it is not ideal for a user to look at either.
