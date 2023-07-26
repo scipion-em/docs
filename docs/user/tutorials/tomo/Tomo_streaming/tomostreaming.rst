@@ -78,3 +78,12 @@ In order to generate a tomogram in streaming; in the time we have the tomogram
 of a tilt series to process the acquisition, we have enhanced the Aretomo protocol
 to manage the streaming process.
 None of the parameters must be filled in other than the usual ones available in the Aretomo protocol.
+
+
+Summary
+=======
+We have explained the workflow for managing a streaming acquisition. It requires only four protocols,
+two of them belong to the SPA field and the other two to the tomography field.
+The compose tilt series is a protocol designed ad-hoc for streaming tomography
+and the AreTomo protocol has been enhanced to allow treaming.
+In the future we plan to enable streaming tomography using other plugins such as IMOD.
