@@ -16,7 +16,8 @@ Introduction
 This tutorial guide you in a streaming tomography acquisition using Scipion.
 To achieve this goal, we will import the tilts as a movie in SPA, we will align
 those wit the align protocols of SPA, we will compose the tilt serie and as the
-last step we will generate the tomogram. All the steps running in streaming
+last step we will generate the tomogram. All the steps running in streaming.
+A template to launch this workflow is available on the scipion-em-tomo plugin
 
 Additional resources
 ====================
