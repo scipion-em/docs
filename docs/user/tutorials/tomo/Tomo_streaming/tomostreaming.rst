@@ -86,5 +86,5 @@ Summary
 We have explained the workflow for managing a streaming acquisition. It requires only four protocols,
 two of them belong to the SPA field and the other two to the tomography field.
 The compose tilt series is a protocol designed ad-hoc for streaming tomography
-and the AreTomo protocol has been enhanced to allow treaming.
+and the AreTomo protocol has been enhanced to allow streaming.
 In the future we plan to enable streaming tomography using other plugins such as IMOD.
