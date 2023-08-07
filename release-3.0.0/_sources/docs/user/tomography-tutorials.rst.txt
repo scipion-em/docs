@@ -86,3 +86,12 @@ with respect to the virus internal membrane.
 
  *Guide*:
  `Subtomogram Averaging HIV <https://docs.google.com/document/d/1i7nzRV5NWgmw7tPfvlVcVKSkX7_YJUMUenGPZfGN8qw>`_
+
+Tomography in streaming
+------------------------------------
+This tutorial guide you in a streaming tomography acquisition using Scipion.
+To achieve this goal, we will import the tilts as a movie in SPA, we will align
+those with the align protocols of SPA, we will compose the tilt serie and as the
+last step we will generate the tomogram. All the steps running in streaming
+
+ *Guide*: :ref:`Tomography in streaming <tomostreaming>`
