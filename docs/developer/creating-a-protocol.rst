@@ -21,7 +21,7 @@ registered back as output in the form of Scipion-objects.
 We are going to use a 2D classification protocol (maximum likelihood in
 Xmipp) as an example to illustrate the development of a new protocol.
 This small guide will cover the basics of creating a new protocol. In each
-section we will provide links to more detailed information when needed.
+section, we will provide links to more detailed information when needed.
 
 .. contents:: Table of Contents
 
@@ -33,10 +33,10 @@ Name and inheritance
 --------------------
 
 The first step when developing a protocol is to select the protocol
-class name. In this case it is ``XmippProtML2D``, following the
-convention that all Xmipp protocol names will start by ``XmippProt`` (we
+class name. In this case, it is ``XmippProtML2D``, following the
+convention that all Xmipp protocol names will start with ``XmippProt`` (we
 recommend a similar approach to name protocols from other EM plugins).
-In this case our protocol descends from a base class ``ProtClassify2D``
+In this case, our protocol descends from a base class ``ProtClassify2D``
 which reflects the operation that this protocol performs. The list of protocols and
 how they interact with each other can be observed on the
 :doc:`Scipion EM classes - fig. general EM protocols hierarchy <scipion-em-classes>. The corresponding files
@@ -55,8 +55,8 @@ name is probably less meaningful to final users.
 
 Protocol development status definition
 --------------------------------------
-Protocols defines the variable ``_devStatus`` which represents the
-development status. By default it defines it as production mode, but it can be
+Protocols define the variable ``_devStatus`` which represents the
+development status. By default, it defines it as production mode, but it can be
 modified as BETA or NEW. These values can be imported from the ``pyworkflow``
 package as shown below:
 
@@ -137,15 +137,15 @@ five main parts of the code:
   will appear in the GUI and that will be attributes of the protocol instance.
 * **Steps list**: Prepares the list of steps that will be executed in
   order to complete the protocol.
-* **Steps functions**: Contains the code that wil lbe executed (Python code
-  or call to external programs)
+* **Steps functions**: Contains the code that will be executed (Python code
+  or calls to external programs)
 * **Validation and info functions**: Decorates the protocol class by providing
   parameter validation and some useful information to the user.
 * **Other utils functions**: Varies from protocol to
   protocol; it will contain helper functions to be used throughout the
   protocol code.
 
-In the following sections we are going to more thoroughly explain each of these
+In the following sections, we are going to thoroughly explain each of these
 parts in order to develop a fully functional protocol.
 
 
@@ -165,21 +165,21 @@ have a unique name inside the protocol and a type (from among the ones defined i
 Scipion framework). There are two groups of parameters:
 
 * **Simple parameters**: Basic input parameter types.
-    * ``__StringParam__``: A basic string input (a textbox in the GUI)
-    * ``__FloatParam__``: Floating point input value (a textbox in the GUI, but
+    * ``StringParam``: A basic string input (a textbox in the GUI)
+    * ``FloatParam``: Floating point input value (a textbox in the GUI, but
       should have a floating point format)
-    * ``__IntParam__``: An integer (a textbox in the GUI, but should have
+    * ``IntParam``: An integer (a textbox in the GUI, but should have
       an integer format)
-    * ``__BooleanParam__``: A boolean value, or True or False (a Yes/No
+    * ``BooleanParam``: A boolean value, or True or False (a Yes/No
       question in the GUI)
-    * ``__EnumParam__``: Also an integer input, but with a small number
+    * ``EnumParam``: Also an integer input, but with a small number
       of possible choices (a combobox or a list in the GUI)
 *  **Complex parameters**:
-    * ``__PointerParam__``: Selects objects from the database
+    * ``PointerParam``: Selects objects from the database
       (a text box with a search button in the GUI)
-    * ``__RelationParam__``: similar to ``__PointerParam__``, but will select
+    * ``RelationParam``: similar to ``PointerParam``, but will select
       relationships instead of objects (mainly used for CTF browsing)
-    * ``__ProtocolClassParam__``: similar to ``__PointerParam__``, but will select
+    * ``ProtocolClassParam``: similar to ``PointerParam``, but will select
       protocol classes (used for Workflows, under development)
 
 Parameters can be added with the
@@ -214,7 +214,7 @@ into sections, groups, or lines.
   further calls to ``form.addParam`` will add parameters to that section.
 * **Group**: The function :meth:`addGroup<pyworkflow.protocol.params.Form.addGroup>` will return a
   :class:`Group<pyworkflow.protocol.params.Group>` object that can also add parameters to it. The group will be
-  displayed as a labeled frame in the GUI.
+  displayed as a labelled frame in the GUI.
 * **Line**: Another way of grouping is through :meth:`addLine(lineLabel)<pyworkflow.protocol.params.Form.addLine>`,
   which will return a :class:`Line<pyworkflow.protocol.params.Line>` object that can
   also contain other parameters. It will simply display those parameters in the same row.
@@ -268,7 +268,7 @@ Defining Steps
 ==============
 
 Another important function is ``_insertAllSteps``, in which the steps
-that will be executed when the user click on pushbutton **Execute** of the protocol GUI are defined.
+that will be executed when the user clicks on pushbutton **Execute** of the protocol GUI are defined.
 This function is only invoked before a protocol starts to run and the following actions take place:
 
 * The method ``protocol.run()`` is called
@@ -277,7 +277,7 @@ This function is only invoked before a protocol starts to run and the following 
 * The steps list is compared with previous steps lists in the database (if exists a previous execution) and,
 * If in RESUME mode, it will try to continue from the last step that was completed
   successfully. (In RESTART mode it will start from the first step and
-  output directory is cleaned)
+  the output directory is cleaned)
 
 It is important to note that no computing tasks should be performed in the ``_insertAllSteps``
 function this should be done in the steps; see next section). This place is only to *DEFINE*
@@ -318,7 +318,7 @@ threads or MPI). You can read more about defining steps to be executed
 in parallel in :doc:`Parallelization<parallelization>`.
 
 Even when a protocol runs its steps without parallelization, one
-particular step can take advantage of a multiprocessor and use MPI or
+a particular step can take advantage of a multiprocessor and use MPI or
 threads in a particular program command line.
 
 
@@ -333,7 +333,7 @@ It is common that one of the first steps in a protocol is
 objects to files with the format that is appropriate for running a
 particular program. In our example, we should convert the input
 ``SetOfParticles`` object into the metadata star file that is required
-by all Xmipp programs that operates on particles. In this classification
+by all Xmipp programs that operate on particles. In this classification
 protocol, it is also possible to provide a set of reference images.
 This is also taken into account in the ``convertInputStep`` function and
 also writes metadata for the references if needed.
@@ -439,7 +439,7 @@ reading the classes' information from the Xmipp metadata outputs (STAR
 files). More information about creating Scipion sets objects can be
 found in link:UsingSets[Developers - Using Sets].
 
-Although the creating output step is normally specific of each protocol, some common cases
+Although the creating output step is normally specific to each protocol, some common cases
 are populating the empty object with data read from the generated output, as explained in the
 previous paragraph, or, if the input and output objects are of the same type, use them to fill
 the output empty object and update the corresponding attributes, like the image filename, for
@@ -454,7 +454,7 @@ Scipion objects are:
 Definitions are located in $SCIPION_HOME/pyworkflow/em/data.py
 
 Once the outputs have been correctly created as Scipion objects, it is necessary to specify them
-as outputs, which can be done using method ``_defineOutputs``. Finally, the relation or transformation
+as outputs, which can be done using the method ``_defineOutputs``. Finally, the relation or transformation
 between the source and the destination objects should be defined. This can be carried out with methods
 ``_defineSourceRelation``, ``_defineTransformRelation`` or ``_defineCtfRelation``, depending on the
 objects implied in the protocol.
@@ -478,7 +478,7 @@ parameters. If the returned list is empty means that everything is fine
 and the protocol can run. The ``_warnings`` will show the messages to
 the user but give it the choice to continue or not. If there are errors
 from the *``_validate``*, the protocol will not run. This can save time
-to users because prevent simple errors that can be critical for the
+for users because prevent simple errors that can be critical for the
 protocol to run properly.
 
 In our example, the ``_validate`` function is very simple. It checks that
@@ -504,7 +504,7 @@ Citations, Summary and Methods
 The ``_citations`` function is the way to provide references to the
 methods used in the protocols. The returned list should contain the
 keys of the citation reference. All the references for a specific
-software package are listed in bibtex format in a file called
+software package are listed in Bibtex format in a file called
 **bibtex.py**. Read more about this file in this guide to
 :doc:`create a plugin <creating-a-plugin>`.
 
@@ -574,19 +574,19 @@ The protocol classes that are available in Scipion are discovered
 dynamically using Python reflection tools. So, when a new protocol class
 is added, it is automatically available to the whole system.
 
-Manage protocol location in protocol tree:
+Manage protocol location in the protocol tree:
 ------------------------------------------
 
-If you want your protocol to appear in an specific position in the protocol tree in the left pane of the
+If you want your protocol to appear in a specific position in the protocol tree in the left pane of the
 projects GUI, you may need to do some configuration setup.
 This is performed with the :ref:`protocols.conf file<protocols.conf>`.
 
-Writing Tests for your Protocol
+Writing Tests for Your protocol
 -------------------------------
 
 Writing tests is the best way to develop from the beginning. It will
 help to cover different use cases of your functions (or protocols in
-this case). It they are run automatically, they will help to detect bugs
+this case). If they are run automatically, they will help to detect bugs
 introduced in future changes.
 
 Here is the test for this protocol:
@@ -619,8 +619,8 @@ Implement a Viewer
 ------------------
 
 The ``Viewer`` class is the base for implementing visualization of
-different kinds of objects. The same applies for visualizing protocols. The
-viewers are also discovered dynamically, like the protocols are. They should
+different kinds of objects. The same applies to visualizing protocols. The
+viewers are also discovered dynamically like the protocols are. They should
 specify a ``_target`` property with a list of the object classes that the
 viewer is able to handle.
 
@@ -628,10 +628,6 @@ The details for developing a new viewer will be described in
 :doc:`How to develop Viewers <creating-a-viewer>`.
 
 
-TODO
-====
-
-* Review all :doc: directives and add content to the empty ones
 
 
 .. |cite-icon| image:: /docs/images/guis/cite_icon.png
