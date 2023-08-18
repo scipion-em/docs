@@ -196,7 +196,7 @@ the constructor. Valid options in the ```*kwargs`` dictionary are:
 * **choices** : A list of strings with the display values for the combobox
   ( Only valid for ``EnumParam``)
 * **display** : can be ``EnumParam.DISPLAY_LIST`` or
-  ``_EnumParam.DISPLAY_COMBO``, and defined the preferred display mode for
+  ``EnumParam.DISPLAY_COMBO``, and defined the preferred display mode for
   GUI.( Only valid for ``EnumParam``)
 * **pointerClass** : Class of the objects that will be
   selected from the database ( Only valid for ``PointerParam``)
