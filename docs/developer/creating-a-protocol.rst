@@ -194,17 +194,17 @@ the constructor. Valid options in the ```*kwargs`` dictionary are:
 * **help** : Usually a more extended help message that will pop up after
   clicking on a help icon.
 * **choices** : A list of strings with the display values for the combobox
-  ( Only valid for ``__EnumParam__``)
-* **display** : can be ``_EnumParam.DISPLAY__LIST__`` or
-  ``_EnumParam.DISPLAY__COMBO__``, and defined the preferred display mode for
-  GUI.( Only valid for`` __EnumParam__``)
+  ( Only valid for ``EnumParam``)
+* **display** : can be ``EnumParam.DISPLAY_LIST`` or
+  ``_EnumParam.DISPLAY_COMBO``, and defined the preferred display mode for
+  GUI.( Only valid for ``EnumParam``)
 * **pointerClass** : Class of the objects that will be
-  selected from the database ( Only valid for ``__PointerParam__``)
+  selected from the database ( Only valid for ``PointerParam``)
 * **pointerCondition** : A string expression to filter the
   selected objects from the database (such as ``aligned=True``, Only valid
-  for ``__PointerParam__``)
+  for ``PointerParam``)
 * **allowsNull** : A boolean. If true, this parameter is not required (
-  Only valid for ``__PointerParam__``)
+  Only valid for ``PointerParam``)
 
 To improve the organization of the input parameters, they can be grouped
 into sections, groups, or lines.
