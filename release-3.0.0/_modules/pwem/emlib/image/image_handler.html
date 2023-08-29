@@ -138,6 +138,9 @@
 <span class="kn">import</span> <span class="nn">pwem.constants</span> <span class="k">as</span> <span class="nn">emcts</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">lib</span>
 
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
 <div class="viewcode-block" id="ImageHandler"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.ImageHandler">[docs]</a><span class="k">class</span> <span class="nc">ImageHandler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Class to provide several Image manipulation utilities. &quot;&quot;&quot;</span>
 
@@ -332,43 +335,47 @@
         <span class="sd">&quot;&quot;&quot; It will return a tuple with the images dimensions.</span>
 <span class="sd">        The tuple will contains:</span>
 <span class="sd">            (x, y, z, n) where x, y, z are image dimensions (z=1 for 2D) and </span>
-<span class="sd">            n is the number of elements if stack.</span>
+<span class="sd">            n is the number of elements if is a stack.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">existsLocation</span><span class="p">(</span><span class="n">locationObj</span><span class="p">):</span>
             <span class="n">location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_convertToLocation</span><span class="p">(</span><span class="n">locationObj</span><span class="p">)</span>
             <span class="n">fn</span> <span class="o">=</span> <span class="n">location</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-            <span class="n">ext</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">getExt</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
 
-            <span class="c1"># Local import to avoid import loop between ImageHandler and Ccp4Header.</span>
-            <span class="kn">from</span> <span class="nn">pwem.convert</span> <span class="kn">import</span> <span class="n">headers</span>
-
-            <span class="k">if</span> <span class="n">ext</span> <span class="o">==</span> <span class="s1">&#39;.png&#39;</span> <span class="ow">or</span> <span class="n">ext</span> <span class="o">==</span> <span class="s1">&#39;.jpg&#39;</span><span class="p">:</span>
-                <span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
-                <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">size</span>  <span class="c1"># (width,height) tuple</span>
-                <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
-
-            <span class="k">elif</span> <span class="n">headers</span><span class="o">.</span><span class="n">getFileFormat</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span> <span class="o">==</span> <span class="n">headers</span><span class="o">.</span><span class="n">MRC</span><span class="p">:</span>
-                <span class="n">header</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">Ccp4Header</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">readHeader</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">header</span><span class="o">.</span><span class="n">getXYZN</span><span class="p">()</span>
-
-            <span class="k">elif</span> <span class="n">ext</span> <span class="o">==</span> <span class="s1">&#39;.img&#39;</span><span class="p">:</span>
-                <span class="c1"># FIXME Since now we can not read dm4 format in Scipion natively</span>
-                <span class="c1"># or recent .img format</span>
-                <span class="c1"># we are opening an Eman2 process to read the dm4 file</span>
-                <span class="kn">from</span> <span class="nn">pwem</span> <span class="kn">import</span> <span class="n">Domain</span>
-                <span class="n">getImageDimensions</span> <span class="o">=</span> <span class="n">Domain</span><span class="o">.</span><span class="n">importFromPlugin</span><span class="p">(</span>
-                    <span class="s1">&#39;eman2.convert&#39;</span><span class="p">,</span> <span class="s1">&#39;getImageDimensions&#39;</span><span class="p">,</span>
-                    <span class="n">doRaise</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="k">return</span> <span class="n">getImageDimensions</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>  <span class="c1"># we are ignoring index here</span>
-            <span class="k">elif</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.eer&#39;</span><span class="p">,</span> <span class="s1">&#39;.gain&#39;</span><span class="p">]:</span>
-                <span class="n">tif</span> <span class="o">=</span> <span class="n">TiffFile</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
-                <span class="n">frames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tif</span><span class="o">.</span><span class="n">pages</span><span class="p">)</span>  <span class="c1"># number of pages in the file</span>
-                <span class="n">page</span> <span class="o">=</span> <span class="n">tif</span><span class="o">.</span><span class="n">pages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># get shape and dtype of the image in the first page</span>
-                <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">shape</span>
-                <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">frames</span><span class="p">,</span> <span class="mi">1</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_img</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">lib</span><span class="o">.</span><span class="n">HEADER</span><span class="p">)</span>
-                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_img</span><span class="o">.</span><span class="n">getDimensions</span><span class="p">()</span>
+            <span class="c1"># Dimensions based on Readers. Registered and defined in the bottom</span>
+            <span class="n">reader</span> <span class="o">=</span> <span class="n">ImageReadersRegistry</span><span class="o">.</span><span class="n">getReader</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">reader</span><span class="o">.</span><span class="n">getDimensions</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+            <span class="c1"># ext = pwutils.getExt(fn).lower()</span>
+            <span class="c1">#</span>
+            <span class="c1"># # Local import to avoid import loop between ImageHandler and Ccp4Header.</span>
+            <span class="c1"># from pwem.convert import headers</span>
+            <span class="c1">#</span>
+            <span class="c1"># if ext == &#39;.png&#39; or ext == &#39;.jpg&#39;:</span>
+            <span class="c1">#     im = Image.open(fn)</span>
+            <span class="c1">#     x, y = im.size  # (width,height) tuple</span>
+            <span class="c1">#     return x, y, 1, 1</span>
+            <span class="c1">#</span>
+            <span class="c1"># elif headers.getFileFormat(fn) == headers.MRC:</span>
+            <span class="c1">#     header = headers.Ccp4Header(fn, readHeader=True)</span>
+            <span class="c1">#     return header.getXYZN()</span>
+            <span class="c1">#</span>
+            <span class="c1"># elif ext == &#39;.img&#39;:</span>
+            <span class="c1">#     # FIXME Since now we can not read dm4 format in Scipion natively</span>
+            <span class="c1">#     # or recent .img format</span>
+            <span class="c1">#     # we are opening an Eman2 process to read the dm4 file</span>
+            <span class="c1">#     from pwem import Domain</span>
+            <span class="c1">#     getImageDimensions = Domain.importFromPlugin(</span>
+            <span class="c1">#         &#39;eman2.convert&#39;, &#39;getImageDimensions&#39;,</span>
+            <span class="c1">#         doRaise=True)</span>
+            <span class="c1">#     return getImageDimensions(fn)  # we are ignoring index here</span>
+            <span class="c1"># elif ext in [&#39;.eer&#39;, &#39;.gain&#39;]:</span>
+            <span class="c1">#     tif = TiffFile(fn)</span>
+            <span class="c1">#     frames = len(tif.pages)  # number of pages in the file</span>
+            <span class="c1">#     page = tif.pages[0]  # get shape and dtype of the image in the first page</span>
+            <span class="c1">#     x, y = page.shape</span>
+            <span class="c1">#     return x, y, frames, 1</span>
+            <span class="c1"># else:</span>
+            <span class="c1">#     self._img.read(location, lib.HEADER)</span>
+            <span class="c1">#     return self._img.getDimensions()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span></div>
 
@@ -673,6 +680,115 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">resultImage</span> <span class="o">=</span> <span class="n">imageObj</span><span class="o">.</span><span class="n">applyWarpAffine</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">transformMatrix</span><span class="o">.</span><span class="n">flatten</span><span class="p">()),</span> <span class="n">shape</span><span class="p">,</span> <span class="n">doWrap</span><span class="p">,</span> <span class="n">fillValue</span><span class="p">)</span>
         <span class="n">resultImage</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">outputFile</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="ImageReader"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.ImageReader">[docs]</a><span class="k">class</span> <span class="nc">ImageReader</span><span class="p">:</span>
+<div class="viewcode-block" id="ImageReader.getCompatibleExtensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.ImageReader.getCompatibleExtensions">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getCompatibleExtensions</span><span class="p">()</span><span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; Returns a list of the compatible extensions the reader can handle&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div>
+<div class="viewcode-block" id="ImageReader.getDimensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.ImageReader.getDimensions">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getDimensions</span><span class="p">(</span><span class="n">filePath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the dimensions [X,Y,Z,N] of the file&quot;&quot;&quot;</span>
+        <span class="k">pass</span></div></div>
+
+<div class="viewcode-block" id="PILImageReader"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.PILImageReader">[docs]</a><span class="k">class</span> <span class="nc">PILImageReader</span><span class="p">(</span><span class="n">ImageReader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; PIL image reader&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="PILImageReader.getCompatibleExtensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.PILImageReader.getCompatibleExtensions">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getCompatibleExtensions</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;png&#39;</span><span class="p">,</span><span class="s1">&#39;jpg&#39;</span><span class="p">,</span> <span class="s1">&#39;jpeg&#39;</span><span class="p">]</span></div>
+<div class="viewcode-block" id="PILImageReader.getDimensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.PILImageReader.getDimensions">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getDimensions</span><span class="p">(</span><span class="n">filePath</span><span class="p">):</span>
+        <span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filePath</span><span class="p">)</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">im</span><span class="o">.</span><span class="n">size</span>  <span class="c1"># (width,height) tuple</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span></div></div>
+
+<div class="viewcode-block" id="TiffImageReader"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.TiffImageReader">[docs]</a><span class="k">class</span> <span class="nc">TiffImageReader</span><span class="p">(</span><span class="n">ImageReader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Tiff image reader&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TiffImageReader.getCompatibleExtensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.TiffImageReader.getCompatibleExtensions">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getCompatibleExtensions</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;tif&#39;</span><span class="p">,</span><span class="s1">&#39;tiff&#39;</span><span class="p">,</span> <span class="s1">&#39;gain&#39;</span><span class="p">,</span> <span class="s1">&#39;eer&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="TiffImageReader.getDimensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.TiffImageReader.getDimensions">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getDimensions</span><span class="p">(</span><span class="n">filePath</span><span class="p">):</span>
+
+        <span class="n">tif</span> <span class="o">=</span> <span class="n">TiffFile</span><span class="p">(</span><span class="n">filePath</span><span class="p">)</span>
+        <span class="n">frames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tif</span><span class="o">.</span><span class="n">pages</span><span class="p">)</span>  <span class="c1"># number of pages in the file</span>
+        <span class="n">page</span> <span class="o">=</span> <span class="n">tif</span><span class="o">.</span><span class="n">pages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># get shape and dtype of the image in the first page</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">frames</span><span class="p">,</span> <span class="mi">1</span></div></div>
+
+<div class="viewcode-block" id="EMANImageReader"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.EMANImageReader">[docs]</a><span class="k">class</span> <span class="nc">EMANImageReader</span><span class="p">(</span><span class="n">ImageReader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Image reader for eman file formats&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="EMANImageReader.getCompatibleExtensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.EMANImageReader.getCompatibleExtensions">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getCompatibleExtensions</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;img&quot;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="EMANImageReader.getDimensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.EMANImageReader.getDimensions">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getDimensions</span><span class="p">(</span><span class="n">filePath</span><span class="p">):</span>
+
+        <span class="kn">from</span> <span class="nn">pwem</span> <span class="kn">import</span> <span class="n">Domain</span>
+        <span class="n">getImageDimensions</span> <span class="o">=</span> <span class="n">Domain</span><span class="o">.</span><span class="n">importFromPlugin</span><span class="p">(</span>
+            <span class="s1">&#39;eman2.convert&#39;</span><span class="p">,</span> <span class="s1">&#39;getImageDimensions&#39;</span><span class="p">,</span>
+            <span class="n">doRaise</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">getImageDimensions</span><span class="p">(</span><span class="n">filePath</span><span class="p">)</span>  <span class="c1"># we are ignoring index here</span></div></div>
+
+<div class="viewcode-block" id="XMIPPImageReader"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.XMIPPImageReader">[docs]</a><span class="k">class</span> <span class="nc">XMIPPImageReader</span><span class="p">(</span><span class="n">ImageReader</span><span class="p">):</span>
+<div class="viewcode-block" id="XMIPPImageReader.getCompatibleExtensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.XMIPPImageReader.getCompatibleExtensions">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getCompatibleExtensions</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">emcts</span><span class="o">.</span><span class="n">ALL_MRC_EXTENSIONS</span> <span class="o">+</span> <span class="n">emcts</span><span class="o">.</span><span class="n">ALL_TIF_EXTENSIONS</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;hdf5&quot;</span><span class="p">,</span> <span class="s2">&quot;dm4&quot;</span><span class="p">,</span> <span class="s2">&quot;stk&quot;</span><span class="p">,</span> <span class="s2">&quot;spi&quot;</span><span class="p">,</span> <span class="s2">&quot;vol&quot;</span><span class="p">,</span> <span class="s2">&quot;tif&quot;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="XMIPPImageReader.getDimensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.XMIPPImageReader.getDimensions">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getDimensions</span><span class="p">(</span><span class="n">filePath</span><span class="p">):</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">lib</span><span class="o">.</span><span class="n">Image</span><span class="p">()</span>
+        <span class="n">img</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">lib</span><span class="o">.</span><span class="n">HEADER</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">getDimensions</span><span class="p">()</span></div></div>
+
+<div class="viewcode-block" id="MRCImageReader"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.MRCImageReader">[docs]</a><span class="k">class</span> <span class="nc">MRCImageReader</span><span class="p">(</span><span class="n">ImageReader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Image reader for MRC files&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="MRCImageReader.getCompatibleExtensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.MRCImageReader.getCompatibleExtensions">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getCompatibleExtensions</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">emcts</span><span class="o">.</span><span class="n">ALL_MRC_EXTENSIONS</span></div>
+
+<div class="viewcode-block" id="MRCImageReader.getDimensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.MRCImageReader.getDimensions">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getDimensions</span><span class="p">(</span><span class="n">filePath</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">pwem.convert</span> <span class="kn">import</span> <span class="n">headers</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">Ccp4Header</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">readHeader</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">header</span><span class="o">.</span><span class="n">getXYZN</span><span class="p">()</span></div></div>
+
+<div class="viewcode-block" id="ImageReadersRegistry"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.ImageReadersRegistry">[docs]</a><span class="k">class</span> <span class="nc">ImageReadersRegistry</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Class to register image readers to provide basic information about an image like dimensions or getting an image&quot;&quot;&quot;</span>
+    <span class="n">_readers</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span> <span class="c1"># Dictionary to hold the readers. The key is the extension</span>
+
+<div class="viewcode-block" id="ImageReadersRegistry.addReader"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.ImageReadersRegistry.addReader">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">addReader</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">imageReader</span><span class="p">:</span><span class="n">ImageReader</span><span class="p">):</span>
+
+        <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="n">imageReader</span><span class="o">.</span><span class="n">getCompatibleExtensions</span><span class="p">():</span>
+            <span class="n">ext_low</span><span class="o">=</span><span class="n">ext</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Adding </span><span class="si">%s</span><span class="s2"> as image reader for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">imageReader</span><span class="p">,</span> <span class="n">ext_low</span><span class="p">))</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_readers</span><span class="p">[</span><span class="n">ext_low</span><span class="p">]</span><span class="o">=</span> <span class="n">imageReader</span></div>
+
+<div class="viewcode-block" id="ImageReadersRegistry.getReader"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_handler.html#pwem.emlib.image.image_handler.ImageReadersRegistry.getReader">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getReader</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filePath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the reader or None able to deal with filePath based on the extension.&quot;&quot;&quot;</span>
+        <span class="n">ext</span> <span class="o">=</span> <span class="n">filePath</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Getting ImageReader for </span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">ext</span><span class="p">))</span>
+
+        <span class="n">reader</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_readers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="c1"># Fall back to XmippImage reader</span>
+        <span class="k">if</span> <span class="n">reader</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Reader not registered for </span><span class="si">%s</span><span class="s2"> files. Falling back to XmippReader&quot;</span> <span class="o">%</span> <span class="n">ext</span><span class="p">)</span>
+            <span class="n">reader</span> <span class="o">=</span> <span class="n">XMIPPImageReader</span>
+
+        <span class="k">return</span> <span class="n">reader</span></div></div>
+
+<span class="c1"># Register reader in the registry. Latest registered will take priority.</span>
+<span class="n">ImageReadersRegistry</span><span class="o">.</span><span class="n">addReader</span><span class="p">(</span><span class="n">XMIPPImageReader</span><span class="p">)</span>
+<span class="n">ImageReadersRegistry</span><span class="o">.</span><span class="n">addReader</span><span class="p">(</span><span class="n">MRCImageReader</span><span class="p">)</span>
+<span class="n">ImageReadersRegistry</span><span class="o">.</span><span class="n">addReader</span><span class="p">(</span><span class="n">EMANImageReader</span><span class="p">)</span>
+<span class="n">ImageReadersRegistry</span><span class="o">.</span><span class="n">addReader</span><span class="p">(</span><span class="n">PILImageReader</span><span class="p">)</span>
+<span class="n">ImageReadersRegistry</span><span class="o">.</span><span class="n">addReader</span><span class="p">(</span><span class="n">TiffImageReader</span><span class="p">)</span>
 </pre></div>
 
            </div>
