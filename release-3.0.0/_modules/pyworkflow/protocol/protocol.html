@@ -137,8 +137,7 @@
 <span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils.log</span> <span class="kn">import</span> <span class="n">LoggingConfigurator</span><span class="p">,</span> <span class="n">getExtraLogInfo</span><span class="p">,</span> <span class="n">STATUS</span><span class="p">,</span> <span class="n">setDefaultLoggingContext</span>
-<span class="kn">from</span> <span class="nn">.executor</span> <span class="kn">import</span> <span class="p">(</span><span class="n">StepExecutor</span><span class="p">,</span> <span class="n">ThreadStepExecutor</span><span class="p">,</span> <span class="n">MPIStepExecutor</span><span class="p">,</span>
-                       <span class="n">QueueStepExecutor</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">.executor</span> <span class="kn">import</span> <span class="n">StepExecutor</span><span class="p">,</span> <span class="n">ThreadStepExecutor</span><span class="p">,</span> <span class="n">QueueStepExecutor</span>
 <span class="kn">from</span> <span class="nn">.constants</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">.params</span> <span class="kn">import</span> <span class="n">Form</span>
 <span class="kn">from</span> <span class="nn">..utils</span> <span class="kn">import</span> <span class="n">getFileSize</span>
@@ -997,8 +996,7 @@
 
 <div class="viewcode-block" id="Protocol.getOutputFiles"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getOutputFiles">[docs]</a>    <span class="k">def</span> <span class="nf">getOutputFiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return the output files produced by this protocol.</span>
-<span class="sd">        This can be used in web to download or in remote</span>
-<span class="sd">        executions to copy results back.</span>
+<span class="sd">        This can be used in web to download results back.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># By default return the output file of each output attribute</span>
         <span class="n">s</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
@@ -2477,30 +2475,15 @@
     <span class="n">executor</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">nThreads</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">numberOfThreads</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="mi">1</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">stepsExecutionMode</span> <span class="o">==</span> <span class="n">STEPS_PARALLEL</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">numberOfMpi</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="c1"># Handle special case to execute in parallel</span>
-            <span class="c1"># We run &quot;scipion run pyworkflow/...mpirun.py blah&quot; instead of</span>
-            <span class="c1"># calling directly &quot;$SCIPION_PYTHON ...mpirun.py blah&quot;, so that</span>
-            <span class="c1"># when it runs on a MPI node, it *always* has the scipion env.</span>
-            <span class="n">params</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;-m&#39;</span><span class="p">,</span> <span class="s1">&#39;scipion&#39;</span><span class="p">,</span> <span class="s1">&#39;runprotocol&#39;</span><span class="p">,</span> <span class="n">pw</span><span class="o">.</span><span class="n">getPwProtMpiRunScript</span><span class="p">(),</span>
-                      <span class="n">projectPath</span><span class="p">,</span> <span class="n">protDbPath</span><span class="p">,</span> <span class="n">protId</span><span class="p">]</span>
-            <span class="c1"># &#39;scipion&#39; is treated now as an entry point, but if there is an alias with that name, the alias has higher</span>
-            <span class="c1"># priority</span>
-            <span class="n">retcode</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">pw</span><span class="o">.</span><span class="n">PYTHON</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span>
-                                     <span class="n">numberOfMpi</span><span class="o">=</span><span class="n">protocol</span><span class="o">.</span><span class="n">numberOfMpi</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-                                     <span class="n">hostConfig</span><span class="o">=</span><span class="n">hostConfig</span><span class="p">)</span>
-            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">retcode</span><span class="p">)</span>
-
-        <span class="k">elif</span> <span class="n">nThreads</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">useQueueForSteps</span><span class="p">():</span>
-                <span class="n">executor</span> <span class="o">=</span> <span class="n">QueueStepExecutor</span><span class="p">(</span><span class="n">hostConfig</span><span class="p">,</span>
-                                             <span class="n">protocol</span><span class="o">.</span><span class="n">getSubmitDict</span><span class="p">(),</span>
-                                             <span class="n">nThreads</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
-                                             <span class="n">gpuList</span><span class="o">=</span><span class="n">protocol</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">())</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">executor</span> <span class="o">=</span> <span class="n">ThreadStepExecutor</span><span class="p">(</span><span class="n">hostConfig</span><span class="p">,</span> <span class="n">nThreads</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
-                                              <span class="n">gpuList</span><span class="o">=</span><span class="n">protocol</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">stepsExecutionMode</span> <span class="o">==</span> <span class="n">STEPS_PARALLEL</span> <span class="ow">and</span> <span class="n">nThreads</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">useQueueForSteps</span><span class="p">():</span>
+            <span class="n">executor</span> <span class="o">=</span> <span class="n">QueueStepExecutor</span><span class="p">(</span><span class="n">hostConfig</span><span class="p">,</span>
+                                         <span class="n">protocol</span><span class="o">.</span><span class="n">getSubmitDict</span><span class="p">(),</span>
+                                         <span class="n">nThreads</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+                                         <span class="n">gpuList</span><span class="o">=</span><span class="n">protocol</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">executor</span> <span class="o">=</span> <span class="n">ThreadStepExecutor</span><span class="p">(</span><span class="n">hostConfig</span><span class="p">,</span> <span class="n">nThreads</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+                                          <span class="n">gpuList</span><span class="o">=</span><span class="n">protocol</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">())</span>
 
     <span class="k">if</span> <span class="n">executor</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">protocol</span><span class="o">.</span><span class="n">useQueueForSteps</span><span class="p">():</span>
         <span class="n">executor</span> <span class="o">=</span> <span class="n">QueueStepExecutor</span><span class="p">(</span><span class="n">hostConfig</span><span class="p">,</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getSubmitDict</span><span class="p">(),</span> <span class="mi">1</span><span class="p">,</span>
@@ -2509,22 +2492,6 @@
     <span class="k">if</span> <span class="n">executor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">executor</span> <span class="o">=</span> <span class="n">StepExecutor</span><span class="p">(</span><span class="n">hostConfig</span><span class="p">,</span>
                                 <span class="n">gpuList</span><span class="o">=</span><span class="n">protocol</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">())</span>
-
-    <span class="n">protocol</span><span class="o">.</span><span class="n">setStepsExecutor</span><span class="p">(</span><span class="n">executor</span><span class="p">)</span>
-    <span class="c1"># Finally run the protocol</span>
-    <span class="n">protocol</span><span class="o">.</span><span class="n">run</span><span class="p">()</span></div>
-
-
-<div class="viewcode-block" id="runProtocolMainMPI"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.runProtocolMainMPI">[docs]</a><span class="k">def</span> <span class="nf">runProtocolMainMPI</span><span class="p">(</span><span class="n">projectPath</span><span class="p">,</span> <span class="n">protDbPath</span><span class="p">,</span> <span class="n">protId</span><span class="p">,</span> <span class="n">mpiComm</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; This function only should be called after enter in runProtocolMain</span>
-<span class="sd">    and the proper MPI scripts have been started...so no validations</span>
-<span class="sd">    will be made.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">protocol</span> <span class="o">=</span> <span class="n">getProtocolFromDb</span><span class="p">(</span><span class="n">projectPath</span><span class="p">,</span> <span class="n">protDbPath</span><span class="p">,</span> <span class="n">protId</span><span class="p">,</span> <span class="n">chdir</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="n">hostConfig</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getHostConfig</span><span class="p">()</span>
-    <span class="c1"># Create the steps executor</span>
-    <span class="n">executor</span> <span class="o">=</span> <span class="n">MPIStepExecutor</span><span class="p">(</span><span class="n">hostConfig</span><span class="p">,</span> <span class="n">protocol</span><span class="o">.</span><span class="n">numberOfMpi</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
-                               <span class="n">mpiComm</span><span class="p">,</span> <span class="n">gpuList</span><span class="o">=</span><span class="n">protocol</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">())</span>
 
     <span class="n">protocol</span><span class="o">.</span><span class="n">setStepsExecutor</span><span class="p">(</span><span class="n">executor</span><span class="p">)</span>
     <span class="c1"># Finally run the protocol</span>

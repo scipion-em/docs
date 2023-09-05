@@ -126,20 +126,11 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This module is responsible for launching protocol executions.</span>
-<span class="sd">There are two main scenarios: local execution and remote execution.</span>
+<span class="sd">This module is responsible for launching local protocol executions:</span>
 
-<span class="sd">A. Local execution: </span>
-<span class="sd">This will depend on the &#39;localhost&#39; configuration</span>
-<span class="sd">1- Check if the protocol will be launched with MPI or not (using MPI template from config)</span>
-<span class="sd">2- Check if the protocol will be submitted to a queue (using Queue template from config)</span>
-<span class="sd">3- Build the command that will be launched.</span>
+<span class="sd">1- Check if the protocol will be submitted to a queue (using Queue template from config)</span>
+<span class="sd">2- Build the command that will be launched.</span>
 
-<span class="sd">B. Remote execution:</span>
-<span class="sd">1- Establish a connection with remote host for protocol execution</span>
-<span class="sd">2- Copy necessary files to remote host.</span>
-<span class="sd">3- Run a local process (for local execution, see case A) in the remote host</span>
-<span class="sd">4- Get the result back after launching remotely</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">os</span>
@@ -153,7 +144,6 @@
                               <span class="n">getHostFullName</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="kn">import</span> <span class="n">UNKNOWN_JOBID</span>
 
-<span class="n">LOCALHOST</span> <span class="o">=</span> <span class="s1">&#39;localhost&#39;</span>
 
 
 <span class="c1"># ******************************************************************</span>
@@ -161,14 +151,8 @@
 <span class="c1"># ******************************************************************</span>
 
 <div class="viewcode-block" id="launch"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.launch.html#pyworkflow.protocol.launch.launch">[docs]</a><span class="k">def</span> <span class="nf">launch</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stdin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; This function should be used to launch a protocol</span>
-<span class="sd">    This function will decide which case, A or B will be used.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">_isLocal</span><span class="p">(</span><span class="n">protocol</span><span class="p">):</span>
-        <span class="n">jobId</span> <span class="o">=</span> <span class="n">_launchLocal</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">wait</span><span class="p">,</span> <span class="n">stdin</span><span class="p">,</span> <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">jobId</span> <span class="o">=</span> <span class="n">_launchRemote</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">wait</span><span class="p">)</span>
-
+    <span class="sd">&quot;&quot;&quot; This function should be used to launch a protocol. &quot;&quot;&quot;</span>
+    <span class="n">jobId</span> <span class="o">=</span> <span class="n">_launchLocal</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">wait</span><span class="p">,</span> <span class="n">stdin</span><span class="p">,</span> <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">)</span>
     <span class="n">protocol</span><span class="o">.</span><span class="n">setJobId</span><span class="p">(</span><span class="n">jobId</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">jobId</span></div>
@@ -177,10 +161,13 @@
 <div class="viewcode-block" id="stop"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.launch.html#pyworkflow.protocol.launch.stop">[docs]</a><span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="n">protocol</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; </span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">if</span> <span class="n">_isLocal</span><span class="p">(</span><span class="n">protocol</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">_stopLocal</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">useQueue</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isScheduled</span><span class="p">():</span>
+        <span class="n">jobId</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getJobId</span><span class="p">()</span>
+        <span class="n">host</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getHostConfig</span><span class="p">()</span>
+        <span class="n">cancelCmd</span> <span class="o">=</span> <span class="n">host</span><span class="o">.</span><span class="n">getCancelCommand</span><span class="p">()</span> <span class="o">%</span> <span class="p">{</span><span class="s1">&#39;JOB_ID&#39;</span><span class="p">:</span> <span class="n">jobId</span><span class="p">}</span>
+        <span class="n">_run</span><span class="p">(</span><span class="n">cancelCmd</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">_stopRemote</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span></div>
+        <span class="n">process</span><span class="o">.</span><span class="n">killWithChilds</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getPid</span><span class="p">())</span></div>
 
 
 <div class="viewcode-block" id="schedule"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.launch.html#pyworkflow.protocol.launch.schedule">[docs]</a><span class="k">def</span> <span class="nf">schedule</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">initialSleepTime</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -202,10 +189,6 @@
 <span class="c1"># ******************************************************************</span>
 <span class="c1"># *         Internal utility functions</span>
 <span class="c1"># ******************************************************************</span>
-<span class="k">def</span> <span class="nf">_isLocal</span><span class="p">(</span><span class="n">protocol</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getHostName</span><span class="p">()</span> <span class="o">==</span> <span class="n">LOCALHOST</span>
-
-
 <span class="k">def</span> <span class="nf">_runsLocally</span><span class="p">(</span><span class="n">protocol</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Return True if this protocol is running in this machine,</span>
 <span class="sd">    where the PID makes sense.</span>
@@ -248,11 +231,6 @@
         <span class="n">stderr_log</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getStderrLog</span><span class="p">())</span>
     <span class="p">)</span>
 
-    <span class="c1">#command = (&#39;%s %s &quot;%s&quot; &quot;%s&quot; %s &quot;%s&quot; &quot;%s&quot;&#39;</span>
-    <span class="c1">#           % (pw.PYTHON, pw.join(pw.APPS, &#39;pw_protocol_run.py&#39;),</span>
-    <span class="c1">#              protocol.getProject().path, protocol.getDbPath(),</span>
-    <span class="c1">#              protocol.strId()))</span>
-
     <span class="n">hostConfig</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getHostConfig</span><span class="p">()</span>
     <span class="n">useQueue</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">useQueue</span><span class="p">()</span>
 
@@ -269,72 +247,6 @@
         <span class="n">jobId</span> <span class="o">=</span> <span class="n">_run</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">wait</span><span class="p">,</span> <span class="n">stdin</span><span class="p">,</span> <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">jobId</span>
-
-
-<span class="k">def</span> <span class="nf">_runRemote</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Launch remotely &#39;pw_protocol_remote.py&#39; script to run or stop a protocol. </span>
-<span class="sd">    Params:</span>
-<span class="sd">        protocol: the protocol to be ran or stopped.</span>
-<span class="sd">        mode: should be either &#39;run&#39; or &#39;stop&#39;</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">host</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getHostConfig</span><span class="p">()</span>
-    <span class="n">tpl</span> <span class="o">=</span> <span class="s2">&quot;ssh </span><span class="si">%(address)s</span><span class="s2"> &#39;</span><span class="si">%(scipion)s</span><span class="s2">/scipion &quot;</span>
-
-    <span class="k">if</span> <span class="n">host</span><span class="o">.</span><span class="n">getScipionConfig</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">tpl</span> <span class="o">+=</span> <span class="s2">&quot;--config </span><span class="si">%(config)s</span><span class="s2"> &quot;</span>
-
-    <span class="n">tpl</span> <span class="o">+=</span> <span class="s2">&quot;runprotocol pw_protocol_remote.py </span><span class="si">%(mode)s</span><span class="s2"> &quot;</span>
-    <span class="n">tpl</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">%(project)s</span><span class="s2"> </span><span class="si">%(protDb)s</span><span class="s2"> </span><span class="si">%(protId)s</span><span class="s2">&#39; &quot;</span>
-
-    <span class="c1"># Use project base name,</span>
-    <span class="c1"># in remote SCIPION_USER_DATA/projects should be prepended</span>
-    <span class="n">projectPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getProject</span><span class="p">()</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
-
-    <span class="n">args</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;address&#39;</span><span class="p">:</span> <span class="n">host</span><span class="o">.</span><span class="n">getAddress</span><span class="p">(),</span>
-            <span class="s1">&#39;mode&#39;</span><span class="p">:</span> <span class="n">mode</span><span class="p">,</span>
-            <span class="s1">&#39;scipion&#39;</span><span class="p">:</span> <span class="n">host</span><span class="o">.</span><span class="n">getScipionHome</span><span class="p">(),</span>
-            <span class="s1">&#39;config&#39;</span><span class="p">:</span> <span class="n">host</span><span class="o">.</span><span class="n">getScipionConfig</span><span class="p">(),</span>
-            <span class="s1">&#39;project&#39;</span><span class="p">:</span> <span class="n">projectPath</span><span class="p">,</span>
-            <span class="s1">&#39;protDb&#39;</span><span class="p">:</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getDbPath</span><span class="p">(),</span>
-            <span class="s1">&#39;protId&#39;</span><span class="p">:</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
-            <span class="p">}</span>
-    <span class="n">cmd</span> <span class="o">=</span> <span class="n">tpl</span> <span class="o">%</span> <span class="n">args</span>
-    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;** Running remote: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">greenStr</span><span class="p">(</span><span class="n">cmd</span><span class="p">))</span>
-    <span class="n">p</span> <span class="o">=</span> <span class="n">Popen</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">shell</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="n">PIPE</span><span class="p">)</span>
-
-    <span class="k">return</span> <span class="n">p</span>
-
-
-<span class="k">def</span> <span class="nf">_launchRemote</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">wait</span><span class="p">):</span>
-    <span class="n">p</span> <span class="o">=</span> <span class="n">_runRemote</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="s1">&#39;run&#39;</span><span class="p">)</span>
-    <span class="n">jobId</span> <span class="o">=</span> <span class="n">UNKNOWN_JOBID</span>
-    <span class="n">out</span><span class="p">,</span> <span class="n">err</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">communicate</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">err</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">err</span><span class="p">)</span>
-    <span class="n">s</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;Scipion remote jobid: (\d+)&#39;</span><span class="p">,</span> <span class="n">out</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">s</span><span class="p">:</span>
-        <span class="n">jobId</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;** Couldn&#39;t parse ouput: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">redStr</span><span class="p">(</span><span class="n">out</span><span class="p">))</span>
-
-    <span class="k">return</span> <span class="n">jobId</span>
-
-
-<span class="k">def</span> <span class="nf">_copyFiles</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">rpath</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Copy all required files for protocol to run</span>
-<span class="sd">    in a remote execution host.</span>
-<span class="sd">    NOTE: this function should always be execute with </span>
-<span class="sd">    the current working dir pointing to the project dir.</span>
-<span class="sd">    And the remotePath is assumed to be in protocol.getHostConfig().getHostPath()</span>
-<span class="sd">    Params:</span>
-<span class="sd">        protocol: protocol to copy files</span>
-<span class="sd">        ssh: an ssh connection to copy the files.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">remotePath</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getHostConfig</span><span class="p">()</span><span class="o">.</span><span class="n">getHostPath</span><span class="p">()</span>
-
-    <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getFiles</span><span class="p">():</span>
-        <span class="n">remoteFile</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="n">remotePath</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
-        <span class="n">rpath</span><span class="o">.</span><span class="n">putFile</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">remoteFile</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="analyzeFormattingTypeError"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.launch.html#pyworkflow.protocol.launch.analyzeFormattingTypeError">[docs]</a><span class="k">def</span> <span class="nf">analyzeFormattingTypeError</span><span class="p">(</span><span class="n">string</span><span class="p">,</span> <span class="n">dictionary</span><span class="p">):</span>
@@ -359,6 +271,7 @@
                                    <span class="s1">&#39;Values known in this context are: </span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span>
                                    <span class="s1">&#39;Please review its format or content.</span><span class="se">\n</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">pw</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">SCIPION_HOSTS</span><span class="p">,</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">problematicLines</span><span class="p">)),</span>
                                    <span class="n">url</span><span class="o">=</span><span class="n">pw</span><span class="o">.</span><span class="n">DOCSITEURLS</span><span class="o">.</span><span class="n">HOST_CONFIG</span><span class="p">)</span></div>
+
 
 <span class="k">def</span> <span class="nf">_submit</span><span class="p">(</span><span class="n">hostConfig</span><span class="p">,</span> <span class="n">submitDict</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Submit a protocol to a queue system. Return its job id.</span>
@@ -418,25 +331,6 @@
         <span class="n">p</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
 
     <span class="k">return</span> <span class="n">jobId</span>
-
-
-<span class="c1"># ******************************************************************</span>
-<span class="c1"># *                 Function related to STOP</span>
-<span class="c1"># ******************************************************************</span>
-
-
-<span class="k">def</span> <span class="nf">_stopLocal</span><span class="p">(</span><span class="n">protocol</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">useQueue</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isScheduled</span><span class="p">():</span>
-        <span class="n">jobId</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getJobId</span><span class="p">()</span>
-        <span class="n">host</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getHostConfig</span><span class="p">()</span>
-        <span class="n">cancelCmd</span> <span class="o">=</span> <span class="n">host</span><span class="o">.</span><span class="n">getCancelCommand</span><span class="p">()</span> <span class="o">%</span> <span class="p">{</span><span class="s1">&#39;JOB_ID&#39;</span><span class="p">:</span> <span class="n">jobId</span><span class="p">}</span>
-        <span class="n">_run</span><span class="p">(</span><span class="n">cancelCmd</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">process</span><span class="o">.</span><span class="n">killWithChilds</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getPid</span><span class="p">())</span>
-
-
-<span class="k">def</span> <span class="nf">_stopRemote</span><span class="p">(</span><span class="n">protocol</span><span class="p">):</span>
-    <span class="n">_runRemote</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="s1">&#39;stop&#39;</span><span class="p">)</span>
 </pre></div>
 
            </div>
