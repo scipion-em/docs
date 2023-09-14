@@ -48,7 +48,9 @@ to the next tilt (file timeout) and time to finish the acquisition (Timeout).
 You have to take into account that the workflow we propose admit several tiltseriee.
 
 When the movies are being imported, we will continue alinging those movies. You
-can use the protocol to aling you consider, we propose on this workflow MotionCor.
+can use the protocol to aling you consider, we propose on this workflow MotionCor,
+but you have to take into account that you can not use batches because could deform the image.
+Please set Number of patches as X=1 Y=1.
 
 Composing tilt series
 ---------------------
