@@ -129,7 +129,7 @@
 <span class="c1"># **************************************************************************</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">join</span>
 
-<span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="n">STEPS_PARALLEL</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">EnumParam</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="n">STEPS_PARALLEL</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span> <span class="n">FileParam</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils.path</span> <span class="kn">import</span> <span class="o">*</span>
 
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">ProtParticlePickingAuto</span>
@@ -141,6 +141,8 @@
 
 <span class="n">MICS_SAMEASPICKING</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">MICS_OTHER</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">SRC_MANUAL_PICKING</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">SRC_DIR</span> <span class="o">=</span> <span class="mi">1</span>
 
 
 <div class="viewcode-block" id="XmippParticlePickingAutomatic"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_particle_pick_automatic.html#xmipp3.protocols.protocol_particle_pick_automatic.XmippParticlePickingAutomatic">[docs]</a><span class="k">class</span> <span class="nc">XmippParticlePickingAutomatic</span><span class="p">(</span><span class="n">ProtParticlePickingAuto</span><span class="p">,</span> <span class="n">XmippProtocol</span><span class="p">):</span>
@@ -148,9 +150,8 @@
 <span class="sd">    micrographs using previous training &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;auto-picking (step 2)&#39;</span>  
     
-    <span class="n">filesToCopy</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;model_training.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;model_svm.txt&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;model_pca_model.stk&#39;</span><span class="p">,</span> <span class="s1">&#39;model_rotpca_model.stk&#39;</span><span class="p">,</span>
-                   <span class="s1">&#39;model_particle_avg.xmp&#39;</span><span class="p">,</span> <span class="s1">&#39;config.xmd&#39;</span><span class="p">,</span> <span class="s1">&#39;templates.stk&#39;</span><span class="p">]</span>
+    <span class="n">filesToCopy</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;model_svm.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;model_pca_model.stk&#39;</span><span class="p">,</span> <span class="s1">&#39;model_rotpca_model.stk&#39;</span><span class="p">,</span>
+                   <span class="s1">&#39;model_particle_avg.xmp&#39;</span><span class="p">,</span> <span class="s1">&#39;templates.stk&#39;</span><span class="p">]</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">ProtParticlePickingAuto</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -161,11 +162,25 @@
     
         <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Input&#39;</span><span class="p">)</span>
 
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;modelSource&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Model source&quot;</span><span class="p">,</span>
+                      <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Manual picking in this project&quot;</span><span class="p">,</span> <span class="s2">&quot;External directory&quot;</span><span class="p">],</span>
+                      <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The files model_* can be copied from a previous protocol execution within this &quot;</span>
+                                      <span class="s2">&quot;project or copied from an external directory. This latter option is useful in&quot;</span>
+                                      <span class="s2">&quot;cases in which the same kind of molecule is processed many times.&quot;</span><span class="p">)</span>
+
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;xmippParticlePicking&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Xmipp particle picking run&quot;</span><span class="p">,</span>
                       <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;XmippProtParticlePicking&#39;</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s2">&quot;modelSource==</span><span class="si">%d</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">SRC_MANUAL_PICKING</span><span class="p">,</span>
                       <span class="c1">#pointerCondition=&#39;isFinished&#39;,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select the previous xmipp particle picking run.&#39;</span><span class="p">)</span>
+
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;xmippParticlePickingDir&#39;</span><span class="p">,</span> <span class="n">FileParam</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Xmipp particle picking model directory&quot;</span><span class="p">,</span>
+                      <span class="n">allowsNull</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s2">&quot;modelSource==</span><span class="si">%d</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">SRC_DIR</span><span class="p">,</span>
+                      <span class="c1">#pointerCondition=&#39;isFinished&#39;,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The directory must contain the files model_*, config.xmd and templates.stk&#39;</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;micsToPick&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
                       <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Same as supervised&#39;</span><span class="p">,</span> <span class="s1">&#39;Other&#39;</span><span class="p">],</span>
@@ -201,16 +216,28 @@
         <span class="k">return</span> <span class="p">[</span><span class="n">copyId</span><span class="p">]</span>
 
     <span class="c1"># --------------------------- STEPS functions ------------------------------</span>
+<div class="viewcode-block" id="XmippParticlePickingAutomatic.getSrcDir"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_particle_pick_automatic.html#xmipp3.protocols.protocol_particle_pick_automatic.XmippParticlePickingAutomatic.getSrcDir">[docs]</a>    <span class="k">def</span> <span class="nf">getSrcDir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modelSource</span> <span class="o">==</span> <span class="n">SRC_MANUAL_PICKING</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmippParticlePicking</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmippParticlePickingDir</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+
 <div class="viewcode-block" id="XmippParticlePickingAutomatic.copyInputFilesStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_particle_pick_automatic.html#xmipp3.protocols.protocol_particle_pick_automatic.XmippParticlePickingAutomatic.copyInputFilesStep">[docs]</a>    <span class="k">def</span> <span class="nf">copyInputFilesStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Copy training model files to current run</span>
+        <span class="n">srcDir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSrcDir</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filesToCopy</span><span class="p">:</span>
-            <span class="n">copyFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">particlePickingRun</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">f</span><span class="p">),</span>
-                     <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">f</span><span class="p">))</span></div>
+            <span class="n">createLink</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">srcDir</span><span class="p">,</span> <span class="n">f</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+        <span class="n">copyFile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">srcDir</span><span class="p">,</span> <span class="s2">&quot;config.xmd&quot;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;config.xmd&quot;</span><span class="p">))</span>
+
+        <span class="c1"># Get the box size</span>
+        <span class="n">mdInfo</span> <span class="o">=</span> <span class="n">emlib</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="s2">&quot;properties@&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;config.xmd&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">boxSize</span> <span class="o">=</span> <span class="n">mdInfo</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">emlib</span><span class="o">.</span><span class="n">MDL_PICKING_PARTICLE_SIZE</span><span class="p">,</span><span class="n">mdInfo</span><span class="o">.</span><span class="n">firstObject</span><span class="p">())</span>
+        <span class="n">mdInfo</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="n">emlib</span><span class="o">.</span><span class="n">MDL_PICKING_MANUALPARTICLES_SIZE</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">mdInfo</span><span class="o">.</span><span class="n">firstObject</span><span class="p">())</span>
+        <span class="n">mdInfo</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot;properties@&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;config.xmd&quot;</span><span class="p">),</span><span class="n">emlib</span><span class="o">.</span><span class="n">MD_APPEND</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_pickMicrograph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mic</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="n">micPath</span> <span class="o">=</span> <span class="n">mic</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
         <span class="c1"># Get particle picking boxsize from the previous run</span>
-        <span class="n">boxSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">particlePickingRun</span><span class="o">.</span><span class="n">outputCoordinates</span><span class="o">.</span><span class="n">getBoxSize</span><span class="p">()</span>
         <span class="n">modelRoot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">)</span>
 
         <span class="n">micName</span> <span class="o">=</span> <span class="n">removeBaseExt</span><span class="p">(</span><span class="n">micPath</span><span class="p">)</span>
@@ -234,7 +261,7 @@
 
         <span class="k">if</span> <span class="n">proceed</span><span class="p">:</span>
             <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot;-i </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="n">micPath</span>
-            <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--particleSize </span><span class="si">%d</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="n">boxSize</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--particleSize </span><span class="si">%d</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxSize</span>
             <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--model </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="n">modelRoot</span>
             <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--outputRoot </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">micName</span><span class="p">)</span>
             <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot;--mode autoselect --thr </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfThreads</span>
@@ -250,13 +277,13 @@
     <span class="c1"># --------------------------- INFO functions -------------------------------</span>
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">validateMsgs</span> <span class="o">=</span> <span class="p">[]</span>
-        
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xmippParticlePicking</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span><span class="s2">&quot;outputCoordinates&quot;</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modelSource</span> <span class="o">==</span> <span class="n">SRC_MANUAL_PICKING</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xmippParticlePicking</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span><span class="s2">&quot;outputCoordinates&quot;</span><span class="p">):</span>
             <span class="n">validateMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;You need to generate coordinates for the &quot;</span>
                                 <span class="s2">&quot;supervised picking&quot;</span><span class="p">)</span>
    
-        <span class="n">srcPaths</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">xmippParticlePicking</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
-                    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filesToCopy</span><span class="p">]</span>
+        <span class="n">srcDir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSrcDir</span><span class="p">()</span>
+        <span class="n">srcPaths</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">srcDir</span><span class="p">,</span><span class="n">k</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">filesToCopy</span><span class="p">]</span>
         <span class="c1"># Check that all needed files exist</span>
         <span class="k">if</span> <span class="n">missingPaths</span><span class="p">(</span><span class="o">*</span><span class="n">srcPaths</span><span class="p">):</span>
             <span class="n">validateMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Input picking run has not been trained, &#39;</span>
@@ -264,7 +291,7 @@
             
         <span class="c1"># If other set of micrographs is provided they should have same</span>
         <span class="c1"># sampling rate and acquisition</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">micsToPick</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="n">MICS_OTHER</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">micsToPick</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="n">MICS_OTHER</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">modelSource</span> <span class="o">!=</span> <span class="n">SRC_DIR</span><span class="p">:</span>
             <span class="n">inputMics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMicrographs</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
             <span class="n">manualMics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xmippParticlePicking</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">inputMicrographs</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
             <span class="c1"># FIXME: manualMics is always None when scheduled...</span>
@@ -284,34 +311,20 @@
                                         <span class="s1">&#39;acquisition parameters as the ones &#39;</span>
                                         <span class="s1">&#39;already picked.&#39;</span><span class="p">)</span>
 
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modelSource</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">==</span><span class="n">SRC_DIR</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">micsToPick</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">==</span><span class="n">MICS_SAMEASPICKING</span><span class="p">:</span>
+            <span class="n">validateMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;You cannot take the model from a directory and indicate that the set of micrograohs &quot;</span>
+                                <span class="s2">&quot;is the same as picking. If you take the model from a directory, probably you want &quot;</span>
+                                <span class="s2">&quot;to pick from a different set.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">validateMsgs</span>
     
 <div class="viewcode-block" id="XmippParticlePickingAutomatic.getSummary"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_particle_pick_automatic.html#xmipp3.protocols.protocol_particle_pick_automatic.XmippParticlePickingAutomatic.getSummary">[docs]</a>    <span class="k">def</span> <span class="nf">getSummary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coordSet</span><span class="p">):</span>
         <span class="n">summary</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Previous run: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
-                       <span class="bp">self</span><span class="o">.</span><span class="n">xmippParticlePicking</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getNameId</span><span class="p">())</span>
-        <span class="n">configfile</span> <span class="o">=</span> <span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="s1">&#39;config.xmd&#39;</span><span class="p">)</span>
-        <span class="n">existsConfig</span> <span class="o">=</span> <span class="n">exists</span><span class="p">(</span><span class="n">configfile</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">existsConfig</span><span class="p">:</span>
-            <span class="n">md</span> <span class="o">=</span> <span class="n">emlib</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="s1">&#39;properties@&#39;</span> <span class="o">+</span> <span class="n">configfile</span><span class="p">)</span>
-            <span class="n">configobj</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">firstObject</span><span class="p">()</span>
-            <span class="k">def</span> <span class="nf">_get</span><span class="p">(</span><span class="n">label</span><span class="p">):</span>
-                <span class="k">return</span> <span class="n">md</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">configobj</span><span class="p">)</span>
-            <span class="n">pickingState</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="n">emlib</span><span class="o">.</span><span class="n">MDL_PICKING_STATE</span><span class="p">)</span>
-            <span class="n">particleSize</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="n">emlib</span><span class="o">.</span><span class="n">MDL_PICKING_PARTICLE_SIZE</span><span class="p">)</span>
-            <span class="n">activeMic</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="n">emlib</span><span class="o">.</span><span class="n">MDL_MICROGRAPH</span><span class="p">)</span>
-            <span class="n">isAutopick</span> <span class="o">=</span> <span class="n">pickingState</span> <span class="o">!=</span> <span class="s2">&quot;Manual&quot;</span>
-            <span class="n">manualParticlesSize</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="n">emlib</span><span class="o">.</span><span class="n">MDL_PICKING_MANUALPARTICLES_SIZE</span><span class="p">)</span>
-            <span class="n">autoParticlesSize</span> <span class="o">=</span> <span class="n">_get</span><span class="p">(</span><span class="n">emlib</span><span class="o">.</span><span class="n">MDL_PICKING_AUTOPARTICLES_SIZE</span><span class="p">)</span>
-            
-            <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Manual particles picked: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">manualParticlesSize</span><span class="p">)</span>
-            <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Particle size:</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">particleSize</span><span class="p">))</span>
-            <span class="n">autopick</span> <span class="o">=</span> <span class="s2">&quot;Yes&quot;</span> <span class="k">if</span> <span class="n">isAutopick</span> <span class="k">else</span> <span class="s2">&quot;No&quot;</span>
-            <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Autopick: &quot;</span> <span class="o">+</span> <span class="n">autopick</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">isAutopick</span><span class="p">:</span>
-                <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Automatic particles picked: </span><span class="si">%s</span><span class="s2">&quot;</span>
-                               <span class="o">%</span> <span class="n">autoParticlesSize</span><span class="p">)</span>
-            <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Last micrograph: &quot;</span> <span class="o">+</span> <span class="n">activeMic</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modelSource</span> <span class="o">==</span> <span class="n">SRC_MANUAL_PICKING</span><span class="p">:</span>
+            <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Previous run: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">xmippParticlePicking</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getNameId</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Model from: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                           <span class="bp">self</span><span class="o">.</span><span class="n">xmippParticlePickingDir</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="XmippParticlePickingAutomatic.getMethods"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_particle_pick_automatic.html#xmipp3.protocols.protocol_particle_pick_automatic.XmippParticlePickingAutomatic.getMethods">[docs]</a>    <span class="k">def</span> <span class="nf">getMethods</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output</span><span class="p">):</span>
@@ -324,7 +337,7 @@
 
     <span class="k">def</span> <span class="nf">_citations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;Abrishami2013&#39;</span><span class="p">]</span>
-    
+
     <span class="c1"># --------------------------- UTILS functions ------------------------------</span>
 <div class="viewcode-block" id="XmippParticlePickingAutomatic.getCoordsDir"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_particle_pick_automatic.html#xmipp3.protocols.protocol_particle_pick_automatic.XmippParticlePickingAutomatic.getCoordsDir">[docs]</a>    <span class="k">def</span> <span class="nf">getCoordsDir</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">()</span></div>

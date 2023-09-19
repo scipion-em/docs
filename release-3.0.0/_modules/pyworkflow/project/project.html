@@ -836,7 +836,6 @@
                 <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_updateProtocol</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">tries</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
 
-
         <span class="k">return</span> <span class="n">pw</span><span class="o">.</span><span class="n">PROTOCOL_UPDATED</span>
 
 <div class="viewcode-block" id="Project.stopProtocol"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.stopProtocol">[docs]</a>    <span class="k">def</span> <span class="nf">stopProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">):</span>
@@ -1272,7 +1271,7 @@
         <span class="k">elif</span> <span class="n">jsonStr</span><span class="p">:</span>
             <span class="n">protocolsList</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">jsonStr</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid call to  loadProcols. Either filename or jsonStr has to be passed.&quot;</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Invalid call to loadProtocols. Either filename or jsonStr has to be passed.&quot;</span><span class="p">)</span>
             <span class="k">return</span>
 
         <span class="n">emProtocols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_domain</span><span class="o">.</span><span class="n">getProtocols</span><span class="p">()</span>
@@ -1298,6 +1297,8 @@
                 <span class="n">prot</span><span class="o">.</span><span class="n">_prerequisites</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">protDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_prerequisites&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">))</span>
                 <span class="n">prot</span><span class="o">.</span><span class="n">forceSchedule</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">protDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;forceSchedule&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
                 <span class="n">newDict</span><span class="p">[</span><span class="n">protId</span><span class="p">]</span> <span class="o">=</span> <span class="n">prot</span>
+                <span class="c1"># This saves the protocol JUST with the common attributes. Is it necessary?</span>
+                <span class="c1"># Actually, if after this the is an error, the protocol appears.</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">saveProtocol</span><span class="p">(</span><span class="n">prot</span><span class="p">)</span>
 
         <span class="c1"># Second iteration: update pointers values</span>
@@ -1307,7 +1308,24 @@
             <span class="c1"># Value to pointers could be None: Partial workflows</span>
             <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
                 <span class="n">parts</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
-                <span class="n">target</span> <span class="o">=</span> <span class="n">newDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="kc">None</span><span class="p">)</span>
+
+                <span class="n">protId</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="c1"># Try to get the protocol holding the input form the dictionary</span>
+                <span class="n">target</span> <span class="o">=</span> <span class="n">newDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">protId</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">target</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="c1"># Try to use existing protocol in the project</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Protocol identifier (</span><span class="si">%s</span><span class="s2">) not self contained. Looking for it in the project.&quot;</span> <span class="o">%</span> <span class="n">protId</span><span class="p">)</span>
+
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getProtocol</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">protId</span><span class="p">),</span> <span class="n">fromRuns</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="c1"># Not a protocol..</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is not a protocol identifier. Probably a direct pointer created by tests. This case is not considered.&quot;</span> <span class="o">%</span> <span class="n">protId</span><span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">target</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Linking </span><span class="si">%s</span><span class="s2"> to existing protocol in the project: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prot</span><span class="p">,</span> <span class="n">target</span><span class="p">))</span>
+
                 <span class="n">pointer</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">pointer</span><span class="o">.</span><span class="n">pointsNone</span><span class="p">():</span>
                     <span class="n">pointer</span><span class="o">.</span><span class="n">setExtendedParts</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
@@ -1378,8 +1396,25 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_setupProtocol</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Project.getProtocol"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.getProtocol">[docs]</a>    <span class="k">def</span> <span class="nf">getProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protId</span><span class="p">):</span>
-        <span class="n">protocol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">selectById</span><span class="p">(</span><span class="n">protId</span><span class="p">)</span>
+<div class="viewcode-block" id="Project.getProtocolFromRuns"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.getProtocolFromRuns">[docs]</a>    <span class="k">def</span> <span class="nf">getProtocolFromRuns</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protId</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the protocol with the id=protId from the runs list (memory) or None&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">runs</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">run</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">runs</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">run</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span> <span class="o">==</span> <span class="n">protId</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">run</span>
+
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Project.getProtocol"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.getProtocol">[docs]</a>    <span class="k">def</span> <span class="nf">getProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protId</span><span class="p">,</span> <span class="n">fromRuns</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the protocol with the id=protId or raises an Exception</span>
+
+<span class="sd">        :param protId: integer with an existing protocol identifier</span>
+<span class="sd">        :param fromRuns: If true, it tries to get it from the runs list (memory) avoiding querying the db.&quot;&quot;&quot;</span>
+
+        <span class="n">protocol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getProtocolFromRuns</span><span class="p">(</span><span class="n">protId</span><span class="p">)</span> <span class="k">if</span> <span class="n">fromRuns</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">protocol</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">protocol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">selectById</span><span class="p">(</span><span class="n">protId</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">Protocol</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s1">&#39;&gt;&gt;&gt; ERROR: Invalid protocol id: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">protId</span><span class="p">)</span>
