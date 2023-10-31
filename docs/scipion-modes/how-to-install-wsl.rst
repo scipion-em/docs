@@ -75,7 +75,7 @@ Notice that Windows home is somewhere like ``/mnt/c/Users/<your-win-user>``.
 We store this path in a the enviromental variable `HOME_WIN` in order to be able to
 use it later.
 
-Also `check this basics commands<https://learn.microsoft.com/en-us/windows/wsl/basic-commands>`_
+Also `check this basics commands <https://learn.microsoft.com/en-us/windows/wsl/basic-commands>`_
 to get familiar with WSL.
 
 CUDA in WSL
@@ -209,7 +209,7 @@ results in
 Notice that you can also use ``--oversubscribe`` flag, but it is not recommended.
 
 
-Invoking Scipion from Windows
+Annex I: Invoking Scipion from Windows
 =============================
 
 If you have a fine configuration PowerShell and you want to continue with it,
@@ -223,3 +223,73 @@ just by prefixing the Scipion launcher with the ``wsl`` wrapper, i.e.
 Take into account that this starts a non-interactive bash session, so ``~/.bashrc``
 is not sourced. Then, if ``scipion.config`` contains something like ``$HOME_WIN``,
 it will not expanded. So, you need to use the full path in this case.
+
+
+Annex II: Prevent WSL stops when no session is active
+===========================================
+
+WSL stops any Linux distribution when no active shell is open, even if some process is running in background.
+Therefore, if you close the Scipion GUI after launching a protocol in order to wait until it finishes,
+probably WSL will kill stop the machine and you protocol, too. This is avoided if you do not use the wsl wrapper,
+but you enter into the Ubuntu shell, and there runs Scipion. However, that shell have to be open until the end.
+
+There is another workaround that it is also usefull in order to get ssh access to WSL from a remote computer.
+This is bassically by running an enless loop in a WSL bash session in background. 
+
+Write a file, let's say ``$HOME/<some-path>/infinity_loop.sh`` with
+
+.. code-block:: bash
+
+   echo "Please, do NOT close this windows. It prevents to stop WSL."  # just in case the terminal gets visible
+   while true
+       do sleep 3600  # every hour
+   done
+
+
+Now, write a cmd program to launch this bash in background, let's say ``infinity_loop.cmd``
+
+.. code-block:: cmd
+
+   powershell -WindowStyle hidden -Command "wsl /mnt/c/Users/<user>/infinity_loop.sh"
+
+Then, you can run this cmd program just by double-clicking on it.
+
+Annex III: ssh access to WSL
+============================
+
+WSL do not allow remote access from version 2.0.
+This is because it needs an interactive session open, 
+and a ssh session is non interactive. 
+This can be fix by forwarding ports from WSL to the exterior.
+This means, you should have an started ssh service on Ubuntu and
+on Windows. The Ubuntu ssh port must be on a different port than the windows one.
+Then, from windows you shoud forward that port.
+
+Let's assume you have an active ssh session on Ubuntu under port ``UBUNTU_PORT``.
+Check the IP of the Ubuntu Virtual Machine by ``wsl ifconfig``. Let's say it is 
+``UBUNTU_IP=172.27.235.210``. Then, on a Windows Powershell terminal run as Administrator
+
+.. code-block:: powershell
+
+   $UBUNTU_IP = "xxx.xxx.xxx.xxx"  # fill this with the IP cached from 'wsl ifconfig'
+   $UBUNTU_PORT = "xxxx"   # fill this with the port configured in /etc/ssh/sshd_config
+
+   netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=$UBUNTU_PORT connectaddress=$UBUNTU_IP connectport=UBUNTU_PORT
+   New-NetFireWallRule -DisplayName 'WSL 2 Firewall Unlock' -Direction Inbound -LocalPort $UBUNTU_PORT -Action Allow -Protocol TCP
+   New-NetFireWallRule -DisplayName 'WSL 2 Firewall Unlock' -Direction Outbound -LocalPort $UBUNTU_PORT -Action Allow -Protocol TCP
+
+Then you will get access from a remote machine just with
+
+.. code-block:: bash
+
+   # Replace the variables below with the correct values...
+   ssh -p $UBUNTU_PORT usr@$UBUNTU_IP
+
+Again. WSL2 stops Ubuntu if no interactive session is opened (check the previous section).
+Then, let's run that ``infinity_loop.cmd`` in order to have Ubuntu running.
+
+You can automatically launch this ``infinity_loop.cmd`` when the Windows-User logs on via Task Scheduler. 
+The only thing you have to take into account is that program have to run in the mode "Run when user in logged on".
+If "Run whether user is logged on or not" mode is choosen, it will fail because it needs an interactive session.
+
+
