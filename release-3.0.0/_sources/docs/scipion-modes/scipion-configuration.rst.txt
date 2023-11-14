@@ -140,10 +140,7 @@ Check also the `Xmipp-CUDA documentation <https://github.com/I2PC/xmipp/wiki/Xmi
 MPI variables
 =============
 
-Scipion uses ``mpi4py`` to launch different steps in parallel and doesn't require
-any additional configuration to do that
-(see :ref:`host configuration page <host-configuration>` for more details).
-However, Scipion can provide MPI configuration to its plugins and their binaries/compilations
+Scipion uses Python threads to launch different steps in parallel. However, Scipion can provide MPI configuration to its plugins and their binaries/compilations
 by setting the following variables in the ``config/scipion.conf``
 
 ::
@@ -153,6 +150,8 @@ by setting the following variables in the ``config/scipion.conf``
     MPI_INCLUDE = /usr/lib64/mpi/gcc/openmpi/include
 
 Check also the `Xmipp-MPI documentation <https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)#mpi-configuration>`_.
+
+Cluster users, please see :ref:`host configuration page <host-configuration>` for more details.
 
 JAVA variables
 ==============

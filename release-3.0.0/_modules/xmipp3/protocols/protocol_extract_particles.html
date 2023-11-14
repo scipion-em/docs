@@ -147,10 +147,15 @@
                             <span class="n">xmippToLocation</span><span class="p">,</span> <span class="n">setXmippAttributes</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">xmipp3.constants</span> <span class="kn">import</span> <span class="n">OTHER</span>
 
+<span class="n">FACTOR_BOXSIZE</span> <span class="o">=</span> <span class="mf">1.5</span>
 
 <div class="viewcode-block" id="XmippProtExtractParticles"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_extract_particles.html#xmipp3.protocols.protocol_extract_particles.XmippProtExtractParticles">[docs]</a><span class="k">class</span> <span class="nc">XmippProtExtractParticles</span><span class="p">(</span><span class="n">ProtExtractParticles</span><span class="p">,</span> <span class="n">XmippProtocol</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Protocol to extract particles from a set of coordinates&quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;extract particles&#39;</span>
+
+    <span class="n">RESIZE_FACTOR</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">RESIZE_DIMENSIONS</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">RESIZE_SAMPLINGRATE</span> <span class="o">=</span> <span class="mi">2</span>
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">ProtExtractParticles</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -158,26 +163,53 @@
 
     <span class="c1">#--------------------------- DEFINE param functions ------------------------</span>
     <span class="k">def</span> <span class="nf">_definePreprocessParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;doResize&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Rescale particles?&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;If you set to *Yes*, you should provide a resize option.&#39;</span><span class="p">)</span>
+
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;resizeOption&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span>
+                      <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;Factor&#39;</span><span class="p">,</span> <span class="s1">&#39;Dimensions&#39;</span><span class="p">,</span> <span class="s1">&#39;Sampling Rate&#39;</span><span class="p">],</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;doResize&#39;</span><span class="p">,</span>
+                      <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">RESIZE_FACTOR</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Resize option&quot;</span><span class="p">,</span> <span class="n">display</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="o">.</span><span class="n">DISPLAY_COMBO</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select an option to resize the images: </span><span class="se">\n</span><span class="s1"> &#39;</span>
+                           <span class="s1">&#39;_Factor_: Set a resize factor to resize. </span><span class="se">\n</span><span class="s1"> &#39;</span>
+                           <span class="s1">&#39;_Dimensions_: Set the output dimensions in pixels. </span><span class="se">\n</span><span class="s1">&#39;</span>
+                           <span class="s1">&#39;_Sampling Rate_: Set the desire sampling rate to resize.&#39;</span><span class="p">)</span>
+
         <span class="c1"># downFactor should always be 1.0 or greater</span>
-        <span class="n">geOne</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">GE</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span>
-                          <span class="n">error</span><span class="o">=</span><span class="s1">&#39;Value should be greater or equal than 1.0&#39;</span><span class="p">)</span>
+        <span class="n">geOne</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">GE</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">error</span><span class="o">=</span><span class="s1">&#39;Value should be greater or equal than 1.0&#39;</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;downFactor&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
                       <span class="n">validators</span><span class="o">=</span><span class="p">[</span><span class="n">geOne</span><span class="p">],</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Downsampling factor&#39;</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;doResize and resizeOption==</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">RESIZE_FACTOR</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select a value greater than 1.0 to reduce the size &#39;</span>
                            <span class="s1">&#39;of micrographs before extracting the particles. &#39;</span>
                            <span class="s1">&#39;If 1.0 is used, no downsample is applied. &#39;</span>
                            <span class="s1">&#39;Non-integer downsample factors are possible. &#39;</span><span class="p">)</span>
 
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;resizeDim&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;doResize and resizeOption==</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">RESIZE_DIMENSIONS</span><span class="p">,</span>
+                      <span class="n">allowsPointers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Re-scaled size (px)&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Size in pixels of the particle images &lt;x&gt; &lt;y=x&gt; &lt;z=x&gt;.&#39;</span><span class="p">)</span>
+
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;resizeSamplingRate&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">FloatParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;doResize and resizeOption==</span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">RESIZE_SAMPLINGRATE</span><span class="p">,</span>
+                      <span class="n">allowsPointers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Resize sampling rate (Å/px)&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Set the new output sampling rate.&#39;</span><span class="p">)</span>
+
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;boxSize&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Particle box size (px)&#39;</span><span class="p">,</span> <span class="n">allowsPointers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Particle box size (px)&#39;</span><span class="p">,</span> <span class="n">allowsPointers</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">default</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
                       <span class="c1"># validators=[params.Positive],</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;This is size of the boxed particles (in pixels). &#39;</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;This is the size of the boxed particles (in pixels). &#39;</span>
                            <span class="s1">&#39;Note that if you use downsample option, the &#39;</span>
-                           <span class="s1">&#39;particles are boxed out after downsampling. &#39;</span>
-                           <span class="s1">&#39;Use the wizard to check boxSize changes after &#39;</span>
-                           <span class="s1">&#39;downsampling or using a different pixel size. &#39;</span><span class="p">)</span>
+                           <span class="s1">&#39;particles are boxed in a downsampled boxsize conserving the same relation. &#39;</span>
+                           <span class="s1">&#39;Use the wizard to select a boxSize automatically. &#39;</span>
+                           <span class="s1">&#39;This is calculated by multiplying 1.5 * box size used for picking.&#39;</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;doBorders&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Fill pixels outside borders&#39;</span><span class="p">,</span>
@@ -277,8 +309,8 @@
         <span class="n">baseMicName</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">fnLast</span><span class="p">)</span>
         <span class="n">outputRoot</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">baseMicName</span><span class="p">))</span>
         <span class="n">fnPosFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMicPos</span><span class="p">(</span><span class="n">mic</span><span class="p">)</span>
-        <span class="n">boxSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxSize</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="n">downFactor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downFactor</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">boxSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtractBoxSize</span><span class="p">()</span>
+        <span class="n">downFactor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getDownFactor</span><span class="p">()</span>
         <span class="n">patchSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">patchSize</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">patchSize</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span> \
                     <span class="k">else</span> <span class="nb">int</span><span class="p">(</span><span class="n">boxSize</span><span class="o">*</span><span class="mf">1.5</span><span class="o">*</span><span class="n">downFactor</span><span class="p">)</span>
 
@@ -370,7 +402,7 @@
         <span class="k">if</span> <span class="n">normType</span> <span class="o">!=</span> <span class="s2">&quot;OldXmipp&quot;</span><span class="p">:</span>
             <span class="n">bgRadius</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">backRadius</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
             <span class="k">if</span> <span class="n">bgRadius</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">bgRadius</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boxSize</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="n">bgRadius</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtractBoxSize</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
             <span class="n">args</span> <span class="o">+=</span> <span class="s2">&quot; --background circle </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">bgRadius</span>
 
         <span class="k">return</span> <span class="n">args</span>
@@ -378,6 +410,11 @@
     <span class="c1">#--------------------------- INFO functions --------------------------------</span>
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doResize</span><span class="p">:</span>
+            <span class="n">downFactor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getDownFactor</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">downFactor</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;The new particles size should be smaller than the current one&#39;</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxSize</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">boxSize</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getBoxSize</span><span class="p">())</span>
 
@@ -451,7 +488,7 @@
                 <span class="n">methodsMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Inverted contrast on images.&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_doDownsample</span><span class="p">():</span>
                 <span class="n">methodsMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Particles downsampled by a factor of </span><span class="si">%0.2f</span><span class="s2">.&quot;</span>
-                                   <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">downFactor</span><span class="p">)</span>
+                                   <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getDownFactor</span><span class="p">())</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doNormalize</span><span class="p">:</span>
                 <span class="n">methodsMsgs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Normalization: </span><span class="si">%s</span><span class="s2">.&quot;</span>
                                    <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">getEnumText</span><span class="p">(</span><span class="s1">&#39;normType&#39;</span><span class="p">))</span>
@@ -471,7 +508,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">ctfRelations</span><span class="o">.</span><span class="n">hasValue</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_doDownsample</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">downFactor</span> <span class="o">&gt;</span> <span class="mf">1.0</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getDownFactor</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mf">1.0</span>
 
 <div class="viewcode-block" id="XmippProtExtractParticles.notOne"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_extract_particles.html#xmipp3.protocols.protocol_extract_particles.XmippProtExtractParticles.notOne">[docs]</a>    <span class="k">def</span> <span class="nf">notOne</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">abs</span><span class="p">(</span><span class="n">value</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mf">0.0001</span></div>
@@ -482,9 +519,34 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_doDownsample</span><span class="p">():</span>
             <span class="c1"># Set new sampling, it should be the input sampling of the used</span>
             <span class="c1"># micrographs multiplied by the downFactor</span>
-            <span class="n">newSampling</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downFactor</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="n">newSampling</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getDownFactor</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">newSampling</span>
+
+    <span class="k">def</span> <span class="nf">_getDownFactor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">downFactor</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">resizeOption</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">RESIZE_FACTOR</span><span class="p">:</span>
+            <span class="n">downFactor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">downFactor</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">resizeOption</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">RESIZE_SAMPLINGRATE</span><span class="p">:</span>
+            <span class="n">downFactor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resizeSamplingRate</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">getCoordSampling</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">resizeOption</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">RESIZE_DIMENSIONS</span><span class="p">:</span>
+            <span class="n">downFactor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxSize</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">resizeDim</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">downFactor</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_getExtractBoxSize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">boxSize</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">boxSize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getBoxSize</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">boxSize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">boxSize</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+
+        <span class="n">downFactor</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_getDownFactor</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">downFactor</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">newBoxSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getEven</span><span class="p">(</span><span class="n">boxSize</span><span class="o">/</span><span class="n">downFactor</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">newBoxSize</span> <span class="o">=</span> <span class="n">boxSize</span>
+
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">newBoxSize</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_setupBasicProperties</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Set sampling rate (before and after doDownsample) and inputMics</span>
@@ -554,14 +616,14 @@
         <span class="n">samplingPicking</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getCoordSampling</span><span class="p">()</span>
         <span class="n">samplingExtract</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMicSampling</span><span class="p">()</span>
         <span class="n">f</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">samplingPicking</span><span class="p">)</span> <span class="o">/</span> <span class="n">samplingExtract</span>
-        <span class="k">return</span> <span class="n">f</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">downFactor</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_doDownsample</span><span class="p">()</span> <span class="k">else</span> <span class="n">f</span></div>
+        <span class="k">return</span> <span class="n">f</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getDownFactor</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_doDownsample</span><span class="p">()</span> <span class="k">else</span> <span class="n">f</span></div>
 
 <div class="viewcode-block" id="XmippProtExtractParticles.getEven"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_extract_particles.html#xmipp3.protocols.protocol_extract_particles.XmippProtExtractParticles.getEven">[docs]</a>    <span class="k">def</span> <span class="nf">getEven</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">boxSize</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Integer</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">boxSize</span><span class="p">)</span><span class="o">/</span><span class="mi">2</span><span class="o">+</span><span class="mf">0.75</span><span class="p">)</span><span class="o">*</span><span class="mi">2</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="XmippProtExtractParticles.getBoxSize"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_extract_particles.html#xmipp3.protocols.protocol_extract_particles.XmippProtExtractParticles.getBoxSize">[docs]</a>    <span class="k">def</span> <span class="nf">getBoxSize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># This function is needed by the wizard and for auto-boxSize selection</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getEven</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getCoords</span><span class="p">()</span><span class="o">.</span><span class="n">getBoxSize</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">getBoxScale</span><span class="p">())</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getEven</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getCoords</span><span class="p">()</span><span class="o">.</span><span class="n">getBoxSize</span><span class="p">()</span><span class="o">*</span><span class="n">FACTOR_BOXSIZE</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_getOutputImgMd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPath</span><span class="p">(</span><span class="s1">&#39;images.xmd&#39;</span><span class="p">)</span>
