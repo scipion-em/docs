@@ -172,7 +172,7 @@ Leave all the parameters with the default values.
 Leave the rest of the parameters with the default values.
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/05_align_ts_tomo_rec_form.png
-   :width: 850
+   :width: 1000
    :align: center
    :alt: Align TS and tomo rec form
 
@@ -219,7 +219,7 @@ Eman":
 On the list displayed, double click on the set of coordinates listed. They should look like this:
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/09_eman_viewer_coords.png
-   :width: 850
+   :width: 1000
    :align: center
    :alt: Coordinates displayed with EMAN viewer
 
