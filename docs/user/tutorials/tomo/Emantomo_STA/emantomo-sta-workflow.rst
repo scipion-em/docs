@@ -80,7 +80,7 @@ to run Scipion. After that:
 3. Click on button "Create".
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA//00_create_project.png
-   :width: 400
+   :width: 500
    :align: center
    :alt: Create Project
 
@@ -180,7 +180,7 @@ Let's have a look to the tomogram reconstructed. To do that, right-click on the 
 tab located on the lower half of the project main window and select "Open with ImodViewer".
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/06a_imod_open_viewer.png
-   :width: 500
+   :width: 400
    :align: center
    :alt: Open IMOD viewer
 
@@ -212,7 +212,7 @@ Let's use tho do that, right-click on the output object listed in the project's 
 Eman":
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/08_emantomo_open_viewer.png
-   :width: 500
+   :width: 400
    :align: center
    :alt: Open EMAN viewer
 
