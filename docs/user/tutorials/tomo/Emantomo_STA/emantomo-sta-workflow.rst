@@ -142,7 +142,7 @@ Again, the results can be displayed by clicking on the "Analyze Results" button.
 CTF estimation viewer contained in plugin scipion-em-tomo_, that looks like as shown in the figure below:
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/04_ctf_view.png
-   :width: 700
+   :width: 850
    :align: center
    :alt: Import CTF result
 
