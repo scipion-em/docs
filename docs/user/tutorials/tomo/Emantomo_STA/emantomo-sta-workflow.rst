@@ -117,7 +117,7 @@ bottom panel. This will generate an auxiliary window which will list the TS cont
 there is only one TS. To open it with IMOD_ viewer 3dmod (integrated as part of plugin scipion-em-imod_), simply
 double click on it.
 
-.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/01_ts_view.png
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/02_ts_view.png
    :width: 700
    :align: center
    :alt: Import TS result
@@ -262,8 +262,38 @@ the figure below:
    :align: center
    :alt: Tilt particles displayed with IMOD's viewer
 
+Also, the generated subtomograms can also be displayed. Let's select in this case, the Scipion metadata viewer. It
+should look like as shown in the figure below:
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/12_subtomograms_displayed_with_scipion.png
+   :width: 700
+   :align: center
+   :alt: Subtomograms displayed with Scipion metadata viewer
+
 Generate the initial volume
 ===========================
+
+Once we have the particles extracted, it's time to calculate an initial volume with them. To do that, open the protocol
+named "emantomo - Initial model pppt" rom plugin scipion-em-emantomo_ and fill the following as listed below:
+
+* Threads: 12
+
+*Tab Input*
+
+* Particles: select the corresponding object by clicking on the magnifier icon.
+* Reference volume (opt.): leave this empty.
+
+*Tab Optimization*
+
+* No. iterations: 10
+* Leave the rest of the parameters with the default values.
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/13_initial_volume_form.png
+   :width: 800
+   :align: center
+   :alt: Initial volume form
+
+
 
 
 
