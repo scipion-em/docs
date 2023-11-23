@@ -149,6 +149,121 @@ CTF estimation viewer contained in plugin scipion-em-tomo_, that looks like as s
 TS alignment and tomogram reconstruction
 ========================================
 
+Let's open the protocol named "emantomo TS align & tomo rec" from plugin scipion-em-emantomo_. Fill it with the
+following values:
+
+* Parallel --> Threads: 12
+
+*Tab Input:*
+
+* Tilt Series: select the corresponding object using the magnifier icon.
+
+*Tab TS alignment:*
+
+Leave all the parameters with the default values.
+
+*Tab Tomogram reconstruction:*
+
+* Expert level: Advanced
+* Thickness (pix.): 96
+* Correct rotation: Yes
+* Extra pad: Yes
+
+Leave the rest of the parameters with the default values.
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/05_align_ts_tomo_rec_form.png
+   :width: 850
+   :align: center
+   :alt: Align TS and tomo rec form
+
+Let's have a look to the tomogram reconstructed. To do that, right-click on the tomograms output listed in the summary
+tab located on the lower half of the project main window and select "Open with ImodViewer".
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/06a_imod_open_viewer.png
+   :width: 500
+   :align: center
+   :alt: Open IMOD viewer
+
+
+Then, a new window containing the list of tomograms (only one in this case) will be generated. Double click on it to
+launch the selected viewer with that data. It should look like the figure below:
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/06b_imod_viewer_tomogram.png
+   :width: 700
+   :align: center
+   :alt: Tomogram displayed with IMOD viewer
+
+
+Importing the 3D coordinates
+============================
+To import the provided coordinates, open the protocol named "tomo - import 3D coords from scipion" from the plugin
+scipion-em-tomo_. Fill the following parameters with these values:
+
+* Scipion sqlite file: SCIPION_HOME/data/tests/coordinates.sqlite
+* Input tomogras: select the corresponding object from the list displayed after having clicked on the magnifier icon.
+* Box size [pix]: 36
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/07_import_coords_form.png
+   :width: 500
+   :align: center
+   :alt: Import coordinates form
+
+Let's use tho do that, right-click on the output object listed in the project's summary panel, and select "Open with
+Eman":
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/08_emantomo_open_viewer.png
+   :width: 500
+   :align: center
+   :alt: Open EMAN viewer
+
+On the list displayed, double click on the set of coordinates listed. They should look like this:
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/09_eman_viewer_coords.png
+   :width: 850
+   :align: center
+   :alt: Coordinates displayed with EMAN viewer
+
+*Note:*
+
+Once the viewer is closed, a new window will appear to ask if you want to save the protocol output. It is because some
+viewers, like this one, allow the user to add or remove elements (coordinates in this case). In nothing was changed or
+you don't want to save the changes done from the viewer, simply select "No".
+
+Particle extraction from the TS
+===============================
+This protocol uses the CTF estimation, TS alignment and coordinates data to go back to the TS and crop an image for
+each particle for each tilt image (PPPT approach) and the uses them to reconstruct a 3d particle. To carry out this
+step, let's open the protocol "emantomo - Extraction from TS" from plugin scipion-em-emantomo_ and fill the following
+parameters with the values listed below:
+
+* Threads: 12
+* Expert Level: Advanced
+* Coordinates: select the corresponding object clicking on the magnifier button.
+* CTF tomo series: select the corresponding object clicking on the magnifier button.
+* Tilt series with alignment, non-interpolated: clicking on the magnifier icon will display a list of two available objects, which correspond to the imported TS and the TS with alignment data from the previous step. This is the one that must be selected, that should appear the first in the list.
+* Flip Z axis in tomogram? No
+* Box size unbinned (pix.): 144
+* Binning factor: 4 (thus, the generated particles box size will be 144 / 4 = 36 pix.).
+* Contrast threshold for 2D particle removal: 0.5 (remove gold beads).
+* Minimum distance between particles (Å): 150 (as 300Å is the highest ribosome size value from its size ranges).
+
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/10_extract_particles_from_ts_form.png
+   :width: 550
+   :align: center
+   :alt: Extract particles from TS form
+
+The best way to check if the particles were correctly referred to the TS is to display with the IMOD_ viewer the
+generated result called projected2DCoordinates. It will show the extracted particles over the TS, as can be observed in
+the figure below:
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/11_tilt_particles_with_imod_viewer.png
+   :width: 700
+   :align: center
+   :alt: Tilt particles displayed with IMOD's viewer
+
+Generate the initial volume
+===========================
 
 
 
