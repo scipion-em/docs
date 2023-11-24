@@ -2,6 +2,8 @@
    :width: 250
    :alt: scipion logo
 
+.. _emantomo-sta-workflow:
+
 =============================================================
 Tutorial - Subtomogram averaging with EMAN plugin for Scipion
 =============================================================
@@ -176,7 +178,7 @@ Leave the rest of the parameters with the default values.
    :align: center
    :alt: Align TS and tomo rec form
 
-Let's have a look to the tomogram reconstructed. To do that, right-click on the tomograms output listed in the summary
+Let's have a look at the tomogram reconstructed. To do that, right-click on the tomograms output listed in the summary
 tab located on the lower half of the project main window and select "Open with ImodViewer".
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/06a_imod_open_viewer.png
@@ -266,13 +268,12 @@ Also, the generated subtomograms can also be displayed. Let's select in this cas
 should look like as shown in the figure below:
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/12_subtomograms_displayed_with_scipion.png
-   :width: 700
+   :width: 650
    :align: center
    :alt: Subtomograms displayed with Scipion metadata viewer
 
 Generate the initial volume
 ===========================
-
 Once we have the particles extracted, it's time to calculate an initial volume with them. To do that, open the protocol
 named "emantomo - Initial model pppt" rom plugin scipion-em-emantomo_ and fill the following as listed below:
 
@@ -293,22 +294,111 @@ named "emantomo - Initial model pppt" rom plugin scipion-em-emantomo_ and fill t
    :align: center
    :alt: Initial volume form
 
+The generated output will be a set of averages, one for each class specified. In this case there will be only one as
+the number of classes introduced in the protocol form was 1. Sometimes it can be very useful to specify more than one
+class even if there is only one class, and then select the best one, as sometimes the convergence is not reached and
+the result is not good. On the other hand, the higher number of classes introduced, the longer it will take the
+protocol to finish. Said that, let's open our initial model, in this case with ChimeraX_. It should look like as
+in the figure below:
 
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/14_initial_volume_chimerax.png
+   :width: 650
+   :align: center
+   :alt: Initial volume displayed with ChimeraX_
 
+Subtomogram refinement
+======================
+Finally, let's use the generated initial model and the extracted subtomograms to generate a refined average. To do that,
+let's open the protocol "emantomo - subtomogram refinement pppt" from the plugin scipion-em-emantomo_, and fill the
+following parameters with the values specified below:
 
+* Threads: 12
 
-*TEMPLATE!*
+*Tab Input:*
 
-*SUMMARY:*
+* Particles: use the magnifier icon and select the particles extracted from the TS.
+* Reference volume (opt.): again, click on the magnifier icon and select the item 1 from the set of averages generated in the previous protocol.
 
-That was the last point of this tutorial. If we perform some subtomogram averaging (STA) steps membrane alignment,
-particle alignment and subtomogram reconstruction), we can obtain a structure for our ribosomes.
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/15_select_item_from_set.png
+   :width: 400
+   :align: center
+   :alt: Select item from set
+
+*Tab Refinement:*
+
+* 3D map filtering: local
+
+Leave the rest of the parameters with the default values.
+
+Regarding the parameter "Iteration information" in the tab "Refinement", it admits combinations of four types of
+refinements, which are:
+
+* p: 3d particle translation-rotation.
+* t: subtilt translation.
+* r: subtilt translation-rotation.
+* d: subtilt defocus.
+
+The default value is p,p,p,t,p,p,t,r,d. It can be compacted using the corresponding character followed by the
+desired number of iterations of that type, e. g., p3 = p,p,p.
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/15_subtomogram_refinement_form.png
+   :width: 800
+   :align: center
+   :alt: Subtomogram refinement form
+
+This protocol generates 3 outputs, that are:
+
+* The refined average.
+* The refined subtomograms.
+* The FSC curves.
+
+Let's display it:
+
+* The refined average, using ChimeraX_:
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/16_refined_avg_chimerax.png
+   :width: 650
+   :align: center
+   :alt: Refined average displayed with ChimeraX_
+
+* The refined subtomograms, displayed with Scipion metadata vierwer:
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/17_refined_subtomos_scipion_viewer.png
+   :width: 650
+   :align: center
+   :alt: Refined subtomograms displayed with Scipion metadata vierwer
+
+* The FSC curves, displayed with Scipion FSC viewer.
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/18_fsc_curves_scipion.png
+   :width: 650
+   :align: center
+   :alt: Refined subtomograms displayed with Scipion metadata vierwer
+
+Tutorial workflow template
+==========================
+The processing workflow followed in this tutorial can be executed as a Scipion template by executing the following
+command in a terminal:
+
+.. code-block::
+
+    scipion3 template
+
+And then selecting the one named 2023_12_emantomo_sta_tutorial_workflow.
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/19_scipion_template_gui.png
+   :width: 650
+   :align: center
+   :alt: Scipion template GUI
+
+It will generate a Scipion project with all the protocols and parameter values of each used in this tutorial.
 
 
 .. _Scipion: http://scipion.i2pc.es/
 .. _IMOD: https://bio3d.colorado.edu/imod/
 .. _EMAN: https://blake.bcm.edu/emanwiki/EMAN2
 .. _crYOLO: https://cryolo.readthedocs.io/en/stable/
+.. _ChimeraX: https://www.cgl.ucsf.edu/chimerax/
 .. _scipion-em-tomo: https://github.com/scipion-em/scipion-em-tomo
 .. _scipion-em-imod: https://github.com/scipion-em/scipion-em-imod
 .. _scipion-em-emantomo: https://github.com/scipion-em/scipion-em-emantomo
