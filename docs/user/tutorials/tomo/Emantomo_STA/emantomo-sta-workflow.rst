@@ -191,7 +191,7 @@ Then, a new window containing the list of tomograms (only one in this case) will
 launch the selected viewer with that data. It should look like the figure below:
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/06b_imod_viewer_tomogram.png
-   :width: 700
+   :width: 500
    :align: center
    :alt: Tomogram displayed with IMOD viewer
 
@@ -260,7 +260,7 @@ generated result called projected2DCoordinates. It will show the extracted parti
 the figure below:
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/11_tilt_particles_with_imod_viewer.png
-   :width: 700
+   :width: 500
    :align: center
    :alt: Tilt particles displayed with IMOD's viewer
 
@@ -268,7 +268,7 @@ Also, the generated subtomograms can also be displayed. Let's select in this cas
 should look like as shown in the figure below:
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/12_subtomograms_displayed_with_scipion.png
-   :width: 650
+   :width: 500
    :align: center
    :alt: Subtomograms displayed with Scipion metadata viewer
 
@@ -302,7 +302,7 @@ protocol to finish. Said that, let's open our initial model, in this case with C
 in the figure below:
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/14_initial_volume_chimerax.png
-   :width: 650
+   :width: 500
    :align: center
    :alt: Initial volume displayed with ChimeraX_
 
@@ -341,7 +341,7 @@ refinements, which are:
 The default value is p,p,p,t,p,p,t,r,d. It can be compacted using the corresponding character followed by the
 desired number of iterations of that type, e. g., p3 = p,p,p.
 
-.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/15_subtomogram_refinement_form.png
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/16_subtomogram_refinement_form.png
    :width: 800
    :align: center
    :alt: Subtomogram refinement form
@@ -357,21 +357,21 @@ Let's display it:
 * The refined average, using ChimeraX_:
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/16_refined_avg_chimerax.png
-   :width: 650
+   :width: 500
    :align: center
    :alt: Refined average displayed with ChimeraX_
 
 * The refined subtomograms, displayed with Scipion metadata vierwer:
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/17_refined_subtomos_scipion_viewer.png
-   :width: 650
+   :width: 500
    :align: center
    :alt: Refined subtomograms displayed with Scipion metadata vierwer
 
 * The FSC curves, displayed with Scipion FSC viewer.
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/18_fsc_curves_scipion.png
-   :width: 650
+   :width: 500
    :align: center
    :alt: Refined subtomograms displayed with Scipion metadata vierwer
 
