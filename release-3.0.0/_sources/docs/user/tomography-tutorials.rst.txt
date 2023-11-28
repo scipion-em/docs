@@ -87,6 +87,14 @@ with respect to the virus internal membrane.
  *Guide*:
  `Subtomogram Averaging HIV <https://docs.google.com/document/d/1i7nzRV5NWgmw7tPfvlVcVKSkX7_YJUMUenGPZfGN8qw>`_
 
+Subtomogram Averaging Ribosome with EMAN plugin for Scipion
+-----------------------------------------------------------
+
+This tutorial illustrates how to carry out a subtomogram averaging (STA) with a per-particle per-tilt (PPPT) approach
+using EMAN plugin for Scipion combined with others
+
+ *Guide*: :ref:`Subtomogram Averaging Ribosome with EMAN plugin for Scipion <emantomo-sta-workflow>`
+
 Tomography in streaming
 ------------------------------------
 This tutorial guide you in a streaming tomography acquisition using Scipion.

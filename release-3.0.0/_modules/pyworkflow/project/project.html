@@ -493,7 +493,7 @@
         <span class="sd">&quot;&quot;&quot;Clean all project data&quot;&quot;&quot;</span>
         <span class="n">pwutils</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">cleanPath</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">pathList</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_continueWorkflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">continuedProtList</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">errorsList</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_continueWorkflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">errorsList</span><span class="p">,</span> <span class="n">continuedProtList</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function continue a workflow from a selected protocol.</span>
 <span class="sd">        The previous results are preserved.</span>
@@ -518,11 +518,14 @@
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isInteractive</span><span class="p">():</span>
                     <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isScheduled</span><span class="p">():</span>
                         <span class="k">continue</span>
-                    <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">worksInStreaming</span><span class="p">():</span>
+
+                    <span class="c1"># streaming ...</span>
+                    <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">worksInStreaming</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isSaved</span><span class="p">():</span>
                         <span class="n">attrSet</span> <span class="o">=</span> <span class="p">[</span><span class="n">attr</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span>
                                    <span class="n">protocol</span><span class="o">.</span><span class="n">iterOutputAttributes</span><span class="p">(</span><span class="n">pwprot</span><span class="o">.</span><span class="n">Set</span><span class="p">)]</span>
                         <span class="k">try</span><span class="p">:</span>
                             <span class="k">if</span> <span class="n">attrSet</span><span class="p">:</span>
+                                <span class="c1"># Open output sets..</span>
                                 <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attrSet</span><span class="p">:</span>
                                     <span class="n">attr</span><span class="o">.</span><span class="n">setStreamState</span><span class="p">(</span><span class="n">attr</span><span class="o">.</span><span class="n">STREAM_OPEN</span><span class="p">)</span>
                                     <span class="n">attr</span><span class="o">.</span><span class="n">write</span><span class="p">()</span>
@@ -541,21 +544,18 @@
                             <span class="k">break</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="k">if</span> <span class="n">level</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-                            <span class="c1"># we make sure that at least one protocol in streaming</span>
-                            <span class="c1"># has been launched</span>
+                            <span class="c1"># Not in streaming and not the first protocol.</span>
                             <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isActive</span><span class="p">():</span>
                                 <span class="bp">self</span><span class="o">.</span><span class="n">stopProtocol</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">_restartWorkflow</span><span class="p">({</span><span class="n">protocol</span><span class="o">.</span><span class="n">getObjId</span><span class="p">():</span> <span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">level</span><span class="p">)},</span>
-                                                  <span class="n">errorsList</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_restartWorkflow</span><span class="p">(</span><span class="n">errorsList</span><span class="p">,{</span><span class="n">protocol</span><span class="o">.</span><span class="n">getObjId</span><span class="p">():</span> <span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">level</span><span class="p">)})</span>
 
-                        <span class="k">else</span><span class="p">:</span>
-                            <span class="n">errorsList</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="s2">&quot;Error trying to launch the &quot;</span>
-                                               <span class="s2">&quot;protocol: </span><span class="si">%s</span><span class="se">\n</span><span class="s2">ERROR: The protocol is &quot;</span>
-                                               <span class="s2">&quot;not in streaming&quot;</span> <span class="o">%</span>
-                                               <span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getObjLabel</span><span class="p">())))</span>
-                            <span class="k">break</span>
+                        <span class="k">else</span><span class="p">:</span> <span class="c1"># First protocol not in streaming</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isActive</span><span class="p">():</span>
+                               <span class="bp">self</span><span class="o">.</span><span class="n">scheduleProtocol</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_restartWorkflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">restartedProtList</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">errorsList</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+
+    <span class="k">def</span> <span class="nf">_restartWorkflow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">errorsList</span><span class="p">,</span> <span class="n">restartedProtList</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This function restart a workflow from a selected protocol.</span>
 <span class="sd">        All previous results will be deleted</span>
@@ -658,9 +658,9 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">errorsList</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">MODE_RESTART</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_restartWorkflow</span><span class="p">(</span><span class="n">workflowProtocolList</span><span class="p">,</span> <span class="n">errorsList</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_restartWorkflow</span><span class="p">(</span><span class="n">errorsList</span><span class="p">,</span> <span class="n">workflowProtocolList</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_continueWorkflow</span><span class="p">(</span><span class="n">workflowProtocolList</span><span class="p">,</span> <span class="n">errorsList</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_continueWorkflow</span><span class="p">(</span><span class="n">errorsList</span><span class="p">,</span><span class="n">workflowProtocolList</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">errorsList</span></div>
 
 <div class="viewcode-block" id="Project.launchProtocol"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.launchProtocol">[docs]</a>    <span class="k">def</span> <span class="nf">launchProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">scheduled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -1624,7 +1624,10 @@
             <span class="n">outputDict</span><span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()]</span> <span class="o">=</span> <span class="n">n</span>
             <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">iterOutputAttributes</span><span class="p">():</span>
                 <span class="c1"># mark this output as produced by r</span>
-                <span class="n">outputDict</span><span class="p">[</span><span class="n">attr</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()]</span> <span class="o">=</span> <span class="n">n</span>
+                <span class="k">if</span> <span class="n">attr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Output attribute </span><span class="si">%s</span><span class="s2"> of </span><span class="si">%s</span><span class="s2"> is None&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">_</span><span class="p">,</span> <span class="n">r</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">outputDict</span><span class="p">[</span><span class="n">attr</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()]</span> <span class="o">=</span> <span class="n">n</span>
 
         <span class="k">def</span> <span class="nf">_checkInputAttr</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">pointed</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot; Check if an attr is registered as output&quot;&quot;&quot;</span>
