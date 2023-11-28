@@ -286,7 +286,7 @@ named "emantomo - Initial model pppt" rom plugin scipion-em-emantomo_ and fill t
 
 *Tab Optimization*
 
-* No. iterations: 10
+* No. iterations: 30
 * Leave the rest of the parameters with the default values.
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/13_initial_volume_form.png
@@ -373,7 +373,22 @@ Let's display it:
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/18_fsc_curves_scipion.png
    :width: 500
    :align: center
-   :alt: Refined subtomograms displayed with Scipion metadata vierwer
+   :alt: FSCs
+
+Full dataset results
+====================
+The same workflow was carried out with all the TS (mixedCTEM ones) that compose the dataset EMPIAR-10064_. The
+corresponding refinement result (dispalyed with ChimeraX_) at bin 1, together with the FSC curves are shown below:
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/20_refined_avg_chimera_all_dataset.png
+   :width: 500
+   :align: center
+   :alt: Refined average displayed with ChimeraX_ whole dataset
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/21_fscs_whole_dataset_bin1.png
+   :width: 500
+   :align: center
+   :alt: FSCs at bin1 whole dataset
 
 Tutorial workflow template
 ==========================
