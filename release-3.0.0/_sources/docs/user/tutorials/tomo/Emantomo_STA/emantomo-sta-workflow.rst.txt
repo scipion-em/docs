@@ -86,9 +86,41 @@ to run Scipion. After that:
    :align: center
    :alt: Create Project
 
-Note: the protocols can be located on the left panel of the project interface or directly search via ctrl + f and typing
-the keywords that may represent what it is desired to be found, like a plugin name, a protocol name, an action, etc.
+Note: if starting a project from scratch, the protocols can be located on the left panel of the project interface or
+directly search via ctrl + f and typing the keywords that may represent what it is desired to be found, like a plugin
+name, a protocol name, an action, etc.
 
+In our case, we are going to use a Scipion template that contains the the workflow that will be followed in this
+tutorial customized with the corresponding parameters for each protocol. Nevertheless, the tutorial is described
+assuming an approach of type "project from scratch".
+
+To load the template, clock on the menu named "Others" and then "Import workflow template" on the top left of the
+project window. After that, a list of the available templates will be displayed. Locate the one named
+"2023_12_emantomo_sta_tutorial_workflow", double-click on it or select it and click on the button named "Select".
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/19_scipion_template_gui.png
+   :width: 650
+   :align: center
+   :alt: Scipion template GUI
+
+This will generate another window, that is used to specify some parameters required by the workflow, normally the
+file paths. In this case, there is only one, which is the default path of the tutorial dataset downloaded before. Thus,
+it is not necessary to edit it.
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/19a_Scpion_template_customizer_gui.png
+   :width: 400
+   :align: center
+   :alt: Scipion template workflow customizer GUI
+
+Click on the button "Accept", and the project graph will be automatically generated, as can be observed in the figure
+below:
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/19b_loaded_project_overview.png
+   :width: 650
+   :align: center
+   :alt: Loaded project overview
+
+To display the corresponding form of each protocol, simply double-click on it.
 
 .. _Importing the TS:
 
@@ -389,24 +421,6 @@ corresponding refinement result (dispalyed with ChimeraX_) at bin 1, together wi
    :width: 500
    :align: center
    :alt: FSCs at bin1 whole dataset
-
-Tutorial workflow template
-==========================
-The processing workflow followed in this tutorial can be executed as a Scipion template by executing the following
-command in a terminal:
-
-.. code-block::
-
-    scipion3 template
-
-And then selecting the one named 2023_12_emantomo_sta_tutorial_workflow.
-
-.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/19_scipion_template_gui.png
-   :width: 650
-   :align: center
-   :alt: Scipion template GUI
-
-It will generate a Scipion project with all the protocols and parameter values of each used in this tutorial.
 
 
 .. _Scipion: http://scipion.i2pc.es/
