@@ -40,8 +40,8 @@ using EMAN_ plugin for Scipion combined with others, listed below for each step:
 The dataset
 -----------
 
-The dataset used for this tutorial is a subset of EMPIAR-10064_, concretely the TS named mixedCTEM_tomo4.mrc. The
-dataset also includes:
+The dataset used for this tutorial is a subset of EMPIAR-10064_, concretely the TS named mixedCTEM_tomo4.mrc (whose
+details can be found separately in EMD-3420_). The dataset also includes:
 
 * The estimated CTF, carried out with scipion-em-gctf_ and converted with Scipion into IMOD_ CTF format to import it using the corresponding protocol from the plugin scipion-em-imod_.
 
@@ -330,13 +330,13 @@ The generated output will be a set of averages, one for each class specified. In
 the number of classes introduced in the protocol form was 1. Sometimes it can be very useful to specify more than one
 class even if there is only one class, and then select the best one, as sometimes the convergence is not reached and
 the result is not good. On the other hand, the higher number of classes introduced, the longer it will take the
-protocol to finish. Said that, let's open our initial model, in this case with ChimeraX_. It should look like as
+protocol to finish. Said that, let's open our initial model, in this case with Chimera_. It should look like as
 in the figure below:
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/14_initial_volume_chimerax.png
    :width: 500
    :align: center
-   :alt: Initial volume displayed with ChimeraX_
+   :alt: Initial volume displayed with Chimera_
 
 Subtomogram refinement
 ======================
@@ -386,12 +386,12 @@ This protocol generates 3 outputs, that are:
 
 Let's display it:
 
-* The refined average, using ChimeraX_:
+* The refined average, using Chimera_:
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/16_refined_avg_chimerax.png
    :width: 500
    :align: center
-   :alt: Refined average displayed with ChimeraX_
+   :alt: Refined average displayed with Chimera_
 
 * The refined subtomograms, displayed with Scipion metadata vierwer:
 
@@ -410,27 +410,47 @@ Let's display it:
 Full dataset results
 ====================
 The same workflow was carried out with all the TS (mixedCTEM ones) that compose the dataset EMPIAR-10064_. The
-corresponding refinement result (dispalyed with ChimeraX_) at bin 1, together with the FSC curves are shown below:
+corresponding refinement result (displayed with Chimera_) at bin 1, together with the FSC curves are shown below:
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/20_refined_avg_chimera_all_dataset.png
    :width: 500
    :align: center
-   :alt: Refined average displayed with ChimeraX_ whole dataset
+   :alt: Refined average displayed with Chimera_ whole dataset
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/21_fscs_whole_dataset_bin1.png
    :width: 500
    :align: center
    :alt: FSCs at bin1 whole dataset
 
+The volume obtained was sharpened using the protocol deepEMhancer from the plugin scipion-em-xmipp_. The resulting
+volume can be observed in the figure below, displayed again with Chimera_:
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/20_sharpened_refined_volume_whole_dataset.png
+   :width: 500
+   :align: center
+   :alt: Sharpened refined average displayed with Chimera_ whole dataset
+
+Compared to the corresponding EMD dataset (EMD-3420_), the resolution it can be observed that the resolution achieved
+with the workflow proposed is higher that the reported in EMD (8.3Å vs 11.2Å). The figure below shows the superposition
+ob both structures (EMD in yellow and the one obtained in blue) displayed with Chimera_. It can be observed that the
+correlation between both structures is about 84%.
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/20_EMD_and_obtained_structures_superposed.png
+   :width: 900
+   :align: center
+   :alt: EMD and obtained structures superposed displayed with Chimera_ whole dataset
+
 
 .. _Scipion: http://scipion.i2pc.es/
 .. _IMOD: https://bio3d.colorado.edu/imod/
 .. _EMAN: https://blake.bcm.edu/emanwiki/EMAN2
 .. _crYOLO: https://cryolo.readthedocs.io/en/stable/
-.. _ChimeraX: https://www.cgl.ucsf.edu/chimerax/
+.. _Chimera: https://www.cgl.ucsf.edu/chimera/
 .. _scipion-em-tomo: https://github.com/scipion-em/scipion-em-tomo
 .. _scipion-em-imod: https://github.com/scipion-em/scipion-em-imod
 .. _scipion-em-emantomo: https://github.com/scipion-em/scipion-em-emantomo
 .. _scipion-em-gctf: https://github.com/scipion-em/scipion-em-gctf
 .. _scipion-em-sphire: https://github.com/scipion-em/scipion-em-sphire
+.. _scipion-em-xmipp: https://github.com/I2PC/scipion-em-xmipp
 .. _EMPIAR-10064: https://www.ebi.ac.uk/empiar/EMPIAR-10064/
+.. _EMD-3420: https://www.ebi.ac.uk/emdb/EMD-3420?tab=overview
