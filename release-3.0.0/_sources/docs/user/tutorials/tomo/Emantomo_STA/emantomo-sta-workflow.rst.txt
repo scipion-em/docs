@@ -433,7 +433,8 @@ volume can be observed in the figure below, displayed again with Chimera_:
 Compared to the corresponding EMD dataset (EMD-3420_), the resolution it can be observed that the resolution achieved
 with the workflow proposed is higher that the reported in EMD (8.3Å vs 11.2Å). The figure below shows the superposition
 ob both structures (EMD in yellow and the one obtained in blue) displayed with Chimera_. It can be observed that the
-correlation between both structures is about 84%.
+correlation between both structures is about 84% (Thanks to Patricia Losana from BCU CNB-CSIC for the help with
+Chimera).
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/20_EMD_and_obtained_structures_superposed.png
    :width: 900
