@@ -422,8 +422,8 @@ corresponding refinement result (displayed with Chimera_) at bin 1, together wit
    :align: center
    :alt: FSCs at bin1 whole dataset
 
-The volume obtained was sharpened using the protocol deepEMhancer from the plugin scipion-em-xmipp_. The resulting
-volume can be observed in the figure below, displayed again with Chimera_:
+The volume obtained was sharpened using the protocol localdeblur sharpening from the plugin scipion-em-xmipp_.
+The resulting volume can be observed in the figure below, displayed again with Chimera_:
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/20_sharpened_refined_volume_whole_dataset.png
    :width: 500
@@ -433,7 +433,7 @@ volume can be observed in the figure below, displayed again with Chimera_:
 Compared to the corresponding EMD dataset (EMD-3420_), the resolution it can be observed that the resolution achieved
 with the workflow proposed is higher that the reported in EMD (8.3Å vs 11.2Å). The figure below shows the superposition
 ob both structures (EMD in yellow and the one obtained in blue) displayed with Chimera_. It can be observed that the
-correlation between both structures is about 84% (Thanks to Patricia Losana from BCU CNB-CSIC for the help with
+correlation between both structures is 93.7% (Thanks to Patricia Losana from BCU CNB-CSIC for the help with
 Chimera).
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/20_EMD_and_obtained_structures_superposed.png
@@ -441,6 +441,13 @@ Chimera).
    :align: center
    :alt: EMD and obtained structures superposed displayed with Chimera_ whole dataset
 
+Finally, the local resolution was estimated using the protocol MonoRes from the plugin scipion-em-xmipp_. The following
+figure shows the local resolution map over the sharpened structure displayed with Chimera_.
+
+.. figure:: /docs/user/tutorials/tomo/Emantomo_STA/20_Obtained_structure_resolution_map_over_sharpened.png
+   :width: 700
+   :align: center
+   :alt: Obtained structure MonoRes local resolution map over sharpened
 
 .. _Scipion: http://scipion.i2pc.es/
 .. _IMOD: https://bio3d.colorado.edu/imod/
