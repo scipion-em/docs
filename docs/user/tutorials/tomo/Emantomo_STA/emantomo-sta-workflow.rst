@@ -446,7 +446,7 @@ figure shows the local resolution map over the sharpened structure displayed wit
 from BCU CNB-CSIC for the help with the local resolution and sharpening).
 
 .. figure:: /docs/user/tutorials/tomo/Emantomo_STA/20_Obtained_structure_resolution_map_over_sharpened.png
-   :width: 700
+   :width: 550
    :align: center
    :alt: Obtained structure MonoRes local resolution map over sharpened
 
