@@ -32,24 +32,6 @@ This attribute will make all the steps functions run at the same time by default
       # It has to be an integer greater than 0.
       form.addParallelSection(threads=N)
       # ...
-Note, Scipion also allows for MPI usage, but support is going to drop soon, so this guide will not cover how to use it since it won't be possible for much longer.
-
-* Due to the same lack of future support for MPI within Scipion, it is recommended to add the following lines inside the protocol's ``_validate`` function, even if it is not strictly needed:
-
-.. code:: python
-
-   def _validate(self):
-      # Defining empty list to store validation errors
-      errors = []
-      # ...
-
-      # Checking if MPI is selected (only threads are allowed)
-      if self.numberOfMpi > 1:
-         errors.append('MPI cannot be selected, because Scipion is going to drop support for it. Select threads instead.')
-      # ...
-      
-      return errors
-This will prevent any user from selecting MPI in the protocol's form, showing an error that can be easily understood.
 
 * In the protocol's ``_insertAllSteps`` function, the steps to be executed by the protocol need to be inserted with their dependencies. An example is provided below:
 
