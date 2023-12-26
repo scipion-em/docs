@@ -103,7 +103,7 @@
   <h1>Source code for xmipp3.protocols.protocol_deep_center</h1><div class="highlight"><pre>
 <span></span><span class="c1"># **************************************************************************</span>
 <span class="c1"># *</span>
-<span class="c1"># * Authors:     COS Sorzano and Adrian Sansinena</span>
+<span class="c1"># * Authors:     COS Sorzano, Erney Ramirez and Adrian Sansinena</span>
 <span class="c1"># *</span>
 <span class="c1"># * Unidad de  Bioinformatica of Centro Nacional de Biotecnologia , CSIC</span>
 <span class="c1"># *</span>
@@ -128,105 +128,85 @@
 <span class="c1"># **************************************************************************</span>
 
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">VERSION_3_0</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.protocol</span> <span class="kn">import</span> <span class="n">STEPS_PARALLEL</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">StringParam</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">StringParam</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span>
                                         <span class="n">IntParam</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">GPU_LIST</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="kn">import</span> <span class="n">LEVEL_ADVANCED</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.utils.path</span> <span class="kn">import</span> <span class="n">moveFile</span><span class="p">,</span> <span class="n">cleanPattern</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">Message</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">ProtAlign2D</span>
-<span class="kn">from</span> <span class="nn">pwem.emlib.metadata</span> <span class="kn">import</span> <span class="n">iterRows</span><span class="p">,</span> <span class="n">getFirstRow</span>
-<span class="kn">import</span> <span class="nn">pwem.emlib.metadata</span> <span class="k">as</span> <span class="nn">md</span>
-<span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="kn">import</span> <span class="n">createItemMatrix</span><span class="p">,</span> <span class="n">setXmippAttributes</span><span class="p">,</span> <span class="n">readSetOfParticles</span><span class="p">,</span> <span class="n">writeSetOfParticles</span>
-<span class="kn">from</span> <span class="nn">pwem</span> <span class="kn">import</span> <span class="n">ALIGN_PROJ</span>
-<span class="kn">from</span> <span class="nn">pwem</span> <span class="kn">import</span> <span class="n">emlib</span>
-<span class="kn">from</span> <span class="nn">pwem.emlib.image</span> <span class="kn">import</span> <span class="n">ImageHandler</span>
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">String</span>
+<span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="kn">import</span> <span class="n">readSetOfParticles</span><span class="p">,</span> <span class="n">writeSetOfParticles</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">sys</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">math</span>
-<span class="kn">from</span> <span class="nn">shutil</span> <span class="kn">import</span> <span class="n">copy</span>
 <span class="kn">from</span> <span class="nn">os</span> <span class="kn">import</span> <span class="n">remove</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span><span class="p">,</span> <span class="n">join</span>
 <span class="kn">import</span> <span class="nn">xmipp3</span>
+<span class="kn">from</span> <span class="nn">xmipp_base</span> <span class="kn">import</span> <span class="n">XmippScript</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">BETA</span><span class="p">,</span> <span class="n">UPDATED</span><span class="p">,</span> <span class="n">NEW</span><span class="p">,</span> <span class="n">PROD</span>
 
 <div class="viewcode-block" id="XmippProtDeepCenter"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_deep_center.html#xmipp3.protocols.protocol_deep_center.XmippProtDeepCenter">[docs]</a><span class="k">class</span> <span class="nc">XmippProtDeepCenter</span><span class="p">(</span><span class="n">ProtAlign2D</span><span class="p">,</span> <span class="n">xmipp3</span><span class="o">.</span><span class="n">XmippProtocol</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Learns a model to center particles using deep learning. Particles must be previously centered with respect</span>
-<span class="sd">       to a volume, and they must have 3D alignment information. &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Center a set of particles with a neural network.&quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;deep center&#39;</span>
-    <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_3_0</span>
     <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">BETA</span>
+    <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_3_0</span>
     <span class="n">_conda_env</span> <span class="o">=</span> <span class="s1">&#39;xmipp_DLTK_v1.0&#39;</span>
-    <span class="n">_cond_modelPretrainTrue</span> <span class="o">=</span> <span class="s1">&#39;modelPretrain==True&#39;</span>
-    <span class="n">_cond_modelPretrainFalse</span> <span class="o">=</span> <span class="s1">&#39;modelPretrain==False&#39;</span>
-
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
         <span class="n">ProtAlign2D</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
+
     <span class="c1"># --------------------------- DEFINE param functions --------------------------------------------</span>
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+
         <span class="n">form</span><span class="o">.</span><span class="n">addHidden</span><span class="p">(</span><span class="n">GPU_LIST</span><span class="p">,</span> <span class="n">StringParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;0&#39;</span><span class="p">,</span>
                        <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
                        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Choose GPU IDs&quot;</span><span class="p">,</span>
                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;GPU may have several cores. Set it to zero&quot;</span>
                             <span class="s2">&quot; if you do not know what we are talking about.&quot;</span>
                             <span class="s2">&quot; First core index is 0, second 1 and so on.&quot;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Input&#39;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputTrainSet&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Input training set&quot;</span><span class="p">,</span>
+
+        <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">Message</span><span class="o">.</span><span class="n">LABEL_INPUT</span><span class="p">)</span>
+
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;inputImageSet&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Input Image set&quot;</span><span class="p">,</span>
                       <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;SetOfParticles&#39;</span><span class="p">,</span>
-                      <span class="n">pointerCondition</span><span class="o">=</span><span class="s1">&#39;hasAlignment2D or hasAlignmentProj&#39;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The set of particles previously aligned to be used as training set&#39;</span><span class="p">)</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;The set of particles to center&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;sigma&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Shift sigma&quot;</span><span class="p">,</span>
+                      <span class="n">default</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Sigma for the training of the shift&quot;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;Xdim&#39;</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Image size&quot;</span><span class="p">,</span>
+                      <span class="n">default</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span>
+                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Image size during the processing&quot;</span><span class="p">)</span>
 
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;Xdim&#39;</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Size of the images for training&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="s1">&#39;Training parameters&#39;</span><span class="p">)</span>
 
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;modelPretrain&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Choose if you want to use a pretrained model&#39;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Set &quot;yes&quot; if you want to use a previously trained model. &#39;</span>
-                           <span class="s1">&#39;If you choose &quot;no&quot; new models will be trained.&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;numModels&#39;</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Number of models&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;The maximum number of model available in xmipp is 5.&quot;</span><span class="p">)</span>
 
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;pretrainedModels&#39;</span><span class="p">,</span> <span class="n">PointerParam</span><span class="p">,</span>
-                      <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;XmippProtDeepCenter&#39;</span><span class="p">,</span>
-                      <span class="n">condition</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cond_modelPretrainTrue</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Pretrained model&#39;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select the pretrained model. &#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;trainSetSize&#39;</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Train set size&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">5000</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;How many particles from the training&#39;</span><span class="p">)</span>
 
-        <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Training parameters&#39;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;numCenModels&#39;</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Number of models for particle centering&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Choose number of models you want to train. More than 1 is recommended only if next step &quot;</span>
-                           <span class="s2">&quot;is inference.&quot;</span><span class="p">)</span>
-
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;numEpochs_cen&#39;</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;numEpochs&#39;</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Number of epochs&quot;</span><span class="p">,</span>
-                      <span class="n">default</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                      <span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Number of epochs for training.&quot;</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;batchSize&#39;</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Batch size for training&quot;</span><span class="p">,</span>
-                      <span class="n">default</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                      <span class="n">default</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span>
+                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Batch size for training.&quot;</span><span class="p">)</span>
 
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;learningRate&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Learning rate&quot;</span><span class="p">,</span>
-                      <span class="n">default</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span> <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                      <span class="n">default</span><span class="o">=</span><span class="mf">0.001</span><span class="p">,</span>
+                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Learning rate for training.&quot;</span><span class="p">)</span>
-
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;sigma&#39;</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Image shifting&quot;</span><span class="p">,</span>
-                      <span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;A measure of the number of pixels that particles can be shifted in each direction from the center.&quot;</span><span class="p">)</span>
-
-        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;patience&#39;</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span>
-                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Patience&quot;</span><span class="p">,</span>
-                      <span class="n">default</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Training will be stopped if the number of epochs without improvement is greater than &quot;</span>
-                           <span class="s2">&quot;patience.&quot;</span><span class="p">)</span>
-
-        <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="c1"># --------------------------- INSERT steps functions --------------------------------------------</span>
     <span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">trainImgsFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;train_input_imgs.xmd&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">useQueueForSteps</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">useQueue</span><span class="p">():</span>
             <span class="n">myStr</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;CUDA_VISIBLE_DEVICES&quot;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -234,46 +214,53 @@
             <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;CUDA_VISIBLE_DEVICES&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpuList</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="n">numGPU</span> <span class="o">=</span> <span class="n">myStr</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s2">&quot;convertStep&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="n">numGPU</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s2">&quot;predict&quot;</span><span class="p">,</span> <span class="n">numGPU</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;createOutputStep&#39;</span><span class="p">)</span>
 
     <span class="c1"># --------------------------- STEPS functions ---------------------------------------------------</span>
-<div class="viewcode-block" id="XmippProtDeepCenter.convertStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_deep_center.html#xmipp3.protocols.protocol_deep_center.XmippProtDeepCenter.convertStep">[docs]</a>    <span class="k">def</span> <span class="nf">convertStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">writeSetOfParticles</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputTrainSet</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">trainImgsFn</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_image_resize&quot;</span><span class="p">,</span>
-                    <span class="s2">&quot;-i </span><span class="si">%s</span><span class="s2"> -o </span><span class="si">%s</span><span class="s2"> --save_metadata_stack </span><span class="si">%s</span><span class="s2"> --fourier </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span>
-                    <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">trainImgsFn</span><span class="p">,</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;trainingResized.stk&#39;</span><span class="p">),</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;trainingResized.xmd&#39;</span><span class="p">),</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">Xdim</span><span class="p">),</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">numberOfThreads</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span><span class="o">.</span><span class="n">get</span><span class="p">())</span></div>
-
 <div class="viewcode-block" id="XmippProtDeepCenter.train"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_deep_center.html#xmipp3.protocols.protocol_deep_center.XmippProtDeepCenter.train">[docs]</a>    <span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gpuId</span><span class="p">):</span>
+        <span class="n">fnTrain</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s2">&quot;trainingImages&quot;</span><span class="p">)</span>
+        <span class="n">writeSetOfParticles</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputImageSet</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">fnTrain</span><span class="o">+</span><span class="s2">&quot;.xmd&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_metadata_utilities&quot;</span><span class="p">,</span><span class="s2">&quot;-i </span><span class="si">%s</span><span class="s2">.xmd --operate random_subset </span><span class="si">%d</span><span class="s2">&quot;</span><span class="o">%</span>\
+                    <span class="p">(</span><span class="n">fnTrain</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">trainSetSize</span><span class="p">),</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_image_resize&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;-i </span><span class="si">%s</span><span class="s2">.xmd -o </span><span class="si">%s</span><span class="s2">.stk --save_metadata_stack </span><span class="si">%s</span><span class="s2">.xmd --fourier </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span>
+                    <span class="p">(</span><span class="n">fnTrain</span><span class="p">,</span> <span class="n">fnTrain</span><span class="p">,</span> <span class="n">fnTrain</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Xdim</span><span class="p">),</span>
+                    <span class="n">numberOfMpi</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">numberOfThreads</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%f</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%f</span><span class="s2">&quot;</span> <span class="o">%</span>\
+               <span class="p">(</span><span class="n">fnTrain</span><span class="o">+</span><span class="s2">&quot;.xmd&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;model&quot;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">numEpochs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">batchSize</span><span class="p">,</span> <span class="n">gpuId</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">numModels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">learningRate</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;xmipp_deep_center&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getCondaEnv</span><span class="p">())</span></div>
 
-        <span class="n">sig</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+<div class="viewcode-block" id="XmippProtDeepCenter.predict"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_deep_center.html#xmipp3.protocols.protocol_deep_center.XmippProtDeepCenter.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gpuId</span><span class="p">):</span>
+        <span class="n">fnPredict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;predictImages&quot;</span><span class="p">)</span>
+        <span class="n">fnPredictResized</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s2">&quot;predictImages&quot;</span><span class="p">)</span>
+        <span class="n">writeSetOfParticles</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputImageSet</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">fnPredict</span><span class="o">+</span><span class="s2">&quot;.xmd&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_image_resize&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;-i </span><span class="si">%s</span><span class="s2">.xmd -o </span><span class="si">%s</span><span class="s2">.stk --save_metadata_stack </span><span class="si">%s</span><span class="s2">.xmd --fourier </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span>
+                    <span class="p">(</span><span class="n">fnPredict</span><span class="p">,</span> <span class="n">fnPredictResized</span><span class="p">,</span> <span class="n">fnPredictResized</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Xdim</span><span class="p">),</span>
+                    <span class="n">numberOfMpi</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">numberOfThreads</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">fnPredict</span><span class="o">+</span><span class="s2">&quot;.xmd&quot;</span><span class="p">,</span> <span class="n">gpuId</span><span class="p">,</span> <span class="n">fnPredictResized</span><span class="o">+</span><span class="s2">&quot;.xmd&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;model&quot;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_deep_center_predict&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getCondaEnv</span><span class="p">())</span></div>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">pretrained</span> <span class="o">=</span> <span class="s1">&#39;no&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">pathToModel</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modelPretrain</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pretrainedModels</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pretrained</span> <span class="o">=</span> <span class="s1">&#39;yes&#39;</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">pathToModel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;modelCenter0.h5&quot;</span><span class="p">)</span>
-
-        <span class="n">args</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%f</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%f</span><span class="s2"> </span><span class="si">%d</span><span class="s2"> </span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;trainingResized.xmd&quot;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;modelCenter&quot;</span><span class="p">),</span> <span class="n">sig</span><span class="p">,</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">numEpochs_cen</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">batchSize</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">gpuId</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">numCenModels</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">learningRate</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">patience</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">pretrained</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pathToModel</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_deep_center&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getCondaEnv</span><span class="p">())</span>
-
-        <span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;trainingResized.xmd&quot;</span><span class="p">))</span>
-        <span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;trainingResized.stk&quot;</span><span class="p">))</span></div>
+<div class="viewcode-block" id="XmippProtDeepCenter.createOutputStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_deep_center.html#xmipp3.protocols.protocol_deep_center.XmippProtDeepCenter.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">fnPredict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;predictImages.xmd&quot;</span><span class="p">)</span>
+        <span class="n">outputSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfParticles</span><span class="p">()</span>
+        <span class="n">readSetOfParticles</span><span class="p">(</span><span class="n">fnPredict</span><span class="p">,</span> <span class="n">outputSet</span><span class="p">)</span>
+        <span class="n">outputSet</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputImageSet</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="n">outputSet</span><span class="o">.</span><span class="n">setAlignmentProj</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputParticles</span><span class="o">=</span><span class="n">outputSet</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="n">outputSet</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputImageSet</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">outputSet</span><span class="p">)</span></div>
 
     <span class="c1"># --------------------------- INFO functions --------------------------------</span>
     <span class="k">def</span> <span class="nf">_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">methods</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;outputParticles&#39;</span><span class="p">):</span>
             <span class="n">methods</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;We learned a model to center particles from </span><span class="si">%i</span><span class="s2"> input images (</span><span class="si">%s</span><span class="s2">).&quot;</span> \
-                <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSize</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">getObjectTag</span><span class="p">(</span><span class="s1">&#39;inputSet&#39;</span><span class="p">)))</span>
+                           <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSize</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">getObjectTag</span><span class="p">(</span><span class="s1">&#39;inputSet&#39;</span><span class="p">)))</span>
         <span class="k">return</span> <span class="n">methods</span></div>
 </pre></div>
 
