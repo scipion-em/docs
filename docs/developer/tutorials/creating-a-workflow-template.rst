@@ -182,7 +182,7 @@ In our example we want to ask for the ``Message`` and the ``Time`` parameters.
    :width: 750
    :alt: Customized template
 
-You can find more details about how the ``dynamic fields`` syntax works `here </docs/facilities/facilities-workflows.html#creating-custom-dynamic-templates>`_.
+You can find more details about how the ``dynamic fields`` syntax works `here <../../facilities/facilities-workflows.html#creating-custom-dynamic-templates>`_.
 
 Now you can provide the values for these dynamic parameters directly from the command line, e.g. below Message and Time dynamic parameters were defined as arguments:
 
