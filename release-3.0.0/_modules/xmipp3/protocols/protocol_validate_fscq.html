@@ -128,7 +128,7 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 
-<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">shutil</span><span class="o">,</span> <span class="nn">gzip</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">VERSION_3_0</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span>
                                         <span class="n">IntParam</span><span class="p">,</span> <span class="n">FileParam</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">)</span>
@@ -150,7 +150,6 @@
 <span class="n">BLOCRES_HALF_FILE</span> <span class="o">=</span> <span class="s1">&#39;blocresHalf&#39;</span>
 <span class="n">RESTA_FILE</span> <span class="o">=</span> <span class="s1">&#39;diferencia.vol&#39;</span>
 <span class="n">RESTA_FILE_MRC</span> <span class="o">=</span> <span class="s1">&#39;diferencia.map&#39;</span>
-<span class="n">PDB_VALUE_FILE</span> <span class="o">=</span> <span class="s1">&#39;pdb_fsc-q.pdb&#39;</span>
 <span class="n">MASK_FILE_MRC</span> <span class="o">=</span> <span class="s1">&#39;mask.map&#39;</span>
 <span class="n">MASK_FILE</span> <span class="o">=</span> <span class="s1">&#39;mask.vol&#39;</span>
 <span class="n">FN_VOL</span> <span class="o">=</span> <span class="s1">&#39;vol.map&#39;</span>
@@ -159,7 +158,6 @@
 <span class="n">MD_MEANS</span> <span class="o">=</span> <span class="s1">&#39;params.xmd&#39;</span>
 <span class="n">MD2_MEANS</span> <span class="o">=</span> <span class="s1">&#39;params2.xmd&#39;</span>
 <span class="n">RESTA_FILE_NORM</span> <span class="o">=</span> <span class="s1">&#39;diferencia_norm.map&#39;</span>
-<span class="n">PDB_NORM_FILE</span> <span class="o">=</span> <span class="s1">&#39;pdb_fsc-q_norm.pdb&#39;</span>
 <span class="n">OUTPUT_CIF</span> <span class="o">=</span> <span class="s1">&#39;fscq_struct.cif&#39;</span>
 
 
@@ -230,7 +228,6 @@
         <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="c1"># --------------------------- INSERT steps functions --------------------------------------------</span>
-
     <span class="k">def</span> <span class="nf">_createFilenameTemplates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Centralize how files are called &quot;&quot;&quot;</span>
         <span class="n">myDict</span> <span class="o">=</span> <span class="p">{</span>
@@ -241,8 +238,6 @@
                  <span class="n">RESTA_FILE</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s1">&#39;diferencia.vol&#39;</span><span class="p">),</span>
                  <span class="n">RESTA_FILE_MRC</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;diferencia.map&#39;</span><span class="p">),</span>
                  <span class="n">RESTA_FILE_NORM</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;diferencia_norm.map&#39;</span><span class="p">),</span>
-                 <span class="n">PDB_VALUE_FILE</span><span class="p">:</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;pdb_fsc-q.pdb&#39;</span><span class="p">),</span>
-                 <span class="n">PDB_NORM_FILE</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;pdb_fsc-q_norm.pdb&#39;</span><span class="p">),</span>
                  <span class="n">MASK_FILE_MRC</span> <span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;mask.map&#39;</span><span class="p">),</span>
                  <span class="n">MASK_FILE</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s1">&#39;mask.vol&#39;</span><span class="p">),</span>
                  <span class="n">FN_VOL</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s2">&quot;vol.map&quot;</span><span class="p">),</span>
@@ -268,13 +263,10 @@
 <div class="viewcode-block" id="XmippProtValFit.convertInputStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_validate_fscq.html#xmipp3.protocols.protocol_validate_fscq.XmippProtValFit.convertInputStep">[docs]</a>    <span class="k">def</span> <span class="nf">convertInputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Convert inputs to desired format.&quot;&quot;&quot;</span>
         <span class="c1">#Convert Input to pdb</span>
-        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getInputStructFile</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.pdb&#39;</span><span class="p">)</span> <span class="ow">or</span> 
-            <span class="bp">self</span><span class="o">.</span><span class="n">getInputStructFile</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.ent&#39;</span><span class="p">)</span> <span class="ow">or</span> 
-            <span class="bp">self</span><span class="o">.</span><span class="n">getInputStructFile</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.cif&#39;</span><span class="p">)</span> <span class="ow">or</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">getInputStructFile</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.cif.gz&#39;</span><span class="p">)):</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getInputStructFile</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPDBFile</span><span class="p">())</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isStructExtensionValid</span><span class="p">():</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getInputStructFile</span><span class="p">()),</span> <span class="bp">self</span><span class="o">.</span><span class="n">getStructFile</span><span class="p">())</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">toPdb</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getInputStructFile</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPDBFile</span><span class="p">())</span>
+            <span class="n">toPdb</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getInputStructFile</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">getStructFile</span><span class="p">())</span>
 
         <span class="sd">&quot;&quot;&quot; Read the input volume.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">volume</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputVolume</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
@@ -327,7 +319,7 @@
             <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; -v 0 &#39;</span>
             <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --sampling </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputVolume</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
             <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --size </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputVolume</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getXDim</span><span class="p">()</span>
-            <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; -i </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPDBFile</span><span class="p">()</span>
+            <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; -i </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">getStructFile</span><span class="p">()</span>
             <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; -o </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">OUTPUT_PDBVOL_FILE</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_volume_from_pdb&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
 
@@ -469,10 +461,10 @@
 
 <div class="viewcode-block" id="XmippProtValFit.assignPdbStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_validate_fscq.html#xmipp3.protocols.protocol_validate_fscq.XmippProtValFit.assignPdbStep">[docs]</a>    <span class="k">def</span> <span class="nf">assignPdbStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
-        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39; --pdb </span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPDBFile</span><span class="p">()</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39; --pdb </span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">getStructFile</span><span class="p">()</span>
         <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --vol </span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">RESTA_FILE_MRC</span><span class="p">)</span>
         <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --mask </span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask_xmipp</span>
-        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; -o </span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">PDB_VALUE_FILE</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; -o </span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">getFSCQFile</span><span class="p">()</span>
         <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --sampling </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputVolume</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
         <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --origin </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
         <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --radius 0.8&#39;</span>
@@ -480,10 +472,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_pdb_label_from_volume&#39;</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
 
         <span class="sd">&quot;&quot;&quot;Diveded by resolution&quot;&quot;&quot;</span>
-        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39; --pdb </span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPDBFile</span><span class="p">()</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="s1">&#39; --pdb </span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">getStructFile</span><span class="p">()</span>
         <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --vol </span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">RESTA_FILE_NORM</span><span class="p">)</span>
         <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --mask </span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">mask_xmipp</span>
-        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; -o </span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">PDB_NORM_FILE</span><span class="p">)</span>
+        <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; -o </span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">getNormFSCQFile</span><span class="p">()</span>
         <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --sampling </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputVolume</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
         <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --origin </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1"> </span><span class="si">%f</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
         <span class="n">params</span> <span class="o">+=</span> <span class="s1">&#39; --radius 0.8&#39;</span>
@@ -509,48 +501,55 @@
 
         <span class="c1"># statistic from fnal pdb with fsc-q</span>
         <span class="c1"># Number of atoms greater or less than 0.5</span>
-        <span class="n">total_atom</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">fscq_greater</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="n">fscq_less</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">PDB_VALUE_FILE</span><span class="p">))</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">lines_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">lin</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines_data</span><span class="p">):</span>
+        <span class="n">totalAtom</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">fscqGreater</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">fscqLess</span> <span class="o">=</span> <span class="mi">0</span>
 
-                <span class="k">if</span> <span class="p">(</span><span class="n">lin</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">lin</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;HETATM&#39;</span><span class="p">)):</span>
+        <span class="c1"># Reading FCSQ&#39;s value file</span>
+        <span class="n">atStHandler</span> <span class="o">=</span> <span class="n">AtomicStructHandler</span><span class="p">()</span>
+        <span class="n">atStHandler</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getFSCQFile</span><span class="p">())</span>
 
-                    <span class="n">total_atom</span> <span class="o">=</span> <span class="n">total_atom</span> <span class="o">+</span> <span class="mi">1</span>
-                    <span class="n">fscq_atom</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">lin</span><span class="p">[</span><span class="mi">54</span><span class="p">:</span><span class="mi">60</span><span class="p">])</span>
+        <span class="c1"># Reading value stored in occupancy field for each atom</span>
+        <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">atStHandler</span><span class="o">.</span><span class="n">structure</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">get_atoms</span><span class="p">():</span>
+                <span class="n">totalAtom</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">fscqAtom</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">get_occupancy</span><span class="p">()</span>
 
-                    <span class="k">if</span> <span class="p">(</span><span class="n">fscq_atom</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">):</span>
-                        <span class="n">fscq_greater</span> <span class="o">=</span> <span class="n">fscq_greater</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">fscqAtom</span> <span class="o">&gt;</span> <span class="mf">0.5</span><span class="p">):</span>
+                    <span class="n">fscqGreater</span> <span class="o">+=</span> <span class="mi">1</span>
 
-                    <span class="k">if</span> <span class="p">(</span><span class="n">fscq_atom</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">):</span>
-                        <span class="n">fscq_less</span> <span class="o">=</span> <span class="n">fscq_less</span> <span class="o">+</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">fscqAtom</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">):</span>
+                    <span class="n">fscqLess</span> <span class="o">+=</span> <span class="mi">1</span>
 
-        <span class="n">porc_greater</span> <span class="o">=</span> <span class="p">(</span><span class="n">fscq_greater</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="o">/</span> <span class="n">total_atom</span>
-        <span class="n">porc_less</span> <span class="o">=</span> <span class="p">(</span><span class="n">fscq_less</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="o">/</span> <span class="n">total_atom</span>
+        <span class="n">porcGreater</span> <span class="o">=</span> <span class="p">(</span><span class="n">fscqGreater</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="o">/</span> <span class="n">totalAtom</span>
+        <span class="n">porcLess</span> <span class="o">=</span> <span class="p">(</span><span class="n">fscqLess</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span> <span class="o">/</span> <span class="n">totalAtom</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">mean</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meanA</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">meanA</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mean2</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">mean2</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">meanA2</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">meanA2</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">total_atom</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="n">total_atom</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fscq_greater</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="n">fscq_greater</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">fscq_less</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="n">fscq_less</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">porc_greater</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">porc_greater</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">porc_less</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">porc_less</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_atom</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="n">totalAtom</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fscq_greater</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="n">fscqGreater</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fscq_less</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="n">fscqLess</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">porc_greater</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">porcGreater</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">porc_less</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="n">porcLess</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">()</span>
 
 <div class="viewcode-block" id="XmippProtValFit.getFscqAttrDic"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_validate_fscq.html#xmipp3.protocols.protocol_validate_fscq.XmippProtValFit.getFscqAttrDic">[docs]</a>    <span class="k">def</span> <span class="nf">getFscqAttrDic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">fscqDic</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getFileName</span><span class="p">(</span><span class="n">PDB_VALUE_FILE</span><span class="p">))</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">lines_data</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
-            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">lin</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lines_data</span><span class="p">):</span>
-                <span class="k">if</span> <span class="p">(</span><span class="n">lin</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;ATOM&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">lin</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;HETATM&#39;</span><span class="p">)):</span>
-                    <span class="n">resNumber</span><span class="p">,</span> <span class="n">resChain</span><span class="p">,</span> <span class="n">atomName</span> <span class="o">=</span> <span class="n">lin</span><span class="p">[</span><span class="mi">22</span><span class="p">:</span><span class="mi">26</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">lin</span><span class="p">[</span><span class="mi">21</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">lin</span><span class="p">[</span><span class="mi">12</span><span class="p">:</span><span class="mi">16</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-                    <span class="n">resId</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">:</span><span class="si">{}</span><span class="s1">@</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">resChain</span><span class="p">,</span> <span class="n">resNumber</span><span class="p">,</span> <span class="n">atomName</span><span class="p">)</span>
-                    <span class="n">fscq_atom</span> <span class="o">=</span> <span class="n">lin</span><span class="p">[</span><span class="mi">54</span><span class="p">:</span><span class="mi">60</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-                    <span class="n">fscqDic</span><span class="p">[</span><span class="n">resId</span><span class="p">]</span> <span class="o">=</span> <span class="n">fscq_atom</span>
+
+        <span class="c1"># Reading FCSQ&#39;s value file</span>
+        <span class="n">atStHandler</span> <span class="o">=</span> <span class="n">AtomicStructHandler</span><span class="p">()</span>
+        <span class="n">atStHandler</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getFSCQFile</span><span class="p">())</span>
+
+        <span class="c1"># Reading value stored in occupancy field for each atom</span>
+        <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="n">atStHandler</span><span class="o">.</span><span class="n">structure</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">atom</span> <span class="ow">in</span> <span class="n">model</span><span class="o">.</span><span class="n">get_atoms</span><span class="p">():</span>
+                <span class="n">fId</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">get_full_id</span><span class="p">()</span>
+                <span class="n">chainName</span><span class="p">,</span> <span class="n">resNumber</span><span class="p">,</span> <span class="n">atomName</span> <span class="o">=</span> <span class="n">fId</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">fId</span><span class="p">[</span><span class="mi">3</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">fId</span><span class="p">[</span><span class="mi">4</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">resId</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">:</span><span class="si">{}</span><span class="s1">@</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">chainName</span><span class="p">,</span> <span class="n">resNumber</span><span class="p">,</span> <span class="n">atomName</span><span class="p">)</span>
+                <span class="n">fscqDic</span><span class="p">[</span><span class="n">resId</span><span class="p">]</span> <span class="o">=</span> <span class="n">atom</span><span class="o">.</span><span class="n">get_occupancy</span><span class="p">()</span> <span class="c1"># FCSQ value (stored in occupancy variable)</span>
+
         <span class="k">return</span> <span class="n">fscqDic</span></div>
 
 <div class="viewcode-block" id="XmippProtValFit.createOutputStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_validate_fscq.html#xmipp3.protocols.protocol_validate_fscq.XmippProtValFit.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -558,9 +557,9 @@
         <span class="n">fscqDic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getFscqAttrDic</span><span class="p">()</span>
 
         <span class="n">AS</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputStruct</span><span class="p">()</span>
+        <span class="n">ASCIF</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputStructCIF</span><span class="p">()</span>
         <span class="n">ASH</span> <span class="o">=</span> <span class="n">AtomicStructHandler</span><span class="p">()</span>
-        <span class="n">inpAS</span> <span class="o">=</span> <span class="n">toCIF</span><span class="p">(</span><span class="n">AS</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s1">&#39;inputStruct.cif&#39;</span><span class="p">))</span>
-        <span class="n">cifDic</span> <span class="o">=</span> <span class="n">ASH</span><span class="o">.</span><span class="n">readLowLevel</span><span class="p">(</span><span class="n">inpAS</span><span class="p">)</span>
+        <span class="n">cifDic</span> <span class="o">=</span> <span class="n">ASH</span><span class="o">.</span><span class="n">readLowLevel</span><span class="p">(</span><span class="n">ASCIF</span><span class="p">)</span>
         <span class="n">cifDic</span> <span class="o">=</span> <span class="n">addScipionAttribute</span><span class="p">(</span><span class="n">cifDic</span><span class="p">,</span> <span class="n">fscqDic</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ATTRNAME</span><span class="p">,</span> <span class="n">recipient</span><span class="o">=</span><span class="s1">&#39;atoms&#39;</span><span class="p">)</span>
         <span class="n">ASH</span><span class="o">.</span><span class="n">_writeLowLevel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getPath</span><span class="p">(</span><span class="n">OUTPUT_CIF</span><span class="p">),</span> <span class="n">cifDic</span><span class="p">)</span>
 
@@ -644,16 +643,95 @@
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputPDB</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputPDBObj</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span></div>
+    
+<div class="viewcode-block" id="XmippProtValFit.getInputStructCIF"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_validate_fscq.html#xmipp3.protocols.protocol_validate_fscq.XmippProtValFit.getInputStructCIF">[docs]</a>    <span class="k">def</span> <span class="nf">getInputStructCIF</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### This function returns the full path for the input Atom Struct file in cif format.</span>
+<span class="sd">        #### If file is not in cif format, it is converted to it. </span>
 
-<div class="viewcode-block" id="XmippProtValFit.getPDBFile"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_validate_fscq.html#xmipp3.protocols.protocol_validate_fscq.XmippProtValFit.getPDBFile">[docs]</a>    <span class="k">def</span> <span class="nf">getPDBFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;inputPDB.pdb&#39;</span><span class="p">)</span></div>
+<span class="sd">        #### Returns:</span>
+<span class="sd">        - (str): Input Atom Struct&#39;s file&#39;s path.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Get raw input filename</span>
+        <span class="n">structFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputStructFile</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="s1">&#39;.cif&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">structFile</span><span class="p">:</span>
+            <span class="c1"># If file is not in cif format, convert it</span>
+            <span class="n">structFile</span> <span class="o">=</span> <span class="n">toCIF</span><span class="p">(</span><span class="n">structFile</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s1">&#39;inputStruct.cif&#39;</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">structFile</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.cif.gz&#39;</span><span class="p">):</span>
+            <span class="c1"># If file is cif but compressed as a gz, extract it</span>
+            <span class="n">oFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s1">&#39;inputStruct.cif&#39;</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">gzip</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">structFile</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fIn</span><span class="p">:</span>
+                <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">oFile</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fOut</span><span class="p">:</span>
+                    <span class="n">shutil</span><span class="o">.</span><span class="n">copyfileobj</span><span class="p">(</span><span class="n">fIn</span><span class="p">,</span> <span class="n">fOut</span><span class="p">)</span>
+            <span class="n">structFile</span> <span class="o">=</span> <span class="n">oFile</span>
+        
+        <span class="c1"># Return input cif file</span>
+        <span class="k">return</span> <span class="n">structFile</span></div>
+
+<div class="viewcode-block" id="XmippProtValFit.getStructFile"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_validate_fscq.html#xmipp3.protocols.protocol_validate_fscq.XmippProtValFit.getStructFile">[docs]</a>    <span class="k">def</span> <span class="nf">getStructFile</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### This function returns the full path for the Atom Struct file.</span>
+
+<span class="sd">        #### Returns:</span>
+<span class="sd">        - (str): Atom Struct&#39;s file&#39;s path.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;inputStruct&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">getStructExtension</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="XmippProtValFit.getInputStruct"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_validate_fscq.html#xmipp3.protocols.protocol_validate_fscq.XmippProtValFit.getInputStruct">[docs]</a>    <span class="k">def</span> <span class="nf">getInputStruct</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fromFile</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">AtomStruct</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">inputPDB</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputPDBObj</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div></div>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputPDBObj</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
 
+<div class="viewcode-block" id="XmippProtValFit.isStructExtensionValid"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_validate_fscq.html#xmipp3.protocols.protocol_validate_fscq.XmippProtValFit.isStructExtensionValid">[docs]</a>    <span class="k">def</span> <span class="nf">isStructExtensionValid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### This function returns True if the input struct extension is one of the accepted types.</span>
+
+<span class="sd">        #### Returns:</span>
+<span class="sd">        - (bool): True if the input struct has an accepted extension. False otherwise.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Getting file&#39;s natural extension</span>
+        <span class="n">extension</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getInputStructFile</span><span class="p">())[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Return extension validity</span>
+        <span class="k">return</span> <span class="n">extension</span> <span class="o">==</span> <span class="s1">&#39;.pdb&#39;</span> <span class="ow">or</span> <span class="n">extension</span> <span class="o">==</span> <span class="s1">&#39;.ent&#39;</span> <span class="ow">or</span> <span class="n">extension</span> <span class="o">==</span> <span class="s1">&#39;.cif&#39;</span> <span class="ow">or</span> <span class="n">extension</span> <span class="o">==</span> <span class="s2">&quot;.mmcif&quot;</span> <span class="ow">or</span> <span class="n">extension</span> <span class="o">==</span> <span class="s2">&quot;.cif.gz&quot;</span></div>
+    
+<div class="viewcode-block" id="XmippProtValFit.getStructExtension"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_validate_fscq.html#xmipp3.protocols.protocol_validate_fscq.XmippProtValFit.getStructExtension">[docs]</a>    <span class="k">def</span> <span class="nf">getStructExtension</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### This function returns the expected extension for the Atom Struct file.</span>
+
+<span class="sd">        #### Returns:</span>
+<span class="sd">        - (str): Atom Struct&#39;s file&#39;s extension.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Getting file&#39;s natural extension</span>
+        <span class="n">extension</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getInputStructFile</span><span class="p">())[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># If extension is a maintainable type, return as is (not all valid types are maintainable)</span>
+        <span class="c1"># .pdb is not considered &quot;maintainable&quot; type as it is the default</span>
+        <span class="k">if</span> <span class="n">extension</span> <span class="o">==</span> <span class="s1">&#39;.cif&#39;</span> <span class="ow">or</span> <span class="n">extension</span> <span class="o">==</span> <span class="s2">&quot;.mmcif&quot;</span> <span class="ow">or</span> <span class="n">extension</span> <span class="o">==</span> <span class="s2">&quot;.cif.gz&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">extension</span>
+        
+        <span class="c1"># Return .pdb by default</span>
+        <span class="k">return</span> <span class="s1">&#39;.pdb&#39;</span></div>
+    
+<div class="viewcode-block" id="XmippProtValFit.getFSCQFile"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_validate_fscq.html#xmipp3.protocols.protocol_validate_fscq.XmippProtValFit.getFSCQFile">[docs]</a>    <span class="k">def</span> <span class="nf">getFSCQFile</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### This function returns the filename for FSCQ&#39;s value file.</span>
+
+<span class="sd">        #### Returns:</span>
+<span class="sd">        - (str): FSCQ&#39;s value file&#39;s full name with extension.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;pdb_fsc-q</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">getStructExtension</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="XmippProtValFit.getNormFSCQFile"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_validate_fscq.html#xmipp3.protocols.protocol_validate_fscq.XmippProtValFit.getNormFSCQFile">[docs]</a>    <span class="k">def</span> <span class="nf">getNormFSCQFile</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        ### This function returns the filename for FSCQ&#39;s norm file.</span>
+
+<span class="sd">        #### Returns:</span>
+<span class="sd">        - (str): FSCQ&#39;s norm file&#39;s full name with extension.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;pdb_fsc-q_norm</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">getStructExtension</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span></div></div>
 </pre></div>
 
            </div>
