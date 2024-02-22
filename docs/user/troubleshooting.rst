@@ -36,6 +36,24 @@ This command above prints a lot of information. Especially, at the end, it print
 take the text enclosed between horizontal lines and copy it in a file placed at ``<SCIPION_HOME>/scipion3`` and
 run ``chmod +x $SCIPION_HOME/scipion3`` to make it executable. That's your launcher.
 
+Fixing the error with locale settings
+=====================================
+
+The following error can happen if your locale is set to C (you can see the locale settings with `locale` command)
+
+:: 
+
+    File ".../lib/python3.8/site-packages/tkcolorpicker/colorpicker.py", line 43, in <module>
+    if getdefaultlocale()[0][:2] == 'fr':
+    TypeError: 'NoneType' object is not subscriptable
+
+The solution is to use our modified tkcolorpicker with a bug fix:
+
+::
+
+    scipion3 pip uninstall tkcolorpicker
+    scipion3 pip install git+https://github.com/scipion-em/tkColorPicker@master
+
 Fixing fonts in a conda installation
 ====================================
 This will fix the ugly fonts issue when using conda installation
