@@ -141,10 +141,11 @@
                             <span class="n">SYM_I2n3</span><span class="p">,</span> <span class="n">SYM_I2n3r</span><span class="p">,</span> <span class="n">SYM_I2n5</span><span class="p">,</span> <span class="n">SYM_I2n5r</span><span class="p">,</span>
                             <span class="n">SYM_DIHEDRAL_X</span><span class="p">,</span> <span class="n">SYM_DIHEDRAL_Y</span><span class="p">,</span>
                             <span class="n">SYM_TETRAHEDRAL_222</span><span class="p">,</span> <span class="n">SYM_TETRAHEDRAL_Z3</span><span class="p">,</span>
-                            <span class="n">SYM_TETRAHEDRAL_Z3R</span><span class="p">,</span> <span class="n">SCIPION_SYM_NAME</span>
+                            <span class="n">SYM_TETRAHEDRAL_Z3R</span><span class="p">,</span> <span class="n">SCIPION_SYM_NAME</span><span class="p">,</span> <span class="n">SYM_CYCLIC</span>
                             <span class="p">)</span>
 
 
+<span class="c1"># noinspection SqlDialectInspection</span>
 <div class="viewcode-block" id="ProtProjectionEditor"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_projection_edit.html#pwem.protocols.protocol_projection_edit.ProtProjectionEditor">[docs]</a><span class="k">class</span> <span class="nc">ProtProjectionEditor</span><span class="p">(</span><span class="n">EMProtocol</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This protocol edits the projection directions of all the items of a set of particles using</span>
@@ -152,7 +153,7 @@
 <span class="sd">    particles.</span>
 
 <span class="sd">    Several predefined operation are offered such as</span>
-<span class="sd">    * apply the rotation matrix define by a origin vector and a target vector</span>
+<span class="sd">    * apply the rotation matrix define by an origin vector and a target vector</span>
 <span class="sd">    * rotate the projection vector around a given vector by  A degrees</span>
 <span class="sd">    * convert between icosahedral symmetries</span>
 <span class="sd">    * convert between dihedral symmetries</span>
@@ -164,12 +165,14 @@
     <span class="n">CHOICE_ICOSAHEDRAL</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="n">CHOICE_DIHEDRAL</span> <span class="o">=</span> <span class="mi">3</span>
     <span class="n">CHOICE_TETRAHEDRAL</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">CHOICE_MOVE_UC</span> <span class="o">=</span><span class="mi">5</span>
     <span class="n">CHOICE_LABEL</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">CHOICE_MOVE_VECTOR</span><span class="p">:</span> <span class="s1">&#39;move source vector to target vector&#39;</span><span class="p">,</span>
         <span class="n">CHOICE_ROTATE_VECTOR</span><span class="p">:</span> <span class="s1">&#39;rotate around vector&#39;</span><span class="p">,</span>
         <span class="n">CHOICE_ICOSAHEDRAL</span><span class="p">:</span> <span class="s1">&#39;convert between icosahedral symmetries&#39;</span><span class="p">,</span>
         <span class="n">CHOICE_DIHEDRAL</span><span class="p">:</span> <span class="s1">&#39;convert between dihedral symmetries&#39;</span><span class="p">,</span>
         <span class="n">CHOICE_TETRAHEDRAL</span><span class="p">:</span> <span class="s1">&#39;convert between tetrahedral symmetries&#39;</span><span class="p">,</span>
+        <span class="n">CHOICE_MOVE_UC</span><span class="p">:</span> <span class="s1">&#39;move to unit cell&#39;</span>
         <span class="p">}</span>
     <span class="n">ICOSAHEDRAL_SYM_NAME</span> <span class="o">=</span> <span class="p">{</span>
         <span class="n">SYM_I222</span><span class="p">:</span> <span class="n">SCIPION_SYM_NAME</span><span class="p">[</span><span class="n">SYM_I222</span><span class="p">],</span>
@@ -211,6 +214,7 @@
                      <span class="bp">self</span><span class="o">.</span><span class="n">CHOICE_LABEL</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CHOICE_ICOSAHEDRAL</span><span class="p">],</span>
                      <span class="bp">self</span><span class="o">.</span><span class="n">CHOICE_LABEL</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CHOICE_DIHEDRAL</span><span class="p">],</span>
                      <span class="bp">self</span><span class="o">.</span><span class="n">CHOICE_LABEL</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CHOICE_TETRAHEDRAL</span><span class="p">],</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">CHOICE_LABEL</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">CHOICE_MOVE_UC</span><span class="p">]</span>
                      <span class="p">],</span>
             <span class="n">default</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">CHOICE_ICOSAHEDRAL</span><span class="p">,</span>
             <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Select operation&quot;</span><span class="p">,</span>
@@ -351,18 +355,58 @@
             <span class="n">default</span><span class="o">=</span><span class="n">SYM_TETRAHEDRAL_222</span> <span class="o">-</span> <span class="n">SYM_TETRAHEDRAL_222</span><span class="p">,</span>
             <span class="p">)</span>
 
+        <span class="c1"># Move to UC</span>
+        <span class="n">line</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">addLine</span><span class="p">(</span>
+            <span class="s1">&#39;Move to Unit cell&#39;</span><span class="p">,</span>
+            <span class="n">condition</span><span class="o">=</span><span class="s2">&quot;operation==</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">CHOICE_MOVE_UC</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Move particles to a symmetry unit cell&#39;</span>
+        <span class="p">)</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span>
+            <span class="s2">&quot;targetSymmetryToMove&quot;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">EnumParam</span><span class="p">,</span>
+            <span class="n">condition</span><span class="o">=</span><span class="s2">&quot;operation==</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">CHOICE_MOVE_UC</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Symmetry&quot;</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Symmetry type to use.&quot;</span><span class="p">,</span>
+            <span class="n">choices</span><span class="o">=</span><span class="nb">list</span><span class="p">(</span><span class="n">SCIPION_SYM_NAME</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+            <span class="n">default</span><span class="o">=</span><span class="n">SYM_CYCLIC</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">line</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span>
+            <span class="s2">&quot;symmetryOrderToMove&quot;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span>
+            <span class="n">condition</span><span class="o">=</span><span class="s2">&quot;operation==</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">CHOICE_MOVE_UC</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Order&quot;</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Order of the symmetry: 6 for C6, ...&quot;</span><span class="p">,</span>
+            <span class="n">default</span><span class="o">=</span><span class="mi">6</span><span class="p">,</span>
+        <span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">operation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">operation</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">operation</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">CHOICE_MOVE_VECTOR</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;rotateStep&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotateStep</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">CHOICE_ROTATE_VECTOR</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;rotateVectorStep&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotateVectorStep</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">CHOICE_ICOSAHEDRAL</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;rotateIcosaStep&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotateIcosahedralStep</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">CHOICE_DIHEDRAL</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;rotateDiStep&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotateDiStep</span><span class="p">)</span>
         <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">CHOICE_TETRAHEDRAL</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;rotateTetraStep&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rotateTetraStep</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">operation</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">CHOICE_MOVE_UC</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">moveToUCStep</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ProtProjectionEditor.moveToUCStep"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_projection_edit.html#pwem.protocols.protocol_projection_edit.ProtProjectionEditor.moveToUCStep">[docs]</a>    <span class="k">def</span> <span class="nf">moveToUCStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Moves the particle alignment information to the same unit cell based on the symmetry specified.&quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">pwem.convert</span> <span class="kn">import</span> <span class="n">SymmetryHelper</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Moving particle orientation to </span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">targetSymmetryToMove</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span><span class="bp">self</span><span class="o">.</span><span class="n">symmetryOrderToMove</span><span class="o">.</span><span class="n">get</span><span class="p">()))</span>
+
+        <span class="n">inputSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">modifiedSet</span> <span class="o">=</span> <span class="n">inputSet</span><span class="o">.</span><span class="n">createCopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">copyInfo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">sourceItem</span> <span class="ow">in</span> <span class="n">inputSet</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
+            <span class="n">item</span> <span class="o">=</span> <span class="n">sourceItem</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+
+            <span class="n">SymmetryHelper</span><span class="o">.</span><span class="n">moveParticleInsideUnitCell</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">symmetry</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">targetSymmetryToMove</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">symmetryOrder</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">symmetryOrderToMove</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+            <span class="n">modifiedSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">createOutput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputSet</span><span class="p">,</span> <span class="n">modifiedSet</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ProtProjectionEditor.rotateTetraStep"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_projection_edit.html#pwem.protocols.protocol_projection_edit.ProtProjectionEditor.rotateTetraStep">[docs]</a>    <span class="k">def</span> <span class="nf">rotateTetraStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Compute rotation matrix between tetrahedral symmetries</span>
@@ -371,8 +415,8 @@
         <span class="kn">from</span> <span class="nn">pwem.convert.symmetry</span> <span class="kn">import</span> <span class="n">Tetrahedral</span>
         <span class="n">origSym</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">originSymmetryGroupT</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="n">SYM_TETRAHEDRAL_222</span>
         <span class="n">targetSym</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">targetSymmetryGroupT</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">+</span> <span class="n">SYM_TETRAHEDRAL_222</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;origSym&quot;</span><span class="p">,</span> <span class="n">origSym</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;targetSym&quot;</span><span class="p">,</span> <span class="n">targetSym</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Rotating Tetrahedral symmetry from </span><span class="si">%s</span><span class="s2"> to </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">origSym</span><span class="p">,</span> <span class="n">targetSym</span><span class="p">))</span>
+
         <span class="n">tetrahedral</span> <span class="o">=</span> <span class="n">Tetrahedral</span><span class="p">(</span><span class="n">sym</span><span class="o">=</span><span class="n">origSym</span><span class="p">)</span>
         <span class="n">matrix</span> <span class="o">=</span> <span class="n">tetrahedral</span><span class="o">.</span><span class="n">coordinateSystemTransform</span><span class="p">(</span><span class="n">origSym</span><span class="p">,</span> <span class="n">targetSym</span><span class="p">)</span>
 
@@ -381,14 +425,7 @@
         <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
         <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-        <span class="n">inputSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="n">modifiedSet</span> <span class="o">=</span> <span class="n">inputSet</span><span class="o">.</span><span class="n">createCopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">copyInfo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">sourceItem</span> <span class="ow">in</span> <span class="n">inputSet</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
-            <span class="n">item</span> <span class="o">=</span> <span class="n">sourceItem</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
-            <span class="n">transformation</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span>
-            <span class="n">transformation</span><span class="o">.</span><span class="n">composeTransform</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
-            <span class="n">modifiedSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">createOutput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputSet</span><span class="p">,</span> <span class="n">modifiedSet</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">applyMatrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ProtProjectionEditor.rotateDiStep"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_projection_edit.html#pwem.protocols.protocol_projection_edit.ProtProjectionEditor.rotateDiStep">[docs]</a>    <span class="k">def</span> <span class="nf">rotateDiStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Compute rotation matrix from one dihedral</span>
@@ -406,16 +443,9 @@
         <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
         <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-        <span class="n">inputSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="n">modifiedSet</span> <span class="o">=</span> <span class="n">inputSet</span><span class="o">.</span><span class="n">createCopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">copyInfo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">sourceItem</span> <span class="ow">in</span> <span class="n">inputSet</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
-            <span class="n">item</span> <span class="o">=</span> <span class="n">sourceItem</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
-            <span class="n">transformation</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span>
-            <span class="n">transformation</span><span class="o">.</span><span class="n">composeTransform</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
-            <span class="n">modifiedSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">createOutput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputSet</span><span class="p">,</span> <span class="n">modifiedSet</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">applyMatrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ProtProjectionEditor.rotateIcosaStep"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_projection_edit.html#pwem.protocols.protocol_projection_edit.ProtProjectionEditor.rotateIcosaStep">[docs]</a>    <span class="k">def</span> <span class="nf">rotateIcosaStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ProtProjectionEditor.rotateIcosahedralStep"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_projection_edit.html#pwem.protocols.protocol_projection_edit.ProtProjectionEditor.rotateIcosahedralStep">[docs]</a>    <span class="k">def</span> <span class="nf">rotateIcosahedralStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Compute rotation matrix from one icosahedral</span>
 <span class="sd">        symmetry to another and apply it</span>
@@ -433,14 +463,7 @@
         <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
         <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 
-        <span class="n">inputSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="n">modifiedSet</span> <span class="o">=</span> <span class="n">inputSet</span><span class="o">.</span><span class="n">createCopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">copyInfo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">sourceItem</span> <span class="ow">in</span> <span class="n">inputSet</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
-            <span class="n">item</span> <span class="o">=</span> <span class="n">sourceItem</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
-            <span class="n">transformation</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span>
-            <span class="n">transformation</span><span class="o">.</span><span class="n">composeTransform</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
-            <span class="n">modifiedSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">createOutput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputSet</span><span class="p">,</span> <span class="n">modifiedSet</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">applyMatrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ProtProjectionEditor.createOutput"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_projection_edit.html#pwem.protocols.protocol_projection_edit.ProtProjectionEditor.createOutput">[docs]</a>    <span class="k">def</span> <span class="nf">createOutput</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputSet</span><span class="p">,</span> <span class="n">modifiedSet</span><span class="p">):</span>
         <span class="n">outputArgs</span> <span class="o">=</span> <span class="p">{</span><span class="n">inputSet</span><span class="o">.</span><span class="n">getExtended</span><span class="p">():</span> <span class="n">modifiedSet</span><span class="p">}</span>
@@ -459,7 +482,12 @@
         <span class="n">v_target</span> <span class="o">=</span> <span class="n">v_target</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">v_target</span><span class="p">)</span>
         <span class="n">matrix</span> <span class="o">=</span> <span class="n">rotation_matrix</span><span class="p">(</span><span class="n">angle_between_vectors</span><span class="p">(</span><span class="n">v_source</span><span class="p">,</span> <span class="n">v_target</span><span class="p">),</span>
                                  <span class="n">vector_product</span><span class="p">(</span><span class="n">v_source</span><span class="p">,</span> <span class="n">v_target</span><span class="p">))</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;rotateStep:matrix&quot;</span><span class="p">,</span> <span class="n">matrix</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;rotateStep:matrix </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">matrix</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">applyMatrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ProtProjectionEditor.applyMatrix"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_projection_edit.html#pwem.protocols.protocol_projection_edit.ProtProjectionEditor.applyMatrix">[docs]</a>    <span class="k">def</span> <span class="nf">applyMatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">matrix</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Applies the matrix the to whole input set and creates the output&quot;&quot;&quot;</span>
+
         <span class="n">inputSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="n">modifiedSet</span> <span class="o">=</span> <span class="n">inputSet</span><span class="o">.</span><span class="n">createCopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">copyInfo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">sourceItem</span> <span class="ow">in</span> <span class="n">inputSet</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
@@ -467,7 +495,6 @@
             <span class="n">transformation</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span>
             <span class="n">transformation</span><span class="o">.</span><span class="n">composeTransform</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
             <span class="n">modifiedSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">createOutput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputSet</span><span class="p">,</span> <span class="n">modifiedSet</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ProtProjectionEditor.rotateVectorStep"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_projection_edit.html#pwem.protocols.protocol_projection_edit.ProtProjectionEditor.rotateVectorStep">[docs]</a>    <span class="k">def</span> <span class="nf">rotateVectorStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -480,16 +507,8 @@
         <span class="n">v_source</span> <span class="o">=</span> <span class="n">v_source</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">v_source</span><span class="p">)</span>
         <span class="n">angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">angle</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
         <span class="n">matrix</span> <span class="o">=</span> <span class="n">rotation_matrix</span><span class="p">(</span><span class="n">angle</span><span class="p">,</span> <span class="n">v_source</span><span class="p">)</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;matrix_rot_vector&quot;</span><span class="p">,</span> <span class="n">matrix</span><span class="p">)</span>
-        <span class="n">inputSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="n">modifiedSet</span> <span class="o">=</span> <span class="n">inputSet</span><span class="o">.</span><span class="n">createCopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">copyInfo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="k">for</span> <span class="n">sourceItem</span> <span class="ow">in</span> <span class="n">inputSet</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
-            <span class="n">item</span> <span class="o">=</span> <span class="n">sourceItem</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
-            <span class="n">transformation</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span>
-            <span class="n">transformation</span><span class="o">.</span><span class="n">composeTransform</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
-            <span class="n">modifiedSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">createOutput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputSet</span><span class="p">,</span> <span class="n">modifiedSet</span><span class="p">)</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;matrix_rot_vector: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">matrix</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">applyMatrix</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>

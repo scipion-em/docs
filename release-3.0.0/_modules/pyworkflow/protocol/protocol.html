@@ -522,7 +522,7 @@
         <span class="c1"># and queue parameters (only meaningful if _useQueue=True)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_queueParams</span> <span class="o">=</span> <span class="n">String</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">queueShown</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_jobId</span> <span class="o">=</span> <span class="n">String</span><span class="p">()</span>  <span class="c1"># Store queue job id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_jobId</span> <span class="o">=</span> <span class="n">CsvList</span><span class="p">()</span> <span class="c1"># Store queue job ids</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pid</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_stepsExecutor</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_stepsDone</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -1794,7 +1794,8 @@
         <span class="k">if</span> <span class="n">executor</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">executor</span> <span class="o">=</span> <span class="n">StepExecutor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getHostConfig</span><span class="p">())</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_stepsExecutor</span> <span class="o">=</span> <span class="n">executor</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stepsExecutor</span> <span class="o">=</span> <span class="n">executor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stepsExecutor</span><span class="o">.</span><span class="n">setProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="c1"># executor needs the protocol to store the jobs Ids submitted to a queue</span></div>
 
 <div class="viewcode-block" id="Protocol.getFiles"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getFiles">[docs]</a>    <span class="k">def</span> <span class="nf">getFiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">resultFiles</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
@@ -1833,12 +1834,25 @@
         <span class="c1"># in the configuration information, the hostname is enough</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hostConfig</span><span class="o">.</span><span class="n">setStore</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Protocol.getJobId"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getJobId">[docs]</a>    <span class="k">def</span> <span class="nf">getJobId</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Return the jobId associated to a running protocol. &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobId</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+<div class="viewcode-block" id="Protocol.getJobIds"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getJobIds">[docs]</a>    <span class="k">def</span> <span class="nf">getJobIds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Return an iterable list of jobs Ids associated to a running protocol. &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_jobId</span></div>
 
 <div class="viewcode-block" id="Protocol.setJobId"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.setJobId">[docs]</a>    <span class="k">def</span> <span class="nf">setJobId</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobId</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_jobId</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">jobId</span><span class="p">)</span></div>
+        <span class="s2">&quot; Reset this list to have the first active job &quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_jobId</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">appendJobId</span><span class="p">(</span><span class="n">jobId</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Protocol.setJobIds"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.setJobIds">[docs]</a>    <span class="k">def</span> <span class="nf">setJobIds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobIds</span><span class="p">):</span>
+        <span class="s2">&quot; Reset this list to have a list of active jobs &quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_jobId</span> <span class="o">=</span> <span class="n">jobIds</span></div>
+
+<div class="viewcode-block" id="Protocol.appendJobId"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.appendJobId">[docs]</a>    <span class="k">def</span> <span class="nf">appendJobId</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobId</span><span class="p">):</span>
+        <span class="s2">&quot; Append active jobs to the list &quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_jobId</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">jobId</span><span class="p">)</span></div>
+<div class="viewcode-block" id="Protocol.removeJobId"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.removeJobId">[docs]</a>    <span class="k">def</span> <span class="nf">removeJobId</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">jobId</span><span class="p">):</span>
+        <span class="s2">&quot; Remove inactive jobs from the list &quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_jobId</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">jobId</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Protocol.getPid"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getPid">[docs]</a>    <span class="k">def</span> <span class="nf">getPid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pid</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
@@ -1987,6 +2001,11 @@
         <span class="sd">&quot;&quot;&quot; This function will return True if the protocol has been set</span>
 <span class="sd">        to be launched through a queue by steps &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">useQueue</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getSubmitDict</span><span class="p">()[</span><span class="s2">&quot;QUEUE_FOR_JOBS&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;Y&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Protocol.useQueueForProtocol"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.useQueueForProtocol">[docs]</a>    <span class="k">def</span> <span class="nf">useQueueForProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; This function will return True if the protocol has been set</span>
+<span class="sd">        to be launched through a queue &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">useQueue</span><span class="p">()</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getSubmitDict</span><span class="p">()[</span><span class="s2">&quot;QUEUE_FOR_JOBS&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;N&quot;</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Protocol.getQueueParams"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getQueueParams">[docs]</a>    <span class="k">def</span> <span class="nf">getQueueParams</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_queueParams</span><span class="o">.</span><span class="n">hasValue</span><span class="p">():</span>
@@ -2431,7 +2450,12 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="n">getFileSize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getPath</span><span class="p">())</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span></div>
+
+<div class="viewcode-block" id="Protocol.cleanExecutionAttributes"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.cleanExecutionAttributes">[docs]</a>    <span class="k">def</span> <span class="nf">cleanExecutionAttributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Clean all the executions attributes &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setPid</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_jobId</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div></div>
 
 <div class="viewcode-block" id="LegacyProtocol"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.LegacyProtocol">[docs]</a><span class="k">class</span> <span class="nc">LegacyProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Special subclass of Protocol to be used when a protocol class</span>

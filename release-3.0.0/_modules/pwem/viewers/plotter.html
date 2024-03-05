@@ -127,6 +127,9 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">pwem.convert.trigonometry</span> <span class="kn">import</span> <span class="n">FibonacciSphere</span>
+
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">radians</span><span class="p">,</span> <span class="n">degrees</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -137,7 +140,12 @@
 <span class="kn">from</span> <span class="nn">pyworkflow.gui.plotter</span> <span class="kn">import</span> <span class="n">Plotter</span><span class="p">,</span> <span class="n">plt</span>
 <span class="kn">import</span> <span class="nn">pwem.emlib.metadata</span> <span class="k">as</span> <span class="nn">md</span>
 <span class="kn">import</span> <span class="nn">numbers</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">atan2</span><span class="p">,</span> <span class="n">sqrt</span><span class="p">,</span> <span class="n">pi</span>
+<span class="kn">from</span> <span class="nn">pwem</span> <span class="kn">import</span> <span class="n">emlib</span>
 
+<span class="n">PLOT_EULER_ANGLES</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">PLOT_PROJ_ANGLES</span> <span class="o">=</span> <span class="mi">2</span>
+<span class="n">PLOT_PROJ_DIR</span> <span class="o">=</span> <span class="mi">3</span>
 
 <div class="viewcode-block" id="EmPlotter"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.EmPlotter">[docs]</a><span class="k">class</span> <span class="nc">EmPlotter</span><span class="p">(</span><span class="n">Plotter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Class to create several plots. &quot;&quot;&quot;</span>
@@ -147,74 +155,242 @@
 
 <div class="viewcode-block" id="EmPlotter.plotAngularDistribution"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.EmPlotter.plotAngularDistribution">[docs]</a>    <span class="k">def</span> <span class="nf">plotAngularDistribution</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">rot</span><span class="p">,</span>
                                 <span class="n">tilt</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="p">[],</span> <span class="n">max_p</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span>
-                                <span class="n">min_p</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">):</span>
+                                <span class="n">min_p</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">subtitle</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Create a special type of subplot, representing the angular</span>
-<span class="sd">        distribution of weight projections. &quot;&quot;&quot;</span>
+<span class="sd">        distribution in 2d of weighted projections. &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">weight</span><span class="p">:</span>
             <span class="n">max_w</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">weight</span><span class="p">)</span>
-            <span class="n">min_w</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">weight</span><span class="p">)</span>
+            <span class="n">min_w</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="n">subtitle</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">subtitle</span> <span class="o">=</span> <span class="s1">&#39;Min weight=</span><span class="si">%(min_w).2f</span><span class="s1">, Max weight=</span><span class="si">%(max_w).2f</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">locals</span><span class="p">()</span>
             <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createSubPlot</span><span class="p">(</span><span class="n">title</span><span class="p">,</span>
-                                   <span class="s1">&#39;Min weight=</span><span class="si">%(min_w).2f</span><span class="s1">, Max weight=</span><span class="si">%(max_w).2f</span><span class="s1">&#39;</span>
-                                   <span class="o">%</span> <span class="nb">locals</span><span class="p">(),</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;polar&#39;</span><span class="p">)</span>
+                                   <span class="n">subtitle</span><span class="p">,</span>
+                                    <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;polar&#39;</span><span class="p">)</span>
+
+            <span class="n">label_position</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">get_rlabel_position</span><span class="p">()</span>
+            <span class="n">a</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="n">label_position</span> <span class="o">+</span> <span class="mi">10</span><span class="p">),</span> <span class="n">a</span><span class="o">.</span><span class="n">get_rmax</span><span class="p">()</span> <span class="o">/</span> <span class="mf">2.</span><span class="p">,</span> <span class="s1">&#39;Tilt&#39;</span><span class="p">,</span>
+                    <span class="n">rotation</span><span class="o">=</span><span class="n">label_position</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
 
             <span class="n">pointSizes</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">r</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">weight</span><span class="p">):</span>
                  <span class="n">pointsize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">((</span><span class="n">w</span> <span class="o">-</span> <span class="n">min_w</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">max_w</span> <span class="o">-</span> <span class="n">min_w</span> <span class="o">+</span> <span class="mf">0.001</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">max_p</span> <span class="o">-</span> <span class="n">min_p</span><span class="p">)</span> <span class="o">+</span> <span class="n">min_p</span><span class="p">)</span>
                  <span class="n">pointSizes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pointsize</span><span class="p">)</span>
 
-            <span class="n">a</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">pointSizes</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">colormap</span><span class="p">:</span>
+                <span class="n">sc</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">pointSizes</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">colormap</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">sc</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">a</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">pointSizes</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createSubPlot</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="s1">&#39;Non weighted plot&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;polar&#39;</span><span class="p">)</span>
             <span class="n">a</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">a</span></div>
 
-<div class="viewcode-block" id="EmPlotter.plotAngularDistributionHistogram"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.EmPlotter.plotAngularDistributionHistogram">[docs]</a>    <span class="k">def</span> <span class="nf">plotAngularDistributionHistogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">):</span>
+
+<div class="viewcode-block" id="EmPlotter.scatter3DPlot"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.EmPlotter.scatter3DPlot">[docs]</a>    <span class="k">def</span> <span class="nf">scatter3DPlot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="s2">&quot;3D scatter plot&quot;</span><span class="p">,</span> <span class="n">drawsphere</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">markerSize</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="n">cm</span><span class="o">.</span><span class="n">jet</span><span class="p">,</span> <span class="n">subtitle</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="n">ax</span> <span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">createSubPlot</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">xlabel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">projection</span><span class="o">=</span><span class="s1">&#39;3d&#39;</span><span class="p">,</span> <span class="n">subtitle</span><span class="o">=</span><span class="n">subtitle</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_box_aspect</span><span class="p">(</span><span class="n">aspect</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">sc</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">markerSize</span><span class="p">,</span><span class="n">c</span><span class="o">=</span><span class="n">markerSize</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">colormap</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">sc</span><span class="p">)</span>
+
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X Label&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Y Label&#39;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_zlabel</span><span class="p">(</span><span class="s1">&#39;Z Label&#39;</span><span class="p">)</span>
+        <span class="c1"># ax.set_xlim([-1,1])</span>
+        <span class="c1"># ax.set_ylim([-1, 1])</span>
+        <span class="c1"># ax.set_zlim([-1, 1])</span>
+
+        <span class="c1"># Add a color bar which maps values to colors.</span>
+        <span class="c1"># self.figure.colorbar(cm.ScalarMappable(norm=norm, cmap=cmhot), shrink=0.5, aspect=5)</span>
+
+        <span class="k">if</span> <span class="n">drawsphere</span><span class="p">:</span>
+            <span class="c1"># draw sphere</span>
+            <span class="n">u</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mgrid</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">:</span><span class="mi">21</span><span class="n">j</span><span class="p">,</span> <span class="mi">0</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">:</span><span class="mi">11</span><span class="n">j</span><span class="p">]</span>
+            <span class="n">x1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="n">y1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">u</span><span class="p">)</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="n">z1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot_wireframe</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">z1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot_surface</span><span class="p">(</span><span class="n">x1</span><span class="p">,</span> <span class="n">y1</span><span class="p">,</span> <span class="n">z1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.05</span><span class="p">)</span>
+
+            <span class="c1"># 3d axis</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.25</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.25</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">)</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.25</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ax</span></div>
+
+<div class="viewcode-block" id="EmPlotter.plotAngularDistribution3D"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.EmPlotter.plotAngularDistribution3D">[docs]</a>    <span class="k">def</span> <span class="nf">plotAngularDistribution3D</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="n">subtitle</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="n">cm</span><span class="o">.</span><span class="n">jet</span><span class="p">):</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">scatter3DPlot</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">title</span><span class="p">,</span><span class="n">markerSize</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="n">colormap</span><span class="p">,</span> <span class="n">subtitle</span><span class="o">=</span><span class="n">subtitle</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EmPlotter.plotAngularDistributionHistogram"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.EmPlotter.plotAngularDistributionHistogram">[docs]</a>    <span class="k">def</span> <span class="nf">plotAngularDistributionHistogram</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">eulerAnglesGetterCallback</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="n">cm</span><span class="o">.</span><span class="n">jet</span><span class="p">,</span> <span class="n">subtitle</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Create a special type of subplot, representing the angular</span>
-<span class="sd">        distribution of weight projections. &quot;&quot;&quot;</span>
-        <span class="n">heatmap</span><span class="p">,</span> <span class="n">xedges</span><span class="p">,</span> <span class="n">yedges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram2d</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="sd">        distribution of projections. &quot;&quot;&quot;</span>
+
+        <span class="c1"># Extract the rot and tilt from the data</span>
+        <span class="n">thetas</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">phis</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+            <span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">psi</span> <span class="o">=</span> <span class="n">eulerAnglesGetterCallback</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+            <span class="n">thetas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rot</span><span class="p">)</span>
+            <span class="n">phis</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tilt</span><span class="p">)</span>
+
+        <span class="n">thetas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="o">-</span><span class="mi">180</span><span class="p">)</span>
+        <span class="n">thetas</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">180</span><span class="p">)</span>
+        <span class="n">phis</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">phis</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mi">180</span><span class="p">)</span>
+
+        <span class="n">heatmap</span><span class="p">,</span> <span class="n">xedges</span><span class="p">,</span> <span class="n">yedges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">histogram2d</span><span class="p">(</span><span class="n">thetas</span><span class="p">,</span> <span class="n">phis</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
         <span class="n">sigma</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">xedges</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">xedges</span><span class="p">),</span> <span class="nb">max</span><span class="p">(</span><span class="n">yedges</span><span class="p">)</span> <span class="o">-</span> <span class="nb">min</span><span class="p">(</span><span class="n">yedges</span><span class="p">))</span> <span class="o">/</span> <span class="mi">20</span>
         <span class="n">heatmap</span> <span class="o">=</span> <span class="n">gaussian_filter</span><span class="p">(</span><span class="n">heatmap</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">sigma</span><span class="p">)</span>
         <span class="n">heatmapImage</span> <span class="o">=</span> <span class="n">heatmap</span><span class="o">.</span><span class="n">T</span>
         <span class="n">extent</span> <span class="o">=</span> <span class="p">[</span><span class="n">xedges</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xedges</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">yedges</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">yedges</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
 
-        <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createSubPlot</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="s1">&#39;Angular distribution&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-        <span class="n">mappable</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">heatmapImage</span><span class="p">,</span> <span class="n">extent</span><span class="o">=</span><span class="n">extent</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cm</span><span class="o">.</span><span class="n">jet</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">createSubPlot</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="s1">&#39;Angular distribution&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">subtitle</span><span class="o">=</span><span class="n">subtitle</span><span class="p">)</span>
+        <span class="n">mappable</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">heatmapImage</span><span class="p">,</span> <span class="n">extent</span><span class="o">=</span><span class="n">extent</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;lower&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">colormap</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">)</span>
         <span class="n">a</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Rotational angle&#39;</span><span class="p">)</span>
         <span class="n">a</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Tilt angle&#39;</span><span class="p">)</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">mappable</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mappable</span></div>
 
+<div class="viewcode-block" id="EmPlotter.plotAngularDistributionFromSet"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.EmPlotter.plotAngularDistributionFromSet">[docs]</a>    <span class="k">def</span> <span class="nf">plotAngularDistributionFromSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mdSet</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">PLOT_PROJ_ANGLES</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="n">cm</span><span class="o">.</span><span class="n">jet</span><span class="p">,</span> <span class="n">subtitle</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Read the values of the transformation matrix</span>
+<span class="sd">                 and plot its histogram or its angular distribution.</span>
 
-<div class="viewcode-block" id="EmPlotter.plotAngularDistributionFromSet"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.EmPlotter.plotAngularDistributionFromSet">[docs]</a>    <span class="k">def</span> <span class="nf">plotAngularDistributionFromSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mdSet</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">weightAttr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">histogram</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="sd">                 :param type: Type of plot 1=histogram, 2=2D polar, 3=3D</span>
+<span class="sd">                 :param mdSet: Set with alignment information at with item.getTransform()</span>
+<span class="sd">                 :param title: Title of the plot</span>
+<span class="sd">                 :param colormap: matplotlib color map</span>
+<span class="sd">                &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">eulerAnglesGetter</span> <span class="p">(</span><span class="n">item</span><span class="p">):</span>
+
+            <span class="n">matrix</span> <span class="o">=</span> <span class="n">item</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span><span class="o">.</span><span class="n">getRotationMatrix</span><span class="p">()</span>
+            <span class="n">matrixI</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">matrix</span><span class="p">)</span>
+            <span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">psi</span> <span class="o">=</span> <span class="n">euler_from_matrix</span><span class="p">(</span><span class="n">matrix</span><span class="o">=</span><span class="n">matrixI</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="s1">&#39;szyz&#39;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">tilt</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">:</span>
+                <span class="n">tilt</span><span class="o">=</span> <span class="o">-</span><span class="n">tilt</span>
+                <span class="n">rot</span> <span class="o">=</span> <span class="o">-</span><span class="n">rot</span>
+
+            <span class="k">return</span> <span class="n">degrees</span><span class="p">(</span><span class="n">rot</span><span class="p">),</span> <span class="n">degrees</span><span class="p">(</span><span class="n">tilt</span><span class="p">),</span> <span class="n">degrees</span><span class="p">(</span><span class="n">psi</span><span class="p">)</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">plotAngularDistributionBase</span><span class="p">(</span><span class="n">mdSet</span><span class="p">,</span> <span class="n">eulerAnglesGetter</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="nb">type</span><span class="p">,</span> <span class="n">colormap</span><span class="p">,</span> <span class="n">subtitle</span><span class="o">=</span><span class="n">subtitle</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EmPlotter.plotAngularDistributionBase"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.EmPlotter.plotAngularDistributionBase">[docs]</a>    <span class="k">def</span> <span class="nf">plotAngularDistributionBase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">eulerAnglesGetterCallback</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span>
+                                    <span class="nb">type</span><span class="o">=</span><span class="n">PLOT_PROJ_ANGLES</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="n">cm</span><span class="o">.</span><span class="n">jet</span><span class="p">,</span> <span class="n">subtitle</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Read the values of the transformation matrix</span>
 <span class="sd">         and plot its histogram or its angular distribution.</span>
 
-<span class="sd">         :param mdSet: Set with alignment information at with item.getTransform()</span>
-<span class="sd">         :param title: Title of the plot</span>
+<span class="sd">         :param colormap: matplotlib color map</span>
+<span class="sd">         :param data: any particles iterator containing particles with alignment information. sqlites or star files , ...</span>
+<span class="sd">         :param eulerAnglesGetterCallback: a callback to extract rot, tilt, psi IN DEGREES from each row, receiving the row/item.</span>
+<span class="sd">         :param title: Title of the plot.</span>
+<span class="sd">         :param type: 1 for histogram, 2 for polar plot, 3 for 3d plot</span>
+<span class="sd">         :param subtitle: subtitle of the plot</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">rots</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">tilts</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">weights</span> <span class="o">=</span> <span class="p">[]</span>
 
-        <span class="k">if</span> <span class="n">histogram</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">mdSet</span><span class="p">:</span>
-                <span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">psi</span> <span class="o">=</span> <span class="n">euler_from_matrix</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="o">==</span><span class="n">PLOT_EULER_ANGLES</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotAngularDistributionHistogram</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">data</span> <span class="p">,</span> <span class="n">eulerAnglesGetterCallback</span><span class="p">,</span>
+                                                         <span class="n">colormap</span><span class="o">=</span><span class="n">colormap</span><span class="p">,</span> <span class="n">subtitle</span><span class="o">=</span><span class="n">subtitle</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">rots</span> <span class="o">=</span><span class="p">[]</span>
+            <span class="n">tilts</span><span class="o">=</span> <span class="p">[]</span>
+
+            <span class="c1"># Get the euler angles</span>
+            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
+                <span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">psi</span> <span class="o">=</span> <span class="n">eulerAnglesGetterCallback</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
                 <span class="n">rots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rot</span><span class="p">)</span>
                 <span class="n">tilts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tilt</span><span class="p">)</span>
 
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotAngularDistributionHistogram</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">rots</span><span class="p">,</span> <span class="n">tilts</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="o">==</span><span class="n">PLOT_PROJ_ANGLES</span><span class="p">:</span>
+                <span class="c1"># Weight (group) rots and tilts</span>
+                <span class="n">rots</span><span class="p">,</span> <span class="n">tilts</span><span class="p">,</span> <span class="n">weights</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weightEulerAngles</span><span class="p">(</span><span class="n">rots</span><span class="p">,</span> <span class="n">tilts</span><span class="p">,</span> <span class="n">rotInRadians</span><span class="o">=</span><span class="nb">type</span> <span class="o">==</span> <span class="n">PLOT_PROJ_ANGLES</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotAngularDistribution</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">rots</span><span class="p">,</span> <span class="n">tilts</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="n">weights</span><span class="p">,</span> <span class="n">colormap</span><span class="o">=</span><span class="n">colormap</span><span class="p">,</span> <span class="n">subtitle</span><span class="o">=</span><span class="n">subtitle</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Create discrete point of a fibonacci sphere (5000 points)</span>
+                <span class="n">fiSph</span> <span class="o">=</span> <span class="n">FibonacciSphere</span><span class="p">()</span>
+
+                <span class="n">Xs</span><span class="p">,</span> <span class="n">Ys</span><span class="p">,</span> <span class="n">Zs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_anglesToSphereCoords</span><span class="p">(</span><span class="n">rots</span><span class="p">,</span> <span class="n">tilts</span><span class="p">)</span>
+
+                <span class="k">for</span>  <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">Xs</span><span class="p">,</span><span class="n">Ys</span><span class="p">,</span><span class="n">Zs</span><span class="p">):</span>
+                    <span class="n">fiSph</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">)</span>
+
+                <span class="n">fiSph</span><span class="o">.</span><span class="n">cleanWeights</span><span class="p">()</span>
+
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotAngularDistribution3D</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">fiSph</span><span class="o">.</span><span class="n">sphX</span><span class="p">,</span> <span class="n">fiSph</span><span class="o">.</span><span class="n">sphY</span><span class="p">,</span> <span class="n">fiSph</span><span class="o">.</span><span class="n">sphZ</span><span class="p">,</span>
+                                                      <span class="n">fiSph</span><span class="o">.</span><span class="n">weights</span><span class="p">,</span> <span class="n">subtitle</span><span class="p">,</span><span class="n">colormap</span><span class="o">=</span><span class="n">colormap</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EmPlotter.weightEulerAngles"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.EmPlotter.weightEulerAngles">[docs]</a>    <span class="k">def</span> <span class="nf">weightEulerAngles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rots</span><span class="p">,</span> <span class="n">tilts</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">rotInRadians</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Receives the list of rots and tilts angles (in deg) and returns</span>
+<span class="sd">         a reduced list of rots, tilts and weights lists</span>
+
+<span class="sd">         :param rotCaster: method that receives the rot in degrees and returns it converted to something else, radians?&quot;&quot;&quot;</span>
+
+        <span class="c1"># Holds pairs of rot, tilt</span>
+        <span class="n">projectionList</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">def</span> <span class="nf">getCloseProjectionIndex</span><span class="p">(</span><span class="n">angleRot</span><span class="p">,</span> <span class="n">angleTilt</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot; Get an existing projection close to angleRot, angleTilt.</span>
+<span class="sd">            Return None if not found close enough.</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">projection</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">projectionList</span><span class="p">):</span>
+                <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">projection</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">angleRot</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">delta</span> <span class="ow">and</span>
+                        <span class="nb">abs</span><span class="p">(</span><span class="n">projection</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">angleTilt</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">delta</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">index</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">weight</span> <span class="o">=</span> <span class="mi">1</span> <span class="c1">#1. / len(rots)</span>
+
+        <span class="n">new_rots</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">new_tilts</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">rotInRadians</span><span class="p">:</span>
+            <span class="n">rotCaster</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">mdSet</span><span class="p">:</span>
-                <span class="n">psi</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">rot</span> <span class="o">=</span> <span class="n">euler_from_matrix</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">getTransform</span><span class="p">()</span><span class="o">.</span><span class="n">getMatrix</span><span class="p">(),</span> <span class="n">axes</span><span class="o">=</span><span class="s2">&quot;szyz&quot;</span> <span class="p">)</span>
+            <span class="n">rotCaster</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">rot</span><span class="p">:</span> <span class="n">rot</span>
 
-                <span class="n">rots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rot</span><span class="p">)</span>
-                <span class="n">tilts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">degrees</span><span class="p">(</span><span class="n">tilt</span><span class="p">))</span>
+        <span class="c1"># Weight the rots and tilts</span>
+        <span class="k">for</span> <span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rots</span><span class="p">,</span> <span class="n">tilts</span><span class="p">):</span>
+            <span class="n">projectionIndex</span> <span class="o">=</span> <span class="n">getCloseProjectionIndex</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">)</span>
 
-                <span class="k">if</span> <span class="n">weightAttr</span><span class="p">:</span>
-                    <span class="n">weight</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">item</span><span class="p">,</span> <span class="n">weightAttr</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-                    <span class="n">weights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">weight</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">projectionIndex</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">projectionList</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">])</span>
+                <span class="n">new_rots</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rotCaster</span><span class="p">(</span><span class="n">rot</span><span class="p">))</span>
+                <span class="n">new_tilts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tilt</span><span class="p">)</span>
+                <span class="n">weights</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">weight</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">weights</span><span class="p">[</span><span class="n">projectionIndex</span><span class="p">]</span> <span class="o">+=</span> <span class="n">weight</span>
 
+        <span class="k">return</span> <span class="n">new_rots</span><span class="p">,</span> <span class="n">new_tilts</span><span class="p">,</span> <span class="n">weights</span></div>
 
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotAngularDistribution</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">rots</span><span class="p">,</span> <span class="n">tilts</span><span class="p">,</span> <span class="n">weights</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">def</span> <span class="nf">_anglesToSphereCoords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rots</span><span class="p">,</span> <span class="n">tilts</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Converts euler angles (rot and tilts) to spherical coordinates.&quot;&quot;&quot;</span>
+
+        <span class="n">X</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">Y</span><span class="o">=</span><span class="p">[]</span>
+        <span class="n">Z</span><span class="o">=</span><span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">rots</span><span class="p">,</span> <span class="n">tilts</span><span class="p">):</span>
+
+            <span class="c1"># Converts to euler direction</span>
+            <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">emlib</span><span class="o">.</span><span class="n">Euler_direction</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+            <span class="n">X</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="n">Y</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="n">Z</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">z</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">,</span> <span class="n">Z</span>
 
 <div class="viewcode-block" id="EmPlotter.plotAngularDistributionFromMd"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.EmPlotter.plotAngularDistributionFromMd">[docs]</a>    <span class="k">def</span> <span class="nf">plotAngularDistributionFromMd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mdFile</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Read the values of rot, tilt and weights from</span>
@@ -226,15 +402,22 @@
 <span class="sd">            weight: MDL_WEIGHT</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">angMd</span> <span class="o">=</span> <span class="n">md</span><span class="o">.</span><span class="n">MetaData</span><span class="p">(</span><span class="n">mdFile</span><span class="p">)</span>
-        <span class="n">rot</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">tilt</span> <span class="o">=</span> <span class="p">[]</span>
 
         <span class="k">if</span> <span class="s1">&#39;histogram&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">md</span><span class="o">.</span><span class="n">iterRows</span><span class="p">(</span><span class="n">angMd</span><span class="p">):</span>
-                <span class="n">rot</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_ROT</span><span class="p">))</span>
-                <span class="n">tilt</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_TILT</span><span class="p">))</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotAngularDistributionHistogram</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">)</span>
+            <span class="k">def</span> <span class="nf">eulerAnglesGetter</span><span class="p">(</span><span class="n">row</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">row</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_ROT</span><span class="p">),</span> <span class="n">row</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_TILT</span><span class="p">),</span> <span class="kc">None</span>
+
+            <span class="k">class</span> <span class="nc">MDIter</span><span class="p">:</span>
+                <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mdObj</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">mdObj</span> <span class="o">=</span> <span class="n">mdObj</span>
+                <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+                    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">md</span><span class="o">.</span><span class="n">iterRows</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mdObj</span><span class="p">):</span>
+                        <span class="k">yield</span> <span class="n">row</span>
+
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">plotAngularDistributionHistogram</span><span class="p">(</span><span class="n">title</span><span class="p">,</span> <span class="n">MDIter</span><span class="p">(</span><span class="n">angMd</span><span class="p">),</span> <span class="n">eulerAnglesGetter</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="n">rot</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">tilt</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">weight</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">md</span><span class="o">.</span><span class="n">iterRows</span><span class="p">(</span><span class="n">angMd</span><span class="p">):</span>
                 <span class="n">rot</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">radians</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">MDL_ANGLE_ROT</span><span class="p">)))</span>
@@ -248,7 +431,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">yValues</span><span class="p">),</span> <span class="n">nbins</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EmPlotter.plotScatter"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.EmPlotter.plotScatter">[docs]</a>    <span class="k">def</span> <span class="nf">plotScatter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">xValues</span><span class="p">,</span> <span class="n">yValues</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Create an scatter plot. &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; Create a scatter plot. &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scatterP</span><span class="p">(</span><span class="n">xValues</span><span class="p">,</span> <span class="n">yValues</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="EmPlotter.plotMatrix"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.EmPlotter.plotMatrix">[docs]</a>    <span class="k">def</span> <span class="nf">plotMatrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">img</span>
@@ -389,6 +572,42 @@
             <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">getNestedValue</span><span class="p">(</span><span class="n">column</span><span class="p">)</span></div>
+
+
+<span class="c1"># Functions for the angular distribution. Maybe they could go to other place?</span>
+<div class="viewcode-block" id="magnitude"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.magnitude">[docs]</a><span class="k">def</span> <span class="nf">magnitude</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the magnitude of the vector.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">sqrt</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">*</span> <span class="n">y</span> <span class="o">+</span> <span class="n">z</span> <span class="o">*</span> <span class="n">z</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="to_spherical"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.to_spherical">[docs]</a><span class="k">def</span> <span class="nf">to_spherical</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Converts a cartesian coordinate (x, y, z) into a spherical one (radius, theta, phi) in radians.</span>
+<span class="sd">        theta ranges from 0 t PI</span>
+<span class="sd">        phi ranges from -PI to PI</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">radius</span> <span class="o">=</span> <span class="n">magnitude</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">)</span>
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">atan2</span><span class="p">(</span><span class="n">sqrt</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">*</span> <span class="n">y</span><span class="p">),</span> <span class="n">z</span><span class="p">)</span>
+    <span class="n">phi</span> <span class="o">=</span> <span class="n">atan2</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">radius</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="eulerAngles_to_2D"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.plotter.html#pwem.viewers.plotter.eulerAngles_to_2D">[docs]</a><span class="k">def</span> <span class="nf">eulerAngles_to_2D</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span> <span class="n">tilt</span><span class="p">,</span> <span class="n">psi</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Converts euler angles to their 2D representation for a polar plot&quot;&quot;&quot;</span>
+
+    <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span> <span class="o">=</span> <span class="n">emlib</span><span class="o">.</span><span class="n">Euler_direction</span><span class="p">(</span><span class="n">rot</span><span class="p">,</span>
+                                    <span class="n">tilt</span><span class="p">,</span>
+                                    <span class="n">psi</span><span class="p">)</span>
+    <span class="c1"># f.write(f&quot;.sphere {x} {y} {z} .01\n&quot;)</span>
+    <span class="c1"># radius, theta, phi = to_spherical(x, y, z)</span>
+    <span class="c1">## may be radius, theta, phi = to_spherical(x, z, y)</span>
+    <span class="n">radius</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span> <span class="o">=</span> <span class="n">to_spherical</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">phi</span> <span class="o">&gt;</span> <span class="n">pi</span><span class="p">:</span>
+        <span class="n">phi</span> <span class="o">-=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">pi</span>
+
+    <span class="k">if</span> <span class="n">phi</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">phi</span> <span class="o">=</span> <span class="o">-</span> <span class="n">phi</span>
+        <span class="n">theta</span> <span class="o">+=</span> <span class="n">pi</span>
+
+    <span class="k">return</span> <span class="n">theta</span><span class="p">,</span> <span class="n">phi</span></div>
 </pre></div>
 
            </div>

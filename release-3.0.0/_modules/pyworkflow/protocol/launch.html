@@ -153,19 +153,30 @@
 <div class="viewcode-block" id="launch"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.launch.html#pyworkflow.protocol.launch.launch">[docs]</a><span class="k">def</span> <span class="nf">launch</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stdin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stdout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; This function should be used to launch a protocol. &quot;&quot;&quot;</span>
     <span class="n">jobId</span> <span class="o">=</span> <span class="n">_launchLocal</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">wait</span><span class="p">,</span> <span class="n">stdin</span><span class="p">,</span> <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span><span class="p">)</span>
-    <span class="n">protocol</span><span class="o">.</span><span class="n">setJobId</span><span class="p">(</span><span class="n">jobId</span><span class="p">)</span>
+    <span class="n">protocol</span><span class="o">.</span><span class="n">setJobId</span><span class="p">(</span><span class="n">jobId</span><span class="p">)</span> <span class="c1"># TODO: check if this should be a jobID or a pid?</span>
 
     <span class="k">return</span> <span class="n">jobId</span></div>
 
 
 <div class="viewcode-block" id="stop"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.launch.html#pyworkflow.protocol.launch.stop">[docs]</a><span class="k">def</span> <span class="nf">stop</span><span class="p">(</span><span class="n">protocol</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; </span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Stop function for three scenarios:</span>
+<span class="sd">    - If the queue is not used, kill the main protocol process and its child processes.</span>
+<span class="sd">    - If the queue is used and the entire protocol is sent to the queue, cancel the job running the protocol using</span>
+<span class="sd">    scancel.</span>
+<span class="sd">    - If the queue is used and individual steps are sent to the queue, cancel all active jobs and kill the main protocol</span>
+<span class="sd">    process and its child processes.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">useQueue</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isScheduled</span><span class="p">():</span>
-        <span class="n">jobId</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getJobId</span><span class="p">()</span>
-        <span class="n">host</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getHostConfig</span><span class="p">()</span>
-        <span class="n">cancelCmd</span> <span class="o">=</span> <span class="n">host</span><span class="o">.</span><span class="n">getCancelCommand</span><span class="p">()</span> <span class="o">%</span> <span class="p">{</span><span class="s1">&#39;JOB_ID&#39;</span><span class="p">:</span> <span class="n">jobId</span><span class="p">}</span>
-        <span class="n">_run</span><span class="p">(</span><span class="n">cancelCmd</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">jobIds</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getJobIds</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">jobId</span> <span class="ow">in</span> <span class="n">jobIds</span><span class="p">:</span> <span class="c1"># Iter even though it contains only one jobId</span>
+            <span class="n">host</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getHostConfig</span><span class="p">()</span>
+            <span class="n">cancelCmd</span> <span class="o">=</span> <span class="n">host</span><span class="o">.</span><span class="n">getCancelCommand</span><span class="p">()</span> <span class="o">%</span> <span class="p">{</span><span class="s1">&#39;JOB_ID&#39;</span><span class="p">:</span> <span class="n">jobId</span><span class="p">}</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">cancelCmd</span><span class="p">)</span>
+            <span class="n">_run</span><span class="p">(</span><span class="n">cancelCmd</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">useQueueForSteps</span><span class="p">():</span>
+            <span class="n">process</span><span class="o">.</span><span class="n">killWithChilds</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getPid</span><span class="p">())</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">process</span><span class="o">.</span><span class="n">killWithChilds</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getPid</span><span class="p">())</span></div>
 
@@ -181,7 +192,7 @@
                               <span class="n">protocol</span><span class="o">.</span><span class="n">getScheduleLog</span><span class="p">(),</span>
                               <span class="n">initialSleepTime</span><span class="p">)</span>
     <span class="n">jobId</span> <span class="o">=</span> <span class="n">_run</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">wait</span><span class="p">)</span>
-    <span class="n">protocol</span><span class="o">.</span><span class="n">setJobId</span><span class="p">(</span><span class="n">jobId</span><span class="p">)</span>
+    <span class="n">protocol</span><span class="o">.</span><span class="n">setJobId</span><span class="p">(</span><span class="n">jobId</span><span class="p">)</span> <span class="c1"># TODO: check if this should be a jobID or a pid?</span>
 
     <span class="k">return</span> <span class="n">jobId</span></div>
 
@@ -232,13 +243,13 @@
     <span class="p">)</span>
 
     <span class="n">hostConfig</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getHostConfig</span><span class="p">()</span>
-    <span class="n">useQueue</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">useQueue</span><span class="p">()</span>
 
-    <span class="c1"># Empty PID: 0</span>
-    <span class="n">protocol</span><span class="o">.</span><span class="n">setPid</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># Clean Pid and JobIds</span>
+    <span class="n">protocol</span><span class="o">.</span><span class="n">cleanExecutionAttributes</span><span class="p">()</span>
+    <span class="n">protocol</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">_jobId</span><span class="p">)</span>
 
-    <span class="c1"># Check if need to submit to queue    </span>
-    <span class="k">if</span> <span class="n">useQueue</span> <span class="ow">and</span> <span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getSubmitDict</span><span class="p">()[</span><span class="s2">&quot;QUEUE_FOR_JOBS&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;N&quot;</span><span class="p">):</span>
+    <span class="c1"># Check if need to submit to queue</span>
+    <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">useQueueForProtocol</span><span class="p">():</span>
         <span class="n">submitDict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">hostConfig</span><span class="o">.</span><span class="n">getQueuesDefault</span><span class="p">())</span>
         <span class="n">submitDict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getSubmitDict</span><span class="p">())</span>
         <span class="n">submitDict</span><span class="p">[</span><span class="s1">&#39;JOB_COMMAND&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">command</span>

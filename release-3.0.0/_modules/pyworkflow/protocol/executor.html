@@ -153,10 +153,15 @@
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hostConfig</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">hostConfig</span> <span class="o">=</span> <span class="n">hostConfig</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gpuList</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cts</span><span class="o">.</span><span class="n">GPU_LIST</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="StepExecutor.getGpuList"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.executor.html#pyworkflow.protocol.executor.StepExecutor.getGpuList">[docs]</a>    <span class="k">def</span> <span class="nf">getGpuList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return the GPU list assigned to current thread. &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpuList</span></div>
+
+<div class="viewcode-block" id="StepExecutor.setProtocol"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.executor.html#pyworkflow.protocol.executor.StepExecutor.setProtocol">[docs]</a>    <span class="k">def</span> <span class="nf">setProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Set protocol to append active jobs to its jobIds. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span> <span class="o">=</span> <span class="n">protocol</span></div>
 
 <div class="viewcode-block" id="StepExecutor.runJob"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.executor.html#pyworkflow.protocol.executor.StepExecutor.runJob">[docs]</a>    <span class="k">def</span> <span class="nf">runJob</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">programName</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span>           
                <span class="n">numberOfMpi</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">numberOfThreads</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -410,6 +415,9 @@
         <span class="n">submitDict</span><span class="p">[</span><span class="s1">&#39;JOB_LOGS&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">getParentFolder</span><span class="p">(</span><span class="n">submitDict</span><span class="p">[</span><span class="s1">&#39;JOB_SCRIPT&#39;</span><span class="p">]),</span> <span class="n">submitDict</span><span class="p">[</span><span class="s1">&#39;JOB_NAME&#39;</span><span class="p">])</span>
 
         <span class="n">jobid</span> <span class="o">=</span> <span class="n">_submit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hostConfig</span><span class="p">,</span> <span class="n">submitDict</span><span class="p">,</span> <span class="n">cwd</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span>
+        <span class="c1"># if self.protocol._lock: # Just in case we detect concurrency problem</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">appendJobId</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span> <span class="c1"># append active jobs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_jobId</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="p">(</span><span class="n">jobid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">jobid</span> <span class="o">==</span> <span class="n">UNKNOWN_JOBID</span><span class="p">):</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;jobId is none therefore we set it to fail&quot;</span><span class="p">)</span>
@@ -424,6 +432,10 @@
             <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="n">wait</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">wait</span> <span class="o">&lt;</span> <span class="mi">300</span><span class="p">:</span>
                 <span class="n">wait</span> <span class="o">+=</span> <span class="mi">3</span>
+
+        <span class="c1"># if self.protocol._lock: # Just in case we detect concurrency problem</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">removeJobId</span><span class="p">(</span><span class="n">jobid</span><span class="p">)</span> <span class="c1"># After completion, remove inactive jobs.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_jobId</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">status</span></div>
 
