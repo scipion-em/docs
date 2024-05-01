@@ -138,11 +138,10 @@
 <span class="kn">import</span> <span class="nn">sys</span>
 
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol</span> <span class="k">as</span> <span class="nn">pwprot</span>
-<span class="kn">import</span> <span class="nn">pyworkflow.object</span> <span class="k">as</span> <span class="nn">pwobj</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="n">Object</span><span class="p">,</span><span class="n">Float</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">String</span>
 
-<span class="kn">import</span> <span class="nn">pwem.objects</span> <span class="k">as</span> <span class="nn">emobj</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">EMProtocol</span>
-<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">Volume</span><span class="p">,</span> <span class="n">EMSet</span>
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">Volume</span><span class="p">,</span> <span class="n">EMSet</span><span class="p">,</span> <span class="n">SetOfClasses</span><span class="p">,</span> <span class="n">SetOfStats</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">ProgressBar</span><span class="p">,</span> <span class="n">getListFromRangeString</span>
 
 
@@ -420,7 +419,7 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">classes</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;All objects should have the same type.&quot;</span><span class="p">,</span>
                     <span class="s2">&quot;Types of objects found: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">classes</span><span class="p">)]</span>
-        <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputSets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">()),</span> <span class="n">emobj</span><span class="o">.</span><span class="n">SetOfClasses</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputSets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">()),</span> <span class="n">SetOfClasses</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;Is not possible to join different sets of classes.</span><span class="se">\n</span><span class="s2">&quot;</span>
                     <span class="s2">&quot;If you want to join different representative, extract them &quot;</span>
                     <span class="s2">&quot;with the viewer and them run this protocol with the &quot;</span>
@@ -972,6 +971,205 @@
                        <span class="s1">&#39; particles.&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputParticles</span><span class="o">.</span><span class="n">getSize</span><span class="p">(),</span>
                                         <span class="bp">self</span><span class="o">.</span><span class="n">inputParticles</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSize</span><span class="p">())]</span>
         <span class="k">return</span> <span class="n">summary</span></div>
+
+<div class="viewcode-block" id="ProtCrossSubSet"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_sets.html#pwem.protocols.protocol_sets.ProtCrossSubSet">[docs]</a><span class="k">class</span> <span class="nc">ProtCrossSubSet</span><span class="p">(</span><span class="n">ProtSets</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a subset of the main set based on a matching field in another set. e.g.: Use _micName field (in both fields)</span>
+<span class="sd">    to select micrographs (main set) present in a set of coordinates (secondary set)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;Crossed subset&#39;</span>
+
+    <span class="c1"># --------------------------- DEFINE param functions ----------------------</span>
+    <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Input&#39;</span><span class="p">)</span>
+
+        <span class="n">add</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">addParam</span>  <span class="c1"># short notation</span>
+        <span class="n">add</span><span class="p">(</span><span class="s1">&#39;mainSet&#39;</span><span class="p">,</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">PointerParam</span><span class="p">,</span>
+            <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;EMSet&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Main set&quot;</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Set to be reduced&#39;</span><span class="p">)</span>
+
+        <span class="n">add</span><span class="p">(</span><span class="s1">&#39;mainSetField&#39;</span><span class="p">,</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">StringParam</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Main field&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Field in the main set that contains the values in common with the secondary set. Use any of the metadata viewers to find the field name.&#39;</span><span class="p">)</span>
+
+        <span class="n">add</span><span class="p">(</span><span class="s1">&#39;secSet&#39;</span><span class="p">,</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">PointerParam</span><span class="p">,</span>
+            <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;EMSet&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Secondary set&quot;</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Set holding the matching field. e.g: Set of Coordinates hold the micName that can be used to filter a set of micrographs (main set)&#39;</span><span class="p">)</span>
+
+        <span class="n">add</span><span class="p">(</span><span class="s1">&#39;secSetField&#39;</span><span class="p">,</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">StringParam</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Secondary field&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Field in the secondary set that contains the values in common with the main set. Use any of the metadata viewers to find the field name.&#39;</span><span class="p">)</span>
+
+
+    <span class="c1"># --------------------------- INSERT steps functions ----------------------</span>
+    <span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># These arguments are mainly for skipping the step if they are the same in the resume execution.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">createOutputStep</span><span class="p">,</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">mainSet</span><span class="o">.</span><span class="n">getObjId</span><span class="p">(),</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">secSet</span><span class="o">.</span><span class="n">getObjId</span><span class="p">(),</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">mainSetField</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
+                                 <span class="bp">self</span><span class="o">.</span><span class="n">secSetField</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+
+    <span class="c1"># --------------------------- STEPS functions -----------------------------</span>
+<div class="viewcode-block" id="ProtCrossSubSet.createOutputStep"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_sets.html#pwem.protocols.protocol_sets.ProtCrossSubSet.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mainId</span><span class="p">,</span> <span class="n">secId</span><span class="p">,</span> <span class="n">mainSetField</span><span class="p">,</span> <span class="n">secSetField</span><span class="p">):</span>
+        <span class="n">mainSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mainSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">secSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">secSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+        <span class="c1"># Instantiate and copy main properties</span>
+        <span class="n">outputSet</span> <span class="o">=</span> <span class="n">mainSet</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getPath</span><span class="p">())</span>
+        <span class="n">outputSet</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="n">mainSet</span><span class="p">)</span>
+
+        <span class="c1"># Get unique values of secfield in secset</span>
+        <span class="n">uniqueValuesinSec</span> <span class="o">=</span> <span class="n">secSet</span><span class="o">.</span><span class="n">getUniqueValues</span><span class="p">(</span><span class="n">secSetField</span><span class="p">)</span>
+        <span class="n">uniqueValuesinSec</span> <span class="o">=</span><span class="p">{</span><span class="n">value</span><span class="p">:</span><span class="kc">None</span> <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">uniqueValuesinSec</span><span class="p">}</span>
+
+        <span class="n">pb</span> <span class="o">=</span> <span class="n">ProgressBar</span><span class="p">(</span><span class="n">mainSet</span><span class="o">.</span><span class="n">getSize</span><span class="p">(),</span> <span class="n">fmt</span><span class="o">=</span><span class="n">ProgressBar</span><span class="o">.</span><span class="n">FULL</span><span class="p">)</span>
+        <span class="n">pb</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">mainSet</span><span class="p">:</span>
+            <span class="n">valueInMain</span><span class="o">=</span><span class="nb">getattr</span><span class="p">(</span><span class="n">item</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">getMainSetField</span><span class="p">(</span><span class="n">pythonName</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">valueInMain</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">in</span> <span class="n">uniqueValuesinSec</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_append</span><span class="p">(</span><span class="n">outputSet</span><span class="p">,</span><span class="n">item</span><span class="p">)</span>
+            <span class="n">pb</span><span class="o">.</span><span class="n">increase</span><span class="p">()</span>
+
+        <span class="n">pb</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="n">outputSet</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineTransformRelation</span><span class="p">(</span><span class="n">mainSet</span><span class="p">,</span> <span class="n">outputSet</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ProtCrossSubSet.getMainSetField"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_sets.html#pwem.protocols.protocol_sets.ProtCrossSubSet.getMainSetField">[docs]</a>    <span class="k">def</span> <span class="nf">getMainSetField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pythonName</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">pythonName</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalizeSpecialFields</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mainSetField</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">mainSetField</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ProtCrossSubSet.getSecSetField"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_sets.html#pwem.protocols.protocol_sets.ProtCrossSubSet.getSecSetField">[docs]</a>    <span class="k">def</span> <span class="nf">getSecSetField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pythonName</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">pythonName</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalizeSpecialFields</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">secSetField</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">secSetField</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_normalizeSpecialFields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">field</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">field</span> <span class="o">==</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;_objId&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">field</span>
+    <span class="c1"># --------------------------- INFO functions ------------------------------</span>
+    <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Make sure the input data make sense&quot;&quot;&quot;</span>
+        <span class="n">errors</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mainSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMainSetField</span><span class="p">(</span><span class="n">pythonName</span><span class="o">=</span><span class="kc">True</span><span class="p">)):</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;The main set does not have the field </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">mainSetField</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">secSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSecSetField</span><span class="p">(</span><span class="n">pythonName</span><span class="o">=</span><span class="kc">True</span><span class="p">)):</span>
+            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;The secondary set does not have the field </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">secSetField</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="n">errors</span>
+    <span class="k">def</span> <span class="nf">_summary</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">summary</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Items in the main set where </span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2"> of items in the secondary set where selected.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mainSetField</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">secSetField</span><span class="o">.</span><span class="n">get</span><span class="p">())]</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;subset&quot;</span><span class="p">):</span>
+            <span class="n">summary</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;*</span><span class="si">%d</span><span class="s1">* items matched the criteria&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">subset</span><span class="o">.</span><span class="n">getSize</span><span class="p">())</span>
+
+        <span class="k">return</span> <span class="n">summary</span></div>
+
+
+<div class="viewcode-block" id="ProtSetAggregate"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_sets.html#pwem.protocols.protocol_sets.ProtSetAggregate">[docs]</a><span class="k">class</span> <span class="nc">ProtSetAggregate</span><span class="p">(</span><span class="n">EMProtocol</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Aggregates any set data based on its fields&quot;&quot;&quot;</span>
+    <span class="n">_label</span> <span class="o">=</span> <span class="s2">&quot;data summary&quot;</span>
+    <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addSection</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="s1">&#39;Input&#39;</span><span class="p">)</span>
+
+        <span class="n">add</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">addParam</span>  <span class="c1"># short notation</span>
+        <span class="n">add</span><span class="p">(</span><span class="s1">&#39;inputSet&#39;</span><span class="p">,</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">PointerParam</span><span class="p">,</span>
+            <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;EMSet&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Any set&quot;</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Set with the dta to be aggregated&#39;</span><span class="p">)</span>
+
+        <span class="n">add</span><span class="p">(</span><span class="s1">&#39;operations&#39;</span><span class="p">,</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">StringParam</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Summary operations&#39;</span><span class="p">,</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;COUNT&quot;</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Summary operations to apply to all fields in Fields parameter. e.g: MIN MAX AVG. Possible values are MIN, MAX, COUNT, &#39;</span>
+                 <span class="s1">&#39;AVG, SUM, TOTAL, GROUP_CONCAT. For more technical information see: https://www.sqlite.org/lang_aggfunc.html&#39;</span><span class="p">)</span>
+
+        <span class="n">add</span><span class="p">(</span><span class="s1">&#39;fields&#39;</span><span class="p">,</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">StringParam</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Fields&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;id&quot;</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Fields to apply operations on. Fields can be found in the metadata viewers.&#39;</span>
+                  <span class="s1">&#39; The header of the columns are valid names. e.g: _samplingRate id. Fields listed here should &#39;</span>
+                 <span class="s1">&#39;support the operations specified: DO NOT add literal fields.&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="n">add</span><span class="p">(</span><span class="s1">&#39;groupby&#39;</span><span class="p">,</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">StringParam</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Group by&#39;</span><span class="p">,</span>
+            <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Fields to make the group. An empty value will summarize the whole dataset.&#39;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aggregateSet</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">operations</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">groupby</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+
+<div class="viewcode-block" id="ProtSetAggregate.aggregateSet"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_sets.html#pwem.protocols.protocol_sets.ProtSetAggregate.aggregateSet">[docs]</a>    <span class="k">def</span> <span class="nf">aggregateSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+
+        <span class="n">mainSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+        <span class="c1"># Instantiate and copy main properties</span>
+        <span class="n">outputSet</span> <span class="o">=</span> <span class="n">SetOfStats</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getPath</span><span class="p">())</span>
+
+        <span class="c1"># Run the aggregation method</span>
+        <span class="n">operations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">operations</span><span class="o">.</span><span class="n">getListFromValues</span><span class="p">(</span><span class="n">caster</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Operations: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">operations</span><span class="p">)</span>
+
+        <span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">getListFromValues</span><span class="p">(</span><span class="n">caster</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Fields: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">fields</span><span class="p">)</span>
+
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">groupby</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+            <span class="n">groupBy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">groupby</span><span class="o">.</span><span class="n">getListFromValues</span><span class="p">(</span><span class="n">caster</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Grouping by: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">groupBy</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">groupBy</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;No grouping fields.&quot;</span><span class="p">)</span>
+
+
+        <span class="n">result</span> <span class="o">=</span> <span class="n">mainSet</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">operations</span><span class="p">,</span>
+                                   <span class="n">fields</span><span class="p">,</span> <span class="n">groupBy</span><span class="p">)</span>
+
+        <span class="n">pb</span> <span class="o">=</span> <span class="n">ProgressBar</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">),</span> <span class="n">fmt</span><span class="o">=</span><span class="n">ProgressBar</span><span class="o">.</span><span class="n">FULL</span><span class="p">)</span>
+        <span class="n">pb</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="c1"># Dictionary to hold the scipion data type based on the key</span>
+        <span class="n">scipionTypes</span> <span class="o">=</span><span class="p">{}</span>
+
+        <span class="k">def</span> <span class="nf">getScipionType</span><span class="p">(</span><span class="n">fieldName</span><span class="p">:</span><span class="nb">str</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="n">fieldName</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">scipionTypes</span><span class="p">:</span>
+
+                <span class="k">if</span> <span class="n">fieldName</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;COUNT&quot;</span><span class="p">):</span>
+                    <span class="n">scipionType</span><span class="o">=</span><span class="n">Integer</span>
+                <span class="k">elif</span> <span class="n">fieldName</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">&quot;MIN&quot;</span><span class="p">,</span><span class="s2">&quot;MAX&quot;</span><span class="p">,</span><span class="s2">&quot;AVG&quot;</span><span class="p">,</span> <span class="s2">&quot;SUM&quot;</span><span class="p">,</span><span class="s2">&quot;TOTAL&quot;</span><span class="p">)):</span>
+                    <span class="n">scipionType</span><span class="o">=</span><span class="n">Float</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">scipionType</span><span class="o">=</span><span class="n">String</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scipion type for </span><span class="si">%s</span><span class="s2"> is </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">scipionType</span><span class="o">.</span><span class="n">getClassName</span><span class="p">()))</span>
+                <span class="n">scipionTypes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">scipionType</span>
+            <span class="k">return</span> <span class="n">scipionTypes</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="c1"># Fill the set</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">newItem</span> <span class="o">=</span> <span class="n">Object</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">line</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">scipionType</span> <span class="o">=</span> <span class="n">getScipionType</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                <span class="n">value</span> <span class="o">=</span><span class="n">line</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+                <span class="nb">setattr</span><span class="p">(</span><span class="n">newItem</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">scipionType</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+
+            <span class="n">outputSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newItem</span><span class="p">)</span>
+            <span class="n">pb</span><span class="o">.</span><span class="n">increase</span><span class="p">()</span>
+
+        <span class="n">pb</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">aggregate</span><span class="o">=</span><span class="n">outputSet</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineTransformRelation</span><span class="p">(</span><span class="n">mainSet</span><span class="p">,</span> <span class="n">outputSet</span><span class="p">)</span></div></div>
+
+
 
 </pre></div>
 

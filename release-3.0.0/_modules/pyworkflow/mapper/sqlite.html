@@ -129,7 +129,7 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
-<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">replaceExt</span><span class="p">,</span> <span class="n">joinExt</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">replaceExt</span><span class="p">,</span> <span class="n">joinExt</span><span class="p">,</span> <span class="n">valueToList</span>
 <span class="kn">from</span> <span class="nn">.sqlite_db</span> <span class="kn">import</span> <span class="n">SqliteDb</span><span class="p">,</span> <span class="n">OperationalError</span>
 <span class="kn">from</span> <span class="nn">.mapper</span> <span class="kn">import</span> <span class="n">Mapper</span>
 
@@ -1009,6 +1009,10 @@
         <span class="c1"># Create a template object for retrieving stored ones</span>
         <span class="n">columnList</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">getClassRows</span><span class="p">()</span>
+
+        <span class="c1"># Adds common fields to the mapping</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">addCommonFieldsToMap</span><span class="p">()</span>
+
         <span class="n">attrClasses</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_objBuildList</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -1149,15 +1153,18 @@
             <span class="k">return</span> <span class="n">result</span></div>
 
 <div class="viewcode-block" id="SqliteFlatMapper.aggregate"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.mapper.sqlite.html#pyworkflow.mapper.sqlite.SqliteFlatMapper.aggregate">[docs]</a>    <span class="k">def</span> <span class="nf">aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operations</span><span class="p">,</span> <span class="n">operationLabel</span><span class="p">,</span> <span class="n">groupByLabels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+        <span class="n">operations</span> <span class="o">=</span> <span class="n">valueToList</span><span class="p">(</span><span class="n">operations</span><span class="p">)</span>
+        <span class="n">groupByLabels</span> <span class="o">=</span> <span class="n">valueToList</span><span class="p">(</span><span class="n">groupByLabels</span><span class="p">)</span>
+
         <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">operations</span><span class="p">,</span> <span class="n">operationLabel</span><span class="p">,</span> <span class="n">groupByLabels</span><span class="p">)</span>
+
+        <span class="c1"># Transform the sql row into a disconnected list of dictionaries</span>
         <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
             <span class="n">values</span> <span class="o">=</span> <span class="p">{}</span>
-            <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">operations</span><span class="p">:</span>
-                <span class="n">values</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">groupByLabels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">groupByLabels</span><span class="p">:</span>
-                    <span class="n">values</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">label</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">row</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">values</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
             <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">results</span></div>
@@ -1393,8 +1400,16 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">INSERT_OBJECT</span> <span class="o">+=</span> <span class="s1">&#39;,</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">colName</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">UPDATE_OBJECT</span> <span class="o">+=</span> <span class="s1">&#39;, </span><span class="si">%s</span><span class="s1">=?&#39;</span> <span class="o">%</span> <span class="n">colName</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">addCommonFieldsToMap</span><span class="p">()</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">INSERT_OBJECT</span> <span class="o">+=</span> <span class="s2">&quot;) VALUES (?,?,?,?, datetime(&#39;now&#39;)&quot;</span> <span class="o">+</span> <span class="s1">&#39;,?&#39;</span> <span class="o">*</span> <span class="p">(</span><span class="n">c</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;)&#39;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">UPDATE_OBJECT</span> <span class="o">+=</span> <span class="s1">&#39; WHERE id=?&#39;</span></div>
+
+<div class="viewcode-block" id="SqliteFlatDb.addCommonFieldsToMap"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.mapper.sqlite.html#pyworkflow.mapper.sqlite.SqliteFlatDb.addCommonFieldsToMap">[docs]</a>    <span class="k">def</span> <span class="nf">addCommonFieldsToMap</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c1"># Add common fields to the mapping</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_columnsMapping</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;id&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_columnsMapping</span><span class="p">[</span><span class="s2">&quot;_objId&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;id&quot;</span></div>
 
 <div class="viewcode-block" id="SqliteFlatDb.getClassRows"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.mapper.sqlite.html#pyworkflow.mapper.sqlite.SqliteFlatDb.getClassRows">[docs]</a>    <span class="k">def</span> <span class="nf">getClassRows</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Create a dictionary with names of the attributes</span>
@@ -1495,7 +1510,7 @@
 
         <span class="n">whereStr</span> <span class="o">=</span> <span class="n">where</span>
         <span class="c1"># Split by valid where operators: =, &lt;, &gt;</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&lt;=|&lt;=|=|&lt;|&gt;|AND|OR&#39;</span><span class="p">,</span> <span class="n">where</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;&lt;=|&gt;=|=|&lt;|&gt;|AND|OR&#39;</span><span class="p">,</span> <span class="n">where</span><span class="p">)</span>
         <span class="c1"># For each item</span>
         <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
             <span class="c1"># trim it</span>
@@ -1532,17 +1547,37 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_results</span><span class="p">(</span><span class="n">iterate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SqliteFlatDb.aggregate"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.mapper.sqlite.html#pyworkflow.mapper.sqlite.SqliteFlatDb.aggregate">[docs]</a>    <span class="k">def</span> <span class="nf">aggregate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operations</span><span class="p">,</span> <span class="n">operationLabel</span><span class="p">,</span> <span class="n">groupByLabels</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param operations: string or LIST of operations: MIN, MAX, AVG, COUNT, SUM, TOTAL, GROUP_CONCAT. Any single argument function</span>
+<span class="sd">        defined for sqlite at https://www.sqlite.org/lang_aggfunc.html</span>
+<span class="sd">        :param operationLabel: string or LIST of attributes to apply the functions on</span>
+<span class="sd">        :param groupByLabels: (Optional) attribute or list of attributes to group by the data</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c1"># let us count for testing</span>
         <span class="n">selectStr</span> <span class="o">=</span> <span class="s1">&#39;SELECT &#39;</span>
         <span class="n">separator</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span>
+
+        <span class="n">operations</span> <span class="o">=</span> <span class="n">valueToList</span><span class="p">(</span><span class="n">operations</span><span class="p">)</span>
+        <span class="n">operationLabel</span> <span class="o">=</span> <span class="n">valueToList</span><span class="p">(</span><span class="n">operationLabel</span><span class="p">)</span>
+        <span class="n">groupByLabels</span> <span class="o">=</span> <span class="n">valueToList</span><span class="p">(</span><span class="n">groupByLabels</span><span class="p">)</span>
+
         <span class="c1"># This cannot be like the following line should be expressed in terms</span>
         <span class="c1"># of C1, C2 etc....</span>
-        <span class="k">for</span> <span class="n">operation</span> <span class="ow">in</span> <span class="n">operations</span><span class="p">:</span>
-            <span class="n">selectStr</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">) AS </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">separator</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span>
-                                              <span class="bp">self</span><span class="o">.</span><span class="n">_columnsMapping</span><span class="p">[</span><span class="n">operationLabel</span><span class="p">],</span>
-                                              <span class="n">operation</span><span class="p">)</span>
-            <span class="n">separator</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span>
-        <span class="k">if</span> <span class="n">groupByLabels</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span><span class="n">label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">operationLabel</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">operation</span> <span class="ow">in</span> <span class="n">operations</span><span class="p">:</span>
+
+                <span class="k">if</span> <span class="n">index</span><span class="o">==</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">alias</span> <span class="o">=</span> <span class="n">operation</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">alias</span> <span class="o">=</span> <span class="n">operation</span> <span class="o">+</span> <span class="n">label</span>
+
+                <span class="n">selectStr</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">) AS </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">separator</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span>
+                                                  <span class="bp">self</span><span class="o">.</span><span class="n">_columnsMapping</span><span class="p">[</span><span class="n">label</span><span class="p">],</span>
+                                                  <span class="n">alias</span><span class="p">)</span>
+                <span class="n">separator</span> <span class="o">=</span> <span class="s1">&#39;, &#39;</span>
+        <span class="k">if</span> <span class="n">groupByLabels</span><span class="p">:</span>
             <span class="n">groupByStr</span> <span class="o">=</span> <span class="s1">&#39;GROUP BY &#39;</span>
             <span class="n">separator</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span>
             <span class="k">for</span> <span class="n">groupByLabel</span> <span class="ow">in</span> <span class="n">groupByLabels</span><span class="p">:</span>
