@@ -31,8 +31,8 @@ You may download a fully solved compressed project (Example_10248_Scipion3.tgz) 
 Relion in Scipion
 -----------------
 
-This tutorial is focused on using Relion 4 single particle workflow inside Scipion. It follows the 
-processing pipeline described for Relion 4.0 tutorial with
+This tutorial is focused on using Relion 5 single particle workflow inside Scipion. It follows the 
+processing pipeline described for Relion 5.0 tutorial with
 Beta-galactosidase data. \
 
 *Guide*:
