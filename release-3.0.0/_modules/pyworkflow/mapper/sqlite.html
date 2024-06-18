@@ -129,6 +129,7 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 
+<span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">Config</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">replaceExt</span><span class="p">,</span> <span class="n">joinExt</span><span class="p">,</span> <span class="n">valueToList</span>
 <span class="kn">from</span> <span class="nn">.sqlite_db</span> <span class="kn">import</span> <span class="n">SqliteDb</span><span class="p">,</span> <span class="n">OperationalError</span>
 <span class="kn">from</span> <span class="nn">.mapper</span> <span class="kn">import</span> <span class="n">Mapper</span>
@@ -1005,38 +1006,70 @@
         <span class="k">return</span> <span class="n">obj</span></div>
 
     <span class="k">def</span> <span class="nf">__loadObjDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Load object properties and classes from db. &quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot; Load object properties and classes from db.</span>
+<span class="sd">        Stores the _objTemplate for future reuse&quot;&quot;&quot;</span>
         <span class="c1"># Create a template object for retrieving stored ones</span>
         <span class="n">columnList</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">getClassRows</span><span class="p">()</span>
 
         <span class="c1"># Adds common fields to the mapping</span>
+        <span class="c1"># Schema definition in classes table</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">addCommonFieldsToMap</span><span class="p">()</span>
 
         <span class="n">attrClasses</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_objBuildList</span> <span class="o">=</span> <span class="p">[]</span>
 
+        <span class="c1"># For each row lin classes table (_samplinRate --&gt; c01, Integer)</span>
         <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+
+            <span class="c1"># Something like: _acquisition._doseInitial</span>
             <span class="n">label</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;label_property&#39;</span><span class="p">]</span>
 
+            <span class="c1"># If the actual item class:  &quot;Particle&quot; in a SetOfParticles</span>
+            <span class="c1"># First loop.</span>
             <span class="k">if</span> <span class="n">label</span> <span class="o">==</span> <span class="n">SELF</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_objClassName</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;class_name&#39;</span><span class="p">]</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_objTemplate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buildObjectFromClass</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_objClassName</span><span class="p">)</span>
+                <span class="n">objClassName</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;class_name&#39;</span><span class="p">]</span>
+
+                <span class="c1"># Store the template to reuse it during iterations and avoid instantiation</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_objTemplate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buildObjectFromClass</span><span class="p">(</span><span class="n">objClassName</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_objClass</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objTemplate</span><span class="o">.</span><span class="vm">__class__</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="c1"># Lets update the database column mapping</span>
+                <span class="c1"># Update the database column mapping: c01 &lt;-&gt; _samplingRate</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">_columnsMapping</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;column_name&#39;</span><span class="p">]</span>
+
+                <span class="c1"># List for the latter _objColumns [(5,&quot;_smplingRate&quot;), ...]</span>
+                <span class="c1"># This latter will be used to take the value from the cursor&#39;s row using the index (row[5] =&gt; obj._samplingRate)</span>
                 <span class="n">columnList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+
+                <span class="c1"># Annotate the class</span>
                 <span class="n">attrClasses</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;class_name&#39;</span><span class="p">]</span>
+
+                <span class="c1"># Split the label: _acquisition._doseInitial -&gt; [&quot;_acquisition&quot;, &quot;_doseInitial&quot;]</span>
+                <span class="c1"># For the loop</span>
                 <span class="n">attrParts</span> <span class="o">=</span> <span class="n">label</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+
+                <span class="c1"># Like a breadcrumb in websites... partial path to the attribute</span>
                 <span class="n">attrJoin</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+
+                <span class="c1"># Start from the template (root)</span>
                 <span class="n">o</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objTemplate</span>
+
+                <span class="c1"># for each part: [&quot;_acquisition&quot;, &quot;_doseInitial&quot;]</span>
                 <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">attrParts</span><span class="p">:</span>
                     <span class="n">attrJoin</span> <span class="o">+=</span> <span class="n">a</span>
+
+                    <span class="c1"># Try to get the attribute. Case of attributes defined in the model (init)</span>
                     <span class="n">attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+                    <span class="c1"># If the object does not have the attribute, then it might be an extra parameter or an optional like Transform.p+ç1</span>
                     <span class="k">if</span> <span class="n">attr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                         <span class="n">className</span> <span class="o">=</span> <span class="n">attrClasses</span><span class="p">[</span><span class="n">attrJoin</span><span class="p">]</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">_objBuildList</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">className</span><span class="p">,</span> <span class="n">attrJoin</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)))</span>
+
+                        <span class="c1"># Instantiate the class.</span>
                         <span class="n">attr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buildObjectFromClass</span><span class="p">(</span><span class="n">className</span><span class="p">)</span>
+
+                        <span class="c1"># Get the class form the attr: it could come as a LegacyClass in case &quot;className&quot; is not found.</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_objBuildList</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">attr</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="n">attrJoin</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)))</span>
                         <span class="nb">setattr</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
                     <span class="n">o</span> <span class="o">=</span> <span class="n">attr</span>
                     <span class="n">attrJoin</span> <span class="o">+=</span> <span class="s1">&#39;.&#39;</span>
@@ -1045,23 +1078,39 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_objColumns</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">basicRows</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">columnList</span><span class="p">))</span>
          
     <span class="k">def</span> <span class="nf">__buildAndFillObj</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buildObjectFromClass</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_objClassName</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot; Instantiates the set item base on the _objBuildList.</span>
+<span class="sd">        _objBuildList has been populated when loading the classDictionary&quot;&quot;&quot;</span>
+
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objClass</span><span class="p">()</span>
         
-        <span class="k">for</span> <span class="n">className</span><span class="p">,</span> <span class="n">attrParts</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objBuildList</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">clazz</span><span class="p">,</span> <span class="n">attrParts</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objBuildList</span><span class="p">:</span>
             <span class="n">o</span> <span class="o">=</span> <span class="n">obj</span>
             <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">attrParts</span><span class="p">:</span>
                 <span class="n">attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">attr</span><span class="p">:</span>
-                    <span class="nb">setattr</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_buildObjectFromClass</span><span class="p">(</span><span class="n">className</span><span class="p">))</span>
+                    <span class="nb">setattr</span><span class="p">(</span><span class="n">o</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">clazz</span><span class="p">())</span>
                     <span class="k">break</span>
                 <span class="n">o</span> <span class="o">=</span> <span class="n">attr</span>
         <span class="k">return</span> <span class="n">obj</span>
-        
-    <span class="k">def</span> <span class="nf">__objFromRow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objRow</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SqliteFlatMapper.getInstance"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.mapper.sqlite.html#pyworkflow.mapper.sqlite.SqliteFlatMapper.getInstance">[docs]</a>    <span class="k">def</span> <span class="nf">getInstance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objTemplate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__loadObjDict</span><span class="p">()</span>
+
+        <span class="c1"># Difference in performance using scipion3 tests pwperformance.tests.test_set_performance.TestSetPerformanceSteps.testSuperExtendedCoordinatesSet</span>
+        <span class="c1"># A test that creates a 10**6 set of extended coordinates (coordinates with 20 extra attributes)</span>
+        <span class="c1"># With the template iteration takes 10 secs</span>
+        <span class="c1"># Building the object each time take 25 secs (15 seconds more)</span>
+        <span class="k">if</span> <span class="n">Config</span><span class="o">.</span><span class="n">SCIPION_MAPPER_USE_TEMPLATE</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objTemplate</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span>  <span class="bp">self</span><span class="o">.</span><span class="n">__buildAndFillObj</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">__objFromRow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">objRow</span><span class="p">):</span>
+
             
-        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objTemplate</span>  <span class="c1"># self.__buildAndFillObj()</span>
+        <span class="n">obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInstance</span><span class="p">()</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">setObjId</span><span class="p">(</span><span class="n">objRow</span><span class="p">[</span><span class="n">ID</span><span class="p">])</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">setObjLabel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getStrValue</span><span class="p">(</span><span class="n">objRow</span><span class="p">[</span><span class="s1">&#39;label&#39;</span><span class="p">]))</span>
         <span class="n">obj</span><span class="o">.</span><span class="n">setObjComment</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getStrValue</span><span class="p">(</span><span class="n">objRow</span><span class="p">[</span><span class="s1">&#39;comment&#39;</span><span class="p">]))</span>
@@ -1111,9 +1160,10 @@
         <span class="c1"># &#39;Properties&#39; table</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">hasTable</span><span class="p">(</span><span class="s1">&#39;Properties&#39;</span><span class="p">):</span>
             <span class="k">return</span> <span class="nb">iter</span><span class="p">([])</span> <span class="k">if</span> <span class="n">iterate</span> <span class="k">else</span> <span class="p">[]</span>
-            
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_objTemplate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__loadObjDict</span><span class="p">()</span>
+
+        <span class="c1"># Initialize the instance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">getInstance</span><span class="p">()</span>
+
         <span class="k">try</span><span class="p">:</span>
             <span class="n">objRows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">selectAll</span><span class="p">(</span><span class="n">orderBy</span><span class="o">=</span><span class="n">orderBy</span><span class="p">,</span>
                                         <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span>

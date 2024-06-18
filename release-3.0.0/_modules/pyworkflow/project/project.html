@@ -128,6 +128,8 @@
 <span class="c1"># **************************************************************************</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 
+<span class="kn">from</span> <span class="nn">..protocol.launch</span> <span class="kn">import</span> <span class="n">_checkJobStatus</span>
+
 <span class="n">ROOT_NODE_NAME</span> <span class="o">=</span> <span class="s2">&quot;PROJECT&quot;</span>
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
@@ -147,8 +149,8 @@
 <span class="kn">from</span> <span class="nn">pyworkflow.mapper</span> <span class="kn">import</span> <span class="n">SqliteMapper</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="kn">import</span> <span class="p">(</span><span class="n">MODE_RESTART</span><span class="p">,</span> <span class="n">MODE_RESUME</span><span class="p">,</span>
                                            <span class="n">STATUS_INTERACTIVE</span><span class="p">,</span> <span class="n">ACTIVE_STATUS</span><span class="p">,</span>
-                                           <span class="n">UNKNOWN_JOBID</span><span class="p">,</span> <span class="n">INITIAL_SLEEP_TIME</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.protocol.protocol</span> <span class="kn">import</span> <span class="n">ProtImportBase</span>
+                                           <span class="n">UNKNOWN_JOBID</span><span class="p">,</span> <span class="n">INITIAL_SLEEP_TIME</span><span class="p">,</span> <span class="n">STATUS_FINISHED</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.protocol.protocol</span> <span class="kn">import</span> <span class="n">ProtImportBase</span><span class="p">,</span> <span class="n">Protocol</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">config</span>
 
@@ -759,7 +761,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">_updateProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">tries</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">checkPid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="k">def</span> <span class="nf">_updateProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">:</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">tries</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">checkPid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                         <span class="n">skipUpdatedProtocols</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 
         <span class="c1"># If this is read only exit</span>
@@ -777,6 +779,9 @@
             <span class="k">if</span> <span class="n">skipUpdatedProtocols</span><span class="p">:</span>
                 <span class="c1"># If we are already updated, comparing timestamps</span>
                 <span class="k">if</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">isProtocolUpToDate</span><span class="p">(</span><span class="n">protocol</span><span class="p">):</span>
+
+                    <span class="c1"># Always check for the status of the process (queue job or pid)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">checkIsAlive</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
                     <span class="k">return</span> <span class="n">pw</span><span class="o">.</span><span class="n">NOT_UPDATED_UNNECESSARY</span>
 
 
@@ -819,8 +824,7 @@
 
             <span class="c1"># Check pid at the end, once updated</span>
             <span class="k">if</span> <span class="n">checkPid</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">checkPid</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
-
+                <span class="bp">self</span><span class="o">.</span><span class="n">checkIsAlive</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
 
@@ -846,6 +850,13 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_updateProtocol</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">tries</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">pw</span><span class="o">.</span><span class="n">PROTOCOL_UPDATED</span>
+
+<div class="viewcode-block" id="Project.checkIsAlive"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.checkIsAlive">[docs]</a>    <span class="k">def</span> <span class="nf">checkIsAlive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Check if a protocol is alive based on its jobid or pid&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getPid</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">checkJobId</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">checkPid</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Project.stopProtocol"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.stopProtocol">[docs]</a>    <span class="k">def</span> <span class="nf">stopProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Stop a running protocol &quot;&quot;&quot;</span>
@@ -1692,13 +1703,38 @@
         <span class="c1"># NOTE: This may be happening even with successfully finished protocols</span>
         <span class="c1"># which PID is gone.</span>
         <span class="k">if</span> <span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">isActive</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isInteractive</span><span class="p">()</span> <span class="ow">and</span> <span class="n">_runsLocally</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
-            <span class="ow">and</span> <span class="ow">not</span> <span class="n">protocol</span><span class="o">.</span><span class="n">useQueue</span><span class="p">()</span>
                 <span class="ow">and</span> <span class="ow">not</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">isProcessAlive</span><span class="p">(</span><span class="n">pid</span><span class="p">)):</span>
             <span class="n">protocol</span><span class="o">.</span><span class="n">setFailed</span><span class="p">(</span><span class="s2">&quot;Process </span><span class="si">%s</span><span class="s2"> not found running on the machine. &quot;</span>
                                <span class="s2">&quot;It probably has died or been killed without &quot;</span>
                                <span class="s2">&quot;reporting the status to Scipion. Logs might &quot;</span>
                                <span class="s2">&quot;have information about what happened to this &quot;</span>
                                <span class="s2">&quot;process.&quot;</span> <span class="o">%</span> <span class="n">pid</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Project.checkJobId"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.checkJobId">[docs]</a>    <span class="k">def</span> <span class="nf">checkJobId</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Check if a running protocol is still alive or not.</span>
+<span class="sd">        The check will only be done for protocols that have been sent</span>
+<span class="sd">        to a queue system.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">jobid</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getJobIds</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">hostConfig</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getHostConfig</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">jobid</span> <span class="o">==</span> <span class="n">UNKNOWN_JOBID</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Include running and scheduling ones</span>
+        <span class="c1"># Exclude interactive protocols</span>
+        <span class="c1"># NOTE: This may be happening even with successfully finished protocols</span>
+        <span class="c1"># which PID is gone.</span>
+        <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isActive</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isInteractive</span><span class="p">():</span>
+
+            <span class="n">jobStatus</span> <span class="o">=</span> <span class="n">_checkJobStatus</span><span class="p">(</span><span class="n">hostConfig</span><span class="p">,</span> <span class="n">jobid</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">jobStatus</span> <span class="o">==</span> <span class="n">STATUS_FINISHED</span><span class="p">:</span>
+                <span class="n">protocol</span><span class="o">.</span><span class="n">setFailed</span><span class="p">(</span><span class="s2">&quot;Process </span><span class="si">%s</span><span class="s2"> not found running on the machine. &quot;</span>
+                                   <span class="s2">&quot;It probably has died or been killed without &quot;</span>
+                                   <span class="s2">&quot;reporting the status to Scipion. Logs might &quot;</span>
+                                   <span class="s2">&quot;have information about what happened to this &quot;</span>
+                                   <span class="s2">&quot;process.&quot;</span> <span class="o">%</span> <span class="n">jobid</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Project.iterSubclasses"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.iterSubclasses">[docs]</a>    <span class="k">def</span> <span class="nf">iterSubclasses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classesName</span><span class="p">,</span> <span class="n">objectFilter</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Retrieve all objects from the project that are instances</span>
