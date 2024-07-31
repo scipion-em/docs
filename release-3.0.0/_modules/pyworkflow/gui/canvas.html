@@ -150,7 +150,7 @@
 
 <div class="viewcode-block" id="Canvas"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.gui.canvas.html#pyworkflow.gui.canvas.Canvas">[docs]</a><span class="k">class</span> <span class="nc">Canvas</span><span class="p">(</span><span class="n">tk</span><span class="o">.</span><span class="n">Canvas</span><span class="p">,</span> <span class="n">Scrollable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Canvas to draw some objects.</span>
-<span class="sd">    It will really contains a Frame, a Canvas and scrollbars&quot;&quot;&quot;</span>
+<span class="sd">    It actually is a Frame, a Canvas and scrollbars&quot;&quot;&quot;</span>
     <span class="n">_images</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">,</span> <span class="n">tooltipCallback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tooltipDelay</span><span class="o">=</span><span class="mi">1500</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -161,7 +161,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">lastItem</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Track last item selected</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lastPos</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>  <span class="c1"># Track last clicked position</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">eventPos</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">firstPos</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Track first clicked position (for a drag action)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dragging</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># Track first clicked position (for a drag action)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">items</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># Keep a dictionary with high-level items</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cleanSelected</span> <span class="o">=</span> <span class="kc">True</span>
 
@@ -202,6 +202,18 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_createTooltip</span><span class="p">()</span>  <span class="c1"># This should set</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_menu</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tearoff</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_drawGrid</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; For debugging purposes. Do not delete.</span>
+<span class="sd">        Draws a grid on the canvas to get an ide about where click is happening&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">()</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">bbox</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="mi">100</span><span class="p">):</span>  <span class="c1"># range(start, stop, step)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">create_line</span><span class="p">([(</span><span class="n">line</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">height</span><span class="p">)],</span> <span class="n">fill</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="s1">&#39;grid_line_w&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="mi">100</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">create_line</span><span class="p">([(</span><span class="mi">0</span><span class="p">,</span> <span class="n">line</span><span class="p">),</span> <span class="p">(</span><span class="n">width</span><span class="p">,</span> <span class="n">line</span><span class="p">)],</span> <span class="n">fill</span><span class="o">=</span><span class="s1">&#39;black&#39;</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="s1">&#39;grid_line_h&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_createTooltip</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Create a Tooltip window to display tooltips in </span>
@@ -288,19 +300,21 @@
         <span class="n">xc</span><span class="p">,</span> <span class="n">yc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getCoordinates</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lastItem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_findItem</span><span class="p">(</span><span class="n">xc</span><span class="p">,</span> <span class="n">yc</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">callbackResults</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">lastPos</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastItem</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">callbackResults</span> <span class="o">=</span> <span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lastItem</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">lastPos</span> <span class="o">=</span> <span class="p">(</span><span class="n">xc</span><span class="p">,</span> <span class="n">yc</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">callback</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">callbackResults</span> <span class="o">=</span> <span class="n">callback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lastItem</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Canvas.onClick"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.gui.canvas.html#pyworkflow.gui.canvas.Canvas.onClick">[docs]</a>    <span class="k">def</span> <span class="nf">onClick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="c1"># On click happens completely before onDrag</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cleanSelected</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_unpostMenu</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_handleMouseEvent</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">onClickCallback</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastItem</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">move_start</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+            <span class="c1"># Moving the canvas as a whole</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">move_start</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Dragging a single box</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">captureLastPosition</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Canvas.onControlClick"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.gui.canvas.html#pyworkflow.gui.canvas.Canvas.onControlClick">[docs]</a>    <span class="k">def</span> <span class="nf">onControlClick</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cleanSelected</span> <span class="o">=</span> <span class="kc">False</span>
@@ -335,7 +349,10 @@
                             <span class="k">if</span> <span class="n">shortCut</span><span class="p">:</span>
                                 <span class="n">label</span><span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">shortCut</span><span class="p">)</span>
 
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_menu</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                    <span class="k">def</span> <span class="nf">getAction</span><span class="p">(</span><span class="n">callback</span><span class="p">):</span>
+                        <span class="k">return</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">callback</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_menu</span><span class="o">.</span><span class="n">add_command</span><span class="p">(</span><span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="n">getAction</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
                                            <span class="n">image</span><span class="o">=</span><span class="n">img</span><span class="p">,</span> <span class="n">compound</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span>
                                            <span class="n">font</span><span class="o">=</span><span class="n">gui</span><span class="o">.</span><span class="n">getDefaultFont</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_menu</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">x_root</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">y_root</span><span class="p">)</span>
@@ -350,6 +367,7 @@
 <div class="viewcode-block" id="Canvas.move_start"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.gui.canvas.html#pyworkflow.gui.canvas.Canvas.move_start">[docs]</a>    <span class="k">def</span> <span class="nf">move_start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
         <span class="c1"># If nothing was click on ButtonPress</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastItem</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">captureLastPosition</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">cursor</span><span class="o">=</span><span class="s1">&#39;fleur&#39;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">scan_mark</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">y</span><span class="p">)</span></div>
 
@@ -358,12 +376,12 @@
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastItem</span><span class="p">:</span>
                 <span class="n">xc</span><span class="p">,</span> <span class="n">yc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getCoordinates</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">lastItem</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">xc</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastPos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">yc</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastPos</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">dx</span><span class="p">,</span> <span class="n">dy</span> <span class="o">=</span> <span class="n">xc</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastPos</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">yc</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastPos</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="c1"># logger.info(&quot;Moving item %s, %s.&quot; % (dx,dy))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lastItem</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">dx</span><span class="p">,</span> <span class="n">dy</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">lastPos</span> <span class="o">=</span> <span class="p">(</span><span class="n">xc</span><span class="p">,</span> <span class="n">yc</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">firstPos</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">firstPos</span> <span class="o">=</span> <span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
-                <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getCoordinates</span><span class="p">(</span><span class="n">event</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dragging</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">scan_dragto</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">event</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">gain</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
@@ -372,13 +390,19 @@
             <span class="c1"># event and the refresh one. For now, just ignore it.</span>
             <span class="k">pass</span></div>
 
+<div class="viewcode-block" id="Canvas.captureLastPosition"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.gui.canvas.html#pyworkflow.gui.canvas.Canvas.captureLastPosition">[docs]</a>    <span class="k">def</span> <span class="nf">captureLastPosition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Captures the last position the mouse were located upon the event</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lastPos</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getCoordinates</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+
+
 <div class="viewcode-block" id="Canvas.onButton1Release"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.gui.canvas.html#pyworkflow.gui.canvas.Canvas.onButton1Release">[docs]</a>    <span class="k">def</span> <span class="nf">onButton1Release</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">firstPos</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dragging</span><span class="p">:</span>
             <span class="c1"># Failing in &quot;data&quot; view.</span>
             <span class="c1"># TODO: This is not fully implemented</span>
             <span class="c1"># self.onAreaSelected(self.firstPos[0], self.firstPos[1], event.x, event.y)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">firstPos</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dragging</span> <span class="o">=</span> <span class="kc">False</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">cursor</span><span class="o">=</span><span class="s1">&#39;arrow&#39;</span><span class="p">)</span></div>
 

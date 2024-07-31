@@ -524,7 +524,7 @@
         <span class="c1"># and queue parameters (only meaningful if _useQueue=True)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_queueParams</span> <span class="o">=</span> <span class="n">String</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">queueShown</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_jobId</span> <span class="o">=</span> <span class="n">CsvList</span><span class="p">()</span> <span class="c1"># Store queue job ids</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_jobId</span> <span class="o">=</span> <span class="n">CsvList</span><span class="p">()</span>  <span class="c1"># Store queue job ids</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_pid</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_stepsExecutor</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_stepsDone</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
@@ -542,7 +542,8 @@
         <span class="c1"># Store warnings here</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">summaryWarnings</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="c1"># Get a lock for threading execution</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">RLock</span><span class="p">()</span>  <span class="c1"># Recursive locks allows a thread to acquire lock on same object more</span>
+        <span class="c1"># than one time, thus avoiding deadlock situation. This fixed the concurrency problems we had before.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">forceSchedule</span> <span class="o">=</span> <span class="n">Boolean</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_storeAttributes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrList</span><span class="p">,</span> <span class="n">attrDict</span><span class="p">):</span>
@@ -1060,9 +1061,7 @@
 <span class="sd">        If not objects are passed, the whole protocol is stored.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-
-            <span class="n">lock</span> <span class="o">=</span> <span class="n">contextlib</span><span class="o">.</span><span class="n">nullcontext</span><span class="p">()</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="o">.</span><span class="n">locked</span><span class="p">()</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span>
-            <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_lock</span><span class="p">:</span>  <span class="c1"># _lock is now a Rlock object (recursive locks)</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">objs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
@@ -1645,7 +1644,7 @@
 
             <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;pyworkflow: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">pw</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
             <span class="n">plugin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPlugin</span><span class="p">()</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;plugin: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">plugin</span><span class="o">.</span><span class="n">getName</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;plugin: </span><span class="si">%s</span><span class="s1"> - </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">plugin</span><span class="o">.</span><span class="n">getName</span><span class="p">(),</span> <span class="n">plugin</span><span class="o">.</span><span class="n">getUrl</span><span class="p">()))</span>
             <span class="n">package</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getClassPackage</span><span class="p">()</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="s2">&quot;__version__&quot;</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;plugin v: </span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">package</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="s1">&#39; (devel)&#39;</span> <span class="k">if</span> <span class="n">plugin</span><span class="o">.</span><span class="n">inDevelMode</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;(production)&#39;</span><span class="p">))</span>
@@ -2474,7 +2473,8 @@
 <div class="viewcode-block" id="Protocol.cleanExecutionAttributes"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.cleanExecutionAttributes">[docs]</a>    <span class="k">def</span> <span class="nf">cleanExecutionAttributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Clean all the executions attributes &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setPid</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_jobId</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_jobId</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stepsDone</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div></div>
 
 <div class="viewcode-block" id="LegacyProtocol"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.LegacyProtocol">[docs]</a><span class="k">class</span> <span class="nc">LegacyProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Special subclass of Protocol to be used when a protocol class</span>
