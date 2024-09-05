@@ -130,6 +130,8 @@
 
 <span class="kn">import</span> <span class="nn">os</span>
 
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.viewer</span> <span class="k">as</span> <span class="nn">pwviewer</span>
 <span class="kn">import</span> <span class="nn">pwem.constants</span> <span class="k">as</span> <span class="nn">emcts</span>
@@ -181,6 +183,10 @@
         <span class="n">emcts</span><span class="o">.</span><span class="n">SYM_I2n5r</span><span class="p">:</span> <span class="s1">&#39;2n5r&#39;</span>
     <span class="p">}</span>
 
+    <span class="c1"># To cache if running chimeraX on Linux or Windows</span>
+    <span class="n">_onWindows</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_program</span> <span class="o">=</span> <span class="kc">None</span>
+
 <div class="viewcode-block" id="Chimera.getSymmetry"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.viewer_chimera.html#pwem.viewers.viewer_chimera.Chimera.getSymmetry">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">getSymmetry</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">scipionSym</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return the equivalent Chimera symmetry from Scipion one. &quot;&quot;&quot;</span>
@@ -190,6 +196,7 @@
     <span class="k">def</span> <span class="nf">getHome</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns chimera home, trying first to take it from chimera plugin. If it fails it will return, the default value in the config&quot;&quot;&quot;</span>
         <span class="k">with</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">weakImport</span><span class="p">(</span><span class="s2">&quot;chimera&quot;</span><span class="p">):</span>
+            <span class="c1"># This is getting the plugin for the first time without defining its variables!!</span>
             <span class="kn">from</span> <span class="nn">chimera</span> <span class="kn">import</span> <span class="n">Plugin</span> <span class="k">as</span> <span class="n">chimeraPlugin</span>
             <span class="k">return</span> <span class="n">chimeraPlugin</span><span class="o">.</span><span class="n">getHome</span><span class="p">()</span>
 
@@ -212,16 +219,34 @@
 <div class="viewcode-block" id="Chimera.getProgram"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.viewer_chimera.html#pwem.viewers.viewer_chimera.Chimera.getProgram">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">getProgram</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">progName</span><span class="o">=</span><span class="s2">&quot;ChimeraX&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return the program binary that will be used. &quot;&quot;&quot;</span>
-        <span class="n">home</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getHome</span><span class="p">()</span>
-        <span class="k">if</span> <span class="n">home</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span>
-        <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">home</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">progName</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="n">OS</span><span class="o">.</span><span class="n">isWSL</span><span class="p">():</span>
-            <span class="n">path</span> <span class="o">+=</span><span class="s2">&quot;.exe&quot;</span>
+        <span class="c1"># This will work as long as we do not allow updating CHIMERA_HOME on the fly</span>
+        <span class="c1"># during the same execution (restart needed)</span>
+        <span class="c1"># Maybe we could remove progName since does not seem to be used from outside and</span>
+        <span class="c1"># is incompatible with caching it</span>
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_program</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">home</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getHome</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">home</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="n">path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">home</span><span class="p">,</span> <span class="s1">&#39;bin&#39;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">progName</span><span class="p">))</span>
 
-        <span class="k">return</span> <span class="n">path</span></div>
+            <span class="n">winPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">path</span> <span class="o">+</span><span class="s2">&quot;.exe&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">winPath</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Windows ChimeraX detected: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">winPath</span><span class="p">)</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="n">_onWindows</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">path</span> <span class="o">=</span> <span class="n">winPath</span>
 
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_program</span> <span class="o">=</span> <span class="n">path</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_program</span></div>
+
+<div class="viewcode-block" id="Chimera.isOnWindows"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.viewer_chimera.html#pwem.viewers.viewer_chimera.Chimera.isOnWindows">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">isOnWindows</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_onWindows</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Trigger and cache program and home</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">getHome</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_onWindows</span></div>
 
 <div class="viewcode-block" id="Chimera.runProgram"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.viewer_chimera.html#pwem.viewers.viewer_chimera.Chimera.runProgram">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">runProgram</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">program</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -406,7 +431,7 @@
             <span class="n">inputFiles</span> <span class="o">=</span> <span class="p">[</span><span class="n">inputFiles</span><span class="p">]</span>
 
         <span class="c1"># If WLS we need to adapt the paths to windows style</span>
-        <span class="k">if</span> <span class="n">OS</span><span class="o">.</span><span class="n">isWSL</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">Chimera</span><span class="o">.</span><span class="n">isOnWindows</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">file</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inputFiles</span><span class="p">):</span>
 
                 <span class="n">inputFiles</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span><span class="n">OS</span><span class="o">.</span><span class="n">WLSfile2Windows</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
@@ -556,8 +581,8 @@
                                      <span class="n">bildFileName</span><span class="o">=</span><span class="n">bildFileName</span><span class="p">,</span>
                                      <span class="n">sampling</span><span class="o">=</span><span class="n">sampling</span><span class="p">)</span>
 
-    <span class="c1"># Convert paths to WSL is apply:</span>
-    <span class="k">if</span> <span class="n">OS</span><span class="o">.</span><span class="n">isWSL</span><span class="p">():</span>
+    <span class="c1"># Convert paths to WSL if needed:</span>
+    <span class="k">if</span> <span class="n">Chimera</span><span class="o">.</span><span class="n">isOnWindows</span><span class="p">():</span>
         <span class="n">bildFileName</span><span class="o">=</span><span class="n">OS</span><span class="o">.</span><span class="n">WLSfile2Windows</span><span class="p">(</span><span class="n">bildFileName</span><span class="p">)</span>
         <span class="n">mapVolFileName</span><span class="o">=</span><span class="n">OS</span><span class="o">.</span><span class="n">WLSfile2Windows</span><span class="p">(</span><span class="n">mapVolFileName</span><span class="p">)</span>
         <span class="n">displayVolFileName</span><span class="o">=</span><span class="n">OS</span><span class="o">.</span><span class="n">WLSfile2Windows</span><span class="p">(</span><span class="n">displayVolFileName</span><span class="p">)</span>
