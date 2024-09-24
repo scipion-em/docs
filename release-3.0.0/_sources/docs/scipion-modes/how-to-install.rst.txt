@@ -55,7 +55,7 @@ Installation
 
 ::
 
-    python3 -m scipioninstaller -conda -noXmipp -noAsk /path/for/scipion
+    python3 -m scipioninstaller -conda -noAsk /path/for/scipion
     /path/for/scipion/scipion3 config --overwrite
 
 5. Open **/path/for/scipion/config/scipion.conf** file and append the variables below to the end of the file. Make sure they point to correct locations for CUDA, OpenMPI and other software necessary for Xmipp:
