@@ -1,7 +1,7 @@
 .. _`app:alphafoldPredictionProtocol`:
 
 AlphaFold2 Initial Model Prediction protocol
-===========================================
+============================================
 
 *ChimeraX*-based protocol designed to get AlphaFold2 atomic structure predictions :cite:p:`jumper2021`, :cite:p:`AlphaFold-Multimer2021`. Although included in the **scipion-em-chimera** plugin, the protocol **chimerax-alphafold prediction** allows to use, in addition to *ChimeraX* `tools <https://www.rbvi.ucsf.edu/chimerax/data/alphafold-nov2021/af_sbgrid.html>`_, the *PHENIX* `options <https://phenix-online.org/documentation/reference/alphafold.html>`_ to access to Google Colab notebook system.
 

@@ -106,7 +106,7 @@ Resources and tips
 
 .. code-block::
 
-`   link text <page_identifier>`_
+    `link text <page_identifier>`_
 
 
 It is better to use:
@@ -114,6 +114,12 @@ It is better to use:
 .. code-block::
 
     :doc:`link text <page_identifier>`
+
+or :
+
+.. code-block::
+
+    :ref:`link text <page_identifier>`
 
 7.- Linking contained PDFs.
     PDFs are not built and has to be treated separately. First, place the PDF at _static/pdfs/my-new.pdf

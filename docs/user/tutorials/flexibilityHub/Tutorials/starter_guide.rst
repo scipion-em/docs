@@ -6,9 +6,9 @@
 
 .. _Flexibility_Hub_starter_guide:
 
-====================================================
+==============================
 Flexibility Hub: Starter guide
-====================================================
+==============================
 
 This tutorial is structured around a workflow defined with synthetic data. The data for this tutorial can be downloaded with :code:`scipion3 testdata --download FlexHub_Tutorials`.
 
@@ -18,10 +18,10 @@ Apart from the particle workflow proposed, there exists other possibilities insi
 
 
 Workflow tutorial
-=============================
+=================
 
 Some comments on the data to be used
---------------
+------------------------------------
 
 In this tutorial, we will use a synthetic dataset generated with ContinuousFlex and its Normal Mode Analysis tools. The dataset includes the following items:
 
@@ -34,12 +34,12 @@ In this tutorial, we will use a synthetic dataset generated with ContinuousFlex 
 In the case of working with particles, angular information and CTF are usually mandatory requirements. Therefore, flexibility analysis usually starts at a late state in a CryoEM workflow, once particles have been already refined, consensuated...
 
 Where to find Flexibility Hub protocols?
---------------
+----------------------------------------
 
 Flexibility Hub related protocols have been grouped in a new *View* tab in the Scipion GUI called *Flexibility Hub*. In addition, it is possible to use the key :code:`Ctrl+F` to open a protocol search dialog.
 
 1. Importing the data in Scipion
---------------
+--------------------------------
 
 The first step in our workflow is to import our particles, volumes, and structural models in Scipion.
 
@@ -52,7 +52,7 @@ The first step in our workflow is to import our particles, volumes, and structur
 Once all the data has been imported, we are ready to start the flexibility analysis. Note that in a real project, the input data to the Flexibility Hub (particles, maps, models...) might come from different sources (imports, refinements, consensus...).
 
 2. Zernike3Deep landscape estimation
---------------
+------------------------------------
 
 Flexutils includes several Zernike3D programs able to estimate conformational landscapes from CryoEM particles. Among them, generally the best possible choice to start any analysis is the Zernike3Deep algorithm.
 
@@ -92,7 +92,7 @@ One way to check the initial shape of our landscape is to use the Flexutils visu
    :alt: Analyze results landscape
 
 3. Landscape dimensionality reduction
---------------
+-------------------------------------
 
 Since the landscape estimated from the Zernike3Deep network have a large number of dimensions, we need to reduce them to a number that we can handle (usually, 2D or 3D). To that end, we can apply the dimensionality reduction protocol from Flexutils to get a meaningful representation base on different methods.
 
@@ -121,7 +121,7 @@ We provide below some images of the forms filled to run any of the different dim
 Since our data comes from synthetic data, we have a well define landscape shape. Ideally, the landscape we are looking for should be an exact straight line. Therefore, PCA should give better results for this case, as the relationship among different states is completely linear (and can be represented exactly by two PCA components).
 
 4. Interactive landscape clustering
---------------
+-----------------------------------
 
 Once the Zernike3D landscape has been reduced, it is possible to use the interactive tools implemented in Flexutils to explore the different states found by the Zernike3Deep algortihm.
 
@@ -130,7 +130,8 @@ Flexutils interactive tools has been developed for both, 2D and 3D spaces, and i
 * **Cluster space** (only for 3D spaces): Interactive clustering of flexibility spaces based on KMeans. The tools provides two visualization windows:
     - Left panel: 3D visualization of the point cloud representing the conformational landscape of the molecule
     - Right panel: Map visualization obtained from a selected cluster
-The space can be clustered as many times as needed, based on the number of clusters specified in the corresponding field in the right panel. Once clustered, it is possible to click on any of the cluster representatives (white dots) in the left panel to get a real time representation of the map coming from that specific point. In addition, the viewer provides a shortcut to view the map representatives in ChimeraX for advanced visualization of the conformational states.
+  The space can be clustered as many times as needed, based on the number of clusters specified in the corresponding field in the right panel. Once clustered, it is possible to click on any of the cluster representatives (white dots) in the left panel to get a real time representation of the map coming from that specific point. In addition, the viewer provides a shortcut to view the map representatives in ChimeraX for advanced visualization of the conformational states.
+
 * **Annotate space** (for 2D and 3D spaces): Provides and interactive way to explore any region from a given conformational landscape. Therefore, it is possible to click anywhere in the landscape view to get in real time the conformational state corresponding to the selected landscape region. Similarly to the previous tool, there exists a shortcut to ChimeraX for advanced visualization.
 
 Video tutorials explaining the usage of the different tools are available `here <https://www.youtube.com/playlist?list=PLuu0votIJpSxTmPLvKRHV3ijadqlxxHfb>`__. We recommend watching these videos at this point before doing your first landscape exploration.
@@ -153,7 +154,7 @@ Both, **Cluster space** and **Annotate space** protocols will register inside Sc
 Let's extract the representatives of the classes using with |volumes| button. Thanks to this extraction, it will be possible to further analyze the Zernike3D coefficients to extract the conformational states of the representatives and get more information about the motions suffered by the protein.
 
 5. Applying deformation fields
---------------
+------------------------------
 
 If we try to open any of the representative volumes extracted from the set of classes generated in the previous step, we will see that all the maps are identical to the reference volume we imported at the beginning of the workflow. Instead, the Zernike3D programs (and other programs estimating motions based on deformation fields) provide several tools to continue analyzing  flexibility information, being one of those tools the application of the estimated deformation fields to approximate a new conformational state.
 
@@ -167,7 +168,7 @@ By clicking on |results|, it is possible to inspect in different ways the new st
 * **Rotation map**: Summarized the rotational forces
 
 6. Workflow summary
---------------
+-------------------
 
 Here finishes the Flexibility Hub starter guide!
 
