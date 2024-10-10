@@ -15,7 +15,7 @@ ScipionCloud is being developed as one of the EOSC-Synergy thematic `services <h
 
 A detailed tutorial for the service can be found in the EOSC-Synergy moodle platform for training.
 
-.. image:: /docs/images/cloud/ScipionCloud_EOSCSynergy.png
+.. image:: /docs/images/cloud/ScipionCloud-EOSCSynergy.png
    :width: 250
    :alt: ScipionCloud tutorial
    :target: https://moodle.learn.eosc-synergy.eu/course/view.php?id=141

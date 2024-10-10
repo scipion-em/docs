@@ -1,7 +1,7 @@
 .. _`rebuildModel`:
 
 Morph the predicted model onto the docked fragments and rebuild the missing parts of the model in the map density 
-===============================================================================================================
+=================================================================================================================
 
 In this section of the AlphaFold tutorial we are going to rebuild the docked isoform CRA_a of TACAN monomer structure finally obtained in the previous :ref:`section <dockInitialModel>`.
 

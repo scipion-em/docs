@@ -171,7 +171,7 @@
                        <span class="n">numberOfMpi</span><span class="p">,</span> <span class="n">numberOfThreads</span><span class="p">,</span> 
                        <span class="bp">self</span><span class="o">.</span><span class="n">hostConfig</span><span class="p">,</span>
                        <span class="n">env</span><span class="o">=</span><span class="n">env</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">cwd</span><span class="p">,</span> <span class="n">gpuList</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">(),</span> <span class="n">executable</span><span class="o">=</span><span class="n">executable</span><span class="p">)</span></div>
-        
+
     <span class="k">def</span> <span class="nf">_getRunnable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">steps</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return the n steps that are &#39;new&#39; and all its</span>
 <span class="sd">        dependencies have been finished, or None if none ready.</span>
@@ -181,11 +181,16 @@
         <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">steps</span><span class="p">:</span>
             <span class="k">if</span> <span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">getStatus</span><span class="p">()</span> <span class="o">==</span> <span class="n">cts</span><span class="o">.</span><span class="n">STATUS_NEW</span> <span class="ow">and</span>
                     <span class="nb">all</span><span class="p">(</span><span class="n">steps</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">isFinished</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">s</span><span class="o">.</span><span class="n">_prerequisites</span><span class="p">)):</span>
-                <span class="n">rs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rs</span><span class="p">)</span> <span class="o">==</span> <span class="n">n</span><span class="p">:</span>
-                    <span class="k">break</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isStepRunnable</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+                    <span class="n">rs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rs</span><span class="p">)</span> <span class="o">==</span> <span class="n">n</span><span class="p">:</span>
+                        <span class="k">break</span>
         <span class="k">return</span> <span class="n">rs</span>
-    
+    <span class="k">def</span> <span class="nf">_isStepRunnable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Should be implemented by inherited classes to test extra conditions &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">True</span>
+
     <span class="k">def</span> <span class="nf">_arePending</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">steps</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return True if there are pending steps (either running or waiting)</span>
 <span class="sd">        that can be done and thus enable other steps to be executed.</span>
@@ -271,28 +276,133 @@
         <span class="c1"># all the threads</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gpuDict</span> <span class="o">=</span> <span class="p">{}</span>
 
+        <span class="bp">self</span><span class="o">.</span><span class="n">_assignGPUperNode</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_assignGPUperNode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># If we have GPUs</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpuList</span><span class="p">:</span>
-            <span class="n">nodes</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="n">nThreads</span><span class="p">)</span>
+
+            <span class="n">nThreads</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfProcs</span>
+
+            <span class="c1"># Nodes: each concurrent steps</span>
+            <span class="n">nodes</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">nThreads</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+
+            <span class="c1"># Number of GPUs</span>
             <span class="n">nGpu</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gpuList</span><span class="p">)</span>
 
+            <span class="c1"># If more GPUs than threads</span>
             <span class="k">if</span> <span class="n">nGpu</span> <span class="o">&gt;</span> <span class="n">nThreads</span><span class="p">:</span>
-                <span class="n">chunk</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nGpu</span> <span class="o">/</span> <span class="n">nThreads</span><span class="p">)</span>
-                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">node</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">nodes</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">gpuDict</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gpuList</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="n">chunk</span><span class="p">:(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="n">chunk</span><span class="p">])</span>
+
+                <span class="c1"># Get the ratio: 2 GPUs per thread? 3 GPUs per thread?</span>
+                <span class="c1"># 3 GPU and 2 threads is rounded to 1 (flooring)</span>
+                <span class="n">step</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nGpu</span> <span class="o">/</span> <span class="n">nThreads</span><span class="p">)</span>
+                <span class="n">spare</span> <span class="o">=</span> <span class="n">nGpu</span> <span class="o">%</span> <span class="n">nThreads</span>
+                <span class="n">fromPos</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="c1"># For each node(concurrent thread)</span>
+                <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodes</span><span class="p">:</span>
+                    <span class="c1"># Store the GPUS per thread:</span>
+                    <span class="c1"># GPUs: 0 1 2</span>
+                    <span class="c1"># Threads 2 (step 1)</span>
+                    <span class="c1"># Node 0 : GPU 0 1</span>
+                    <span class="c1"># Node 1 : GPU 2</span>
+
+                    <span class="n">extraGpu</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">spare</span><span class="o">&gt;</span><span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+                    <span class="n">toPos</span> <span class="o">=</span> <span class="n">fromPos</span> <span class="o">+</span> <span class="n">step</span> <span class="o">+</span><span class="n">extraGpu</span>
+                    <span class="n">gpusForNode</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gpuList</span><span class="p">[</span><span class="n">fromPos</span><span class="p">:</span><span class="n">toPos</span><span class="p">])</span>
+
+                    <span class="n">newGpusForNode</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cleanVoidGPUs</span><span class="p">(</span><span class="n">gpusForNode</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">newGpusForNode</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Gpu slot cancelled: all were null Gpus -&gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">gpusForNode</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;GPUs </span><span class="si">%s</span><span class="s2"> assigned to node </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">newGpusForNode</span><span class="p">,</span> <span class="n">node</span><span class="p">))</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">gpuDict</span><span class="p">[</span><span class="o">-</span><span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="n">newGpusForNode</span>
+
+                    <span class="n">fromPos</span> <span class="o">=</span> <span class="n">toPos</span>
+                    <span class="n">spare</span><span class="o">-=</span><span class="mi">1</span>
+
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># Expand gpuList repeating until reach nThreads items</span>
                 <span class="k">if</span> <span class="n">nThreads</span> <span class="o">&gt;</span> <span class="n">nGpu</span><span class="p">:</span>
-                    <span class="n">newList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpuList</span> <span class="o">*</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">nThreads</span><span class="o">/</span><span class="n">nGpu</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">gpuList</span> <span class="o">=</span> <span class="n">newList</span><span class="p">[:</span><span class="n">nThreads</span><span class="p">]</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;GPUs are no longer extended. If you want all GPUs to match threads repeat as many &quot;</span>
+                                   <span class="s2">&quot;GPUs as threads.&quot;</span><span class="p">)</span>
+                    <span class="c1"># newList = self.gpuList * (int(nThreads / nGpu) + 1)</span>
+                    <span class="c1"># self.gpuList = newList[:nThreads]</span>
 
-                <span class="k">for</span> <span class="n">node</span><span class="p">,</span> <span class="n">gpu</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">nodes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpuList</span><span class="p">):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">gpuDict</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">gpu</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">gpu</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gpuList</span><span class="p">):</span>
+
+                    <span class="k">if</span> <span class="n">gpu</span> <span class="o">==</span> <span class="n">cts</span><span class="o">.</span><span class="n">VOID_GPU</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Void GPU (</span><span class="si">%s</span><span class="s2">) found in the list. Skipping the slot.&quot;</span> <span class="o">%</span> <span class="n">cts</span><span class="o">.</span><span class="n">VOID_GPU</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;GPU slot for gpu </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">gpu</span><span class="p">)</span>
+                        <span class="c1"># Any negative number in the key means a free gpu slot. can&#39;t be 0!</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">gpuDict</span><span class="p">[</span><span class="o">-</span><span class="n">index</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">gpu</span><span class="p">]</span>
+
+<div class="viewcode-block" id="ThreadStepExecutor.cleanVoidGPUs"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.executor.html#pyworkflow.protocol.executor.ThreadStepExecutor.cleanVoidGPUs">[docs]</a>    <span class="k">def</span> <span class="nf">cleanVoidGPUs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">gpuList</span><span class="p">):</span>
+        <span class="n">newGPUList</span><span class="o">=</span><span class="p">[]</span>
+        <span class="k">for</span> <span class="n">gpuid</span> <span class="ow">in</span> <span class="n">gpuList</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">gpuid</span> <span class="o">==</span> <span class="n">cts</span><span class="o">.</span><span class="n">VOID_GPU</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Void GPU detected in </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">gpuList</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">newGPUList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">gpuid</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">newGPUList</span></div>
 
 <div class="viewcode-block" id="ThreadStepExecutor.getGpuList"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.executor.html#pyworkflow.protocol.executor.ThreadStepExecutor.getGpuList">[docs]</a>    <span class="k">def</span> <span class="nf">getGpuList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return the GPU list assigned to current thread</span>
 <span class="sd">        or empty list if not using GPUs. &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpuDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">threading</span><span class="o">.</span><span class="n">current_thread</span><span class="p">()</span><span class="o">.</span><span class="n">thId</span><span class="p">,</span> <span class="p">[])</span></div>
-        
+
+        <span class="c1"># If the node id has assigned gpus?</span>
+        <span class="n">nodeId</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">current_thread</span><span class="p">()</span><span class="o">.</span><span class="n">thId</span>
+        <span class="k">if</span> <span class="n">nodeId</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpuDict</span><span class="p">:</span>
+            <span class="n">gpus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpuDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">nodeId</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Reusing GPUs (</span><span class="si">%s</span><span class="s2">) slot for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gpus</span><span class="p">,</span> <span class="n">nodeId</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">gpus</span>
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="n">gpus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getFreeGpuSlot</span><span class="p">(</span><span class="n">nodeId</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">gpus</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Step on node </span><span class="si">%s</span><span class="s2"> is requesting GPUs but there isn&#39;t any available. Review configuration of threads/GPUs. Returning and empty list.&quot;</span> <span class="o">%</span> <span class="n">nodeId</span><span class="p">)</span>
+                <span class="k">return</span> <span class="p">[]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">gpus</span></div>
+<div class="viewcode-block" id="ThreadStepExecutor.getFreeGpuSlot"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.executor.html#pyworkflow.protocol.executor.ThreadStepExecutor.getFreeGpuSlot">[docs]</a>    <span class="k">def</span> <span class="nf">getFreeGpuSlot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nodeId</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns a free gpu slot available or None. If node is passed it also reserves it for that node</span>
+
+<span class="sd">        :param node: node to make the reserve of Gpus</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpuDict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="c1"># This is a free node. Book it</span>
+            <span class="k">if</span> <span class="n">node</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">gpus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpuDict</span><span class="p">[</span><span class="n">node</span><span class="p">]</span>
+
+                <span class="k">if</span> <span class="n">nodeId</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">gpuDict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">gpuDict</span><span class="p">[</span><span class="n">nodeId</span><span class="p">]</span> <span class="o">=</span> <span class="n">gpus</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;GPUs </span><span class="si">%s</span><span class="s2"> assigned to thread </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gpus</span><span class="p">,</span> <span class="n">nodeId</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Free gpu slot found at </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">node</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">gpus</span>
+
+        <span class="k">return</span> <span class="kc">None</span></div>
+<div class="viewcode-block" id="ThreadStepExecutor.freeGpusSlot"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.executor.html#pyworkflow.protocol.executor.ThreadStepExecutor.freeGpusSlot">[docs]</a>    <span class="k">def</span> <span class="nf">freeGpusSlot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">node</span><span class="p">):</span>
+        <span class="n">gpus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpuDict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+        <span class="c1"># Some nodes/threads do not use gpus so may not be booked and not in the dictionary</span>
+        <span class="k">if</span> <span class="n">gpus</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gpuDict</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gpuDict</span><span class="p">[</span><span class="o">-</span><span class="n">node</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">gpus</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;GPUs </span><span class="si">%s</span><span class="s2"> freed from thread </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">gpus</span><span class="p">,</span> <span class="n">node</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;node </span><span class="si">%s</span><span class="s2"> not found in GPU slots&quot;</span> <span class="o">%</span> <span class="n">node</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_isStepRunnable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Overwrite this method to check GPUs availability&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gpuList</span> <span class="ow">and</span> <span class="n">step</span><span class="o">.</span><span class="n">needsGPU</span><span class="p">()</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">getFreeGpuSlot</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Can&#39;t run step </span><span class="si">%s</span><span class="s2">. Needs gpus and there are no free gpu slots&quot;</span> <span class="o">%</span> <span class="n">step</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="kc">True</span>
+
 <div class="viewcode-block" id="ThreadStepExecutor.runSteps"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.executor.html#pyworkflow.protocol.executor.ThreadStepExecutor.runSteps">[docs]</a>    <span class="k">def</span> <span class="nf">runSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">steps</span><span class="p">,</span> 
                  <span class="n">stepStartedCallback</span><span class="p">,</span> 
                  <span class="n">stepFinishedCallback</span><span class="p">,</span>
@@ -315,7 +425,9 @@
         <span class="n">sharedLock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
 
         <span class="n">runningSteps</span> <span class="o">=</span> <span class="p">{}</span>  <span class="c1"># currently running step in each node ({node: step})</span>
-        <span class="n">freeNodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">numberOfProcs</span><span class="p">))</span>  <span class="c1"># available nodes to send jobs</span>
+        <span class="n">freeNodes</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfProcs</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>  <span class="c1"># available nodes to send jobs</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Execution threads: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">freeNodes</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running steps using </span><span class="si">%s</span><span class="s2"> threads. 1 thread is used for this main proccess.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfProcs</span><span class="p">)</span>
 
         <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
             <span class="c1"># See which of the runningSteps are not really running anymore.</span>
@@ -327,6 +439,7 @@
             <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">nodesFinished</span><span class="p">:</span>
                 <span class="n">step</span> <span class="o">=</span> <span class="n">runningSteps</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>  <span class="c1"># remove entry from runningSteps</span>
                 <span class="n">freeNodes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>  <span class="c1"># the node is available now</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">freeGpusSlot</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
                 <span class="c1"># Notify steps termination and check if we should continue</span>
                 <span class="n">doContinue</span> <span class="o">=</span> <span class="n">stepFinishedCallback</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">doContinue</span><span class="p">:</span>
@@ -347,8 +460,9 @@
                         <span class="n">anyLaunched</span> <span class="o">=</span> <span class="kc">True</span>
                         <span class="n">step</span><span class="o">.</span><span class="n">setRunning</span><span class="p">()</span>
                         <span class="n">stepStartedCallback</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
-                        <span class="n">node</span> <span class="o">=</span> <span class="n">freeNodes</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>  <span class="c1"># take an available node</span>
+                        <span class="n">node</span> <span class="o">=</span> <span class="n">freeNodes</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>  <span class="c1"># take an available node</span>
                         <span class="n">runningSteps</span><span class="p">[</span><span class="n">node</span><span class="p">]</span> <span class="o">=</span> <span class="n">step</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Running step </span><span class="si">%s</span><span class="s2"> on node </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="n">node</span><span class="p">))</span>
                         <span class="n">t</span> <span class="o">=</span> <span class="n">StepThread</span><span class="p">(</span><span class="n">node</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">sharedLock</span><span class="p">)</span>
                         <span class="c1"># won&#39;t keep process up if main thread ends</span>
                         <span class="n">t</span><span class="o">.</span><span class="n">daemon</span> <span class="o">=</span> <span class="kc">True</span>
@@ -357,7 +471,7 @@
 
             <span class="k">if</span> <span class="ow">not</span> <span class="n">anyLaunched</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">anyPending</span><span class="p">:</span>  <span class="c1"># nothing running</span>
-                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
+                    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">break</span>  <span class="c1"># yeah, we are done, either failed or finished :)</span>
 

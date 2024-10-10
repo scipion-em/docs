@@ -44,7 +44,7 @@ Tomography tutorials
 
     Tomography tutorials <tomography-tutorials>
 
-Model Building
+Model building
 --------------
 .. toctree::
     :maxdepth: 1
@@ -53,8 +53,8 @@ Model Building
     Build initial model with Alphafold <tutorials/modelBuilding/Alphafold/index>
     Build initial model with ModelAngelo <tutorials/modelBuilding/ModelAngelo/index>
 
-Flexibility Hub
---------------
+Flexibility hub
+---------------
 .. toctree::
     :maxdepth: 1
 
@@ -63,17 +63,22 @@ Flexibility Hub
 Processing How To's
 ===================
 
-Importing Data
---------------------
-`Importing Data <importingData>`__: Importing data is the first step
+Importing data
+--------------
+:ref:`Importing Data <importingData>`: Importing data is the first step
 for any Scipion project. Find out how to import movies, micrographs,
 CTFs, and particles and which are the formats currently supported.
 
 Creating subsets
-----------------------
-`Creating subsets <protUserSubSet>`__: Find out how to create subsets
+----------------
+:ref:`Creating subsets <protUserSubSet>`: Find out how to create subsets
 from micrographs, particles, volumes or from 2D/3D classifications.
 This tool is valid for results from any package.
+
+Threads, mpis and GPUs
+----------------------
+Understanding these common execution parameters it is always important
+but at the same time confusing. We try to explain them :ref:`here <threadsmpigpus>`
 
 FAQ
 ---------
@@ -81,6 +86,6 @@ FAQ
 
 Relion in Scipion
 -----------------------
-`Relion in Scipion <relion-in-scipion>`__: Check how to use Relion inside Scipion.
+:ref:`Relion in Scipion <relion-in-scipion>`: Check how to use Relion inside Scipion.
 Some of the original Relion FAQ are addressed.
 

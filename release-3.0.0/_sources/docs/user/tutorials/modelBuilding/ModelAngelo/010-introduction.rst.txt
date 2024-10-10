@@ -1,7 +1,7 @@
 .. _introductionToModelWithModelAngelo:
 
 Introduction to Model building with ModelAngelo
-=============================================
+===============================================
 
 Model building is the process that allows getting the atomic
 interpretation of an electron density map. Although an electron density volume can be obtained from different methodologies, in this tutorial we focus on maps obtained by cryo-EM.

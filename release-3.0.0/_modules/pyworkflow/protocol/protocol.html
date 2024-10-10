@@ -127,8 +127,7 @@
 <span class="sd">This modules contains classes required for the workflow</span>
 <span class="sd">execution and tracking like: Step and Protocol</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">import</span> <span class="nn">contextlib</span>
-<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">threading</span>
 <span class="kn">import</span> <span class="nn">time</span>
@@ -138,7 +137,7 @@
 <span class="kn">from</span> <span class="nn">pyworkflow.exceptions</span> <span class="kn">import</span> <span class="n">ValidationException</span><span class="p">,</span> <span class="n">PyworkflowException</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.utils.log</span> <span class="kn">import</span> <span class="n">LoggingConfigurator</span><span class="p">,</span> <span class="n">getExtraLogInfo</span><span class="p">,</span> <span class="n">STATUS</span><span class="p">,</span> <span class="n">setDefaultLoggingContext</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils.log</span> <span class="kn">import</span> <span class="n">getExtraLogInfo</span><span class="p">,</span> <span class="n">STATUS</span><span class="p">,</span> <span class="n">setDefaultLoggingContext</span>
 <span class="kn">from</span> <span class="nn">.executor</span> <span class="kn">import</span> <span class="n">StepExecutor</span><span class="p">,</span> <span class="n">ThreadStepExecutor</span><span class="p">,</span> <span class="n">QueueStepExecutor</span>
 <span class="kn">from</span> <span class="nn">.constants</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">.params</span> <span class="kn">import</span> <span class="n">Form</span>
@@ -152,21 +151,24 @@
 
 <div class="viewcode-block" id="Step"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Step">[docs]</a><span class="k">class</span> <span class="nc">Step</span><span class="p">(</span><span class="n">Object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Basic execution unit.</span>
-<span class="sd">    It should defines its Input, Output</span>
+<span class="sd">    It should define its Input, Output</span>
 <span class="sd">    and define a run method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">Object</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">needsGPU</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_prerequisites</span> <span class="o">=</span> <span class="n">CsvList</span><span class="p">()</span>  <span class="c1"># which steps needs to be done first</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">String</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">initTime</span> <span class="o">=</span> <span class="n">String</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">endTime</span> <span class="o">=</span> <span class="n">String</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_error</span> <span class="o">=</span> <span class="n">String</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">interactive</span> <span class="o">=</span> <span class="n">Boolean</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">interactive</span> <span class="o">=</span> <span class="n">Boolean</span><span class="p">(</span><span class="n">interactive</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_resultFiles</span> <span class="o">=</span> <span class="n">String</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_needsGPU</span> <span class="o">=</span> <span class="n">Boolean</span><span class="p">(</span><span class="n">needsGPU</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="kc">None</span>
 
+<div class="viewcode-block" id="Step.needsGPU"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Step.needsGPU">[docs]</a>    <span class="k">def</span> <span class="nf">needsGPU</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_needsGPU</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
 <div class="viewcode-block" id="Step.getIndex"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Step.getIndex">[docs]</a>    <span class="k">def</span> <span class="nf">getIndex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_index</span></div>
 
@@ -316,7 +318,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
 
         <span class="k">except</span> <span class="n">PyworkflowException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">redStr</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">redStr</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">setFailed</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">setFailed</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
@@ -332,7 +334,7 @@
 <span class="sd">    This class will ease the insertion of Protocol function steps</span>
 <span class="sd">    through the function _insertFunctionStep&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">funcName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">funcArgs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">funcName</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="n">funcArgs</span><span class="p">,</span>  <span class="n">wait</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">needsGPU</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">         Params:</span>
 <span class="sd">            func: the function that will be executed.</span>
@@ -340,13 +342,12 @@
 <span class="sd">            *funcArgs: argument list passed to the function (serialized and stored)</span>
 <span class="sd">            **kwargs: extra parameters.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">Step</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">interactive</span><span class="o">=</span><span class="n">interactive</span><span class="p">,</span> <span class="n">needsGPU</span><span class="o">=</span><span class="n">needsGPU</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_func</span> <span class="o">=</span> <span class="n">func</span>  <span class="c1"># Function should be set before run</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_args</span> <span class="o">=</span> <span class="n">funcArgs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">funcName</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="n">funcName</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">argsStr</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">funcArgs</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="kc">None</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setInteractive</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;interactive&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;wait&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">wait</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="n">STATUS_WAITING</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_runFunc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -382,7 +383,7 @@
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">funcName</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> - </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_objId</span> <span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">funcName</span><span class="o">.</span><span class="n">get</span><span class="p">())</span></div>
 
 
 <div class="viewcode-block" id="RunJobStep"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.RunJobStep">[docs]</a><span class="k">class</span> <span class="nc">RunJobStep</span><span class="p">(</span><span class="n">FunctionStep</span><span class="p">):</span>
@@ -459,6 +460,10 @@
     <span class="n">_package</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">_plugin</span> <span class="o">=</span> <span class="kc">None</span>
 
+    <span class="c1"># Maybe this property can be inferred from the</span>
+    <span class="c1"># prerequisites of steps, but is easier to keep it</span>
+    <span class="n">stepsExecutionMode</span> <span class="o">=</span> <span class="n">STEPS_SERIAL</span>
+
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">Step</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="kc">None</span>
@@ -511,9 +516,6 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;hostFullName&#39;</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">hostFullName</span> <span class="o">=</span> <span class="n">String</span><span class="p">()</span>
 
-        <span class="c1"># Maybe this property can be inferred from the</span>
-        <span class="c1"># prerequisites of steps, but is easier to keep it</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">stepsExecutionMode</span> <span class="o">=</span> <span class="n">STEPS_SERIAL</span>
 
         <span class="c1"># Run mode</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">runMode</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;runMode&#39;</span><span class="p">,</span> <span class="n">MODE_RESUME</span><span class="p">))</span>
@@ -1118,12 +1120,11 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">pass</span>
 
-    <span class="k">def</span> <span class="nf">__insertStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__insertStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">prerequisites</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Insert a new step in the list.</span>
 
 <span class="sd">        :param prerequisites: a single integer or a list with the steps index that need to be done</span>
 <span class="sd">                           previous to the current one.&quot;&quot;&quot;</span>
-        <span class="n">prerequisites</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;prerequisites&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">prerequisites</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_steps</span><span class="p">):</span>
@@ -1219,7 +1220,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">funcArgs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">funcArgs</span><span class="p">,</span> <span class="n">prerequisites</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">needsGPU</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">         Params:</span>
 <span class="sd">           func: the function itself or, optionally, the name (string) of the function to be run in the Step.</span>
@@ -1237,23 +1238,20 @@
         <span class="k">if</span> <span class="ow">not</span> <span class="n">callable</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Protocol._insertFunctionStep: &#39;</span><span class="si">%s</span><span class="s2">&#39; is not callable&quot;</span>
                             <span class="o">%</span> <span class="n">func</span><span class="p">)</span>
-        <span class="n">step</span> <span class="o">=</span> <span class="n">FunctionStep</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="o">*</span><span class="n">funcArgs</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="n">FunctionStep</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">,</span> <span class="o">*</span><span class="n">funcArgs</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="n">wait</span><span class="p">,</span> <span class="n">interactive</span><span class="o">=</span><span class="n">interactive</span><span class="p">,</span> <span class="n">needsGPU</span><span class="o">=</span><span class="n">needsGPU</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__insertStep</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__insertStep</span><span class="p">(</span><span class="n">step</span><span class="p">,</span><span class="n">prerequisites</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_insertRunJobStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">progName</span><span class="p">,</span> <span class="n">progArguments</span><span class="p">,</span> <span class="n">resultFiles</span><span class="o">=</span><span class="p">[],</span>
                           <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Insert an Step that will simple call runJob function</span>
+        <span class="sd">&quot;&quot;&quot; Insert a Step that will simply call runJob function</span>
 <span class="sd">        **args: see __insertStep</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;runJob&#39;</span><span class="p">,</span> <span class="n">progName</span><span class="p">,</span> <span class="n">progArguments</span><span class="p">,</span>
-                                        <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;runJob&#39;</span><span class="p">,</span> <span class="n">progName</span><span class="p">,</span> <span class="n">progArguments</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_insertCopyFileStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sourceFile</span><span class="p">,</span> <span class="n">targetFile</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Shortcut function to insert an step for copying a file to a destiny. &quot;&quot;&quot;</span>
-        <span class="n">step</span> <span class="o">=</span> <span class="n">FunctionStep</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">copyFile</span><span class="p">,</span> <span class="s1">&#39;copyFile&#39;</span><span class="p">,</span> <span class="n">sourceFile</span><span class="p">,</span>
-                            <span class="n">targetFile</span><span class="p">,</span>
-                            <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot; Shortcut function to insert a step for copying a file to a destiny. &quot;&quot;&quot;</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="n">FunctionStep</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">copyFile</span><span class="p">,</span> <span class="s1">&#39;copyFile&#39;</span><span class="p">,</span> <span class="n">sourceFile</span><span class="p">,</span> <span class="n">targetFile</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__insertStep</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_enterDir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
@@ -1318,7 +1316,7 @@
 <span class="sd">        protocol that allow some kind of continue (such as ctf estimation).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">loadSteps</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">__insertStep</span><span class="p">(</span><span class="n">step</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__insertStep</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__findStartingStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; From a previous run, compare self._steps and self._prevSteps</span>
@@ -2556,6 +2554,7 @@
         <span class="n">executor</span> <span class="o">=</span> <span class="n">StepExecutor</span><span class="p">(</span><span class="n">hostConfig</span><span class="p">,</span>
                                 <span class="n">gpuList</span><span class="o">=</span><span class="n">protocol</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">())</span>
 
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Running protocol using the </span><span class="si">%s</span><span class="s2"> executor.&quot;</span> <span class="o">%</span> <span class="n">executor</span><span class="p">)</span>
     <span class="n">protocol</span><span class="o">.</span><span class="n">setStepsExecutor</span><span class="p">(</span><span class="n">executor</span><span class="p">)</span>
     <span class="c1"># Finally run the protocol</span>
     <span class="n">protocol</span><span class="o">.</span><span class="n">run</span><span class="p">()</span></div>
@@ -2640,7 +2639,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">stepsExecutionMode</span> <span class="o">=</span> <span class="n">STEPS_PARALLEL</span>
     <span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Insert the step that generates the steps</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resumableStepGeneratorStep</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">resumableStepGeneratorStep</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()),</span> <span class="n">needsGPU</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ProtStreamingBase.resumableStepGeneratorStep"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.ProtStreamingBase.resumableStepGeneratorStep">[docs]</a>    <span class="k">def</span> <span class="nf">resumableStepGeneratorStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ts</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; This allow to resume protocols. ts is the time stamp so this stap is alway different form previous exceution&quot;&quot;&quot;</span>
