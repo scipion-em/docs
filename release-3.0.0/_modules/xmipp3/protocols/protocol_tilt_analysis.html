@@ -130,32 +130,36 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="kn">import</span> <span class="n">combinations</span>
 <span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">join</span><span class="p">,</span> <span class="n">basename</span><span class="p">,</span> <span class="n">exists</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">VERSION_3_0</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.protocol</span> <span class="kn">import</span> <span class="n">STEPS_PARALLEL</span><span class="p">,</span> <span class="n">Protocol</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.protocol</span> <span class="kn">import</span> <span class="n">STEPS_PARALLEL</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span>
                                         <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">LEVEL_ADVANCED</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">GE</span><span class="p">,</span> <span class="n">GT</span><span class="p">,</span> <span class="n">Range</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils.properties</span> <span class="kn">import</span> <span class="n">Message</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.utils.path</span> <span class="kn">import</span> <span class="n">moveFile</span><span class="p">,</span> <span class="n">getFiles</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="k">as</span> <span class="nn">cons</span>
-<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">SetOfMicrographs</span><span class="p">,</span> <span class="n">Image</span><span class="p">,</span> <span class="n">Micrograph</span><span class="p">,</span> <span class="n">Acquisition</span><span class="p">,</span> <span class="n">String</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Float</span>
+<span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">UPDATED</span>
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">SetOfMicrographs</span><span class="p">,</span> <span class="n">Image</span><span class="p">,</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Float</span>
 <span class="kn">from</span> <span class="nn">pwem.emlib.image</span> <span class="kn">import</span> <span class="n">ImageHandler</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">ProtMicrographs</span>
 <span class="kn">from</span> <span class="nn">xmipp3</span> <span class="kn">import</span> <span class="n">emlib</span>
 <span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="kn">import</span> <span class="n">getScipionObj</span>
 
+<span class="n">OUTPUT_MICS</span> <span class="o">=</span> <span class="s2">&quot;outputMicrographs&quot;</span>
+<span class="n">OUTPUT_MICS_DISCARDED</span> <span class="o">=</span> <span class="s2">&quot;discardedMicrographs&quot;</span>
 <span class="n">AUTOMATIC_WINDOW_SIZES</span> <span class="o">=</span> <span class="p">[</span><span class="mi">4096</span><span class="p">,</span> <span class="mi">2048</span><span class="p">,</span> <span class="mi">1024</span><span class="p">,</span> <span class="mi">512</span><span class="p">,</span> <span class="mi">256</span><span class="p">]</span>
 
-<div class="viewcode-block" id="XmippProtTiltAnalysis"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_tilt_analysis.html#xmipp3.protocols.protocol_tilt_analysis.XmippProtTiltAnalysis">[docs]</a><span class="k">class</span> <span class="nc">XmippProtTiltAnalysis</span><span class="p">(</span><span class="n">ProtMicrographs</span><span class="p">,</span> <span class="n">Protocol</span><span class="p">):</span>
+<div class="viewcode-block" id="XmippProtTiltAnalysis"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_tilt_analysis.html#xmipp3.protocols.protocol_tilt_analysis.XmippProtTiltAnalysis">[docs]</a><span class="k">class</span> <span class="nc">XmippProtTiltAnalysis</span><span class="p">(</span><span class="n">ProtMicrographs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Estimate the tilt of a micrograph, by analyzing the PSD correlations of different segments of the image.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;tilt analysis&#39;</span>
+    <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">UPDATED</span>
     <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_3_0</span>
-    <span class="n">stats</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">_possibleOutputs</span> <span class="o">=</span> <span class="p">{</span><span class="n">OUTPUT_MICS</span><span class="p">:</span> <span class="n">SetOfMicrographs</span><span class="p">,</span>
+                        <span class="n">OUTPUT_MICS_DISCARDED</span><span class="p">:</span> <span class="n">SetOfMicrographs</span>
+                        <span class="p">}</span>
+    <span class="n">PARALLEL_BATCH_SIZE</span> <span class="o">=</span> <span class="mi">8</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
         <span class="n">ProtMicrographs</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
@@ -197,10 +201,6 @@
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;By default, micrographs will be divided into an output set and a discarded set based&#39;&#39;&#39;</span>
                            <span class="sd">&#39;&#39;&#39; on the mean and std threshold.&#39;&#39;&#39;</span><span class="p">)</span>
 
-        <span class="n">form</span><span class="o">.</span><span class="n">addHidden</span><span class="p">(</span><span class="s1">&#39;saveIntermediateResults&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Save intermediate results&quot;</span><span class="p">,</span>
-                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;&#39;&#39;Save the micrograph segments, the PSD of those segments&#39;&#39;&#39;</span>
-                            <span class="sd">&#39;&#39;&#39; and the correlation statistics of those segments.&#39;&#39;&#39;</span><span class="p">)</span>
-
         <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="c1"># -------------------------- STEPS functions ------------------------------</span>
@@ -209,36 +209,28 @@
 <span class="sd">        on a set of micrographs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">initializeStep</span><span class="p">()</span>
-        <span class="n">fDeps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertNewMicrographSteps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">insertedDict</span><span class="p">,</span>
-                                               <span class="bp">self</span><span class="o">.</span><span class="n">micsDict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-        <span class="c1"># For the streaming mode, the steps function have a &#39;wait&#39; flag that can be turned on/off. For example, here we insert the</span>
-        <span class="c1"># createOutputStep but it wait=True, which means that can not be executed until it is set to False</span>
-        <span class="c1"># (when the input micrographs stream is closed)</span>
-        <span class="n">waitCondition</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFirstJoinStepName</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;createOutputStep&#39;</span>
-        <span class="n">finalSteps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertFinalSteps</span><span class="p">(</span><span class="n">fDeps</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;createOutputStep&#39;</span><span class="p">,</span>
-                                 <span class="n">prerequisites</span><span class="o">=</span><span class="n">finalSteps</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="n">waitCondition</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">createOutputStep</span><span class="p">,</span>
+                                 <span class="n">prerequisites</span><span class="o">=</span><span class="p">[],</span> <span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">needsGPU</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 <div class="viewcode-block" id="XmippProtTiltAnalysis.initializeStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_tilt_analysis.html#xmipp3.protocols.protocol_tilt_analysis.XmippProtTiltAnalysis.initializeStep">[docs]</a>    <span class="k">def</span> <span class="nf">initializeStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">insertedDict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMicrographs</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">micsFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMicrographs</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stats</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">streamClosed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMicrographs</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">isStreamClosed</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">micsDict</span> <span class="o">=</span> <span class="p">{</span><span class="n">mic</span><span class="o">.</span><span class="n">getObjId</span><span class="p">():</span> <span class="n">mic</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span> <span class="k">for</span> <span class="n">mic</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadInputList</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">micsFn</span><span class="p">)</span><span class="o">.</span><span class="n">iterItems</span><span class="p">()}</span>
-        <span class="n">pwutils</span><span class="o">.</span><span class="n">makePath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;DONE&#39;</span><span class="p">))</span>
+        <span class="c1"># Important to have both:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">insertedIds</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># Contains images that have been inserted in a Step (checkNewInput).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">processedIds</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># Contains images that have been processed in a Step (checkNewOutput).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isStreamClosed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMicrographs</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">isStreamClosed</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">windowSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getWindowSize</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="XmippProtTiltAnalysis.createOutputStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_tilt_analysis.html#xmipp3.protocols.protocol_tilt_analysis.XmippProtTiltAnalysis.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_closeOutputSet</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">_loadInputList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">micsFn</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_loadInputSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">micsFn</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Load the input set of mics and create a list. &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Loading input db: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">micsFn</span><span class="p">)</span>
         <span class="n">micSet</span> <span class="o">=</span> <span class="n">SetOfMicrographs</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">micsFn</span><span class="p">)</span>
         <span class="n">micSet</span><span class="o">.</span><span class="n">loadAllProperties</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">streamClosed</span> <span class="o">=</span> <span class="n">micSet</span><span class="o">.</span><span class="n">isStreamClosed</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isStreamClosed</span> <span class="o">=</span> <span class="n">micSet</span><span class="o">.</span><span class="n">isStreamClosed</span><span class="p">()</span>
         <span class="n">micSet</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Closed db.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">micSet</span>
@@ -264,52 +256,53 @@
 
     <span class="k">def</span> <span class="nf">_checkNewInput</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Check if there are new micrographs to process from the input set</span>
-        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">lastCheck</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;lastCheck&#39;</span><span class="p">,</span> <span class="n">now</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lastCheck</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;lastCheck&#39;</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
         <span class="n">mTime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">micsFn</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Last check: </span><span class="si">%s</span><span class="s1">, modification: </span><span class="si">%s</span><span class="s1">&#39;</span>
                    <span class="o">%</span> <span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">prettyTime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lastCheck</span><span class="p">),</span>
                       <span class="n">pwutils</span><span class="o">.</span><span class="n">prettyTime</span><span class="p">(</span><span class="n">mTime</span><span class="p">)))</span>
         <span class="c1"># If the input micrographs.sqlite have not changed since our last check,</span>
         <span class="c1"># it does not make sense to check for new input data</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastCheck</span> <span class="o">&gt;</span> <span class="n">mTime</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;micsDict&#39;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastCheck</span> <span class="o">&gt;</span> <span class="n">mTime</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">insertedIds</span><span class="p">:</span> <span class="c1"># If this is empty it is dut to a static &quot;continue&quot; action or it is the first round</span>
             <span class="k">return</span> <span class="kc">None</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">lastCheck</span> <span class="o">=</span> <span class="n">now</span>
         <span class="c1"># Open input micrographs.sqlite and close it as soon as possible</span>
-        <span class="n">micSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadInputList</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">micsFn</span><span class="p">)</span>
+        <span class="n">micSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadInputSet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">micsFn</span><span class="p">)</span>
+        <span class="n">micSetIds</span> <span class="o">=</span> <span class="n">micSet</span><span class="o">.</span><span class="n">getIdSet</span><span class="p">()</span>
+        <span class="n">newIds</span> <span class="o">=</span> <span class="p">[</span><span class="n">idMic</span> <span class="k">for</span> <span class="n">idMic</span> <span class="ow">in</span> <span class="n">micSetIds</span> <span class="k">if</span> <span class="n">idMic</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">insertedIds</span><span class="p">]</span>
 
-        <span class="n">newMicsDict</span> <span class="o">=</span> <span class="p">{</span><span class="n">mic</span><span class="o">.</span><span class="n">getObjId</span><span class="p">():</span> <span class="n">mic</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span> <span class="k">for</span> <span class="n">mic</span> <span class="ow">in</span> <span class="n">micSet</span><span class="o">.</span><span class="n">iterItems</span><span class="p">()</span>
-                       <span class="k">if</span> <span class="n">mic</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">insertedDict</span><span class="p">}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">micsDict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">newMicsDict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isStreamClosed</span> <span class="o">=</span> <span class="n">micSet</span><span class="o">.</span><span class="n">isStreamClosed</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lastCheck</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="n">micSet</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
         <span class="n">outputStep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFirstJoinStep</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">newMicsDict</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">fDeps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertNewMicrographSteps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">insertedDict</span><span class="p">,</span> <span class="n">newMicsDict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isContinued</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">insertedIds</span><span class="p">:</span> <span class="c1"># For &quot;Continue&quot; action and the first round</span>
+            <span class="n">doneIds</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getAllDoneIds</span><span class="p">()</span>
+            <span class="n">skipIds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">newIds</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">doneIds</span><span class="p">)))</span>
+            <span class="n">newIds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">newIds</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">doneIds</span><span class="p">)))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Skipping Mics with ID: </span><span class="si">%s</span><span class="s2">, seems to be done&quot;</span> <span class="o">%</span> <span class="n">skipIds</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">insertedIds</span> <span class="o">=</span> <span class="n">doneIds</span> <span class="c1"># During the first round of &quot;Continue&quot; action it has to be filled</span>
 
+        <span class="k">if</span> <span class="n">newIds</span><span class="p">:</span>
+            <span class="n">fDeps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertNewMicrographSteps</span><span class="p">(</span><span class="n">newIds</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">outputStep</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">outputStep</span><span class="o">.</span><span class="n">addPrerequisites</span><span class="p">(</span><span class="o">*</span><span class="n">fDeps</span><span class="p">)</span>
-
             <span class="bp">self</span><span class="o">.</span><span class="n">updateSteps</span><span class="p">()</span>
 
     <span class="k">def</span> <span class="nf">_checkNewOutput</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;finished&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-            <span class="k">return</span>
-        <span class="c1"># Load previously done items (from text file)</span>
-        <span class="n">doneList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_readDoneList</span><span class="p">()</span>
-        <span class="c1"># Check for newly done items</span>
-        <span class="n">newDone</span> <span class="o">=</span> <span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">micsDict</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span>
-                   <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">doneList</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isMicDone</span><span class="p">(</span><span class="n">m</span><span class="p">)]</span>
-        <span class="n">allDone</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">doneList</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">newDone</span><span class="p">)</span>
+        <span class="n">doneListIds</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getAllDoneIds</span><span class="p">()</span>
+        <span class="n">processedIds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">processedIds</span>
+        <span class="n">newDone</span> <span class="o">=</span> <span class="p">[</span><span class="n">micId</span> <span class="k">for</span> <span class="n">micId</span> <span class="ow">in</span> <span class="n">processedIds</span> <span class="k">if</span> <span class="n">micId</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">doneListIds</span><span class="p">]</span>
+        <span class="n">allDone</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">doneListIds</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">newDone</span><span class="p">)</span>
+        <span class="n">maxMicSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadInputSet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">micsFn</span><span class="p">)</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span>
         <span class="c1"># We have finished when there is not more input movies</span>
         <span class="c1"># (stream closed) and the number of processed movies is</span>
         <span class="c1"># equal to the number of inputs</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">streamClosed</span> <span class="ow">and</span> <span class="n">allDone</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">micsDict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">isStreamClosed</span> <span class="ow">and</span> <span class="n">allDone</span> <span class="o">==</span> <span class="n">maxMicSize</span>
         <span class="n">streamMode</span> <span class="o">=</span> <span class="n">Set</span><span class="o">.</span><span class="n">STREAM_CLOSED</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="k">else</span> <span class="n">Set</span><span class="o">.</span><span class="n">STREAM_OPEN</span>
 
-        <span class="k">if</span> <span class="n">newDone</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_writeDoneList</span><span class="p">(</span><span class="n">newDone</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">newDone</span><span class="p">:</span>
             <span class="c1"># If we are not finished and no new output have been produced</span>
             <span class="c1"># it does not make sense to proceed and updated the outputs</span>
             <span class="c1"># so we exit from the function here</span>
@@ -317,24 +310,26 @@
 
         <span class="n">micsAccepted</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">micsDiscarded</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">mic</span> <span class="ow">in</span> <span class="n">newDone</span><span class="p">:</span>
-            <span class="n">micId</span> <span class="o">=</span> <span class="n">mic</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
+
+        <span class="n">inputMicSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadInputSet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">micsFn</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">micId</span> <span class="ow">in</span> <span class="n">newDone</span><span class="p">:</span>
+            <span class="n">mic</span> <span class="o">=</span> <span class="n">inputMicSet</span><span class="o">.</span><span class="n">getItem</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="n">micId</span><span class="p">)</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
             <span class="n">corr_mean</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">micId</span><span class="p">][</span><span class="s1">&#39;mean&#39;</span><span class="p">])</span>
             <span class="n">corr_std</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">micId</span><span class="p">][</span><span class="s1">&#39;std&#39;</span><span class="p">])</span>
             <span class="n">corr_min</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">micId</span><span class="p">][</span><span class="s1">&#39;min&#39;</span><span class="p">])</span>
             <span class="n">corr_max</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">micId</span><span class="p">][</span><span class="s1">&#39;max&#39;</span><span class="p">])</span>
             <span class="n">psdImage</span> <span class="o">=</span> <span class="n">Image</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">getPSDs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">micId</span><span class="p">))</span>
-            <span class="n">new_Mic</span> <span class="o">=</span> <span class="n">mic</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
-            <span class="n">setAttribute</span><span class="p">(</span><span class="n">new_Mic</span><span class="p">,</span> <span class="s1">&#39;_tilt_mean_corr&#39;</span><span class="p">,</span> <span class="n">corr_mean</span><span class="p">)</span>
-            <span class="n">setAttribute</span><span class="p">(</span><span class="n">new_Mic</span><span class="p">,</span> <span class="s1">&#39;_tilt_std_corr&#39;</span><span class="p">,</span> <span class="n">corr_std</span><span class="p">)</span>
-            <span class="n">setAttribute</span><span class="p">(</span><span class="n">new_Mic</span><span class="p">,</span> <span class="s1">&#39;_tilt_min_corr&#39;</span><span class="p">,</span> <span class="n">corr_min</span><span class="p">)</span>
-            <span class="n">setAttribute</span><span class="p">(</span><span class="n">new_Mic</span><span class="p">,</span> <span class="s1">&#39;_tilt_max_corr&#39;</span><span class="p">,</span> <span class="n">corr_max</span><span class="p">)</span>
-            <span class="n">setAttribute</span><span class="p">(</span><span class="n">new_Mic</span><span class="p">,</span> <span class="s1">&#39;_tilt_psds_image&#39;</span><span class="p">,</span> <span class="n">psdImage</span><span class="p">)</span>
+            <span class="n">setAttribute</span><span class="p">(</span><span class="n">mic</span><span class="p">,</span> <span class="s1">&#39;_tilt_mean_corr&#39;</span><span class="p">,</span> <span class="n">corr_mean</span><span class="p">)</span>
+            <span class="n">setAttribute</span><span class="p">(</span><span class="n">mic</span><span class="p">,</span> <span class="s1">&#39;_tilt_std_corr&#39;</span><span class="p">,</span> <span class="n">corr_std</span><span class="p">)</span>
+            <span class="n">setAttribute</span><span class="p">(</span><span class="n">mic</span><span class="p">,</span> <span class="s1">&#39;_tilt_min_corr&#39;</span><span class="p">,</span> <span class="n">corr_min</span><span class="p">)</span>
+            <span class="n">setAttribute</span><span class="p">(</span><span class="n">mic</span><span class="p">,</span> <span class="s1">&#39;_tilt_max_corr&#39;</span><span class="p">,</span> <span class="n">corr_max</span><span class="p">)</span>
+            <span class="n">setAttribute</span><span class="p">(</span><span class="n">mic</span><span class="p">,</span> <span class="s1">&#39;_tilt_psds_image&#39;</span><span class="p">,</span> <span class="n">psdImage</span><span class="p">)</span>
             <span class="c1"># Double threshold</span>
             <span class="k">if</span> <span class="n">corr_mean</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">meanCorr_threshold</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">and</span> <span class="n">corr_std</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">stdCorr_threshold</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-                <span class="n">micsAccepted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_Mic</span><span class="p">)</span>
+                <span class="n">micsAccepted</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mic</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">micsDiscarded</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_Mic</span><span class="p">)</span>
+                <span class="n">micsDiscarded</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mic</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">micsAccepted</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">micSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfMicrographs</span><span class="p">,</span> <span class="s1">&#39;micrograph.sqlite&#39;</span><span class="p">)</span>
@@ -353,71 +348,36 @@
             <span class="k">if</span> <span class="n">outputStep</span> <span class="ow">and</span> <span class="n">outputStep</span><span class="o">.</span><span class="n">isWaiting</span><span class="p">():</span>
                 <span class="n">outputStep</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="n">cons</span><span class="o">.</span><span class="n">STATUS_NEW</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_insertNewMicrographSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">insertedDict</span><span class="p">,</span> <span class="n">inputMics</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_insertNewMicrographSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newIds</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Insert steps to process new micrographs (from streaming)</span>
 <span class="sd">        Params:</span>
-<span class="sd">            insertedDict: contains already processed micrographs</span>
-<span class="sd">            inputMics: input mics set to be check</span>
+<span class="sd">            newIds: input mics ids to be processed</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">deps</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="c1"># For each micrograph insert the step to process it</span>
-        <span class="k">for</span> <span class="n">micrograph</span> <span class="ow">in</span> <span class="n">inputMics</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">micrograph</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">insertedDict</span><span class="p">:</span>
-                <span class="n">tiltStepId</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertMicrographStep</span><span class="p">(</span><span class="n">micrograph</span><span class="p">)</span>
-                <span class="n">deps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tiltStepId</span><span class="p">)</span>
-                <span class="n">insertedDict</span><span class="p">[</span><span class="n">micrograph</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()]</span> <span class="o">=</span> <span class="n">tiltStepId</span>
+        <span class="c1"># Loop through the image IDs in batches</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">newIds</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">PARALLEL_BATCH_SIZE</span><span class="p">):</span>
+            <span class="n">batchIds</span> <span class="o">=</span> <span class="n">newIds</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">PARALLEL_BATCH_SIZE</span><span class="p">]</span>
+            <span class="n">tiltStepId</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">processMicrographListStep</span><span class="p">,</span> <span class="n">batchIds</span><span class="p">,</span> <span class="n">needsGPU</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                              <span class="n">prerequisites</span><span class="o">=</span><span class="p">[])</span>
+            <span class="k">for</span> <span class="n">micId</span> <span class="ow">in</span> <span class="n">batchIds</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">insertedIds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">micId</span><span class="p">)</span>
+
+            <span class="n">deps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tiltStepId</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">deps</span>
 
-    <span class="k">def</span> <span class="nf">_insertMicrographStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">micrograph</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Insert the processMicStep for a given movie. &quot;&quot;&quot;</span>
-        <span class="c1"># Note1: At this point is safe to pass the micrograph, since this</span>
-        <span class="c1"># is not executed in parallel, here we get the params</span>
-        <span class="c1"># to pass to the actual step that is gone to be executed later on</span>
-        <span class="c1"># Note2: We are serializing the Movie as a dict that can be passed</span>
-        <span class="c1"># as parameter for a functionStep</span>
-        <span class="n">micDict</span> <span class="o">=</span> <span class="n">micrograph</span><span class="o">.</span><span class="n">getObjDict</span><span class="p">(</span><span class="n">includeBasic</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">micStepId</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;processMicrographStep&#39;</span><span class="p">,</span> <span class="n">micDict</span><span class="p">,</span> <span class="n">prerequisites</span><span class="o">=</span><span class="p">[])</span>
-        <span class="k">return</span> <span class="n">micStepId</span>
+<div class="viewcode-block" id="XmippProtTiltAnalysis.processMicrographListStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_tilt_analysis.html#xmipp3.protocols.protocol_tilt_analysis.XmippProtTiltAnalysis.processMicrographListStep">[docs]</a>    <span class="k">def</span> <span class="nf">processMicrographListStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">micIds</span><span class="p">):</span>
+        <span class="n">inputMicSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadInputSet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">micsFn</span><span class="p">)</span>
 
-<div class="viewcode-block" id="XmippProtTiltAnalysis.processMicrographStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_tilt_analysis.html#xmipp3.protocols.protocol_tilt_analysis.XmippProtTiltAnalysis.processMicrographStep">[docs]</a>    <span class="k">def</span> <span class="nf">processMicrographStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">micDict</span><span class="p">):</span>
-        <span class="n">micrograph</span> <span class="o">=</span> <span class="n">Micrograph</span><span class="p">()</span>
-        <span class="n">micrograph</span><span class="o">.</span><span class="n">setAcquisition</span><span class="p">(</span><span class="n">Acquisition</span><span class="p">())</span>
-        <span class="n">micrograph</span><span class="o">.</span><span class="n">setAttributesFromDict</span><span class="p">(</span><span class="n">micDict</span><span class="p">,</span> <span class="n">setBasic</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">ignoreMissing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">micFolderTmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicFolder</span><span class="p">(</span><span class="n">micrograph</span><span class="p">)</span>
-        <span class="n">micFn</span> <span class="o">=</span> <span class="n">micrograph</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
-        <span class="n">micName</span> <span class="o">=</span> <span class="n">basename</span><span class="p">(</span><span class="n">micFn</span><span class="p">)</span>
-        <span class="n">micDoneFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMicrographDone</span><span class="p">(</span><span class="n">micrograph</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isContinued</span><span class="p">()</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">micDoneFn</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Skipping micrograph: </span><span class="si">%s</span><span class="s2">, seems to be done&quot;</span> <span class="o">%</span> <span class="n">micFn</span><span class="p">)</span>
-            <span class="k">return</span>
-
-        <span class="n">pwutils</span><span class="o">.</span><span class="n">cleanPath</span><span class="p">(</span><span class="n">micDoneFn</span><span class="p">)</span>
-
-        <span class="n">pwutils</span><span class="o">.</span><span class="n">makePath</span><span class="p">(</span><span class="n">micFolderTmp</span><span class="p">)</span>
-        <span class="n">pwutils</span><span class="o">.</span><span class="n">createLink</span><span class="p">(</span><span class="n">micFn</span><span class="p">,</span> <span class="n">join</span><span class="p">(</span><span class="n">micFolderTmp</span><span class="p">,</span> <span class="n">micName</span><span class="p">))</span>
-        <span class="n">newMicName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_correctFormat</span><span class="p">(</span><span class="n">micName</span><span class="p">,</span> <span class="n">micFn</span><span class="p">,</span> <span class="n">micFolderTmp</span><span class="p">)</span>
-
-        <span class="c1"># Just store the original name in case it is needed in _processMovie</span>
-        <span class="n">micrograph</span><span class="o">.</span><span class="n">_originalFileName</span> <span class="o">=</span> <span class="n">String</span><span class="p">(</span><span class="n">objDoStore</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-        <span class="n">micrograph</span><span class="o">.</span><span class="n">_originalFileName</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">micrograph</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
-        <span class="c1"># Now set the new filename (either linked or converted)</span>
-        <span class="n">micrograph</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">micFolderTmp</span><span class="p">,</span> <span class="n">newMicName</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Processing micrograph: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">micrograph</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">_processMicrograph</span><span class="p">(</span><span class="n">micrograph</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">saveIntermediateResults</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-            <span class="n">micOutputFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getResultsMicFolder</span><span class="p">(</span><span class="n">micrograph</span><span class="p">)</span>
-            <span class="n">pwutils</span><span class="o">.</span><span class="n">makePath</span><span class="p">(</span><span class="n">micOutputFn</span><span class="p">)</span>
-            <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">getFiles</span><span class="p">(</span><span class="n">micFolderTmp</span><span class="p">):</span>
-                <span class="n">moveFile</span><span class="p">(</span><span class="n">file</span><span class="p">,</span> <span class="n">micOutputFn</span><span class="p">)</span>
-
-        <span class="c1"># Mark this movie as finished</span>
-        <span class="nb">open</span><span class="p">(</span><span class="n">micDoneFn</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+        <span class="k">for</span> <span class="n">micId</span> <span class="ow">in</span> <span class="n">micIds</span><span class="p">:</span>
+            <span class="n">micrograph</span> <span class="o">=</span> <span class="n">inputMicSet</span><span class="o">.</span><span class="n">getItem</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="n">micId</span><span class="p">)</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_processMicrograph</span><span class="p">(</span><span class="n">micrograph</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_processMicrograph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">micrograph</span><span class="p">):</span>
+        <span class="n">micFolderTmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMicFolder</span><span class="p">(</span><span class="n">micrograph</span><span class="p">)</span>
+        <span class="n">pwutils</span><span class="o">.</span><span class="n">makePath</span><span class="p">(</span><span class="n">micFolderTmp</span><span class="p">)</span>
         <span class="n">micrographId</span> <span class="o">=</span> <span class="n">micrograph</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span>
         <span class="n">correlations</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calculateTiltCorrelationStep</span><span class="p">(</span><span class="n">micrograph</span><span class="p">)</span>
         <span class="c1"># Numpy array to compute all the</span>
@@ -425,6 +385,7 @@
         <span class="c1"># Calculate the mean, dev of the correlation</span>
         <span class="n">stats</span> <span class="o">=</span> <span class="n">computeStats</span><span class="p">(</span><span class="n">correlations</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">stats</span><span class="p">[</span><span class="n">micrographId</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">processedIds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">micrographId</span><span class="p">)</span>
 
         <span class="n">fnMonitorSummary</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPath</span><span class="p">(</span><span class="s2">&quot;summaryForMonitor.txt&quot;</span><span class="p">)</span>
 
@@ -516,7 +477,7 @@
                 <span class="n">psds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">subWind_psd_filt</span><span class="p">)</span>
 
         <span class="n">output_image</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">output_array</span><span class="p">)</span>
-        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;psd_outputs&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">mic</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39;.jpeg&#39;</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s2">&quot;psd_outputs&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">mic</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span> <span class="o">+</span> <span class="s1">&#39;.mrc&#39;</span>
         <span class="n">output_image</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">filename</span><span class="p">))</span>
 
         <span class="n">correlation_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">combinations</span><span class="p">(</span><span class="n">psds</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
@@ -552,36 +513,23 @@
         <span class="k">return</span> <span class="n">outputSet</span>
 
     <span class="c1"># ------------------------- UTILS functions --------------------------------</span>
-    <span class="k">def</span> <span class="nf">_correctFormat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">micName</span><span class="p">,</span> <span class="n">micFn</span><span class="p">,</span> <span class="n">micFolderTmp</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">micName</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;bz2&#39;</span><span class="p">):</span>
-            <span class="n">newMicName</span> <span class="o">=</span> <span class="n">micName</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.bz2&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-            <span class="c1"># We assume that if compressed the name ends with .mrc.bz2</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">newMicName</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;bzip2&#39;</span><span class="p">,</span> <span class="s1">&#39;-d -f </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">micName</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">micFolderTmp</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">_getAllDoneIds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">doneIds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">acceptedIds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">discardedIds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sizeOutput</span> <span class="o">=</span> <span class="mi">0</span>
 
-        <span class="k">elif</span> <span class="n">micName</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;tbz&#39;</span><span class="p">):</span>
-            <span class="n">newMicName</span> <span class="o">=</span> <span class="n">micName</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.tbz&#39;</span><span class="p">,</span> <span class="s1">&#39;.mrc&#39;</span><span class="p">)</span>
-            <span class="c1"># We assume that if compressed the name ends with .tbz</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">exists</span><span class="p">(</span><span class="n">newMicName</span><span class="p">):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;tar&#39;</span><span class="p">,</span> <span class="s1">&#39;jxf </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">micName</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="n">micFolderTmp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">OUTPUT_MICS</span><span class="p">):</span>
+            <span class="n">sizeOutput</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputMicrographs</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span>
+            <span class="n">acceptedIds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputMicrographs</span><span class="o">.</span><span class="n">getIdSet</span><span class="p">()))</span>
+            <span class="n">doneIds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">acceptedIds</span><span class="p">)</span>
 
-        <span class="k">elif</span> <span class="n">micName</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.txt&#39;</span><span class="p">):</span>
-            <span class="c1"># Support a list of frame as a simple .txt file containing</span>
-            <span class="c1"># all the frames in a raw list, we could use a xmd as well,</span>
-            <span class="c1"># but a plain text was choose to simply its generation</span>
-            <span class="n">micTxt</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">micFolderTmp</span><span class="p">,</span> <span class="n">micName</span><span class="p">)</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">micTxt</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">micOrigin</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">readlink</span><span class="p">(</span><span class="n">micFn</span><span class="p">))</span>
-                <span class="n">newMicName</span> <span class="o">=</span> <span class="n">micName</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;.txt&#39;</span><span class="p">,</span> <span class="s1">&#39;.mrc&#39;</span><span class="p">)</span>
-                <span class="n">ih</span> <span class="o">=</span> <span class="n">emlib</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">ImageHandler</span><span class="p">()</span>
-                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
-                    <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
-                        <span class="n">inputFrame</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">micOrigin</span><span class="p">,</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
-                        <span class="n">ih</span><span class="o">.</span><span class="n">convert</span><span class="p">(</span><span class="n">inputFrame</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">micFolderTmp</span><span class="p">,</span> <span class="n">newMicName</span><span class="p">)))</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">newMicName</span> <span class="o">=</span> <span class="n">micName</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">OUTPUT_MICS_DISCARDED</span><span class="p">):</span>
+            <span class="n">sizeOutput</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">discardedMicrographs</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span>
+            <span class="n">discardedIds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">discardedMicrographs</span><span class="o">.</span><span class="n">getIdSet</span><span class="p">()))</span>
+            <span class="n">doneIds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">discardedIds</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">newMicName</span>
+        <span class="k">return</span> <span class="n">doneIds</span><span class="p">,</span> <span class="n">sizeOutput</span><span class="p">,</span> <span class="n">acceptedIds</span><span class="p">,</span> <span class="n">discardedIds</span>
 
 <div class="viewcode-block" id="XmippProtTiltAnalysis.getWindowSize"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_tilt_analysis.html#xmipp3.protocols.protocol_tilt_analysis.XmippProtTiltAnalysis.getWindowSize">[docs]</a>    <span class="k">def</span> <span class="nf">getWindowSize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Function to get the window size, automatically or the one set by the user. &quot;&quot;&quot;</span>
@@ -600,61 +548,17 @@
 
         <span class="k">return</span> <span class="n">windowSize</span></div>
 
-    <span class="k">def</span> <span class="nf">_insertFinalSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">deps</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; This should be implemented in subclasses&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">deps</span>
-
     <span class="k">def</span> <span class="nf">_getOutputMicFolder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">micrograph</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Create a Mic folder where to work with it. &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s1">&#39;mic_</span><span class="si">%06d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">micrograph</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
 
-    <span class="k">def</span> <span class="nf">_getResultsMicFolder</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">micrograph</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Create a Mic folder where to work with it. &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;mic_</span><span class="si">%06d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">micrograph</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
-
-<div class="viewcode-block" id="XmippProtTiltAnalysis.getInputMicrographsPointer"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_tilt_analysis.html#xmipp3.protocols.protocol_tilt_analysis.XmippProtTiltAnalysis.getInputMicrographsPointer">[docs]</a>    <span class="k">def</span> <span class="nf">getInputMicrographsPointer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMicrographs</span></div>
-
 <div class="viewcode-block" id="XmippProtTiltAnalysis.getInputMicrographs"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_tilt_analysis.html#xmipp3.protocols.protocol_tilt_analysis.XmippProtTiltAnalysis.getInputMicrographs">[docs]</a>    <span class="k">def</span> <span class="nf">getInputMicrographs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputMicrographsPointer</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
-
-    <span class="k">def</span> <span class="nf">_writeFailedList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">micList</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Write to a text file the items that have failed. &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getAllFailed</span><span class="p">(),</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">mic</span> <span class="ow">in</span> <span class="n">micList</span><span class="p">:</span>
-                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mic</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
-
-    <span class="k">def</span> <span class="nf">_readDoneList</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Read from a text file the id&#39;s of the items that have been done. &quot;&quot;&quot;</span>
-        <span class="n">doneFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getAllDone</span><span class="p">()</span>
-        <span class="n">doneList</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="c1"># Check what items have been previously done</span>
-        <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">doneFile</span><span class="p">):</span>
-            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">doneFile</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-                <span class="n">doneList</span> <span class="o">+=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span> <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">]</span>
-        <span class="k">return</span> <span class="n">doneList</span>
-
-    <span class="k">def</span> <span class="nf">_getAllDone</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;DONE_all.TXT&#39;</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">_writeDoneList</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">micList</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Write to a text file the items that have been done. &quot;&quot;&quot;</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getAllDone</span><span class="p">(),</span> <span class="s1">&#39;a&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">mic</span> <span class="ow">in</span> <span class="n">micList</span><span class="p">:</span>
-                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%d</span><span class="se">\n</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">mic</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
-
-    <span class="k">def</span> <span class="nf">_isMicDone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mic</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; A mic is done if the marker file exists. &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getMicrographDone</span><span class="p">(</span><span class="n">mic</span><span class="p">))</span>
-
-    <span class="k">def</span> <span class="nf">_getMicrographDone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mic</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Return the file that is used as a flag of termination. &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;DONE&#39;</span><span class="p">,</span> <span class="s1">&#39;mic_</span><span class="si">%06d</span><span class="s1">.TXT&#39;</span> <span class="o">%</span> <span class="n">mic</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMicrographs</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="XmippProtTiltAnalysis.getPSDs"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_tilt_analysis.html#xmipp3.protocols.protocol_tilt_analysis.XmippProtTiltAnalysis.getPSDs">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">getPSDs</span><span class="p">(</span><span class="n">micFolder</span><span class="p">,</span> <span class="n">ID</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return the Mic folder where find the PSDs in the tmp folder. &quot;&quot;&quot;</span>
-        <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;psd_outputs&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.jpeg&#39;</span>
+        <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;psd_outputs&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">ID</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.mrc&#39;</span>
         <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">micFolder</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span></div>
 
     <span class="c1"># --------------------------- INFO functions -------------------------------</span>

@@ -129,7 +129,7 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">VERSION_1_1</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="p">(</span><span class="n">PointerParam</span><span class="p">,</span> <span class="n">FloatParam</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span>
                                         <span class="n">LEVEL_ADVANCED</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">ProtAnalysis3D</span>
 <span class="kn">from</span> <span class="nn">pwem.emlib.image</span> <span class="kn">import</span> <span class="n">ImageHandler</span>
@@ -183,7 +183,13 @@
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;K = 0.025 works well for all tested cases.&#39;</span>
                       <span class="s1">&#39; K should be in the 0.01-0.05 range.&#39;</span>
                       <span class="s1">&#39; For maps with FSC resolution lower than 6Å,&#39;</span>
-                      <span class="s1">&#39; K = 0.01 can be a good alternative.&#39;</span><span class="p">)</span>        
+                      <span class="s1">&#39; K = 0.01 can be a good alternative.&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;Niter&#39;</span><span class="p">,</span> <span class="n">IntParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                      <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;No. Iterations&quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;If this number is larger than 1, for each iteration, the previous map is sharpened and the &#39;</span>
+                           <span class="s1">&#39;local resolution reestimated for a new round. Set to a fixed number or -1 for automatic &#39;</span>
+                           <span class="s1">&#39;determination&#39;</span><span class="p">)</span>
         
         <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span> <span class="o">=</span> <span class="mi">4</span><span class="p">,</span> <span class="n">mpi</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
         
@@ -316,9 +322,10 @@
 
 
 <div class="viewcode-block" id="XmippProtLocSharp.sharpeningAndMonoResStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_volume_local_sharpening.html#xmipp3.protocols.protocol_volume_local_sharpening.XmippProtLocSharp.sharpeningAndMonoResStep">[docs]</a>    <span class="k">def</span> <span class="nf">sharpeningAndMonoResStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">last_Niters</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="n">last_Niters</span><span class="o">=-</span><span class="mi">1</span>
         <span class="n">last_lambda_sharpening</span> <span class="o">=</span> <span class="mf">1e38</span>
         <span class="n">nextIter</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">maxNiters</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">Niter</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 
         <span class="k">while</span> <span class="n">nextIter</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">+</span> <span class="mi">1</span>
@@ -332,11 +339,8 @@
             <span class="n">lambda_sharpening</span> <span class="o">=</span> <span class="n">mtd</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">MDL_COST</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
             <span class="n">Niters</span> <span class="o">=</span> <span class="n">mtd</span><span class="o">.</span><span class="n">getValue</span><span class="p">(</span><span class="n">MDL_ITER</span><span class="p">,</span><span class="mi">1</span><span class="p">)</span>
             
-<span class="c1">#             if (Niters == last_Niters):</span>
-<span class="c1">#                 nextIter = False</span>
-<span class="c1">#                 break</span>
-               
-            <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">lambda_sharpening</span> <span class="o">-</span> <span class="n">last_lambda_sharpening</span><span class="p">)</span><span class="o">&lt;=</span> <span class="mf">0.2</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">maxNiters</span><span class="o">&lt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">lambda_sharpening</span> <span class="o">-</span> <span class="n">last_lambda_sharpening</span><span class="p">)</span><span class="o">&lt;=</span> <span class="mf">0.2</span><span class="p">))</span> <span class="ow">or</span> \
+               <span class="p">(</span><span class="n">maxNiters</span><span class="o">&gt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span><span class="o">==</span><span class="n">maxNiters</span><span class="p">):</span>
                 <span class="n">nextIter</span> <span class="o">=</span> <span class="kc">False</span>   
                 <span class="k">break</span>
 
@@ -352,9 +356,8 @@
             <span class="n">max_res</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">amax</span><span class="p">(</span><span class="n">imgData</span><span class="p">)</span>
             <span class="n">min_res</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">inputVolume</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
         
-            <span class="k">if</span> <span class="p">(</span><span class="n">max_res</span><span class="o">-</span><span class="n">min_res</span><span class="o">&lt;</span><span class="mf">0.75</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">maxNiters</span><span class="o">&lt;</span><span class="mi">0</span> <span class="ow">and</span> <span class="p">(</span><span class="n">max_res</span><span class="o">-</span><span class="n">min_res</span><span class="o">&lt;</span><span class="mf">0.75</span><span class="p">):</span>
                 <span class="n">nextIter</span> <span class="o">=</span> <span class="kc">False</span>
-                <span class="k">break</span>
 
         <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;sharpenedMap_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iteration</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.mrc&#39;</span><span class="p">),</span>
                   <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;sharpenedMap_last.mrc&#39;</span><span class="p">))</span>
@@ -371,23 +374,30 @@
   
              
 <div class="viewcode-block" id="XmippProtLocSharp.createOutputStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_volume_local_sharpening.html#xmipp3.protocols.protocol_volume_local_sharpening.XmippProtLocSharp.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-
-        <span class="n">volumesSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfVolumes</span><span class="p">()</span>
-        <span class="n">volumesSet</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputVolume</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iteration</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span><span class="o">&gt;</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">volumesSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfVolumes</span><span class="p">()</span>
+            <span class="n">volumesSet</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputVolume</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iteration</span><span class="p">):</span>
+                <span class="n">vol</span> <span class="o">=</span> <span class="n">Volume</span><span class="p">()</span>
+                <span class="n">vol</span><span class="o">.</span><span class="n">setOrigin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputVolume</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getOrigin</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
+                <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)):</span>
+                    <span class="n">vol</span><span class="o">.</span><span class="n">setLocation</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;sharpenedMap_</span><span class="si">%d</span><span class="s1">.mrc&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)))</span>
+                    <span class="n">vol</span><span class="o">.</span><span class="n">setObjComment</span><span class="p">(</span><span class="s2">&quot;Sharpened Map, </span><span class="se">\n</span><span class="s2"> Epoch </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">vol</span><span class="o">.</span><span class="n">setLocation</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;sharpenedMap_last.mrc&#39;</span><span class="p">))</span>
+                    <span class="n">vol</span><span class="o">.</span><span class="n">setObjComment</span><span class="p">(</span><span class="s2">&quot;Sharpened Map, </span><span class="se">\n</span><span class="s2"> Epoch last&quot;</span><span class="p">)</span>
+                <span class="n">volumesSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vol</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputVolumes</span><span class="o">=</span><span class="n">volumesSet</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputVolume</span><span class="p">,</span> <span class="n">volumesSet</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
             <span class="n">vol</span> <span class="o">=</span> <span class="n">Volume</span><span class="p">()</span>
+            <span class="n">vol</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputVolume</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
             <span class="n">vol</span><span class="o">.</span><span class="n">setOrigin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputVolume</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getOrigin</span><span class="p">(</span><span class="kc">True</span><span class="p">))</span>
-            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)):</span>
-                <span class="n">vol</span><span class="o">.</span><span class="n">setLocation</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;sharpenedMap_</span><span class="si">%d</span><span class="s1">.mrc&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)))</span>
-                <span class="n">vol</span><span class="o">.</span><span class="n">setObjComment</span><span class="p">(</span><span class="s2">&quot;Sharpened Map, </span><span class="se">\n</span><span class="s2"> Epoch </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">vol</span><span class="o">.</span><span class="n">setLocation</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;sharpenedMap_last.mrc&#39;</span><span class="p">))</span>
-                <span class="n">vol</span><span class="o">.</span><span class="n">setObjComment</span><span class="p">(</span><span class="s2">&quot;Sharpened Map, </span><span class="se">\n</span><span class="s2"> Epoch last&quot;</span><span class="p">)</span>
-            <span class="n">volumesSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vol</span><span class="p">)</span>
+            <span class="n">vol</span><span class="o">.</span><span class="n">setLocation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;sharpenedMap_last.mrc&#39;</span><span class="p">))</span>
+            <span class="n">vol</span><span class="o">.</span><span class="n">setObjComment</span><span class="p">(</span><span class="s2">&quot;Sharpened Map, </span><span class="se">\n</span><span class="s2"> Epoch last&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputVolume</span><span class="o">=</span><span class="n">vol</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputVolume</span><span class="p">,</span> <span class="n">vol</span><span class="p">)</span></div>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputVolumes</span><span class="o">=</span><span class="n">volumesSet</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputVolume</span><span class="p">,</span> <span class="n">volumesSet</span><span class="p">)</span></div>
-                     
     <span class="c1"># --------------------------- INFO functions ------------------------------</span>
 
     <span class="k">def</span> <span class="nf">_methods</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

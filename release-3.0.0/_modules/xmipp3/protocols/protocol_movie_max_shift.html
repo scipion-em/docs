@@ -103,7 +103,8 @@
   <h1>Source code for xmipp3.protocols.protocol_movie_max_shift</h1><div class="highlight"><pre>
 <span></span><span class="c1"># **************************************************************************</span>
 <span class="c1"># *</span>
-<span class="c1"># * Authors:     David Maluenda    (dmaluenda@cnb.csic.es)</span>
+<span class="c1"># * Authors:    David Maluenda    (dmaluenda@cnb.csic.es)</span>
+<span class="c1"># *             Daniel Marchan (da.marchan@cnb.csic.es) REFACTOR</span>
 <span class="c1"># *</span>
 <span class="c1"># * Unidad de  Bioinformatica of Centro Nacional de Biotecnologia , CSIC</span>
 <span class="c1"># *</span>
@@ -126,21 +127,30 @@
 <span class="c1"># *  e-mail address &#39;scipion@cnb.csic.es&#39;</span>
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
-
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">exists</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">VERSION_2_0</span>
+<span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">VERSION_3_0</span>
+<span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">UPDATED</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.params</span> <span class="k">as</span> <span class="nn">params</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="n">Set</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="kn">import</span> <span class="n">STATUS_NEW</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="kn">import</span> <span class="n">STATUS_NEW</span><span class="p">,</span> <span class="n">STEPS_PARALLEL</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.params</span> <span class="kn">import</span> <span class="n">PointerParam</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils.properties</span> <span class="kn">import</span> <span class="n">Message</span>
 
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">ProtProcessMovies</span>
 <span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">SetOfMicrographs</span><span class="p">,</span> <span class="n">SetOfMovies</span>
 
+
+<span class="n">OUTPUT_MICS</span> <span class="o">=</span> <span class="s2">&quot;outputMicrographs&quot;</span>
+<span class="n">OUTPUT_MICS_DISCARDED</span> <span class="o">=</span> <span class="s2">&quot;outputMicrographs&quot;</span>
+<span class="n">OUTPUT_MOVIES</span> <span class="o">=</span> <span class="s2">&quot;outputMovies&quot;</span>
+<span class="n">OUTPUT_MOVIES_DISCARDED</span> <span class="o">=</span> <span class="s2">&quot;outputMoviesDiscarded&quot;</span>
+<span class="n">OUTPUT_MICS_DW</span> <span class="o">=</span> <span class="s2">&quot;outputMicrographsDoseWeighted&quot;</span>
+<span class="n">OUTPUT_MICS_DW_DISCARDED</span> <span class="o">=</span> <span class="s2">&quot;outputMicrographsDoseWeightedDiscarded&quot;</span>
 
 <div class="viewcode-block" id="XmippProtMovieMaxShift"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_max_shift.html#xmipp3.protocols.protocol_movie_max_shift.XmippProtMovieMaxShift">[docs]</a><span class="k">class</span> <span class="nc">XmippProtMovieMaxShift</span><span class="p">(</span><span class="n">ProtProcessMovies</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -157,7 +167,15 @@
 <span class="sd">                                             above are met.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;movie maxshift&#39;</span>
-    <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_2_0</span>
+    <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">UPDATED</span>
+    <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_3_0</span>
+    <span class="n">_possibleOutputs</span> <span class="o">=</span> <span class="p">{</span><span class="n">OUTPUT_MICS</span><span class="p">:</span> <span class="n">SetOfMicrographs</span><span class="p">,</span>
+                        <span class="n">OUTPUT_MICS_DW</span><span class="p">:</span> <span class="n">SetOfMicrographs</span><span class="p">,</span>
+                        <span class="n">OUTPUT_MICS_DISCARDED</span><span class="p">:</span> <span class="n">SetOfMicrographs</span><span class="p">,</span>
+                        <span class="n">OUTPUT_MICS_DW_DISCARDED</span><span class="p">:</span> <span class="n">SetOfMicrographs</span><span class="p">,</span>
+                        <span class="n">OUTPUT_MOVIES</span><span class="p">:</span> <span class="n">SetOfMovies</span><span class="p">,</span>
+                        <span class="n">OUTPUT_MOVIES_DISCARDED</span><span class="p">:</span> <span class="n">SetOfMovies</span>
+                        <span class="p">}</span>
     
     <span class="n">REJ_TYPES</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;by frame&#39;</span><span class="p">,</span> <span class="s1">&#39;by whole movie&#39;</span><span class="p">,</span> <span class="s1">&#39;by frame and movie&#39;</span><span class="p">,</span> 
                  <span class="s1">&#39;by frame or movie&#39;</span><span class="p">]</span>
@@ -168,11 +186,7 @@
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
         <span class="n">ProtProcessMovies</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">acceptedMoviesList</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">discardedMoviesList</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">acceptedDone</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">discardedDone</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">alreadyLoad</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stepsExecutionMode</span> <span class="o">=</span> <span class="n">STEPS_PARALLEL</span>
 
     <span class="c1"># -------------------------- DEFINE param functions ------------------------</span>
     <span class="k">def</span> <span class="nf">_defineParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
@@ -206,181 +220,246 @@
                                   <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">REJ_MOVIE</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">REJ_AND</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">REJ_OR</span><span class="p">),</span>
                        <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Maximum total travel to evaluate the whole movie &#39;</span>
                             <span class="s1">&#39;condition.&#39;</span><span class="p">)</span>
+
+        <span class="n">form</span><span class="o">.</span><span class="n">addParallelSection</span><span class="p">(</span><span class="n">threads</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">mpi</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         
     <span class="c1">#--------------------------- INSERT steps functions ------------------------</span>
-    <span class="k">def</span> <span class="nf">_insertMovieStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Insert the steps to perform movie alignment evaluation</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initializeStep</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">createOutputStep</span><span class="p">,</span>
+                                 <span class="n">prerequisites</span><span class="o">=</span><span class="p">[],</span> <span class="n">wait</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">needsGPU</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<div class="viewcode-block" id="XmippProtMovieMaxShift.initializeStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_max_shift.html#xmipp3.protocols.protocol_movie_max_shift.XmippProtMovieMaxShift.initializeStep">[docs]</a>    <span class="k">def</span> <span class="nf">initializeStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">movsFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
+        <span class="c1"># Important to have both:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">insertedIds</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># Contains images that have been inserted in a Step (checkNewInput).</span>
+        <span class="c1"># Contains images that have been processed in a Step (checkNewOutput).</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">acceptedIds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">discardedIds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isStreamClosed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">isStreamClosed</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">alreadyLoad</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+<div class="viewcode-block" id="XmippProtMovieMaxShift.createOutputStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_max_shift.html#xmipp3.protocols.protocol_movie_max_shift.XmippProtMovieMaxShift.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_closeOutputSet</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_loadInputSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movsFn</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Load the input set of movies and create a list. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Loading input db: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">movsFn</span><span class="p">)</span>
+        <span class="n">movSet</span> <span class="o">=</span> <span class="n">SetOfMovies</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">movsFn</span><span class="p">)</span>
+        <span class="n">movSet</span><span class="o">.</span><span class="n">loadAllProperties</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">isStreamClosed</span> <span class="o">=</span> <span class="n">movSet</span><span class="o">.</span><span class="n">isStreamClosed</span><span class="p">()</span>
+        <span class="n">movSet</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Closed db.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">movSet</span>
+
+    <span class="k">def</span> <span class="nf">_loadMicAssociatedInputSet</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Load the input set of mics and create a list. &quot;&quot;&quot;</span>
+        <span class="n">parentProt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMapper</span><span class="p">()</span><span class="o">.</span><span class="n">getParent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="n">micSet</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">parentProt</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outMicName</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">micSet</span><span class="o">.</span><span class="n">loadAllProperties</span><span class="p">()</span>
+        <span class="n">micSet</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">micSet</span>
+
+    <span class="k">def</span> <span class="nf">_stepsCheck</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Input micrograph set can be loaded or None when checked for new inputs</span>
+        <span class="c1"># If None, we load it</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_checkNewInput</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_checkNewOutput</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_checkNewInput</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Check if there are new micrographs to process from the input set</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lastCheck</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;lastCheck&#39;</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">())</span>
+        <span class="n">mTime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">movsFn</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Last check: </span><span class="si">%s</span><span class="s1">, modification: </span><span class="si">%s</span><span class="s1">&#39;</span>
+                   <span class="o">%</span> <span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">prettyTime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lastCheck</span><span class="p">),</span>
+                      <span class="n">pwutils</span><span class="o">.</span><span class="n">prettyTime</span><span class="p">(</span><span class="n">mTime</span><span class="p">)))</span>
+        <span class="c1"># If the input micrographs.sqlite have not changed since our last check,</span>
+        <span class="c1"># it does not make sense to check for new input data</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastCheck</span> <span class="o">&gt;</span> <span class="n">mTime</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">insertedIds</span><span class="p">:</span> <span class="c1"># If this is empty it is dut to a static &quot;continue&quot; action or it is the first round</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="c1"># Open input micrographs.sqlite and close it as soon as possible</span>
+        <span class="n">movSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadInputSet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">movsFn</span><span class="p">)</span>
+        <span class="n">movSetIds</span> <span class="o">=</span> <span class="n">movSet</span><span class="o">.</span><span class="n">getIdSet</span><span class="p">()</span>
+        <span class="n">newIds</span> <span class="o">=</span> <span class="p">[</span><span class="n">idMic</span> <span class="k">for</span> <span class="n">idMic</span> <span class="ow">in</span> <span class="n">movSetIds</span> <span class="k">if</span> <span class="n">idMic</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">insertedIds</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">isStreamClosed</span> <span class="o">=</span> <span class="n">movSet</span><span class="o">.</span><span class="n">isStreamClosed</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lastCheck</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="n">movSet</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="n">outputStep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFirstJoinStep</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isContinued</span><span class="p">()</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">insertedIds</span><span class="p">:</span> <span class="c1"># For &quot;Continue&quot; action and the first round</span>
+            <span class="n">doneIds</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getAllDoneIds</span><span class="p">()</span>
+            <span class="n">skipIds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">newIds</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">doneIds</span><span class="p">)))</span>
+            <span class="n">newIds</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">newIds</span><span class="p">)</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">doneIds</span><span class="p">)))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Skipping Mics with ID: </span><span class="si">%s</span><span class="s2">, seems to be done&quot;</span> <span class="o">%</span> <span class="n">skipIds</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">insertedIds</span> <span class="o">=</span> <span class="n">doneIds</span> <span class="c1"># During the first round of &quot;Continue&quot; action it has to be filled</span>
+
+        <span class="k">if</span> <span class="n">newIds</span><span class="p">:</span>
+            <span class="n">fDeps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertNewMoviesSteps</span><span class="p">(</span><span class="n">newIds</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">outputStep</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">outputStep</span><span class="o">.</span><span class="n">addPrerequisites</span><span class="p">(</span><span class="o">*</span><span class="n">fDeps</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">updateSteps</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">_insertNewMoviesSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newIds</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Insert the processMovieStep for a given movie.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">alreadyLoad</span><span class="p">:</span>
             <span class="c1"># looking for a setOfMicrographs related to the inputMovies</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">setInputMics</span><span class="p">()</span>
-        <span class="c1"># Insert the selection/rejection step</span>
-        <span class="n">movieStepId</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;_evaluateMovieAlign&#39;</span><span class="p">,</span>
-                                               <span class="n">movie</span><span class="o">.</span><span class="n">getObjId</span><span class="p">(),</span>
-                                               <span class="n">prerequisites</span><span class="o">=</span><span class="p">[])</span>
-        <span class="k">return</span> <span class="n">movieStepId</span>
 
-    <span class="k">def</span> <span class="nf">_evaluateMovieAlign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movieId</span><span class="p">):</span>
+        <span class="c1"># Insert the selection/rejection step process</span>
+        <span class="n">deps</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">stepId</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_evaluateMovieAlign</span><span class="p">,</span> <span class="n">newIds</span><span class="p">,</span>  <span class="n">needsGPU</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                          <span class="n">prerequisites</span><span class="o">=</span><span class="p">[])</span>
+        <span class="n">deps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stepId</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">movId</span> <span class="ow">in</span> <span class="n">newIds</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">insertedIds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movId</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">deps</span>
+
+    <span class="k">def</span> <span class="nf">_evaluateMovieAlign</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movIds</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Fill the accepted or the rejected list with the movie.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">movie</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()[</span><span class="n">movieId</span><span class="p">]</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
-        <span class="n">alignment</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">getAlignment</span><span class="p">()</span>
+        <span class="n">inputMovies</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadInputSet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">movsFn</span><span class="p">)</span>
         <span class="n">sampling</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">samplingRate</span>
 
-        <span class="c1"># getShifts() returns the absolute shifts from a certain reference</span>
-        <span class="n">shiftListX</span><span class="p">,</span> <span class="n">shiftListY</span> <span class="o">=</span> <span class="n">alignment</span><span class="o">.</span><span class="n">getShifts</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">movieId</span> <span class="ow">in</span> <span class="n">movIds</span><span class="p">:</span>
+            <span class="n">movie</span> <span class="o">=</span> <span class="n">inputMovies</span><span class="o">.</span><span class="n">getItem</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="n">movieId</span><span class="p">)</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+            <span class="n">alignment</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">getAlignment</span><span class="p">()</span>
+            <span class="c1"># getShifts() returns the absolute shifts from a certain reference</span>
+            <span class="n">shiftListX</span><span class="p">,</span> <span class="n">shiftListY</span> <span class="o">=</span> <span class="n">alignment</span><span class="o">.</span><span class="n">getShifts</span><span class="p">()</span>
+            <span class="c1"># initialize the criteria values</span>
+            <span class="n">rejectedByMovie</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="n">rejectedByFrame</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">shiftListX</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">shiftListY</span><span class="p">):</span>
+                <span class="c1"># we use np.arrays to use np.diff()</span>
+                <span class="n">shiftArrayX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">shiftListX</span><span class="p">)</span>
+                <span class="n">shiftArrayY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">shiftListY</span><span class="p">)</span>
 
-        <span class="c1"># initialize the criteria values</span>
-        <span class="n">rejectedByMovie</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="n">rejectedByFrame</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">shiftListX</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">shiftListY</span><span class="p">):</span>
-            <span class="c1"># we use np.arrays to use np.diff()</span>
-            <span class="n">shiftArrayX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">shiftListX</span><span class="p">)</span>
-            <span class="n">shiftArrayY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">shiftListY</span><span class="p">)</span>
+                <span class="n">evalBoth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rejType</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">REJ_AND</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">rejType</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">REJ_OR</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rejType</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">REJ_MOVIE</span> <span class="ow">or</span> <span class="n">evalBoth</span><span class="p">:</span>
+                    <span class="n">rangeX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">shiftArrayX</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">shiftArrayX</span><span class="p">)</span>
+                    <span class="n">rangeY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">shiftArrayY</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">shiftArrayY</span><span class="p">)</span>
+                    <span class="n">rangeM</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">rangeX</span><span class="p">,</span> <span class="n">rangeY</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling</span>
+                    <span class="n">rejectedByMovie</span> <span class="o">=</span> <span class="n">rangeM</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxMovieShift</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 
-            <span class="n">evalBoth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rejType</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">REJ_AND</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">rejType</span><span class="o">==</span><span class="bp">self</span><span class="o">.</span><span class="n">REJ_OR</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rejType</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">REJ_MOVIE</span> <span class="ow">or</span> <span class="n">evalBoth</span><span class="p">:</span>
-                <span class="n">rangeX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">shiftArrayX</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">shiftArrayX</span><span class="p">)</span>
-                <span class="n">rangeY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">shiftArrayY</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">shiftArrayY</span><span class="p">)</span>
-                <span class="n">rangeM</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">rangeX</span><span class="p">,</span> <span class="n">rangeY</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling</span>
-                <span class="n">rejectedByMovie</span> <span class="o">=</span> <span class="n">rangeM</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxMovieShift</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rejType</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">REJ_FRAME</span> <span class="ow">or</span> <span class="n">evalBoth</span><span class="p">:</span>
+                    <span class="n">frameShiftX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">shiftArrayX</span><span class="p">))</span>
+                    <span class="n">frameShiftY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">shiftArrayY</span><span class="p">))</span>
+                    <span class="n">maxShiftX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">frameShiftX</span><span class="p">)</span>
+                    <span class="n">maxShiftY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">frameShiftY</span><span class="p">)</span>
+                    <span class="n">maxShiftM</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">maxShiftX</span><span class="p">,</span> <span class="n">maxShiftY</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling</span>
+                    <span class="n">rejectedByFrame</span> <span class="o">=</span> <span class="n">maxShiftM</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxFrameShift</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
 
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rejType</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">REJ_FRAME</span> <span class="ow">or</span> <span class="n">evalBoth</span><span class="p">:</span>
-                <span class="n">frameShiftX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">shiftArrayX</span><span class="p">))</span>
-                <span class="n">frameShiftY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">shiftArrayY</span><span class="p">))</span>
-                <span class="n">maxShiftX</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">frameShiftX</span><span class="p">)</span>
-                <span class="n">maxShiftY</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">frameShiftY</span><span class="p">)</span>
-                <span class="n">maxShiftM</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">maxShiftX</span><span class="p">,</span> <span class="n">maxShiftY</span><span class="p">)</span> <span class="o">*</span> <span class="n">sampling</span>
-                <span class="n">rejectedByFrame</span> <span class="o">=</span> <span class="n">maxShiftM</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxFrameShift</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rejType</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">REJ_AND</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">rejectedByFrame</span> <span class="ow">and</span> <span class="n">rejectedByMovie</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">discardedMoviesList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">acceptedMoviesList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
-            <span class="k">else</span><span class="p">:</span>  <span class="c1"># for the OR and the individuals evaluations</span>
-                <span class="k">if</span> <span class="n">rejectedByFrame</span> <span class="ow">or</span> <span class="n">rejectedByMovie</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">discardedMoviesList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">acceptedMoviesList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>  <span class="c1"># we accept the movie if no shifts is associated</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">acceptedMoviesList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">rejType</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">REJ_AND</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">rejectedByFrame</span> <span class="ow">and</span> <span class="n">rejectedByMovie</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">discardedIds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movieId</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">acceptedIds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movieId</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>  <span class="c1"># for the OR and the individuals evaluations</span>
+                    <span class="k">if</span> <span class="n">rejectedByFrame</span> <span class="ow">or</span> <span class="n">rejectedByMovie</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">discardedIds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movieId</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">acceptedIds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movieId</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># we accept the movie if no shifts is associated</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">acceptedIds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">movieId</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_checkNewOutput</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Check for already selected Movies and update the output set. &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;finished&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
-            <span class="k">return</span>
-
         <span class="c1"># load if first time in order to make dataSets relations</span>
-        <span class="n">firstTimeAcc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">acceptedDone</span><span class="o">==</span><span class="mi">0</span>
-        <span class="n">firstTimeDisc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">discardedDone</span><span class="o">==</span><span class="mi">0</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">doneListAccepted</span><span class="p">,</span> <span class="n">doneListDiscarded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getAllDoneIds</span><span class="p">()</span>
+        <span class="c1"># Check for newly done items</span>
+        <span class="n">acceptedIds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">acceptedIds</span>
+        <span class="n">discardedIds</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">discardedIds</span>
+        <span class="n">newDoneAccepted</span> <span class="o">=</span> <span class="p">[</span><span class="n">movId</span> <span class="k">for</span> <span class="n">movId</span> <span class="ow">in</span> <span class="n">acceptedIds</span>
+                           <span class="k">if</span> <span class="n">movId</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">doneListAccepted</span><span class="p">]</span>
+        <span class="n">newDoneDiscarded</span> <span class="o">=</span> <span class="p">[</span><span class="n">movId</span> <span class="k">for</span> <span class="n">movId</span> <span class="ow">in</span> <span class="n">discardedIds</span>
+                            <span class="k">if</span> <span class="n">movId</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">doneListDiscarded</span><span class="p">]</span>
 
-        <span class="c1"># Load previously done items</span>
-        <span class="n">preDone</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">acceptedDone</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">discardedDone</span>
+        <span class="n">firstTimeAccepted</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">doneListAccepted</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
+        <span class="n">firstTimeDiscarded</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">doneListDiscarded</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span>
 
-        <span class="c1"># Taking newly done items in movie lists</span>
-        <span class="n">newDoneAccepted</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">acceptedMoviesList</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">acceptedDone</span><span class="p">:]</span>
-        <span class="n">newDoneDiscarded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">discardedMoviesList</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">discardedDone</span><span class="p">:]</span>
-
-        <span class="c1"># Updating the done items</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">acceptedDone</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">acceptedMoviesList</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">discardedDone</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">discardedMoviesList</span><span class="p">)</span>
-        
-        <span class="n">allDone</span> <span class="o">=</span> <span class="n">preDone</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">newDoneAccepted</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">newDoneDiscarded</span><span class="p">)</span>
+        <span class="n">allDone</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">doneListAccepted</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">doneListDiscarded</span><span class="p">)</span> <span class="o">+</span> \
+                  <span class="nb">len</span><span class="p">(</span><span class="n">newDoneAccepted</span><span class="p">)</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">newDoneDiscarded</span><span class="p">)</span>
+        <span class="n">maxMicSize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadInputSet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">movsFn</span><span class="p">)</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span>
+        <span class="c1"># We have finished when there is not more input movies</span>
+        <span class="c1"># (stream closed) and the number of processed movies is</span>
+        <span class="c1"># equal to the number of inputs</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">isStreamClosed</span> <span class="ow">and</span> <span class="n">allDone</span> <span class="o">==</span> <span class="n">maxMicSize</span>
+        <span class="n">streamMode</span> <span class="o">=</span> <span class="n">Set</span><span class="o">.</span><span class="n">STREAM_CLOSED</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="k">else</span> <span class="n">Set</span><span class="o">.</span><span class="n">STREAM_OPEN</span>
 
         <span class="c1"># Some checks to debug</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;_checkNewOutput: &#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;   listOfMovies: </span><span class="si">%d</span><span class="s1">,&#39;</span> <span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfMovies</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;   doneList: </span><span class="si">%d</span><span class="s1">,&#39;</span> <span class="o">%</span><span class="n">preDone</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;   newDoneAccepted: </span><span class="si">%d</span><span class="s1">.&#39;</span> <span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">newDoneAccepted</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;   newDoneDiscarded: </span><span class="si">%d</span><span class="s1">,&#39;</span> <span class="o">%</span><span class="nb">len</span><span class="p">(</span><span class="n">newDoneDiscarded</span><span class="p">))</span>
-    
-        <span class="c1"># We have finished when there is not more input movies (stream closed)</span>
-        <span class="c1"># and the number of processed movie is equal to the number of inputs</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">streamClosed</span> <span class="ow">and</span> <span class="n">allDone</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">listOfMovies</span><span class="p">)</span>
-        <span class="n">streamMode</span> <span class="o">=</span> <span class="n">Set</span><span class="o">.</span><span class="n">STREAM_CLOSED</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="k">else</span> <span class="n">Set</span><span class="o">.</span><span class="n">STREAM_OPEN</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;   newDoneAccepted: </span><span class="si">%d</span><span class="s1">.&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">newDoneAccepted</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;   newDoneDiscarded: </span><span class="si">%d</span><span class="s1">,&#39;</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="n">newDoneDiscarded</span><span class="p">))</span>
 
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">newDoneDiscarded</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">newDoneAccepted</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">newDoneDiscarded</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">newDoneAccepted</span><span class="p">):</span>
             <span class="c1"># If we are not finished and no new output have been produced</span>
             <span class="c1"># it does not make sense to proceed and updated the outputs</span>
+            <span class="c1"># so we exit from the function here</span>
             <span class="k">return</span>
 
         <span class="k">def</span> <span class="nf">fillOutput</span><span class="p">(</span><span class="n">newDoneList</span><span class="p">,</span> <span class="n">firstTime</span><span class="p">,</span> <span class="n">AccOrDisc</span><span class="o">=</span><span class="s1">&#39;Accepted&#39;</span><span class="p">):</span>
             <span class="sd">&quot;&quot;&quot; A single function is used to fill the two sets (Accepted/Rej.)</span>
 <span class="sd">            &quot;&quot;&quot;</span>
+            <span class="n">suffix1</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">outMicName</span> <span class="o">==</span> <span class="n">OUTPUT_MICS</span> <span class="k">else</span> <span class="s1">&#39;_dose-weighted&#39;</span>
             <span class="n">suffix</span> <span class="o">=</span> <span class="s1">&#39;Discarded&#39;</span> <span class="k">if</span> <span class="n">AccOrDisc</span><span class="o">==</span><span class="s1">&#39;Discarded&#39;</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+
             <span class="n">enable</span> <span class="o">=</span> <span class="kc">False</span> <span class="k">if</span> <span class="n">AccOrDisc</span><span class="o">==</span><span class="s1">&#39;Discarded&#39;</span> <span class="k">else</span> <span class="kc">True</span>
                 
-            <span class="n">movieSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfMovies</span><span class="p">,</span>
-                                                     <span class="s1">&#39;movies</span><span class="si">%s</span><span class="s1">.sqlite&#39;</span> <span class="o">%</span> <span class="n">suffix</span><span class="p">)</span>
-            <span class="n">micsSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfMicrographs</span><span class="p">,</span>
-                                                  <span class="s1">&#39;micrographs</span><span class="si">%s</span><span class="s1">.sqlite&#39;</span><span class="o">%</span><span class="n">suffix</span><span class="p">)</span>
-            <span class="n">micsDwSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfMicrographs</span><span class="p">,</span>
-                                  <span class="s1">&#39;micrographs_dose-weighted</span><span class="si">%s</span><span class="s1">.sqlite&#39;</span> <span class="o">%</span> <span class="n">suffix</span><span class="p">)</span>
+            <span class="n">movieSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfMovies</span><span class="p">,</span> <span class="s1">&#39;movies</span><span class="si">%s</span><span class="s1">.sqlite&#39;</span> <span class="o">%</span> <span class="n">suffix</span><span class="p">)</span>
+            <span class="n">micsSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadOutputSet</span><span class="p">(</span><span class="n">SetOfMicrographs</span><span class="p">,</span><span class="s1">&#39;micrographs</span><span class="si">%s%s</span><span class="s1">.sqlite&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">suffix1</span><span class="p">,</span> <span class="n">suffix</span><span class="p">))</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;micrographs</span><span class="si">%s%s</span><span class="s1">.sqlite&#39;</span><span class="o">%</span><span class="p">(</span><span class="n">suffix1</span><span class="p">,</span> <span class="n">suffix</span><span class="p">))</span>
 
-            <span class="k">def</span> <span class="nf">tryToAppend</span><span class="p">(</span><span class="n">outSet</span><span class="p">,</span> <span class="n">micOut</span><span class="p">,</span> <span class="n">tries</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">labelPrefix</span><span class="o">=</span><span class="s1">&#39;movie&#39;</span><span class="p">):</span>
+            <span class="k">def</span> <span class="nf">tryToAppend</span><span class="p">(</span><span class="n">outSet</span><span class="p">,</span> <span class="n">micOut</span><span class="p">):</span>
                 <span class="sd">&quot;&quot;&quot; When micrograph is very big, sometimes it&#39;s not ready to be read</span>
 <span class="sd">                Then we will wait for it up to a minute in 6 time-growing tries. </span>
 <span class="sd">                Returns True if fails! &quot;&quot;&quot;</span>
                 <span class="k">if</span> <span class="n">micOut</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="k">return</span>
-                <span class="k">try</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Mic/Movie is None do not introduce&#39;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
                     <span class="n">micOut</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="n">enable</span><span class="p">)</span>
                     <span class="n">outSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">micOut</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">tries</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
-                        <span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
-                        <span class="n">sleep</span><span class="p">(</span><span class="n">tries</span><span class="o">*</span><span class="mi">3</span><span class="p">)</span>
-                        <span class="n">tryToAppend</span><span class="p">(</span><span class="n">outSet</span><span class="p">,</span> <span class="n">micOut</span><span class="p">,</span> <span class="n">tries</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">labelStr</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">labelPrefix</span><span class="p">,</span> <span class="n">micOut</span><span class="o">.</span><span class="n">getMicName</span><span class="p">()])</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;The </span><span class="si">%s</span><span class="s2"> seems corrupted. Skipping it...</span><span class="se">\n</span><span class="s2"> &quot;</span>
-                                     <span class="s2">&quot; &gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">labelStr</span><span class="p">,</span> <span class="n">ex</span><span class="p">))</span>
 
-            <span class="k">for</span> <span class="n">movie</span> <span class="ow">in</span> <span class="n">newDoneList</span><span class="p">:</span>
-                <span class="n">tryToAppend</span><span class="p">(</span><span class="n">movieSet</span><span class="p">,</span> <span class="n">movie</span><span class="p">,</span>
-                            <span class="n">labelPrefix</span><span class="o">=</span><span class="s1">&#39;movie&#39;</span><span class="p">)</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMics</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">mic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMicFromMovie</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="n">isDoseWeighted</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-                    <span class="n">tryToAppend</span><span class="p">(</span><span class="n">micsSet</span><span class="p">,</span> <span class="n">mic</span><span class="p">,</span>
-                                <span class="n">labelPrefix</span><span class="o">=</span><span class="s1">&#39;micrograph&#39;</span><span class="p">)</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputDwMics</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="n">micDw</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMicFromMovie</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="n">isDoseWeighted</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                    <span class="n">tryToAppend</span><span class="p">(</span><span class="n">micsDwSet</span><span class="p">,</span> <span class="n">micDw</span><span class="p">,</span>
-                                <span class="n">labelPrefix</span><span class="o">=</span><span class="s1">&#39;micDW&#39;</span><span class="p">)</span>
+            <span class="n">inputMovies</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadInputSet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">movsFn</span><span class="p">)</span>
+            <span class="n">inputMics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadMicAssociatedInputSet</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">movieId</span> <span class="ow">in</span> <span class="n">newDoneList</span><span class="p">:</span>
+                <span class="n">movie</span> <span class="o">=</span> <span class="n">inputMovies</span><span class="o">.</span><span class="n">getItem</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="n">movieId</span><span class="p">)</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+                <span class="n">mic</span> <span class="o">=</span> <span class="n">inputMics</span><span class="o">.</span><span class="n">getItem</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="n">movieId</span><span class="p">)</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>
+                <span class="n">tryToAppend</span><span class="p">(</span><span class="n">movieSet</span><span class="p">,</span> <span class="n">movie</span><span class="p">)</span>
+                <span class="n">tryToAppend</span><span class="p">(</span><span class="n">micsSet</span><span class="p">,</span> <span class="n">mic</span><span class="p">)</span>
             
             <span class="k">if</span> <span class="n">movieSet</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="s1">&#39;outputMovies</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">movieSet</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="n">OUTPUT_MOVIES</span> <span class="o">+</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">movieSet</span><span class="p">,</span>
                                       <span class="n">streamMode</span><span class="p">)</span>
                                       
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMics</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">micsSet</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="s1">&#39;outputMicrographs</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">micsSet</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outMicName</span> <span class="o">+</span> <span class="n">suffix</span><span class="p">,</span> <span class="n">micsSet</span><span class="p">,</span>
                                       <span class="n">streamMode</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputDwMics</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">micsDwSet</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_updateOutputSet</span><span class="p">(</span><span class="s1">&#39;outputMicrographsDoseWeighted</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">suffix</span><span class="p">,</span>
-                                      <span class="n">micsDwSet</span><span class="p">,</span> <span class="n">streamMode</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">firstTime</span><span class="p">:</span>  <span class="c1"># define relation just the first time</span>
                 <span class="k">if</span> <span class="n">movieSet</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_defineTransformRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">movieSet</span><span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMics</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">micsSet</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_defineTransformRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMics</span><span class="p">,</span> <span class="n">micsSet</span><span class="p">)</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputDwMics</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">micsDwSet</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_defineTransformRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputDwMics</span><span class="p">,</span> <span class="n">micsDwSet</span><span class="p">)</span>
             
             <span class="n">movieSet</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMics</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">micsSet</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputDwMics</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">micsDwSet</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
 
         <span class="c1"># We fill/update the output if there are something new or to close sets</span>
-        <span class="k">if</span> <span class="n">newDoneAccepted</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;outputMovies&#39;</span><span class="p">)):</span>
-            <span class="n">fillOutput</span><span class="p">(</span><span class="n">newDoneAccepted</span><span class="p">,</span> <span class="n">firstTimeAcc</span><span class="p">,</span> <span class="n">AccOrDisc</span><span class="o">=</span><span class="s1">&#39;Accepted&#39;</span><span class="p">)</span>
-
+        <span class="k">if</span> <span class="n">newDoneAccepted</span><span class="p">:</span>
+            <span class="n">fillOutput</span><span class="p">(</span><span class="n">newDoneAccepted</span><span class="p">,</span> <span class="n">firstTimeAccepted</span><span class="p">,</span> <span class="n">AccOrDisc</span><span class="o">=</span><span class="s1">&#39;Accepted&#39;</span><span class="p">)</span>
         <span class="c1"># We fill/update the output for the discarded movies</span>
-        <span class="k">if</span> <span class="n">newDoneDiscarded</span> <span class="ow">or</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">finished</span> <span class="ow">and</span>
-                                <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;outputMoviesDiscarded&#39;</span><span class="p">)):</span>
-            <span class="n">fillOutput</span><span class="p">(</span><span class="n">newDoneDiscarded</span><span class="p">,</span> <span class="n">firstTimeDisc</span><span class="p">,</span> <span class="n">AccOrDisc</span><span class="o">=</span><span class="s1">&#39;Discarded&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">newDoneDiscarded</span><span class="p">:</span>
+            <span class="n">fillOutput</span><span class="p">(</span><span class="n">newDoneDiscarded</span><span class="p">,</span> <span class="n">firstTimeDiscarded</span><span class="p">,</span> <span class="n">AccOrDisc</span><span class="o">=</span><span class="s1">&#39;Discarded&#39;</span><span class="p">)</span>
 
         <span class="c1"># Unlock createOutputStep if finished all jobs</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>  
@@ -388,38 +467,45 @@
             <span class="k">if</span> <span class="n">outputStep</span> <span class="ow">and</span> <span class="n">outputStep</span><span class="o">.</span><span class="n">isWaiting</span><span class="p">():</span>
                 <span class="n">outputStep</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="n">STATUS_NEW</span><span class="p">)</span>
 
-    <span class="c1"># FIXME: Methods will change when using the streaming for the output</span>
-<div class="viewcode-block" id="XmippProtMovieMaxShift.createOutputStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_max_shift.html#xmipp3.protocols.protocol_movie_max_shift.XmippProtMovieMaxShift.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="c1"># Do nothing now, the output should be ready.</span>
-        <span class="k">pass</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">()</span>
 
     <span class="c1">#--------------------------- UTILS functions -------------------------------</span>
+    <span class="k">def</span> <span class="nf">_getAllDoneIds</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">doneIds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">acceptedIds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">discardedIds</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">sizeOutput</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">OUTPUT_MOVIES</span><span class="p">):</span>
+            <span class="n">sizeOutput</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputMovies</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span>
+            <span class="n">acceptedIds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputMovies</span><span class="o">.</span><span class="n">getIdSet</span><span class="p">()))</span>
+            <span class="n">doneIds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">acceptedIds</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">OUTPUT_MOVIES_DISCARDED</span><span class="p">):</span>
+            <span class="n">sizeOutput</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputMoviesDiscarded</span><span class="o">.</span><span class="n">getSize</span><span class="p">()</span>
+            <span class="n">discardedIds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputMoviesDiscarded</span><span class="o">.</span><span class="n">getIdSet</span><span class="p">()))</span>
+            <span class="n">doneIds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">discardedIds</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">doneIds</span><span class="p">,</span> <span class="n">sizeOutput</span><span class="p">,</span> <span class="n">acceptedIds</span><span class="p">,</span> <span class="n">discardedIds</span>
+
     <span class="k">def</span> <span class="nf">_loadOutputSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">SetClass</span><span class="p">,</span> <span class="n">baseName</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Load the output set if it exists or create a new one based on the inputs.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">SetClass</span> <span class="o">==</span> <span class="n">SetOfMicrographs</span><span class="p">:</span>
-            <span class="k">if</span> <span class="s1">&#39;dose-weighted&#39;</span> <span class="ow">in</span> <span class="n">baseName</span><span class="p">:</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputDwMics</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="c1"># if no DwMics to do, do nothing and exit</span>
-                    <span class="k">return</span> <span class="kc">None</span>
-                <span class="n">inputSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputDwMics</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMics</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-                    <span class="c1"># if no mics to do, do nothing and exit</span>
-                    <span class="k">return</span> <span class="kc">None</span>
-                <span class="n">inputSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMics</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMics</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># if no mics to do, do nothing and exit</span>
+                <span class="k">return</span> <span class="kc">None</span>
+            <span class="n">inputSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMics</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">inputSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="n">inputSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loadInputSet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">movsFn</span><span class="p">)</span>
 
         <span class="n">setFile</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getPath</span><span class="p">(</span><span class="n">baseName</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">setFile</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">setFile</span><span class="p">):</span>
             <span class="n">outputSet</span> <span class="o">=</span> <span class="n">SetClass</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">setFile</span><span class="p">)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">outputSet</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">pwutils</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">cleanPath</span><span class="p">(</span><span class="n">setFile</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">exists</span><span class="p">(</span><span class="n">setFile</span><span class="p">):</span>
-            <span class="n">outputSet</span> <span class="o">=</span> <span class="n">SetClass</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">setFile</span><span class="p">)</span>
             <span class="n">outputSet</span><span class="o">.</span><span class="n">loadAllProperties</span><span class="p">()</span>
             <span class="n">outputSet</span><span class="o">.</span><span class="n">enableAppend</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
@@ -435,40 +521,22 @@
 <span class="sd">            the input movies (or None if no relation is found).</span>
 <span class="sd">            The same for DoseWeighted mics</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">inNotFound</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">inNotFound2</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">alreadyLoad</span> <span class="o">=</span> <span class="kc">True</span>
         <span class="n">parentProt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMapper</span><span class="p">()</span><span class="o">.</span><span class="n">getParent</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outMicName</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">inputMics</span> <span class="o">=</span> <span class="kc">None</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">inputMics</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">parentProt</span><span class="p">,</span> <span class="s1">&#39;outputMicrographs&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMics</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">inNotFound</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;outputMicrographs&#39;</span><span class="p">)</span>
-            <span class="n">inNotFound2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Mics&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">parentProt</span><span class="p">,</span> <span class="n">OUTPUT_MICS</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outMicName</span> <span class="o">=</span> <span class="n">OUTPUT_MICS</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inputMics</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">parentProt</span><span class="p">,</span> <span class="n">OUTPUT_MICS</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">inputDwMics</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">parentProt</span><span class="p">,</span> <span class="s1">&#39;outputMicrographsDoseWeighted&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputDwMics</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">inNotFound</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;outputMicrographsDoseWeighted&#39;</span><span class="p">)</span>
-            <span class="n">inNotFound2</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;Dose Weighted Mics&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">parentProt</span><span class="p">,</span> <span class="n">OUTPUT_MICS_DW</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outMicName</span> <span class="o">=</span> <span class="n">OUTPUT_MICS_DW</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">inputMics</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">parentProt</span><span class="p">,</span> <span class="n">OUTPUT_MICS_DW</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">inNotFound</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;WARNING: The &#39;</span><span class="si">%s</span><span class="s2">&#39; has no </span><span class="si">%s</span><span class="s2">. Then, no </span><span class="si">%s</span><span class="s2"> will be &quot;</span>
-                         <span class="s2">&quot;produced</span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">parentProt</span><span class="o">.</span><span class="n">getObjLabel</span><span class="p">(),</span>
-                                          <span class="s1">&#39; nor &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">inNotFound</span><span class="p">),</span>
-                                          <span class="s1">&#39; nor &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">inNotFound2</span><span class="p">),</span>
-                                          <span class="s1">&#39;&#39;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">inNotFound</span><span class="p">)</span><span class="o">&lt;</span><span class="mi">2</span>
-                                                <span class="k">else</span> <span class="s1">&#39;, only movies&#39;</span><span class="p">))</span></div>
-
-<div class="viewcode-block" id="XmippProtMovieMaxShift.getMicFromMovie"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_max_shift.html#xmipp3.protocols.protocol_movie_max_shift.XmippProtMovieMaxShift.getMicFromMovie">[docs]</a>    <span class="k">def</span> <span class="nf">getMicFromMovie</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">,</span> <span class="n">isDoseWeighted</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Get the Micrograph/DwMicrograph related with a certain movie</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">movieMicName</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">getMicName</span><span class="p">()</span>
-        <span class="n">inMics</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputDwMics</span> <span class="k">if</span> <span class="n">isDoseWeighted</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMics</span>
-        <span class="k">for</span> <span class="n">mic</span> <span class="ow">in</span> <span class="n">inMics</span><span class="p">:</span>  <span class="c1"># self.inputMics:</span>
-            <span class="k">if</span> <span class="n">mic</span><span class="o">.</span><span class="n">getMicName</span><span class="p">()</span> <span class="o">==</span> <span class="n">movieMicName</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">mic</span>
-        <span class="n">micStr</span> <span class="o">=</span> <span class="s1">&#39;DwMic&#39;</span> <span class="k">if</span> <span class="n">isDoseWeighted</span> <span class="k">else</span> <span class="s1">&#39;Mic&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1"> NOT found for movie &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">micStr</span><span class="p">,</span> <span class="n">movieMicName</span><span class="p">))</span></div>
-
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMics</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;WARNING: The outputMovies has no outputMicrographs associated. Then, no outputMicrographs will be &quot;</span>
+                         <span class="s2">&quot;produced.&quot;</span><span class="p">)</span></div>
 
     <span class="c1"># ---------------------- INFO functions ------------------------------------</span>
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

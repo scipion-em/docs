@@ -154,14 +154,21 @@
                       <span class="n">pointerClass</span><span class="o">=</span><span class="s1">&#39;EMSet&#39;</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Set to edit&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Set which items will be modified.&#39;</span><span class="p">)</span>
-        <span class="c1"># formula</span>
+        <span class="c1"># formula for main items</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;formula&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">StringParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Formula&quot;</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;A python code compatible with eval, where item represents each of &#39;</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Any python code compatible with eval, where item represents each of &#39;</span>
                            <span class="s1">&#39;the elements of the set. E.g.: item._resolution.set(item._resolution.get() +1).&#39;</span>
                            <span class="s1">&#39;You could also use modules like &quot;import numpy;  item._resolution .... &quot;&#39;</span><span class="p">)</span>
 
+        <span class="c1"># formula for subitems items</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;subitemsformula&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">StringParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Sub item formula&quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Only valid for complex sets with subelements: Classes -&gt; Particles, TiltSeries -&gt; TiltImage, ..&#39;</span>
+                           <span class="s1">&#39;Any python code compatible with eval, where item represents each of &#39;</span>
+                           <span class="s1">&#39;the SUBELEMENTS each ITEM. E.g.: subitem.tiltAngle.set(subitem.tiltAngle.get() +1).&#39;</span>
+                           <span class="s1">&#39;You could also use modules like &quot;import numpy;  subitem._resolution .... &quot;&#39;</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;formulaStep&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formulaStep</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ProtSetEditor.formulaStep"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_set_editor.html#pwem.protocols.protocol_set_editor.ProtSetEditor.formulaStep">[docs]</a>    <span class="k">def</span> <span class="nf">formulaStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -169,15 +176,28 @@
 <span class="sd">        Complex python code could be run separating lines with ;  To use numpy you could do</span>
 <span class="sd">        import numpy; item._resolution.set(numpy.random.randint(10))</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">inputSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputSet</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="n">modifiedSet</span> <span class="o">=</span> <span class="n">inputSet</span><span class="o">.</span><span class="n">createCopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="n">copyInfo</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">sourceItem</span> <span class="ow">in</span> <span class="n">inputSet</span><span class="o">.</span><span class="n">iterItems</span><span class="p">():</span>
-            <span class="n">item</span> <span class="o">=</span> <span class="n">sourceItem</span>
-            <span class="n">exec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formula</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_append</span><span class="p">(</span><span class="n">modifiedSet</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+
+            <span class="c1"># item = sourceItem</span>
+            <span class="c1"># exec(self.formula.get())</span>
+            <span class="n">updateItemCallBack</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateItem</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">formula</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
+            <span class="n">updateSubElemCallBack</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateSubElement</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">subitemsformula</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">else</span> <span class="kc">None</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_append</span><span class="p">(</span><span class="n">modifiedSet</span><span class="p">,</span> <span class="n">sourceItem</span><span class="p">,</span> <span class="n">itemUpdateCallback</span><span class="o">=</span><span class="n">updateItemCallBack</span><span class="p">,</span> <span class="n">subElemUpdateCallback</span><span class="o">=</span><span class="n">updateSubElemCallBack</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">createOutput</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputSet</span><span class="p">,</span> <span class="n">modifiedSet</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ProtSetEditor.updateItem"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_set_editor.html#pwem.protocols.protocol_set_editor.ProtSetEditor.updateItem">[docs]</a>    <span class="k">def</span> <span class="nf">updateItem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">):</span>
+
+        <span class="n">exec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">formula</span><span class="o">.</span><span class="n">get</span><span class="p">())</span></div>
+<div class="viewcode-block" id="ProtSetEditor.updateSubElement"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_set_editor.html#pwem.protocols.protocol_set_editor.ProtSetEditor.updateSubElement">[docs]</a>    <span class="k">def</span> <span class="nf">updateSubElement</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subitem</span><span class="p">):</span>
+
+
+        <span class="n">exec</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">subitemsformula</span><span class="o">.</span><span class="n">get</span><span class="p">())</span></div>
 
 <div class="viewcode-block" id="ProtSetEditor.createOutput"><a class="viewcode-back" href="../../../api/pwem/pwem.protocols.protocol_set_editor.html#pwem.protocols.protocol_set_editor.ProtSetEditor.createOutput">[docs]</a>    <span class="k">def</span> <span class="nf">createOutput</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputSet</span><span class="p">,</span> <span class="n">modifiedSet</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Save the output set.&quot;&quot;&quot;</span>
