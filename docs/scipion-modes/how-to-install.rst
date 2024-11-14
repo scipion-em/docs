@@ -8,25 +8,9 @@
 Installing Scipion
 ==================
 
-Prerequisites
-=============
+Scipion is written in python and it is comprised by 3 core pip packages and a launcher (scipion3): scipion-pyworkflow, scipion-em and scipion-app.
+All is needed is either conda available or virtualenv to install Scipion.
 
-Scipion software requires GCC (GCC10 recommended) and OpenMPI already installed. CUDA (11.4 recommended) is optional but highly recommended.
-Scipion uses conda package manager for installation. Before starting, make sure you do not have other cryo-EM software in your PATH / LD_LIBRARY_PATH as it might conflict with Scipion installation.
-
-For Ubuntu:
-
-::
-
-    sudo apt-get install gcc-10 g++-10 libopenmpi-dev make
-
-For CentOS:
-
-::
-
-    sudo yum -y install epel-release
-    sudo yum-config-manager --enable epel
-    sudo yum -y install libzstd-devel hdf5-devel gcc gcc-c++ openmpi-devel
 
 Installation
 ============
@@ -58,7 +42,51 @@ Installation
     python3 -m scipioninstaller -conda -noAsk /path/for/scipion
     /path/for/scipion/scipion3 config --overwrite
 
-5. Open **/path/for/scipion/config/scipion.conf** file and append the variables below to the end of the file. Make sure they point to correct locations for CUDA, OpenMPI and other software necessary for Xmipp:
+.. note::
+   For HPC admins or curious minds, pass --dry and the installer will just print what it would have done instead of doing it. See https://pypi.org/project/scipion-installer/
+
+
+Congratulations! You have installed Scipion. But a plain vainilla Scipion is useless. You will need some plugins and binaries associated.
+
+
+For HPC Clusters
+================
+Do not let Scipion's plugins install any software. Although many plugins by default will install 3rd party software, HPC clusters probably already have them installed and optimized,
+so it is recommended in this scenario to CANCEL any installation done by Scipion.
+
+You are going to need on scipion installation per CPU compatible architecture
+
+Open **/path/for/scipion/config/scipion.conf** file and append the variable:
+
+SCIPION_DONT_INSTALL_BINARIES = True
+
+.. note::
+   Any value will cancel the installation of binaries
+
+Now you can :ref:`install the plugins <docs/scipion-modes/how-to-install:installing other plugins>` your users have asked for.
+
+
+3rd party prerequisites (non HPC installations)
+==============================================
+Most of the software Scipion installs requires GCC (GCC10 recommended) and OpenMPI already installed. CUDA (11.4 recommended) is optional but highly recommended.
+Scipion uses conda package manager for installation. Before starting, make sure you do not have other cryo-EM software in your PATH / LD_LIBRARY_PATH as it might conflict with Scipion installation.
+
+For Ubuntu:
+
+::
+
+    sudo apt-get install gcc-10 g++-10 libopenmpi-dev make
+
+For CentOS:
+
+::
+
+    sudo yum -y install epel-release
+    sudo yum-config-manager --enable epel
+    sudo yum -y install libzstd-devel hdf5-devel gcc gcc-c++ openmpi-devel
+
+
+Open **/path/for/scipion/config/scipion.conf** file and append the variables below to the end of the file. Make sure they point to correct locations for CUDA, OpenMPI and other software necessary for Xmipp:
 
 ::
 
@@ -72,13 +100,21 @@ Installation
 
 See `Configuration guide <scipion-configuration>`_ for more details about these and other possible variables.
 
-6. Install `Xmipp <https://github.com/I2PC/xmipp#xmipp>`__ plugin. We have tested Xmipp compilation on the following operating systems: `Ubuntu 16.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-16.04>`__, `Ubuntu 18.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-18.04>`__, `Ubuntu 20.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-20.04>`__, `Ubuntu 22.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-22.04>`_ and `Centos 7 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-CentOS-7-9.2009>`__. A list of dependencies can be found `here <https://github.com/I2PC/xmipp#additional-dependencies>`__. Command example below is using 12 threads
+Install xmipp
+=============
+Xmipp is a good partner for Scipion in cryoem. It binds to Scipion environment offering file format (stk, vol, mrc, tiff, dm4,...) conversions for many cryo em methods
 
+To install `Xmipp <https://github.com/I2PC/xmipp#xmipp>`__ plugin run:
 
 
 ::
 
-    /path/for/scipion/scipion3 installp -p scipion-em-xmipp -j 12 | tee -a install.log
+    /path/for/scipion/scipion3 install -p scipion-em-xmipp -j 12 | tee -a install.log
+
+.. note::
+  For HPC clusters the above command should not have installed (compiled) xmipp. You need to compile it manually. Go here: https://i2pc.github.io/docs/Installation/Standlone-installation/index.html
+
+We have tested Xmipp compilation on the following operating systems: `Ubuntu 16.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-16.04>`__, `Ubuntu 18.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-18.04>`__, `Ubuntu 20.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-20.04>`__, `Ubuntu 22.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-22.04>`_ and `Centos 7 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-CentOS-7-9.2009>`__. A list of dependencies can be found `here <https://github.com/I2PC/xmipp#additional-dependencies>`__. Command example below is using 12 threads
 
 7. Create an alias for Scipion launcher in your ``.bashrc`` file:
 
@@ -91,7 +127,7 @@ If any of the steps above fails, check `install.log` file for errors and refer t
 Installing other plugins
 ========================
 
-To list available plugins you can use the plugin manager (recommended) or, alternatively, use the `command line tool <install-plugins-command-line>`_.
+To list available plugins you can use the plugin manager (recommended) or, alternatively, use the :ref:`command line tool <install-plugins-command-line>`.
 
 To open the plugin manager, start Scipion (run **scipion3**) and choose **Others** > **Plugin manager** on the top bar. There, any plugin can be
 easily installed.
@@ -100,10 +136,10 @@ Please, refer to the :ref:`Plugin manager guide <Plugin-Manager>` to get more de
 
 If you have binaries installed for some of the plugins you can have a look at :ref:`Linking existing software <linking-existing-software>` page.
 
-Clusters configuration
-======================
+Integration with queue engines (slurm, others)
+==============================================
 
-To configure Scipion for a cluster you will need to edit the :ref:`host file <host-configuration>`
+To configure Scipion to send jobs to a queue engine like Slurm you will need to edit the :ref:`host file <host-configuration>`
 
 Test the installation
 =====================

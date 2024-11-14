@@ -20,7 +20,7 @@ https://scipion-em.github.io/docs/ will update and reflect them automatically.
 On a high level, the docs have two main parts:
 
 * The API docs, which are automatically generated from the code's docstrings using `sphinx-apidoc <https://www.sphinx-doc.org/en/master/man/sphinx-apidoc.html>`_.
-  To build these, we need a working :doc:`installation of Scipion </docs/scipion-modes/install-from-sources>` in our machine.
+  To build these, we need a working :doc:`installation of Scipion <how-to-install>` in our machine.
 * The general docs, which are manually generated content (e.g. guides, tutorials, etc).
 
 Sphinx virtualenv

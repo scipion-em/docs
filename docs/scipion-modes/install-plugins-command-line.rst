@@ -21,9 +21,9 @@ You can see the up-to-date list of available plugins with this command:
 
 ::
 
-    scipion3 installp --help
+    scipion3 install --help
 
-This will also show the instructions to use the installp command line
+This will also show the instructions to use the install command line
 tool.
 
 Checking plugin updates
@@ -31,7 +31,7 @@ Checking plugin updates
 
 ::
 
-     scipion3 installp --checkUpdates
+     scipion3 install --checkUpdates
 
 Listing plugin binaries
 -----------------------
@@ -47,6 +47,44 @@ Installing
 
 Installing plugins
 ------------------
+
+To install one of the plugins from the list run the install
+command with the name of the
+package. For example, to install Relion using 5 processors:
+
+::
+
+    scipion3 install -p scipion-em-relion -j 5
+
+You may replace ``-j 5`` by the number of cores available in your
+machine or remove it altogether if you only wish to use one (will be
+slow). You can also install multiple packages with a single install
+command:
+
+::
+
+    scipion3 installp -p scipion-em-xmipp -j 5 -p scipion-em-relion -j 5 -p scipion-em-cistem
+
+
+
+Install plugin without binaries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can install a plugin and its binaries in two steps. For this, first
+we install the plugin without binaries, recommended for HPC clusters or when you already have the binary installed and
+look at :ref:`Linking existing software <linking-existing-software>` page.:
+
+::
+
+    scipion3 install -p scipion-em-relion --noBin
+
+.. tip::
+  The command above is just installing the pip package scipion-em-relion.
+
+  ::
+
+      scipion3 pip install scipion-em-relion
+
 
 Devel mode
 ~~~~~~~~~~
@@ -64,43 +102,16 @@ in devel mode by pointing the path after the ``-p`` flag:
 
 ::
 
-    scipion3 installp -p ~/scipion-em-relion --devel
+    scipion3 install -p ~/scipion-em-relion --devel
 
 Changes made to the plugin should now be available when you launch
 Scipion.
 
-Regular install
-~~~~~~~~~~~~~~~
-
-To install one of the plugins from the list run the install
-command with the name of the
-package. For example, to install Relion using 5 processors:
-
-::
-
-    scipion3 installp -p scipion-em-relion -j 5
-
-You may replace ``-j 5`` by the number of cores available in your
-machine or remove it altogether if you only wish to use one (will be
-slow). You can also install multiple packages with a single install
-command:
-
-::
-
-    scipion3 installp -p scipion-em-xmipp -j 5 -p scipion-em-relion -j 5 -p scipion-em-cistem
 
 Installing binaries
 -------------------
-
-Install plugin without binaries
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-You can install a plugin and its binaries in two steps. For this, first
-we install the plugin without binaries:
-
-::
-
-    scipion3 installp -p scipion-em-relion -j 5 --noBin
+By default installing a plugin very likely will install the binary/s the plugin integrates. Unless you have set de variable
+SCIPION_DONT_INSTALL_BINARIES either in the environment or in the config file.
 
 Install specific binaries
 ~~~~~~~~~~~~~~~~~~~~~~~~~
