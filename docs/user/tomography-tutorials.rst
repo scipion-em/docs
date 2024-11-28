@@ -65,7 +65,7 @@ tomogram to the initial model generation after having picked the particles.
  *Guide*: :ref:`Denoising, Membrane Segmentation and Annotation and Directional Picking <tomosegmemtv-pyseg-workflow>`
 
 
-Subtomogram Averaging Ribosome (Part I)
+Subtomogram Averaging Ribosome
 ---------------------------------------
 
 In this tutorial, we will describe a basic workflow that goes
@@ -77,15 +77,14 @@ perform a picking, extraction, classification and subtomogram refinement.
  `Subtomogram Averaging Ribosome <https://docs.google.com/document/d/1wH9vCDVbjlkMwGiXB3-BsKfNEr-vKgKDry8CRHch9Yk>`_
 
 
-Subtomogram Averaging HIV (Part II)
+Subtomogram Averaging HIV
 ------------------------------------
-In this first part of the tutorial, we will follow a workflow from tomogram to
-subtomogram averaging. Our objective is to reconstruct a protein of the
-capsid of the HIV virus, so our particles will have to maintain the orientation
-with respect to the virus internal membrane.
+This tutorial shows the complete pipeline from movies to averages inside the
+ScipionTomo framework. Our objective is to reconstruct the capsid of the HIV virus.
+The subtomogram averaging will be carried out with Relion, however, the preprocessing
+from movies to tomogram will involve a combination of different software packages
 
- *Guide*:
- `Subtomogram Averaging HIV <https://docs.google.com/document/d/1i7nzRV5NWgmw7tPfvlVcVKSkX7_YJUMUenGPZfGN8qw>`_
+ *Guide*: :ref:`Subtomogram Averaging HIV <STA-HIV>`
 
 Subtomogram Averaging Ribosome with EMAN plugin for Scipion
 -----------------------------------------------------------
