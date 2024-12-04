@@ -58,6 +58,7 @@ You are going to need on scipion installation per CPU compatible architecture. Y
 Open **/path/to/scipion/config/scipion.conf** file and append the variable:
 
 SCIPION_DONT_INSTALL_BINARIES = True
+
 PYTHONUSERBASE = $CONDA_PREFIX/lib/python3.8/site-packages
 
 .. note::
