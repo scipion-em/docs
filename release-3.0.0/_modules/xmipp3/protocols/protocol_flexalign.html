@@ -141,12 +141,12 @@
 <span class="kn">import</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="k">as</span> <span class="nn">cons</span>
 <span class="kn">import</span> <span class="nn">pwem.emlib.metadata</span> <span class="k">as</span> <span class="nn">md</span>
 <span class="kn">from</span> <span class="nn">pwem</span> <span class="kn">import</span> <span class="n">emlib</span>
-<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">Image</span><span class="p">,</span> <span class="n">SetOfMovies</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols.protocol_align_movies</span> <span class="kn">import</span> <span class="n">createAlignmentPlot</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">VERSION_1_1</span>
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">ProtAlignMovies</span>
 
-<span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="kn">import</span> <span class="n">writeMovieMd</span>
+<span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="kn">import</span> <span class="n">writeMovieMd</span><span class="p">,</span> <span class="n">isEerMovie</span>
 <span class="kn">from</span> <span class="nn">xmipp3.base</span> <span class="kn">import</span> <span class="n">isXmippCudaPresent</span>
 <span class="kn">import</span> <span class="nn">xmipp3.utils</span> <span class="k">as</span> <span class="nn">xmutils</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">BETA</span><span class="p">,</span> <span class="n">UPDATED</span><span class="p">,</span> <span class="n">NEW</span><span class="p">,</span> <span class="n">PROD</span>
@@ -169,6 +169,12 @@
 
     <span class="k">def</span> <span class="nf">_defineAlignmentParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">):</span>
         <span class="n">ProtAlignMovies</span><span class="o">.</span><span class="n">_defineAlignmentParams</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">)</span>
+
+        <span class="n">EER_CONDITION</span> <span class="o">=</span> <span class="s1">&#39;inputMovies is not None and len(inputMovies) &gt; 0 and next(iter(inputMovies.getFiles())).endswith(&quot;.eer&quot;)&#39;</span>
+
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;nFrames&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">IntParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Number of EER frames&#39;</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="n">EER_CONDITION</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">validators</span><span class="o">=</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">GT</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;Number of EER frames must be a positive integer (&gt; 0).&quot;</span><span class="p">)],</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Number of frames to be generated. EER files contain subframes, that will be grouped into the selected number of frames.&#39;</span><span class="p">)</span>
 
         <span class="c1"># FlexAlign does not support cropping</span>
         <span class="n">form</span><span class="o">.</span><span class="n">_paramsDict</span><span class="p">[</span><span class="s1">&#39;Alignment&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">_paramList</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="s1">&#39;Crop_offsets__px_&#39;</span><span class="p">)</span>
@@ -291,12 +297,15 @@
 <div class="viewcode-block" id="XmippProtFlexAlign.tryProcessMovie"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_flexalign.html#xmipp3.protocols.protocol_flexalign.XmippProtFlexAlign.tryProcessMovie">[docs]</a>    <span class="k">def</span> <span class="nf">tryProcessMovie</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
         <span class="n">movieFolder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getOutputMovieFolder</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
 
-        <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">getDim</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isInputEer</span><span class="p">():</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nFrames</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">n</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">getDim</span><span class="p">()</span>
         <span class="n">a0</span><span class="p">,</span> <span class="n">aN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFrameRange</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="s1">&#39;align&#39;</span><span class="p">)</span>
         <span class="n">s0</span><span class="p">,</span> <span class="n">sN</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getFrameRange</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span>
 
         <span class="n">inputMd</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">movieFolder</span><span class="p">,</span> <span class="s1">&#39;input_movie.xmd&#39;</span><span class="p">)</span>
-        <span class="n">writeMovieMd</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="n">inputMd</span><span class="p">,</span> <span class="n">a0</span><span class="p">,</span> <span class="n">aN</span><span class="p">,</span> <span class="n">useAlignment</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">writeMovieMd</span><span class="p">(</span><span class="n">movie</span><span class="p">,</span> <span class="n">inputMd</span><span class="p">,</span> <span class="n">a0</span><span class="p">,</span> <span class="n">aN</span><span class="p">,</span> <span class="n">useAlignment</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">eerFrames</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">nFrames</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
         <span class="n">args</span> <span class="o">=</span> <span class="s1">&#39;-i &quot;</span><span class="si">%s</span><span class="s1">&quot; &#39;</span> <span class="o">%</span> <span class="n">inputMd</span>
         <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; -o &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getShiftsFile</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
@@ -326,7 +335,7 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getGain</span><span class="p">():</span>
             <span class="n">ext</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">getExt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.tif&#39;</span><span class="p">,</span> <span class="s1">&#39;.tiff&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">ext</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;.tif&#39;</span><span class="p">,</span> <span class="s1">&#39;.tiff&#39;</span><span class="p">,</span> <span class="s1">&#39;.gain&#39;</span><span class="p">]:</span>
               <span class="bp">self</span><span class="o">.</span><span class="n">flipY</span> <span class="o">=</span> <span class="kc">True</span>
               <span class="n">inGainFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getGain</span><span class="p">()</span>
               <span class="n">gainFn</span> <span class="o">=</span> <span class="n">xmutils</span><span class="o">.</span><span class="n">flipYImage</span><span class="p">(</span><span class="n">inGainFn</span><span class="p">,</span> <span class="n">outDir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">())</span>
@@ -334,7 +343,7 @@
               <span class="n">gainFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getGain</span><span class="p">()</span>
 
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">gainRot</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">gainFlip</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-              <span class="n">gainFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformGain</span><span class="p">(</span><span class="n">gainFn</span><span class="p">)</span>
+              <span class="n">gainFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">transformGain</span><span class="p">(</span><span class="n">gainFn</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s1">&#39;gain.tif&#39;</span><span class="p">))</span>
             <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39; --gain &quot;</span><span class="si">%s</span><span class="s1">&quot;&#39;</span> <span class="o">%</span> <span class="n">gainFn</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">autoControlPoints</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
@@ -388,11 +397,16 @@
       <span class="n">xmutils</span><span class="o">.</span><span class="n">writeImageFromArray</span><span class="p">(</span><span class="n">flipped_array</span><span class="p">,</span> <span class="n">outFn</span><span class="p">)</span>
       <span class="k">return</span> <span class="n">outFn</span></div>
 
+    <span class="k">def</span> <span class="nf">_isInputEer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">isEerMovie</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+
     <span class="k">def</span> <span class="nf">_getShiftsFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">movie</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getMovieRoot</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;_shifts.xmd&#39;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_setControlPoints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">frames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getDim</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isInputEer</span><span class="p">():</span>
+            <span class="n">frames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nFrames</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
         <span class="n">Ts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
         <span class="c1"># one control point each 1000 A</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">controlPointX</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="nb">max</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">Ts</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1000</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]))</span>
@@ -514,7 +528,7 @@
 
         <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">binFactor</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">):</span>
             <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;Bin factor must be &gt;= 1&quot;</span><span class="p">)</span>
-
+        
         <span class="k">return</span> <span class="n">errors</span>
 
     <span class="k">def</span> <span class="nf">_citations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
