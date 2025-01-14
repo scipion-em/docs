@@ -134,6 +134,8 @@
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">Config</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 <span class="kn">from</span> <span class="nn">scipion.install.funcs</span> <span class="kn">import</span> <span class="n">CommandDef</span>
+<span class="kn">from</span> <span class="nn">scipion</span> <span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">scipionAppVersion</span>
+<span class="kn">from</span> <span class="nn">packaging.version</span> <span class="kn">import</span> <span class="n">Version</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">.version</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">.constants</span> <span class="kn">import</span> <span class="n">XMIPP_HOME</span><span class="p">,</span> <span class="n">XMIPP_URL</span><span class="p">,</span> <span class="n">XMIPP_DLTK_NAME</span><span class="p">,</span> <span class="n">XMIPP_CUDA_BIN</span><span class="p">,</span> <span class="n">XMIPP_CUDA_LIB</span><span class="p">,</span> <span class="n">XMIPP_GIT_URL</span>
@@ -146,8 +148,8 @@
 
 <span class="n">type_of_version</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">type_of_version</span>
 <span class="n">_logo</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">_logo</span>
-<span class="n">_current_xmipp_tag</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">_current_xmipp_tag</span>
-<span class="n">_currentBinVersion</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">_currentBinVersion</span>
+<span class="n">_binTagVersion</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">_binTagVersion</span>
+<span class="n">_pluginTagVersion</span><span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">_pluginTagVersion</span>
 <span class="n">_currentDepVersion</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">_currentDepVersion</span>
 <span class="n">__version__</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">__version__</span>
 
@@ -158,7 +160,23 @@
     <span class="n">_supportedVersions</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">_url</span> <span class="o">=</span> <span class="n">XMIPP_URL</span>
     <span class="n">_condaRootPath</span> <span class="o">=</span> <span class="kc">None</span>
-
+    <span class="c1"># Refressing the plugin</span>
+    <span class="c1"># Inspects the call stack to find &#39;installPipModule&#39; and sets &#39;self._plugin&#39; to None.</span>
+    <span class="c1"># Uses CPython&#39;s internal API &#39;PyFrame_LocalsToFast&#39; to sync changes.</span>
+    <span class="c1"># Risky and CPython-specific; use only if redesign is not possible.</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="kn">import</span> <span class="nn">inspect</span>
+        <span class="kn">import</span> <span class="nn">ctypes</span>
+        <span class="k">for</span> <span class="n">frameInfo</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">stack</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">frameInfo</span><span class="o">.</span><span class="n">function</span> <span class="o">==</span> <span class="s2">&quot;installPipModule&quot;</span><span class="p">:</span>
+                <span class="n">frame</span> <span class="o">=</span> <span class="n">frameInfo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">frame</span><span class="o">.</span><span class="n">f_locals</span><span class="p">[</span><span class="s1">&#39;self&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">_plugin</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">ctypes</span><span class="o">.</span><span class="n">pythonapi</span><span class="o">.</span><span class="n">PyFrame_LocalsToFast</span><span class="p">(</span>
+				    <span class="n">ctypes</span><span class="o">.</span><span class="n">py_object</span><span class="p">(</span><span class="n">frame</span><span class="p">),</span>
+				    <span class="n">ctypes</span><span class="o">.</span><span class="n">c_int</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+    
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">_defineVariables</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
         <span class="bp">cls</span><span class="o">.</span><span class="n">_defineEmVar</span><span class="p">(</span><span class="n">XMIPP_HOME</span><span class="p">,</span> <span class="n">pwem</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">XMIPP_HOME</span><span class="p">)</span>
@@ -269,26 +287,25 @@
                 <span class="n">default</span><span class="o">=</span><span class="kc">False</span>
             <span class="p">)</span>
         
-        <span class="n">tag</span> <span class="o">=</span> <span class="n">version</span><span class="o">.</span><span class="n">_current_xmipp_tag</span>
-        <span class="n">xmippSrc</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;xmippSrc-</span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">xmippSrc</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;xmippSrc-</span><span class="si">{</span><span class="n">version</span><span class="o">.</span><span class="n">_binTagVersion</span><span class="si">}</span><span class="s1">&#39;</span>
         <span class="n">installCommands</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">(</span><span class="sa">f</span><span class="s1">&#39;cd .. &amp;&amp; rm -rf </span><span class="si">{</span><span class="n">xmippSrc</span><span class="si">}</span><span class="s1"> &amp;&amp; &#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;git clone --depth 1 --branch </span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">XMIPP_GIT_URL</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">xmippSrc</span><span class="si">}</span><span class="s1"> &amp;&amp; &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;git clone </span><span class="si">{</span><span class="n">XMIPP_GIT_URL</span><span class="si">}</span><span class="s1"> </span><span class="si">{</span><span class="n">xmippSrc</span><span class="si">}</span><span class="s1"> &amp;&amp; &#39;</span>
             <span class="sa">f</span><span class="s1">&#39;cd </span><span class="si">{</span><span class="n">xmippSrc</span><span class="si">}</span><span class="s1"> &amp;&amp; &#39;</span>
-            <span class="sa">f</span><span class="s1">&#39;./xmipp -b </span><span class="si">{</span><span class="n">tag</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">COMPILE_TARGETS</span><span class="p">)</span>   
+            <span class="sa">f</span><span class="s1">&#39;git checkout </span><span class="si">{</span><span class="n">version</span><span class="o">.</span><span class="n">_binTagVersion</span><span class="si">}</span><span class="s1"> &amp;&amp; &#39;</span>
+            <span class="sa">f</span><span class="s1">&#39;./xmipp --production True &#39;</span><span class="p">,</span> <span class="n">COMPILE_TARGETS</span><span class="p">)</span>
         <span class="p">]</span>
         <span class="n">env</span><span class="o">.</span><span class="n">addPackage</span><span class="p">(</span>
-            <span class="s1">&#39;xmippSrc&#39;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">tag</span><span class="p">,</span>
+            <span class="s1">&#39;xmippSrc&#39;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">version</span><span class="o">.</span><span class="n">_binTagVersion</span><span class="p">,</span>
             <span class="n">tar</span><span class="o">=</span><span class="s1">&#39;void.tgz&#39;</span><span class="p">,</span>
             <span class="n">commands</span><span class="o">=</span><span class="n">installCommands</span><span class="p">,</span>
             <span class="n">neededProgs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;git&#39;</span><span class="p">,</span> <span class="s1">&#39;gcc&#39;</span><span class="p">,</span> <span class="s1">&#39;g++&#39;</span><span class="p">,</span> <span class="s1">&#39;cmake&#39;</span><span class="p">,</span> <span class="s1">&#39;make&#39;</span><span class="p">],</span>
             <span class="n">updateCuda</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
             <span class="n">default</span><span class="o">=</span><span class="ow">not</span> <span class="n">develMode</span>
         <span class="p">)</span>
-
+        
         <span class="c1">## EXTRA PACKAGES ##</span>
         <span class="n">installDeepLearningToolkit</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">env</span><span class="p">)</span></div>
-
 
     <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">__getBundleDirectory</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
