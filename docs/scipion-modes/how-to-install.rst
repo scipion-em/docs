@@ -46,6 +46,13 @@ Installation
    For HPC admins or curious minds, pass --dry and the installer will just print what it would have done instead of doing it. See https://pypi.org/project/scipion-installer/
 
 
+5. Create an alias for Scipion launcher in your ``.bashrc`` file:
+
+::
+
+   alias scipion3="/path/for/scipion/scipion3"
+
+
 Congratulations! You have installed Scipion. But a plain vainilla Scipion is useless. You will need some plugins and binaries associated.
 
 
@@ -103,27 +110,22 @@ See `Configuration guide <scipion-configuration>`_ for more details about these 
 
 Install xmipp
 =============
-Xmipp is a good partner for Scipion in cryoem. It binds to Scipion environment offering file format (stk, vol, mrc, tiff, dm4,...) conversions for many cryo em methods
+Xmipp is a good partner for Scipion in cryoem. It binds to Scipion environment offering file format (stk, vol, mrc, tiff, dm4,...) conversions for many cryo em methods and more than a hundred of protocols to use in your SPA workflows
 
-To install `Xmipp <https://github.com/I2PC/xmipp#xmipp>`__ plugin run:
-
+To install `Xmipp <https://i2pc.github.io/docs/index.html>`__ plugin, please review the `requirements https://i2pc.github.io/docs/Installation/Requirements/index.html>`__ . If all of them are available in your system you can install it you can install Xmipp from the :ref:`Plugin manager guide <Plugin-Manager>` or from the terminal as this:
 
 ::
 
-    /path/for/scipion/scipion3 install -p scipion-em-xmipp -j 12 | tee -a install.log
+    /path/for/scipion/scipion3 install -p scipion-em-xmipp  | tee -a install.log
 
 .. note::
   For HPC clusters the above command should not have installed (compiled) xmipp. You need to compile it manually. Go here: https://i2pc.github.io/docs/Installation/Standlone-installation/index.html
 
-We have tested Xmipp compilation on the following operating systems: `Ubuntu 16.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-16.04>`__, `Ubuntu 18.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-18.04>`__, `Ubuntu 20.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-20.04>`__, `Ubuntu 22.04 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-Ubuntu-22.04>`_ and `Centos 7 <https://github.com/I2PC/xmipp/wiki/Installing-Xmipp-on-CentOS-7-9.2009>`__. A list of dependencies can be found `here <https://github.com/I2PC/xmipp#additional-dependencies>`__. Command example below is using 12 threads
+.. note::
+    If you want to install the devel version `please visit this page https://i2pc.github.io/docs/Installation/Standlone-installation/index.html#standalone-installation>`__
 
-7. Create an alias for Scipion launcher in your ``.bashrc`` file:
 
-::
-
-   alias scipion3="/path/for/scipion/scipion3"
-
-If any of the steps above fails, check `install.log` file for errors and refer to the :ref:`Troubleshooting <troubleshooting>` guide.
+If any of the steps above fails, check `install.log` file for errors, visit the `documentation https://i2pc.github.io/docs/#>`__ and do not hesitate to `contact us https://i2pc.github.io/docs/contact.htmlrefer>`__
 
 Installing other plugins
 ========================
