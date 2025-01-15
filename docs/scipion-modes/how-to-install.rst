@@ -60,13 +60,17 @@ For HPC Clusters
 ================
 Do not let Scipion's plugins install any software. Although many plugins by default will install 3rd party software, HPC clusters probably already have them installed and optimized, so it is recommended in this scenario to CANCEL any installation done by Scipion.
 
-You are going to need one scipion installation per CPU compatible architecture. You may also want to protect scipion installation by preventing pip USER installations. 
+.. note::
+
+    You are going to need one Scipion installation per CPU compatible architecture. 
+    
+You may also want to protect scipion installation by preventing pip USER installations. 
 
 Open **/path/to/scipion/config/scipion.conf** file and append the variable:
 
-SCIPION_DONT_INSTALL_BINARIES = True
-
-PYTHONUSERBASE = $CONDA_PREFIX/lib/python3.8/site-packages
+.. code::
+    SCIPION_DONT_INSTALL_BINARIES = True
+    PYTHONUSERBASE = $CONDA_PREFIX/lib/python3.8/site-packages
 
 .. note::
    Any value will cancel the installation of binaries
