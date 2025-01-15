@@ -94,7 +94,7 @@ If ``ERROR: Could not find target xmippSrc`` is gotten, try to run
     scipion3 installp -p scipion-em-xmipp 
 
 
-If the problem persist, don't hesitate to `contact us https://scipion-em.github.io/docs/release-3.0.0/docs/misc/contact-us.html#contact-us>`__.
+If the problem persist, don't hesitate to `contact us <https://scipion-em.github.io/docs/release-3.0.0/docs/misc/contact-us.html#contact-us>`__.
 
 
 Compiling Xmipp to be used in both Intel and AMD cores

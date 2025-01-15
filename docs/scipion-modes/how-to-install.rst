@@ -112,7 +112,7 @@ Install xmipp
 =============
 Xmipp is a good partner for Scipion in cryoem. It binds to Scipion environment offering file format (stk, vol, mrc, tiff, dm4,...) conversions for many cryo em methods and more than a hundred of protocols to use in your SPA workflows
 
-To install `Xmipp <https://i2pc.github.io/docs/index.html>`__ plugin, please review the `requirements https://i2pc.github.io/docs/Installation/Requirements/index.html>`__ . If all of them are available in your system you can install it you can install Xmipp from the :ref:`Plugin manager guide <Plugin-Manager>` or from the terminal as this:
+To install `Xmipp <https://i2pc.github.io/docs/index.html>`__ plugin, please review the `requirements <https://i2pc.github.io/docs/Installation/Requirements/index.html>`__ . If all of them are available in your system you can install it you can install Xmipp from the :ref:`Plugin manager guide <Plugin-Manager>` or from the terminal as this:
 
 ::
 
@@ -122,10 +122,10 @@ To install `Xmipp <https://i2pc.github.io/docs/index.html>`__ plugin, please rev
   For HPC clusters the above command should not have installed (compiled) xmipp. You need to compile it manually. Go here: https://i2pc.github.io/docs/Installation/Standlone-installation/index.html
 
 .. note::
-    If you want to install the devel version `please visit this page https://i2pc.github.io/docs/Installation/Standlone-installation/index.html#standalone-installation>`__
+    If you want to install the devel version `please visit this page <https://i2pc.github.io/docs/Installation/Standlone-installation/index.html#standalone-installation>`__
 
 
-If any of the steps above fails, check `install.log` file for errors, visit the `documentation https://i2pc.github.io/docs/#>`__ and do not hesitate to `contact us https://i2pc.github.io/docs/contact.htmlrefer>`__
+If any of the steps above fails, check `install.log` file for errors, visit the `documentation <https://i2pc.github.io/docs/#>`__ and do not hesitate to `contact us https://i2pc.github.io/docs/contact.htmlrefer>`__
 
 Installing other plugins
 ========================
