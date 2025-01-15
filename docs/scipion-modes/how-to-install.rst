@@ -129,7 +129,7 @@ To install `Xmipp <https://i2pc.github.io/docs/index.html>`__ plugin, please rev
     If you want to install the devel version `please visit this page <https://i2pc.github.io/docs/Installation/Standlone-installation/index.html#standalone-installation>`__
 
 
-If any of the steps above fails, check `install.log` file for errors, visit the `documentation <https://i2pc.github.io/docs/#>`__ and do not hesitate to `contact us https://i2pc.github.io/docs/contact.htmlrefer>`__
+If any of the steps above fails, check `install.log` file for errors, visit the `documentation <https://i2pc.github.io/docs/#>`__ and do not hesitate to `contact us <https://i2pc.github.io/docs/contact.htmlrefer>`__
 
 Installing other plugins
 ========================
