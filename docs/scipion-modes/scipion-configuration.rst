@@ -175,20 +175,6 @@ You can set a certain java toolkit with the following config variables in
 Check also the `Xmipp-Java documentation <https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)#java-configuration>`_.
 
 
-OpenCV flag
-===========
-
-To install Xmipp without OpenCV and, then skipping the programs using it
-(Optical Alignment and Volume Enrich),
-you can set OPENCV to False in ``scipion.conf``:
-
-::
-
-    OPENCV = False
-
-Check also the `Xmipp-OpenCV documentation <https://github.com/I2PC/xmipp/wiki/Xmipp-configuration-(version-20.07)#opencv-configuration>`_.
-
-
 
 Running Scipion in multi-users environment
 ==========================================
