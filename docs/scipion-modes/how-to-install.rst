@@ -68,7 +68,8 @@ You may also want to protect scipion installation by preventing pip USER install
 
 Open **/path/to/scipion/config/scipion.conf** file and append the variable:
 
-.. code::
+.. code-block:: bash
+    
     SCIPION_DONT_INSTALL_BINARIES = True
     PYTHONUSERBASE = $CONDA_PREFIX/lib/python3.8/site-packages
 
