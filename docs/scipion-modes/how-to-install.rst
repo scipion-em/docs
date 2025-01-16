@@ -123,13 +123,13 @@ To install `Xmipp <https://i2pc.github.io/docs/index.html>`__ plugin, please rev
     /path/for/scipion/scipion3 install -p scipion-em-xmipp  | tee -a install.log
 
 .. note::
-  For HPC clusters the above command should not have installed (compiled) xmipp. You need to compile it manually. Go here: https://i2pc.github.io/docs/Installation/Standlone-installation/index.html
+  For HPC clusters the above command should not have installed (compiled) Xmipp. You need to compile it manually following `those steps <https://i2pc.github.io/docs/Installation/Installations/index.html#installation-for-hpc-clusters>`__
 
 .. note::
-    If you want to install the devel version `please visit this page <https://i2pc.github.io/docs/Installation/Standlone-installation/index.html#standalone-installation>`__
+    If you want to install the devel version `please visit this page <https://i2pc.github.io/docs/Installation/Installations/index.html#standlone-installation>`__
 
 
-If any of the steps above fails, check `install.log` file for errors, visit the `documentation <https://i2pc.github.io/docs/#>`__ and do not hesitate to `contact us <https://i2pc.github.io/docs/contact.htmlrefer>`__
+If any of the steps above fails, check `install.log` file for errors, visit the `documentation <https://i2pc.github.io/docs/#>`__ and do not hesitate to `contact us <https://i2pc.github.io/docs/contact.html#contact-us>`__
 
 Installing other plugins
 ========================
