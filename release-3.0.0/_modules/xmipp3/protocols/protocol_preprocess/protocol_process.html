@@ -132,6 +132,7 @@
 <span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">Volume</span>
 <span class="kn">import</span> <span class="nn">pwem.emlib.metadata</span> <span class="k">as</span> <span class="nn">md</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">BETA</span><span class="p">,</span> <span class="n">UPDATED</span><span class="p">,</span> <span class="n">NEW</span><span class="p">,</span> <span class="n">PROD</span>
+<span class="kn">from</span> <span class="nn">pwem.convert</span> <span class="kn">import</span> <span class="n">headers</span>
 
 <span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="kn">import</span> <span class="p">(</span><span class="n">writeSetOfParticles</span><span class="p">,</span> <span class="n">xmippToLocation</span><span class="p">,</span>
                             <span class="n">writeSetOfVolumes</span><span class="p">,</span> <span class="n">getImageLocation</span><span class="p">)</span>
@@ -251,6 +252,10 @@
             
 <div class="viewcode-block" id="XmippProcessVolumes.createOutputStep"><a class="viewcode-back" href="../../../../api/xmipp3/xmipp3.protocols.protocol_preprocess.protocol_process.html#xmipp3.protocols.protocol_preprocess.protocol_process.XmippProcessVolumes.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">volInput</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputVolumes</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;resizeOption&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">doResize</span><span class="p">:</span>
+            <span class="n">samplingRate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resizeSamplingRate</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">samplingRate</span> <span class="o">=</span> <span class="n">volInput</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_isSingleInput</span><span class="p">():</span>
             <span class="c1"># Create the output with the same class as</span>
             <span class="c1"># the input, that should be Volume or a subclass</span>
@@ -260,11 +265,10 @@
             <span class="n">vol</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="n">volInput</span><span class="p">)</span>
             <span class="n">vol</span><span class="o">.</span><span class="n">setLocation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputStk</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputStk</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.mrc&quot;</span><span class="p">):</span>
-                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;resizeOption&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">doResize</span><span class="p">:</span>
-                    <span class="n">samplingRate</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">resizeSamplingRate</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">samplingRate</span> <span class="o">=</span> <span class="n">volInput</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">()</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_image_header&quot;</span><span class="p">,</span><span class="s2">&quot;-i </span><span class="si">%s</span><span class="s2"> --sampling_rate </span><span class="si">%f</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputStk</span><span class="p">,</span> <span class="n">samplingRate</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setHeader</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">outputStk</span><span class="p">,</span> <span class="n">samplingRate</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">volInput</span><span class="o">.</span><span class="n">hasHalfMaps</span><span class="p">():</span>
+                    <span class="n">vol</span><span class="o">.</span><span class="n">setHalfMaps</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
             <span class="k">if</span> <span class="n">volInput</span><span class="o">.</span><span class="n">hasOrigin</span><span class="p">():</span>
                 <span class="n">vol</span><span class="o">.</span><span class="n">setOrigin</span><span class="p">(</span><span class="n">volInput</span><span class="o">.</span><span class="n">getOrigin</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_postprocessOutput</span><span class="p">(</span><span class="n">vol</span><span class="p">)</span>
@@ -276,12 +280,21 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_preprocessOutput</span><span class="p">(</span><span class="n">volumes</span><span class="p">)</span>
             <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">obj</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">volInput</span><span class="o">.</span><span class="n">iterItems</span><span class="p">()):</span>
                 <span class="n">vol</span> <span class="o">=</span> <span class="n">obj</span>
-                <span class="n">vol</span><span class="o">.</span><span class="n">setLocation</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputStk</span><span class="p">)</span>
+                <span class="n">fnSingle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;output_volume</span><span class="si">%03d</span><span class="s2">.mrc&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_image_convert&quot;</span><span class="p">,</span><span class="s2">&quot;-i </span><span class="si">%d</span><span class="s2">@</span><span class="si">%s</span><span class="s2">  -o </span><span class="si">%s</span><span class="s2"> -t vol&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">outputStk</span><span class="p">,</span> <span class="n">fnSingle</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">setHeader</span><span class="p">(</span><span class="n">fnSingle</span><span class="p">,</span> <span class="n">samplingRate</span><span class="p">)</span>
+                <span class="n">vol</span><span class="o">.</span><span class="n">setLocation</span><span class="p">(</span><span class="n">fnSingle</span><span class="p">)</span>
                 <span class="n">volumes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vol</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;rm&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">outputStk</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_postprocessOutput</span><span class="p">(</span><span class="n">volumes</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">outputVol</span><span class="o">=</span><span class="n">volumes</span><span class="p">)</span>
             
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineTransformRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputVolumes</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">outputVol</span><span class="p">)</span></div>
+    
+<div class="viewcode-block" id="XmippProcessVolumes.setHeader"><a class="viewcode-back" href="../../../../api/xmipp3/xmipp3.protocols.protocol_preprocess.protocol_process.html#xmipp3.protocols.protocol_preprocess.protocol_process.XmippProcessVolumes.setHeader">[docs]</a>    <span class="k">def</span> <span class="nf">setHeader</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">,</span> <span class="n">samplingRate</span><span class="p">):</span>
+        <span class="n">ccp4header</span> <span class="o">=</span> <span class="n">headers</span><span class="o">.</span><span class="n">Ccp4Header</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">readHeader</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">ccp4header</span><span class="o">.</span><span class="n">setSampling</span><span class="p">(</span><span class="n">samplingRate</span><span class="p">)</span>
+        <span class="n">ccp4header</span><span class="o">.</span><span class="n">writeHeader</span><span class="p">()</span></div>
     
     <span class="c1">#--------------------------- UTILS functions ------------------------------</span>
     <span class="k">def</span> <span class="nf">_isSingleInput</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -294,7 +307,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">outputStk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;output_volume.mrc&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">inputFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="s1">&#39;input_volumes.xmd&#39;</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">outputStk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;output_volumes.stk&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outputStk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;output_volume.mrcs&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">outputMd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;output_volumes.xmd&#39;</span><span class="p">)</span></div>
 
 </pre></div>

@@ -136,6 +136,7 @@
 
 <span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="kn">import</span> <span class="n">getImageLocation</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">BETA</span><span class="p">,</span> <span class="n">UPDATED</span><span class="p">,</span> <span class="n">NEW</span><span class="p">,</span> <span class="n">PROD</span>
+<span class="kn">import</span> <span class="nn">xmippLib</span>
 
 
 <span class="n">ALIGN_MASK_CIRCULAR</span> <span class="o">=</span> <span class="mi">0</span>
@@ -172,6 +173,8 @@
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Input volume(s)&quot;</span><span class="p">,</span> <span class="n">important</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
                       <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Select one or more volumes (Volume or SetOfVolumes)</span><span class="se">\n</span><span class="s1">&#39;</span>
                            <span class="s1">&#39;to be aligned againt the reference volume.&#39;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;computeAvg&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Create average&#39;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Average all the volumes once aligned&#39;</span><span class="p">)</span>
         
         <span class="n">group1</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">addGroup</span><span class="p">(</span><span class="s1">&#39;Mask&#39;</span><span class="p">)</span>
         <span class="n">group1</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;applyMask&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
@@ -301,6 +304,7 @@
 
         <span class="n">vols</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="n">idx</span><span class="o">=</span><span class="mi">1</span>
+        <span class="n">Vavg</span><span class="o">=</span><span class="kc">None</span>
         <span class="k">for</span> <span class="n">vol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterInputVolumes</span><span class="p">():</span>
             <span class="n">outVol</span> <span class="o">=</span> <span class="n">Volume</span><span class="p">()</span>
             <span class="n">fnOutVol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;vol</span><span class="si">%02d</span><span class="s2">.mrc&quot;</span><span class="o">%</span><span class="n">idx</span><span class="p">)</span>
@@ -320,6 +324,13 @@
             <span class="c1"># Set the sampling rate in the mrc header</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_image_header&quot;</span><span class="p">,</span> <span class="s2">&quot;-i </span><span class="si">%s</span><span class="s2"> --sampling_rate </span><span class="si">%f</span><span class="s2">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">fnOutVol</span><span class="p">,</span> <span class="n">Ts</span><span class="p">))</span>
 
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">computeAvg</span><span class="p">:</span>
+                <span class="n">Vi</span><span class="o">=</span><span class="n">xmippLib</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">fnOutVol</span><span class="p">)</span><span class="o">.</span><span class="n">getData</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">Vavg</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">Vavg</span><span class="o">=</span><span class="n">Vi</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">Vavg</span><span class="o">+=</span><span class="n">Vi</span>
+
             <span class="n">idx</span><span class="o">+=</span><span class="mi">1</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vols</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -331,6 +342,18 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">vols</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">Ts</span><span class="p">)</span>
             <span class="n">outputArgs</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;outputVolume&#39;</span><span class="p">:</span> <span class="n">vols</span><span class="p">[</span><span class="mi">0</span><span class="p">]}</span>
+        
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">computeAvg</span><span class="p">:</span>
+            <span class="n">Vavg</span><span class="o">/=</span><span class="nb">len</span><span class="p">(</span><span class="n">vols</span><span class="p">)</span>
+            <span class="n">Vsave</span><span class="o">=</span><span class="n">xmippLib</span><span class="o">.</span><span class="n">Image</span><span class="p">()</span>
+            <span class="n">Vsave</span><span class="o">.</span><span class="n">setData</span><span class="p">(</span><span class="n">Vavg</span><span class="p">)</span>
+            <span class="n">fnAvg</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;averageVolume.mrc&quot;</span><span class="p">)</span>
+            <span class="n">Vsave</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">fnAvg</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s2">&quot;xmipp_image_header&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;-i </span><span class="si">{</span><span class="n">fnAvg</span><span class="si">}</span><span class="s2"> --sampling_rate </span><span class="si">{</span><span class="n">Ts</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">volAvg</span><span class="o">=</span><span class="n">Volume</span><span class="p">()</span>
+            <span class="n">volAvg</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">fnAvg</span><span class="p">)</span>
+            <span class="n">volAvg</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">Ts</span><span class="p">)</span>
+            <span class="n">outputArgs</span><span class="p">[</span><span class="s1">&#39;outputAverage&#39;</span><span class="p">]</span><span class="o">=</span><span class="n">volAvg</span>
             
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="o">**</span><span class="n">outputArgs</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vols</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
@@ -338,7 +361,11 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="n">pointer</span><span class="p">,</span> <span class="n">outputArgs</span><span class="p">[</span><span class="s1">&#39;outputVolumes&#39;</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">for</span> <span class="n">pointer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputVolumes</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="n">pointer</span><span class="p">,</span> <span class="n">outputArgs</span><span class="p">[</span><span class="s1">&#39;outputVolume&#39;</span><span class="p">])</span></div>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="n">pointer</span><span class="p">,</span> <span class="n">outputArgs</span><span class="p">[</span><span class="s1">&#39;outputVolume&#39;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">computeAvg</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">pointer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputVolumes</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="n">pointer</span><span class="p">,</span> <span class="n">outputArgs</span><span class="p">[</span><span class="s1">&#39;outputAverage&#39;</span><span class="p">])</span></div>
 
     <span class="c1">#  --------------------------- INFO functions --------------------------------------------</span>
     <span class="k">def</span> <span class="nf">_validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

@@ -100,20 +100,22 @@
            <div itemprop="articleBody">
              
   <h1>Source code for scipion.install.plugin_funcs</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">requests</span>
+<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">requests</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">pkg_resources</span>
-<span class="kn">from</span> <span class="nn">pkg_resources</span> <span class="kn">import</span> <span class="n">parse_version</span>
-
+<span class="kn">from</span> <span class="nn">packaging.version</span> <span class="kn">import</span> <span class="n">Version</span>
+<span class="kn">from</span> <span class="nn">urllib.request</span> <span class="kn">import</span> <span class="n">url2pathname</span>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urlparse</span>
 <span class="kn">from</span> <span class="nn">.funcs</span> <span class="kn">import</span> <span class="n">Environment</span>
 <span class="kn">from</span> <span class="nn">pwem</span> <span class="kn">import</span> <span class="n">Domain</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">redStr</span><span class="p">,</span> <span class="n">yellowStr</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.utils.path</span> <span class="kn">import</span> <span class="n">cleanPath</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">LAST_VERSION</span><span class="p">,</span> <span class="n">CORE_VERSION</span><span class="p">,</span> <span class="n">Config</span>
-<span class="kn">from</span> <span class="nn">importlib</span> <span class="kn">import</span> <span class="n">reload</span>
+<span class="kn">import</span> <span class="nn">importlib_metadata</span>
 
 <span class="n">NULL_VERSION</span> <span class="o">=</span> <span class="s2">&quot;0.0.0&quot;</span>
 <span class="c1"># This constant is used in order to install all plugins taking into account a</span>
@@ -175,32 +177,35 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">installBin</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setLocalPluginInfo</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">_getDistribution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="PluginInfo.getDistribution"><a class="viewcode-back" href="../../../api/scipion/scipion.install.plugin_funcs.html#scipion.install.plugin_funcs.PluginInfo.getDistribution">[docs]</a>    <span class="k">def</span> <span class="nf">getDistribution</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">get_distribution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pipName</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">=</span> <span class="n">importlib_metadata</span><span class="o">.</span><span class="n">distribution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pipName</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Distribution not found: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
                 <span class="k">pass</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span></div>
 
     <span class="k">def</span> <span class="nf">_getPlugin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
 
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">dirname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getDirName</span><span class="p">()</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">getDomain</span><span class="p">()</span><span class="o">.</span><span class="n">getPluginModule</span><span class="p">(</span><span class="n">dirname</span><span class="p">)</span>
-            <span class="k">except</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">dirname</span><span class="p">:</span>  <span class="c1">## For non installed plugins getDirName does return &quot;&quot;. Avoid asking for the plugin</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span> <span class="o">=</span> <span class="n">Config</span><span class="o">.</span><span class="n">getDomain</span><span class="p">()</span><span class="o">.</span><span class="n">getPluginModule</span><span class="p">(</span><span class="n">dirname</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Can&#39;t get the plugin for </span><span class="si">%s</span><span class="s2">( dir name:</span><span class="si">%s</span><span class="s2"> ).&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pipName</span><span class="p">,</span> <span class="n">dirname</span><span class="p">))</span>
                 <span class="k">pass</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span>
 
 <div class="viewcode-block" id="PluginInfo.hasPipPackage"><a class="viewcode-back" href="../../../api/scipion/scipion.install.plugin_funcs.html#scipion.install.plugin_funcs.PluginInfo.hasPipPackage">[docs]</a>    <span class="k">def</span> <span class="nf">hasPipPackage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Checks if the current plugin is installed via pip&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getDistribution</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getDistribution</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="PluginInfo.isInstalled"><a class="viewcode-back" href="../../../api/scipion/scipion.install.plugin_funcs.html#scipion.install.plugin_funcs.PluginInfo.isInstalled">[docs]</a>    <span class="k">def</span> <span class="nf">isInstalled</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Checks if the current plugin is installed (i.e. has pip package).</span>
 <span class="sd">        NOTE: we might want to change definition of isInstalled, hence the extra function.&quot;&quot;&quot;</span>
-        <span class="n">reload</span><span class="p">(</span><span class="n">pkg_resources</span><span class="p">)</span>
+        <span class="c1"># This is too expensive: reload(pkg_resources)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hasPipPackage</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="PluginInfo.installPipModule"><a class="viewcode-back" href="../../../api/scipion/scipion.install.plugin_funcs.html#scipion.install.plugin_funcs.PluginInfo.installPipModule">[docs]</a>    <span class="k">def</span> <span class="nf">installPipModule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
@@ -248,18 +253,16 @@
                                              <span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
                                              <span class="n">pipCmd</span><span class="o">=</span><span class="n">cmd</span><span class="p">)</span>
 
-        <span class="c1"># check if we&#39;re doing a version change of an already installed plugin</span>
-        <span class="n">reloadPkgRes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">isInstalled</span><span class="p">()</span>
-
+        <span class="c1"># Install the package/plugin</span>
         <span class="n">environment</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-        <span class="c1"># we already have a dir for the plugin:</span>
-        <span class="k">if</span> <span class="n">reloadPkgRes</span><span class="p">:</span>
-            <span class="c1"># if plugin was already installed, pkg_resources has the old one</span>
-            <span class="c1"># so it needs a reload</span>
-            <span class="n">reload</span><span class="p">(</span><span class="n">pkg_resources</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">dirName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getDirName</span><span class="p">()</span>
-            <span class="n">Domain</span><span class="o">.</span><span class="n">refreshPlugin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dirName</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_plugin</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># if plugin was already installed, we need to clean cached elements</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Trigger reloading the distribution</span>
+
+        <span class="c1"># Not needed? reload(pkg_resources)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dirName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getDirName</span><span class="p">()</span>
+        <span class="n">Domain</span><span class="o">.</span><span class="n">refreshPlugin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dirName</span><span class="p">)</span>
+
         <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="PluginInfo.installBin"><a class="viewcode-back" href="../../../api/scipion/scipion.install.plugin_funcs.html#scipion.install.plugin_funcs.PluginInfo.installBin">[docs]</a>    <span class="k">def</span> <span class="nf">installBin</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -328,14 +331,14 @@
 
         <span class="k">for</span> <span class="n">release</span><span class="p">,</span> <span class="n">releaseData</span> <span class="ow">in</span> <span class="n">pipJsonData</span><span class="p">[</span><span class="s1">&#39;releases&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">releaseData</span> <span class="o">=</span> <span class="n">releaseData</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">scipionVersions</span> <span class="o">=</span> <span class="p">[</span><span class="n">parse_version</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+            <span class="n">scipionVersions</span> <span class="o">=</span> <span class="p">[</span><span class="n">Version</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
                                <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">reg</span><span class="p">,</span>
                                                    <span class="n">releaseData</span><span class="p">[</span><span class="s1">&#39;comment_text&#39;</span><span class="p">])]</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">scipionVersions</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">releases</span><span class="p">[</span><span class="n">release</span><span class="p">]</span> <span class="o">=</span> <span class="n">releaseData</span>
-                <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">v</span> <span class="o">==</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">CORE_VERSION</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">any</span><span class="p">([</span><span class="n">v</span> <span class="o">==</span> <span class="n">Version</span><span class="p">(</span><span class="n">CORE_VERSION</span><span class="p">)</span>
                         <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">scipionVersions</span><span class="p">]):</span>
-                    <span class="k">if</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">latestCompRelease</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">parse_version</span><span class="p">(</span><span class="n">release</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">Version</span><span class="p">(</span><span class="n">latestCompRelease</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">Version</span><span class="p">(</span><span class="n">release</span><span class="p">):</span>
                         <span class="n">latestCompRelease</span> <span class="o">=</span> <span class="n">release</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="n">yellowStr</span><span class="p">(</span><span class="s2">&quot;WARNING: </span><span class="si">%s</span><span class="s2">&#39;s release </span><span class="si">%s</span><span class="s2"> did not specify a &quot;</span>
@@ -405,22 +408,36 @@
             <span class="c1"># A.: plugin is a proper pipmodule and is installed as such</span>
             <span class="c1"># B.: Plugin is not yet a pipmodule but a local folder.</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">package</span> <span class="o">=</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">get_distribution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pipName</span><span class="p">)</span>
-                <span class="n">keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Name&#39;</span><span class="p">,</span> <span class="s1">&#39;Version&#39;</span><span class="p">,</span> <span class="s1">&#39;Summary&#39;</span><span class="p">,</span> <span class="s1">&#39;Home-page&#39;</span><span class="p">,</span> <span class="s1">&#39;Author&#39;</span><span class="p">,</span>
-                        <span class="s1">&#39;Author-email&#39;</span><span class="p">]</span>
-                <span class="n">pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;(.*): (.*)&#39;</span>
 
-                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">package</span><span class="o">.</span><span class="n">_get_metadata</span><span class="p">(</span><span class="n">package</span><span class="o">.</span><span class="n">PKG_INFO</span><span class="p">):</span>
-                    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
-                        <span class="n">key</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-                        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
-                            <span class="n">metadata</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-                            <span class="n">keys</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-                            <span class="k">if</span> <span class="ow">not</span> <span class="nb">len</span><span class="p">(</span><span class="n">keys</span><span class="p">):</span>
-                                <span class="k">break</span>
+                <span class="k">def</span> <span class="nf">getValueFromMetadata</span><span class="p">(</span><span class="n">prodKey</span><span class="p">,</span> <span class="n">altKey</span><span class="p">):</span>
+                    <span class="sd">&quot;&quot;&quot;Gets the value from the metadata dictionary using the prodKey (package in production)</span>
+<span class="sd">                    if key does not exist uses the altKey</span>
 
-                <span class="bp">self</span><span class="o">.</span><span class="n">pipVersion</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Version&#39;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="sd">                    :param prodKey: key in the metadata to get the value</span>
+<span class="sd">                    :param altKey: alternative key in case prodKey does not exist&quot;&quot;&quot;</span>
+                    <span class="k">if</span> <span class="n">prodKey</span> <span class="ow">in</span> <span class="n">jsonMetadata</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">jsonMetadata</span><span class="p">[</span><span class="n">prodKey</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">value</span> <span class="o">=</span> <span class="n">jsonMetadata</span><span class="p">[</span><span class="n">altKey</span><span class="p">]</span>
+                            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                                <span class="c1"># author_email</span>
+                                <span class="k">return</span> <span class="n">value</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="c1"># Project_url: [&#39;Homepage, https://github.com/scipion-em/scipion-em-warp&#39;, &#39;Issues, https://github.com/scipion-em/scipion-em-warp/issues&#39;]</span>
+                                <span class="k">return</span> <span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+
+                        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Can&#39;t get </span><span class="si">%s</span><span class="s2"> value for </span><span class="si">%s</span><span class="s2"> package.&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">altKey</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipName</span><span class="p">))</span>
+                            <span class="k">return</span> <span class="n">altKey</span>
+
+                <span class="n">jsonMetadata</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getDistribution</span><span class="p">()</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">json</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">summary</span> <span class="o">=</span> <span class="n">jsonMetadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;summary&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">author</span> <span class="o">=</span> <span class="n">getValueFromMetadata</span><span class="p">(</span><span class="s2">&quot;author&quot;</span><span class="p">,</span> <span class="s2">&quot;author_email&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">homePage</span> <span class="o">=</span> <span class="n">getValueFromMetadata</span><span class="p">(</span><span class="s2">&quot;home_page&quot;</span><span class="p">,</span> <span class="s2">&quot;project_url&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">email</span> <span class="o">=</span> <span class="n">jsonMetadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;author_email&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pipVersion</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dist</span><span class="o">.</span><span class="n">version</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">dirName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getDirName</span><span class="p">()</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">binVersions</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getBinVersions</span><span class="p">()</span>
 
@@ -486,12 +503,44 @@
 <div class="viewcode-block" id="PluginInfo.getDirName"><a class="viewcode-back" href="../../../api/scipion/scipion.install.plugin_funcs.html#scipion.install.plugin_funcs.PluginInfo.getDirName">[docs]</a>    <span class="k">def</span> <span class="nf">getDirName</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Get the name of the folder that contains the plugin code</span>
 <span class="sd">           itself (e.g. to import the _plugin object.)&quot;&quot;&quot;</span>
-        <span class="c1"># top level file is a file included in all pip packages that contains</span>
-        <span class="c1"># the name of the package&#39;s top level directory</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">pkg_resources</span><span class="o">.</span><span class="n">get_distribution</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pipName</span><span class="p">)</span><span class="o">.</span><span class="n">get_metadata</span><span class="p">(</span><span class="s1">&#39;top_level.txt&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">None</span></div>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">dirName</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">dist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getDistribution</span><span class="p">()</span>
+
+                <span class="c1"># Here, at least there are 2 cases: normal mode or editable mode.</span>
+                <span class="c1"># Normal mode have __init__.py files. We will look for the first one to get the dirname</span>
+                <span class="c1"># editable mode is more indirect. We need the top_level.txt to get the dirname but also</span>
+                <span class="c1"># since code is somewhere else, we need to find the folder where the code is using &quot;direct_url.json&quot;</span>
+                <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">dist</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;__init__.py&quot;</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">dirName</span> <span class="o">=</span> <span class="n">path</span><span class="o">.</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="k">break</span>
+                    <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;top_level.txt&quot;</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Package </span><span class="si">%s</span><span class="s2"> in editable mode.&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipName</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">dirName</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getDirNameFromTopLevel</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">path</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;direct_url.json&quot;</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_addPluginPathToModules</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;getDirName does not work for </span><span class="si">%s</span><span class="s2">: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pipName</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">dirName</span></div>
+    <span class="k">def</span> <span class="nf">_getDirNameFromTopLevel</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="n">topLevel</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">locate</span><span class="p">())</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">topLevel</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">fh</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">line</span>
+
+    <span class="k">def</span> <span class="nf">_addPluginPathToModules</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Getting actual path for </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">pipName</span><span class="p">)</span>
+        <span class="n">urlJson</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">path</span><span class="o">.</span><span class="n">locate</span><span class="p">())</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">urlJson</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+            <span class="n">jsonObj</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fh</span><span class="p">)</span>
+            <span class="n">url</span><span class="o">=</span> <span class="n">jsonObj</span><span class="p">[</span><span class="s2">&quot;url&quot;</span><span class="p">]</span>
+            <span class="n">url</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+            <span class="n">file_path</span> <span class="o">=</span> <span class="n">url2pathname</span><span class="p">(</span><span class="n">url</span><span class="o">.</span><span class="n">path</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Path found: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">file_path</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
 
 <div class="viewcode-block" id="PluginInfo.printBinInfoStr"><a class="viewcode-back" href="../../../api/scipion/scipion.install.plugin_funcs.html#scipion.install.plugin_funcs.PluginInfo.printBinInfoStr">[docs]</a>    <span class="k">def</span> <span class="nf">printBinInfoStr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns string with info of binaries installed to print in console</span>
