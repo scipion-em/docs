@@ -444,13 +444,13 @@
 <span class="sd">    </span>
 <span class="sd">        class MyOutput(enum.Enum):</span>
 <span class="sd">            outputMicrographs = SetOfMicrographs</span>
-<span class="sd">            outputMicrographDW = SetOfMicrographs</span>
+<span class="sd">            outputMicrographDW = SetOfMovies</span>
 <span class="sd">    </span>
 <span class="sd">    When defining outputs you can, optionally, use this enum like:</span>
 <span class="sd">    self._defineOutputs(**{MyOutput.outputMicrographs.name, setOfMics})</span>
 <span class="sd">    It will help to keep output names consistently</span>
 <span class="sd">    </span>
-<span class="sd">    Alternative an inline dictionary will work:</span>
+<span class="sd">    Alternative an inline dictionary will work (this is mandatory in case two or more outputs are of the same type):</span>
 <span class="sd">    _possibleOutputs = {&quot;outputMicrographs&quot; : SetOfMicrographs}</span>
 <span class="sd">    </span>
 <span class="sd">    For a more fine detailed/dynamic output based on parameters, you can overwrite the getter:</span>
@@ -498,7 +498,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_log</span> <span class="o">=</span> <span class="n">logger</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_buffer</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>  <span class="c1"># text buffer for reading log files</span>
         <span class="c1"># Project to which the protocol belongs</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__project</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_project</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;project&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="c1"># Filename templates dict that will be used by _getFileName</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">__filenamesDict</span> <span class="o">=</span> <span class="p">{}</span>
 
@@ -507,12 +507,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">lastUpdateTimeStamp</span> <span class="o">=</span> <span class="n">String</span><span class="p">()</span>
 
         <span class="c1"># For non-parallel protocols mpi=1 and threads=1</span>
+        <span class="c1"># MPIs</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">allowMpi</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;numberOfMpi&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowMpi</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
+        <span class="c1"># Threads</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">allowThreads</span> <span class="o">=</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;numberOfThreads&#39;</span><span class="p">)</span>
-
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">allowThreads</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">numberOfThreads</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 
@@ -560,6 +561,38 @@
         <span class="c1"># than one time, thus avoiding deadlock situation. This fixed the concurrency problems we had before.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">forceSchedule</span> <span class="o">=</span> <span class="n">Boolean</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
 
+
+<div class="viewcode-block" id="Protocol.getMPIs"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getMPIs">[docs]</a>    <span class="k">def</span> <span class="nf">getMPIs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the value of MPIs (integer)&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Protocol.getScipionThreads"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getScipionThreads">[docs]</a>    <span class="k">def</span> <span class="nf">getScipionThreads</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the number of Scipion threads. Not the threads that are argument for programs but those that will</span>
+<span class="sd">         run steps in parallel. This assumes cls.stepsExecutionMode = STEP_PARALLEL. See Param.addParallelSection&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfThreads</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Protocol.getBinThreads"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getBinThreads">[docs]</a>    <span class="k">def</span> <span class="nf">getBinThreads</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the number of binary threads. An integer to pass as an argument for the binary program integrated.</span>
+<span class="sd">         See Param.addParallelSection&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeSerial</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfThreads</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">binThreads</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Protocol.getTotalThreads"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getTotalThreads">[docs]</a>    <span class="k">def</span> <span class="nf">getTotalThreads</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the total number of threads the protocol will need. This may be necessary when clusters require this value&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeSerial</span><span class="p">():</span>
+            <span class="c1"># This will be the main thread + the binary threads * mpi ?</span>
+            <span class="k">return</span> <span class="mi">1</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">getTotalBinThreads</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># One main thread (included in Scipion threads) plus TotalBinThread time processing steps (Scipion threads -1)</span>
+            <span class="k">return</span> <span class="mi">1</span> <span class="o">+</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">getScipionThreads</span><span class="p">()</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">getTotalBinThreads</span><span class="p">())</span></div>
+
+<div class="viewcode-block" id="Protocol.getTotalBinThreads"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getTotalBinThreads">[docs]</a>    <span class="k">def</span> <span class="nf">getTotalBinThreads</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns the total number to cores the binary will use: threads * mpis&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">getBinThreads</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">getMPIs</span><span class="p">()</span></div>
+
     <span class="k">def</span> <span class="nf">_storeAttributes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrList</span><span class="p">,</span> <span class="n">attrDict</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Store all attributes in attrDict as</span>
 <span class="sd">        attributes of self, also store the key in attrList.</span>
@@ -596,6 +629,7 @@
         <span class="sd">&quot;&quot;&quot;Close all output set&quot;&quot;&quot;</span>
         <span class="k">for</span> <span class="n">outputName</span><span class="p">,</span> <span class="n">output</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterOutputAttributes</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">Set</span><span class="p">)</span> <span class="ow">and</span> <span class="n">output</span><span class="o">.</span><span class="n">isStreamOpen</span><span class="p">():</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Closing </span><span class="si">%s</span><span class="s2"> output&quot;</span> <span class="o">%</span> <span class="n">outputName</span><span class="p">)</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">__tryUpdateOutputSet</span><span class="p">(</span><span class="n">outputName</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">Set</span><span class="o">.</span><span class="n">STREAM_CLOSED</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_updateOutputSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outputName</span><span class="p">,</span> <span class="n">outputSet</span><span class="p">,</span>
@@ -651,10 +685,10 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hasExpert</span></div>
 
 <div class="viewcode-block" id="Protocol.getProject"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getProject">[docs]</a>    <span class="k">def</span> <span class="nf">getProject</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__project</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_project</span></div>
 
 <div class="viewcode-block" id="Protocol.setProject"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.setProject">[docs]</a>    <span class="k">def</span> <span class="nf">setProject</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">__project</span> <span class="o">=</span> <span class="n">project</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_project</span> <span class="o">=</span> <span class="n">project</span></div>
 
 <div class="viewcode-block" id="Protocol.hasDefinition"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.hasDefinition">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">hasDefinition</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
@@ -847,7 +881,7 @@
                         <span class="n">protocol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getProject</span><span class="p">()</span><span class="o">.</span><span class="n">getRunsGraph</span><span class="p">(</span><span class="n">refresh</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">getNode</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">getObjParentId</span><span class="p">()))</span><span class="o">.</span><span class="n">run</span>
                     <span class="k">else</span><span class="p">:</span>
                         <span class="c1"># This is a problem, since protocols coming from</span>
-                        <span class="c1"># Pointers do not have the __project set.</span>
+                        <span class="c1"># Pointers do not have the _project set.</span>
                         <span class="c1"># We do not have a clear way to get the protocol if</span>
                         <span class="c1"># we do not have the project object associated</span>
                         <span class="c1"># This case implies Direct Pointers to Sets</span>
@@ -1183,7 +1217,8 @@
     <span class="k">def</span> <span class="nf">_finalizeStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Closes the step and setting up the protocol process id &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_finalizeStep</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_pid</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_closeOutputSet</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pid</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_updateSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">updater</span><span class="p">,</span> <span class="n">where</span><span class="o">=</span><span class="s2">&quot;1&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set the status of all steps</span>
@@ -1254,14 +1289,17 @@
 
     <span class="k">def</span> <span class="nf">_insertRunJobStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">progName</span><span class="p">,</span> <span class="n">progArguments</span><span class="p">,</span> <span class="n">resultFiles</span><span class="o">=</span><span class="p">[],</span>
                           <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Insert a Step that will simply call runJob function</span>
+        <span class="sd">&quot;&quot;&quot; Insert an Step that will simple call runJob function</span>
 <span class="sd">        **args: see __insertStep</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;runJob&#39;</span><span class="p">,</span> <span class="n">progName</span><span class="p">,</span> <span class="n">progArguments</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;runJob&#39;</span><span class="p">,</span> <span class="n">progName</span><span class="p">,</span> <span class="n">progArguments</span><span class="p">,</span>
+                                        <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_insertCopyFileStep</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sourceFile</span><span class="p">,</span> <span class="n">targetFile</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Shortcut function to insert a step for copying a file to a destiny. &quot;&quot;&quot;</span>
-        <span class="n">step</span> <span class="o">=</span> <span class="n">FunctionStep</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">copyFile</span><span class="p">,</span> <span class="s1">&#39;copyFile&#39;</span><span class="p">,</span> <span class="n">sourceFile</span><span class="p">,</span> <span class="n">targetFile</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="n">step</span> <span class="o">=</span> <span class="n">FunctionStep</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">copyFile</span><span class="p">,</span> <span class="s1">&#39;copyFile&#39;</span><span class="p">,</span> <span class="n">sourceFile</span><span class="p">,</span>
+                            <span class="n">targetFile</span><span class="p">,</span>
+                            <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__insertStep</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_enterDir</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
@@ -1450,6 +1488,7 @@
 
         <span class="k">if</span> <span class="n">startIndex</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_steps</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">lastStatus</span> <span class="o">=</span> <span class="n">STATUS_FINISHED</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setFinished</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;All steps seem to be FINISHED, nothing to be done.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">lastStatus</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
@@ -1459,8 +1498,9 @@
                                          <span class="bp">self</span><span class="o">.</span><span class="n">_stepsCheck</span><span class="p">,</span>
                                          <span class="bp">self</span><span class="o">.</span><span class="n">_stepsCheckSecs</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;*** Last status is </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastStatus</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lastStatus</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;*** Last status is </span><span class="si">%s</span><span class="s2"> &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastStatus</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setStatus</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lastStatus</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cleanExecutionAttributes</span><span class="p">(</span><span class="n">includeSteps</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__deleteOutputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1676,34 +1716,44 @@
             <span class="n">package</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getClassPackage</span><span class="p">()</span>
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">package</span><span class="p">,</span> <span class="s2">&quot;__version__&quot;</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;plugin v: </span><span class="si">%s%s</span><span class="s1">&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">package</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="s1">&#39; (devel)&#39;</span> <span class="k">if</span> <span class="n">plugin</span><span class="o">.</span><span class="n">inDevelMode</span><span class="p">()</span> <span class="k">else</span> <span class="s1">&#39;(production)&#39;</span><span class="p">))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;plugin binary v: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">plugin</span><span class="o">.</span><span class="n">getActiveVersion</span><span class="p">())</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;plugin binary v: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">plugin</span><span class="o">.</span><span class="n">getActiveVersion</span><span class="p">())</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Coudn&#39;t get the active version of the binary. This may be cause by a variable in the config&quot;</span>
+                             <span class="s2">&quot; file with a missing - in it and the protocol to fail.&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;currentDir: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;workingDir: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">workingDir</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;runMode: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">MODE_CHOICES</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">runMode</span><span class="o">.</span><span class="n">get</span><span class="p">()])</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">modeSerial</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Serial execution&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Scipion threads: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">getScipionThreads</span><span class="p">())</span>
+
             <span class="k">try</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;          MPI: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;      threads: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfThreads</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;binary MPI: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;binary Threads: </span><span class="si">%d</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">getBinThreads</span><span class="p">())</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;  * Cannot get information about MPI/threads (</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="n">e</span><span class="p">)</span>
-        <span class="c1"># Something went wrong ans at this point status is launched. We mark it as failed.</span>
+        <span class="c1"># Something went wrong and at this point status is launched. We mark it as failed.</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t start the protocol.&quot;</span> <span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">setFailed</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">getError</span><span class="p">())</span>
+            <span class="c1"># self._store(self.status, self.getError())</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_endRun</span><span class="p">()</span>
             <span class="k">return</span>
 
         <span class="n">Step</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">isFailed</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">()</span>
+        <span class="c1"># if self.isFailed():</span>
+        <span class="c1">#     self._store()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_endRun</span><span class="p">()</span></div>
 
     <span class="k">def</span> <span class="nf">_endRun</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Print some ending message and close some files. &quot;&quot;&quot;</span>
-        <span class="c1"># self._store()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">summaryVar</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">methodsVar</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">endTime</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">()</span>  <span class="c1"># Store all protocol attributes</span>
+        <span class="c1"># self._store(self.summaryVar)</span>
+        <span class="c1"># self._store(self.methodsVar)</span>
+        <span class="c1"># self._store(self.endTime)</span>
 
         <span class="k">if</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">envVarOn</span><span class="p">(</span><span class="n">pw</span><span class="o">.</span><span class="n">SCIPION_DEBUG_NOCLEAN</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Not cleaning temp folder since &#39;</span>
@@ -1738,6 +1788,7 @@
 <div class="viewcode-block" id="Protocol.getStepsFile"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getStepsFile">[docs]</a>    <span class="k">def</span> <span class="nf">getStepsFile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return the steps.sqlite file under logs directory. &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getLogsPath</span><span class="p">(</span><span class="s1">&#39;steps.sqlite&#39;</span><span class="p">)</span></div>
+
 
     <span class="k">def</span> <span class="nf">_addChunk</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">txt</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -2021,6 +2072,8 @@
         <span class="n">queueName</span><span class="p">,</span> <span class="n">queueParams</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getQueueParams</span><span class="p">()</span>
         <span class="n">hc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getHostConfig</span><span class="p">()</span>
 
+        <span class="n">scipion_project</span> <span class="o">=</span> <span class="s2">&quot;SCIPION_PROJECT&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">getProject</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">getProject</span><span class="p">()</span><span class="o">.</span><span class="n">getShortName</span><span class="p">()</span>
+
         <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;JOB_NAME&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">strId</span><span class="p">(),</span>
              <span class="s1">&#39;JOB_QUEUE&#39;</span><span class="p">:</span> <span class="n">queueName</span><span class="p">,</span>
              <span class="s1">&#39;JOB_NODES&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
@@ -2029,9 +2082,9 @@
              <span class="s1">&#39;JOB_HOURS&#39;</span><span class="p">:</span> <span class="mi">72</span><span class="p">,</span>
              <span class="s1">&#39;GPU_COUNT&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">()),</span>
              <span class="n">QUEUE_FOR_JOBS</span><span class="p">:</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
-             <span class="s1">&#39;SCIPION_PROJECT&#39;</span><span class="p">:</span> <span class="s2">&quot;SCIPION_PROJECT&quot;</span><span class="p">,</span>  <span class="c1"># self.getProject().getShortName(),</span>
-             <span class="s1">&#39;SCIPION_PROTOCOL&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getRunName</span><span class="p">(),</span>
-             <span class="n">PLUGIN_MODULE_VAR</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPlugin</span><span class="p">()</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span>
+             <span class="n">PLUGIN_MODULE_VAR</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getPlugin</span><span class="p">()</span><span class="o">.</span><span class="n">getName</span><span class="p">(),</span>
+             <span class="s1">&#39;SCIPION_PROJECT&#39;</span><span class="p">:</span> <span class="n">scipion_project</span><span class="p">,</span>
+             <span class="s1">&#39;SCIPION_PROTOCOL&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">getRunName</span><span class="p">()</span>
              <span class="p">}</span>
 
         <span class="c1"># Criteria in HostConfig.load to load or not QUEUE variables</span>
@@ -2503,11 +2556,12 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_size</span></div>
 
-<div class="viewcode-block" id="Protocol.cleanExecutionAttributes"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.cleanExecutionAttributes">[docs]</a>    <span class="k">def</span> <span class="nf">cleanExecutionAttributes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Protocol.cleanExecutionAttributes"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.cleanExecutionAttributes">[docs]</a>    <span class="k">def</span> <span class="nf">cleanExecutionAttributes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">includeSteps</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Clean all the executions attributes &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setPid</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_jobId</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_stepsDone</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div></div>
+        <span class="k">if</span> <span class="n">includeSteps</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_stepsDone</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div></div>
 
 <div class="viewcode-block" id="LegacyProtocol"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.LegacyProtocol">[docs]</a><span class="k">class</span> <span class="nc">LegacyProtocol</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Special subclass of Protocol to be used when a protocol class</span>

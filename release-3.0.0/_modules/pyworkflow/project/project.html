@@ -128,6 +128,7 @@
 <span class="c1"># **************************************************************************</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 
+<span class="kn">from</span> <span class="nn">.usage</span> <span class="kn">import</span> <span class="n">ScipionWorkflow</span>
 <span class="kn">from</span> <span class="nn">..protocol.launch</span> <span class="kn">import</span> <span class="n">_checkJobStatus</span>
 
 <span class="n">ROOT_NODE_NAME</span> <span class="o">=</span> <span class="s2">&quot;PROJECT&quot;</span>
@@ -150,7 +151,7 @@
 <span class="kn">from</span> <span class="nn">pyworkflow.protocol.constants</span> <span class="kn">import</span> <span class="p">(</span><span class="n">MODE_RESTART</span><span class="p">,</span> <span class="n">MODE_RESUME</span><span class="p">,</span>
                                            <span class="n">STATUS_INTERACTIVE</span><span class="p">,</span> <span class="n">ACTIVE_STATUS</span><span class="p">,</span>
                                            <span class="n">UNKNOWN_JOBID</span><span class="p">,</span> <span class="n">INITIAL_SLEEP_TIME</span><span class="p">,</span> <span class="n">STATUS_FINISHED</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">pyworkflow.protocol.protocol</span> <span class="kn">import</span> <span class="n">Protocol</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.protocol.protocol</span> <span class="kn">import</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">LegacyProtocol</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">config</span>
 
@@ -412,10 +413,13 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_creationTime</span> <span class="o">=</span> <span class="n">ctStr</span>
 
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># We should read the creation time from settings.sqlite and</span>
-            <span class="c1"># update the CreationTime in the project.sqlite</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_creationTime</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getSettingsCreationTime</span><span class="p">())</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_storeCreationTime</span><span class="p">()</span>
+
+            <span class="c1"># If connected to project.sqlite and not any or the run.db</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">PROJECT_DBNAME</span><span class="p">):</span>
+                <span class="c1"># We should read the creation time from settings.sqlite and</span>
+                <span class="c1"># update the CreationTime in the project.sqlite</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_creationTime</span> <span class="o">=</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getSettingsCreationTime</span><span class="p">())</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_storeCreationTime</span><span class="p">()</span>
 
     <span class="c1"># ---- Helper functions to load different pieces of a project</span>
     <span class="k">def</span> <span class="nf">_loadDb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbPath</span><span class="p">):</span>
@@ -686,7 +690,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_continueWorkflow</span><span class="p">(</span><span class="n">errorsList</span><span class="p">,</span><span class="n">workflowProtocolList</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">errorsList</span></div>
 
-<div class="viewcode-block" id="Project.launchProtocol"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.launchProtocol">[docs]</a>    <span class="k">def</span> <span class="nf">launchProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">scheduled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<div class="viewcode-block" id="Project.launchProtocol"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.launchProtocol">[docs]</a>    <span class="k">def</span> <span class="nf">launchProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">:</span><span class="n">Protocol</span><span class="p">,</span> <span class="n">wait</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">scheduled</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                        <span class="n">force</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; In this function the action of launching a protocol</span>
 <span class="sd">        will be initiated. Actions done here are:</span>
@@ -732,13 +736,15 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">deleteRelations</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
                 <span class="c1"># Clean and persist execution attributes; otherwise, this would retain old job IDs and PIDs.</span>
                 <span class="n">protocol</span><span class="o">.</span><span class="n">cleanExecutionAttributes</span><span class="p">()</span>
-                <span class="n">protocol</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">_jobId</span><span class="p">)</span>
+                <span class="n">protocol</span><span class="o">.</span><span class="n">_store</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">_jobId</span><span class="p">,</span> <span class="n">protocol</span><span class="o">.</span><span class="n">_pid</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
 
             <span class="c1"># NOTE: now we are simply copying the entire project db, this can be</span>
             <span class="c1"># changed later to only create a subset of the db need for the run</span>
             <span class="n">pwutils</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">copyFile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dbPath</span><span class="p">,</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getDbPath</span><span class="p">())</span>
+            <span class="c1"># Update the lastUpdateTimeStamp so later PID obtained in launch is not &quot;remove&quot; with run.db data.</span>
+            <span class="n">protocol</span><span class="o">.</span><span class="n">lastUpdateTimeStamp</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">getFileLastModificationDate</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getDbPath</span><span class="p">()))</span>
 
         <span class="c1"># Launch the protocol; depending on the case, either the pId or the jobId will be set in this call</span>
         <span class="n">pwprot</span><span class="o">.</span><span class="n">launch</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">wait</span><span class="p">)</span>
@@ -782,8 +788,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">_updateProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">:</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">tries</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">checkPid</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                        <span class="n">skipUpdatedProtocols</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_updateProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">:</span> <span class="n">Protocol</span><span class="p">,</span> <span class="n">tries</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">checkPid</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Update the protocol passed taking the data from its run.db.</span>
+<span class="sd">        It also checks if the protocol is alive base on its PID of JOBIDS &quot;&quot;&quot;</span>
+        <span class="c1"># NOTE: when this method fails recurrently....we are setting the protocol to failed and</span>
+        <span class="c1"># therefore closing its outputs. This, in streaming scenarios triggers a false closing to protocols</span>
+        <span class="c1"># while actual protocol is still alive but</span>
+
+        <span class="n">updated</span> <span class="o">=</span> <span class="n">pw</span><span class="o">.</span><span class="n">NOT_UPDATED_UNNECESSARY</span>
 
         <span class="c1"># If this is read only exit</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">openedAsReadOnly</span><span class="p">():</span>
@@ -791,67 +803,88 @@
 
         <span class="k">try</span><span class="p">:</span>
 
-            <span class="c1"># Backup the values of &#39;jobId&#39;, &#39;label&#39; and &#39;comment&#39;</span>
-            <span class="c1"># to be restored after the .copy</span>
-            <span class="n">jobId</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getJobIds</span><span class="p">()</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>  <span class="c1"># Use clone to prevent this variable from being overwritten or cleared in the latter .copy() call</span>
-            <span class="n">label</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getObjLabel</span><span class="p">()</span>
-            <span class="n">comment</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getObjComment</span><span class="p">()</span>
+            <span class="c1"># IMPORTANT: the protocol after some iterations of this ends up without the project!</span>
+            <span class="c1"># This is a problem if we want tu use protocol.useQueueForJobs that uses project info!</span>
+            <span class="c1"># print(&quot;PROJECT: %s&quot; % protocol.getProject())</span>
 
-            <span class="k">if</span> <span class="n">skipUpdatedProtocols</span><span class="p">:</span>
-                <span class="c1"># If we are already updated, comparing timestamps</span>
-                <span class="k">if</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">isProtocolUpToDate</span><span class="p">(</span><span class="n">protocol</span><span class="p">):</span>
+            <span class="c1"># If the protocol database has changes ....</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">isProtocolUpToDate</span><span class="p">(</span><span class="n">protocol</span><span class="p">):</span>
 
-                    <span class="c1"># Always check for the status of the process (queue job or pid)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">checkIsAlive</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
-                    <span class="k">return</span> <span class="n">pw</span><span class="o">.</span><span class="n">NOT_UPDATED_UNNECESSARY</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Protocol </span><span class="si">%s</span><span class="s2"> outdated. Updating it now.&quot;</span> <span class="o">%</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getRunName</span><span class="p">())</span>
+
+                <span class="n">updated</span> <span class="o">=</span> <span class="n">pw</span><span class="o">.</span><span class="n">PROTOCOL_UPDATED</span>
+
+                <span class="c1"># Backup the values of &#39;jobId&#39;, &#39;label&#39; and &#39;comment&#39;</span>
+                <span class="c1"># to be restored after the .copy</span>
+                <span class="n">jobId</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getJobIds</span><span class="p">()</span><span class="o">.</span><span class="n">clone</span><span class="p">()</span>  <span class="c1"># Use clone to prevent this variable from being overwritten or cleared in the latter .copy() call</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getObjLabel</span><span class="p">()</span>
+                <span class="n">comment</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getObjComment</span><span class="p">()</span>
+                <span class="n">project</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getProject</span><span class="p">()</span> <span class="c1"># The later protocol.copy(prot2, copyId=False, excludeInputs=True) cleans the project!!</span>
+
+                <span class="k">if</span> <span class="n">project</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Protocol </span><span class="si">%s</span><span class="s2"> hasn&#39;t the project associated when updating it.&quot;</span> <span class="o">%</span> <span class="n">label</span><span class="p">)</span>
+
+                <span class="c1">#  Comparing date will not work unless we have a reliable</span>
+                <span class="c1"># lastModificationDate of a protocol in the project.sqlite</span>
+                <span class="n">prot2</span> <span class="o">=</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">getProtocolFromDb</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
+                                                 <span class="n">protocol</span><span class="o">.</span><span class="n">getDbPath</span><span class="p">(),</span>
+                                                 <span class="n">protocol</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
+
+                <span class="c1"># Capture the db timestamp before loading.</span>
+                <span class="n">lastUpdateTime</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">getFileLastModificationDate</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getDbPath</span><span class="p">())</span>
+
+                <span class="c1"># Copy is only working for db restored objects</span>
+                <span class="n">protocol</span><span class="o">.</span><span class="n">setMapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="p">)</span>
+
+                <span class="n">localOutputs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">_outputs</span><span class="p">)</span>
+                <span class="n">protocol</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">prot2</span><span class="p">,</span> <span class="n">copyId</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">excludeInputs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># This cleans protocol._project cause getProtocolFromDb does not bring the project</span>
+                <span class="n">protocol</span><span class="o">.</span><span class="n">setProject</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
+
+                <span class="c1"># merge outputs: This is necessary when outputs are added from the GUI</span>
+                <span class="c1"># e.g.: adding coordinates from analyze result and protocol is active (interactive).</span>
+                <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">localOutputs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">attr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">protocol</span><span class="o">.</span><span class="n">_outputs</span><span class="p">:</span>
+                        <span class="n">protocol</span><span class="o">.</span><span class="n">_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+
+                <span class="c1"># Restore backup values</span>
+                <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">useQueueForProtocol</span><span class="p">()</span> <span class="ow">and</span> <span class="n">jobId</span><span class="p">:</span>  <span class="c1"># If jobId not empty then restore value as the db is empty</span>
+                    <span class="c1"># Case for direct protocol launch from the GUI. Without passing through a scheduling process.</span>
+                    <span class="c1"># In this case the jobid is obtained by the GUI and the job id should be preserved.</span>
+                    <span class="n">protocol</span><span class="o">.</span><span class="n">setJobIds</span><span class="p">(</span><span class="n">jobId</span><span class="p">)</span>
+
+                <span class="c1"># In case of scheduling a protocol, the jobid is obtained during the &quot;scheduling job&quot;</span>
+                <span class="c1"># and it is written in the rub.db. Therefore, it should be taken from there.</span>
+
+                <span class="c1"># Restore values edited in the GUI</span>
+                <span class="n">protocol</span><span class="o">.</span><span class="n">setObjLabel</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+                <span class="n">protocol</span><span class="o">.</span><span class="n">setObjComment</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span>
+                <span class="c1"># Use the run.db timestamp instead of the system TS to prevent</span>
+                <span class="c1"># possible inconsistencies.</span>
+                <span class="n">protocol</span><span class="o">.</span><span class="n">lastUpdateTimeStamp</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">lastUpdateTime</span><span class="p">)</span>
+
+                <span class="c1"># # Check pid at the end, once updated. It may have brought new pids? Job ids? or process died and pid</span>
+                <span class="c1"># # pid and job ids were reset and status set to failed, so it does not make sense to check pids</span>
+                <span class="c1"># if checkPid and protocol.isActive():</span>
+                <span class="c1">#     self.checkIsAlive(protocol)</span>
+
+                <span class="c1"># Close DB connections to rundb</span>
+                <span class="n">prot2</span><span class="o">.</span><span class="n">getProject</span><span class="p">()</span><span class="o">.</span><span class="n">closeMapper</span><span class="p">()</span>
+                <span class="n">prot2</span><span class="o">.</span><span class="n">closeMappers</span><span class="p">()</span>
 
 
-            <span class="c1"># If the protocol database has ....</span>
-            <span class="c1">#  Comparing date will not work unless we have a reliable</span>
-            <span class="c1"># lastModificationDate of a protocol in the project.sqlite</span>
-            <span class="n">prot2</span> <span class="o">=</span> <span class="n">pwprot</span><span class="o">.</span><span class="n">getProtocolFromDb</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span>
-                                             <span class="n">protocol</span><span class="o">.</span><span class="n">getDbPath</span><span class="p">(),</span>
-                                             <span class="n">protocol</span><span class="o">.</span><span class="n">getObjId</span><span class="p">())</span>
+            <span class="c1"># If protocol is still active</span>
+            <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">isActive</span><span class="p">():</span>
+                <span class="c1"># If it is still alive, and hasn&#39;t been updated from run db</span>
+                <span class="c1"># NOTE: checkIsAlive may have changed the protocol status,in case the process ware killed</span>
+                <span class="c1"># So we need to persist those changes.</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkIsAlive</span><span class="p">(</span><span class="n">protocol</span><span class="p">):</span>
 
-            <span class="c1"># Capture the db timestamp before loading.</span>
-            <span class="n">lastUpdateTime</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">getFileLastModificationDate</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getDbPath</span><span class="p">())</span>
+                     <span class="n">updated</span> <span class="o">=</span> <span class="n">pw</span><span class="o">.</span><span class="n">PROTOCOL_UPDATED</span>
 
-            <span class="c1"># Copy is only working for db restored objects</span>
-            <span class="n">protocol</span><span class="o">.</span><span class="n">setMapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="p">)</span>
 
-            <span class="n">localOutputs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">_outputs</span><span class="p">)</span>
-            <span class="n">protocol</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">prot2</span><span class="p">,</span> <span class="n">copyId</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">excludeInputs</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-
-            <span class="c1"># merge outputs: This is necessary when outputs are added from the GUI</span>
-            <span class="c1"># e.g.: adding coordinates from analyze result and protocol is active (interactive).</span>
-            <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">localOutputs</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">attr</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">protocol</span><span class="o">.</span><span class="n">_outputs</span><span class="p">:</span>
-                    <span class="n">protocol</span><span class="o">.</span><span class="n">_outputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
-
-            <span class="c1"># Restore backup values</span>
-            <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">useQueueForProtocol</span><span class="p">()</span> <span class="ow">and</span> <span class="n">jobId</span><span class="p">:</span>  <span class="c1"># If jobId not empty then restore value as the db is empty</span>
-                <span class="c1"># Case for direct protocol launch from the GUI. Without passing through a scheduling process.</span>
-                <span class="c1"># In this case the jobid is obtained by the GUI and the job id should be preserved.</span>
-                <span class="n">protocol</span><span class="o">.</span><span class="n">setJobIds</span><span class="p">(</span><span class="n">jobId</span><span class="p">)</span>
-
-            <span class="c1"># In case of scheduling a protocol, the jobid is obtained during the &quot;scheduling job&quot;</span>
-            <span class="c1"># and it is written in the rub.db. Therefore, it should be taken from there.</span>
-
-            <span class="n">protocol</span><span class="o">.</span><span class="n">setObjLabel</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
-            <span class="n">protocol</span><span class="o">.</span><span class="n">setObjComment</span><span class="p">(</span><span class="n">comment</span><span class="p">)</span>
-            <span class="c1"># Use the run.db timestamp instead of the system TS to prevent</span>
-            <span class="c1"># possible inconsistencies.</span>
-            <span class="n">protocol</span><span class="o">.</span><span class="n">lastUpdateTimeStamp</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">lastUpdateTime</span><span class="p">)</span>
-
-            <span class="c1"># Check pid at the end, once updated</span>
-            <span class="k">if</span> <span class="n">checkPid</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">checkIsAlive</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
-
-            <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
-
-            <span class="c1"># Close DB connections</span>
-            <span class="n">prot2</span><span class="o">.</span><span class="n">getProject</span><span class="p">()</span><span class="o">.</span><span class="n">closeMapper</span><span class="p">()</span>
-            <span class="n">prot2</span><span class="o">.</span><span class="n">closeMappers</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">updated</span> <span class="o">==</span> <span class="n">pw</span><span class="o">.</span><span class="n">PROTOCOL_UPDATED</span><span class="p">:</span>
+                <span class="c1"># We store changes, either after updating the protocol with data from run-db or because it died</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">mapper</span><span class="o">.</span><span class="n">store</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
 
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">ex</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">tries</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>  <span class="c1"># 3 tries have been failed</span>
@@ -865,19 +898,34 @@
                     <span class="k">pass</span>
                 <span class="k">return</span> <span class="n">pw</span><span class="o">.</span><span class="n">NOT_UPDATED_ERROR</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t update protocol </span><span class="si">%s</span><span class="s2">(jobId=</span><span class="si">%s</span><span class="s2">) from it&#39;s own database. ERROR: </span><span class="si">%s</span><span class="s2">, attempt=</span><span class="si">%d</span><span class="s2">&quot;</span>
-                             <span class="o">%</span> <span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getObjName</span><span class="p">(),</span> <span class="n">jobId</span><span class="p">,</span> <span class="n">ex</span><span class="p">,</span> <span class="n">tries</span><span class="p">))</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t update protocol </span><span class="si">%s</span><span class="s2"> from it&#39;s own database. ERROR: </span><span class="si">%s</span><span class="s2">, attempt=</span><span class="si">%d</span><span class="s2">&quot;</span>
+                             <span class="o">%</span> <span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getRunName</span><span class="p">(),</span> <span class="n">ex</span><span class="p">,</span> <span class="n">tries</span><span class="p">))</span>
                 <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.5</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_updateProtocol</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">tries</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_updateProtocol</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">tries</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">pw</span><span class="o">.</span><span class="n">PROTOCOL_UPDATED</span>
+        <span class="k">return</span> <span class="n">updated</span>
 
 <div class="viewcode-block" id="Project.checkIsAlive"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.checkIsAlive">[docs]</a>    <span class="k">def</span> <span class="nf">checkIsAlive</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Check if a protocol is alive based on its jobid or pid&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getPid</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">checkJobId</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot; Check if a protocol is alive based on its jobid (queue engines) or pid</span>
+<span class="sd">        :param protocol: protocol to check its status</span>
+<span class="sd">        :returns True if it is alive</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># For some reason pid ends up with a None...</span>
+        <span class="n">pid</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getPid</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">pid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Protocol&#39;s </span><span class="si">%s</span><span class="s2"> pid is None and is active... this should not happen. Checking its job id: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getRunName</span><span class="p">(),</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getJobIds</span><span class="p">()))</span>
+            <span class="n">pid</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">alive</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">pid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">alive</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkJobId</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">checkPid</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span></div>
+            <span class="n">alive</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">checkPid</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">alive</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Protocol </span><span class="si">%s</span><span class="s2"> is alive.&quot;</span> <span class="o">%</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getRunName</span><span class="p">())</span>
+        <span class="k">return</span> <span class="n">alive</span></div>
 
 <div class="viewcode-block" id="Project.stopProtocol"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.stopProtocol">[docs]</a>    <span class="k">def</span> <span class="nf">stopProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Stop a running protocol &quot;&quot;&quot;</span>
@@ -1007,7 +1055,7 @@
                                     <span class="k">break</span>
                                 <span class="c1"># If it is a class already: &quot;possibleOutput&quot; case. In this case attr is the class and not</span>
                                 <span class="c1"># an instance of c. In this special case</span>
-                                <span class="k">elif</span> <span class="n">possibleOutput</span> <span class="ow">and</span> <span class="n">attr</span> <span class="o">==</span> <span class="n">c</span><span class="p">:</span>
+                                <span class="k">elif</span> <span class="n">possibleOutput</span> <span class="ow">and</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">attr</span><span class="p">,</span> <span class="n">c</span><span class="p">):</span>
                                     <span class="n">match</span> <span class="o">=</span> <span class="kc">True</span>
                                     <span class="n">cancelConditionEval</span> <span class="o">=</span> <span class="kc">True</span>
 
@@ -1338,6 +1386,39 @@
 
         <span class="k">return</span> <span class="n">result</span></div>
 
+<div class="viewcode-block" id="Project.getProjectUsage"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.getProjectUsage">[docs]</a>    <span class="k">def</span> <span class="nf">getProjectUsage</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ScipionWorkflow</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot; returns usage class ScipionWorkflow populated with project data</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">protocols</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getRuns</span><span class="p">()</span>
+
+        <span class="c1"># Handle the copy of a list of protocols</span>
+        <span class="c1"># for this case we need to update the references of input/outputs</span>
+        <span class="n">sw</span> <span class="o">=</span> <span class="n">ScipionWorkflow</span><span class="p">()</span>
+        <span class="n">g</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getRunsGraph</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">prot</span> <span class="ow">in</span> <span class="n">protocols</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prot</span><span class="p">,</span> <span class="n">LegacyProtocol</span><span class="p">):</span>
+                <span class="c1"># Add a count for the protocol</span>
+                <span class="n">protName</span> <span class="o">=</span> <span class="n">prot</span><span class="o">.</span><span class="n">getClassName</span><span class="p">()</span>
+                <span class="n">sw</span><span class="o">.</span><span class="n">addCount</span><span class="p">(</span><span class="n">protName</span><span class="p">)</span>
+
+                <span class="c1"># Add next protocols count</span>
+                <span class="n">node</span> <span class="o">=</span> <span class="n">g</span><span class="o">.</span><span class="n">getNode</span><span class="p">(</span><span class="n">prot</span><span class="o">.</span><span class="n">strId</span><span class="p">())</span>
+
+                <span class="k">for</span> <span class="n">childNode</span> <span class="ow">in</span> <span class="n">node</span><span class="o">.</span><span class="n">getChildren</span><span class="p">():</span>
+                    <span class="n">prot</span> <span class="o">=</span> <span class="n">childNode</span><span class="o">.</span><span class="n">run</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prot</span><span class="p">,</span> <span class="n">LegacyProtocol</span><span class="p">):</span>
+                        <span class="n">nextProtName</span> <span class="o">=</span> <span class="n">prot</span><span class="o">.</span><span class="n">getClassName</span><span class="p">()</span>
+                        <span class="n">sw</span><span class="o">.</span><span class="n">addCountToNextProtocol</span><span class="p">(</span><span class="n">protName</span><span class="p">,</span> <span class="n">nextProtName</span><span class="p">)</span>
+
+                <span class="c1"># Special case: First protocols, those without parent. Import protocols mainly.</span>
+                <span class="c1"># All protocols, even the firs ones have a parent. For the fisrt ones the parent is &quot;PROJECT&quot; node that is the only root one.</span>
+                <span class="k">if</span> <span class="n">node</span><span class="o">.</span><span class="n">getParent</span><span class="p">()</span><span class="o">.</span><span class="n">isRoot</span><span class="p">():</span>
+                    <span class="n">sw</span><span class="o">.</span><span class="n">addCountToNextProtocol</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="n">protName</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">sw</span></div>
+
 <div class="viewcode-block" id="Project.getProtocolsDict"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.getProtocolsDict">[docs]</a>    <span class="k">def</span> <span class="nf">getProtocolsDict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocols</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">namesOnly</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Creates a dict with the information of the given protocols.</span>
 
@@ -1666,6 +1747,7 @@
             <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">runs</span><span class="p">:</span>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">_setProtocolMapper</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+                <span class="n">r</span><span class="o">.</span><span class="n">setProject</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
 
                 <span class="c1"># Check for run warnings</span>
                 <span class="n">r</span><span class="o">.</span><span class="n">checkSummaryWarnings</span><span class="p">()</span>
@@ -1710,12 +1792,14 @@
         <span class="sd">&quot;&quot;&quot; Check if a running protocol is still alive or not.</span>
 <span class="sd">        The check will only be done for protocols that have not been sent</span>
 <span class="sd">        to a queue system.</span>
+
+<span class="sd">        :returns True if pid is alive or irrelevant</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="kn">from</span> <span class="nn">pyworkflow.protocol.launch</span> <span class="kn">import</span> <span class="n">_runsLocally</span>
         <span class="n">pid</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getPid</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">pid</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span>
+            <span class="k">return</span> <span class="kc">True</span>
 
         <span class="c1"># Include running and scheduling ones</span>
         <span class="c1"># Exclude interactive protocols</span>
@@ -1727,22 +1811,26 @@
                                <span class="s2">&quot;It probably has died or been killed without &quot;</span>
                                <span class="s2">&quot;reporting the status to Scipion. Logs might &quot;</span>
                                <span class="s2">&quot;have information about what happened to this &quot;</span>
-                               <span class="s2">&quot;process.&quot;</span> <span class="o">%</span> <span class="n">pid</span><span class="p">)</span></div>
+                               <span class="s2">&quot;process.&quot;</span> <span class="o">%</span> <span class="n">pid</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="kc">True</span></div>
 
 <div class="viewcode-block" id="Project.checkJobId"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.checkJobId">[docs]</a>    <span class="k">def</span> <span class="nf">checkJobId</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">protocol</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Check if a running protocol is still alive or not.</span>
 <span class="sd">        The check will only be done for protocols that have been sent</span>
 <span class="sd">        to a queue system.</span>
+
+<span class="sd">        :returns True if job is still alive or irrelevant</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">getJobIds</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="k">return</span>
-
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Checking if protocol alive in the queue but JOB ID is empty. Considering it dead.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">False</span>
         <span class="n">jobid</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getJobIds</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">hostConfig</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getHostConfig</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="n">jobid</span> <span class="o">==</span> <span class="n">UNKNOWN_JOBID</span><span class="p">:</span>
-            <span class="k">return</span>
+            <span class="k">return</span> <span class="kc">True</span>
 
         <span class="c1"># Include running and scheduling ones</span>
         <span class="c1"># Exclude interactive protocols</span>
@@ -1753,12 +1841,15 @@
             <span class="n">jobStatus</span> <span class="o">=</span> <span class="n">_checkJobStatus</span><span class="p">(</span><span class="n">hostConfig</span><span class="p">,</span> <span class="n">jobid</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="n">jobStatus</span> <span class="o">==</span> <span class="n">STATUS_FINISHED</span><span class="p">:</span>
-                <span class="n">protocol</span><span class="o">.</span><span class="n">setFailed</span><span class="p">(</span><span class="s2">&quot;Process </span><span class="si">%s</span><span class="s2"> not found running on the machine. &quot;</span>
-                                   <span class="s2">&quot;It probably has died or been killed without &quot;</span>
+                <span class="n">protocol</span><span class="o">.</span><span class="n">setFailed</span><span class="p">(</span><span class="s2">&quot;JOB ID </span><span class="si">%s</span><span class="s2"> not found running on the queue engine. &quot;</span>
+                                   <span class="s2">&quot;It probably has timeout, died or been killed without &quot;</span>
                                    <span class="s2">&quot;reporting the status to Scipion. Logs might &quot;</span>
                                    <span class="s2">&quot;have information about what happened to this &quot;</span>
-                                   <span class="s2">&quot;process.&quot;</span> <span class="o">%</span> <span class="n">jobid</span><span class="p">)</span></div>
+                                   <span class="s2">&quot;JOB ID.&quot;</span> <span class="o">%</span> <span class="n">jobid</span><span class="p">)</span>
 
+                <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">return</span> <span class="kc">True</span></div>
 <div class="viewcode-block" id="Project.iterSubclasses"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.project.project.html#pyworkflow.project.project.Project.iterSubclasses">[docs]</a>    <span class="k">def</span> <span class="nf">iterSubclasses</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">classesName</span><span class="p">,</span> <span class="n">objectFilter</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Retrieve all objects from the project that are instances</span>
 <span class="sd">            of any of the classes in classesName list.</span>

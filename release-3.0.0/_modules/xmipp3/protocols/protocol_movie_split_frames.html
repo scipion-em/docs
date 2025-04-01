@@ -127,6 +127,7 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">shutil</span>
 <span class="kn">from</span> <span class="nn">os.path</span> <span class="kn">import</span> <span class="n">basename</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">VERSION_1_1</span>
@@ -134,12 +135,13 @@
 
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">ProtPreprocessMicrographs</span>
 
-<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">Movie</span><span class="p">,</span> <span class="n">Micrograph</span>
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">Movie</span><span class="p">,</span> <span class="n">Micrograph</span><span class="p">,</span> <span class="n">SetOfMovies</span>
 
 
 <div class="viewcode-block" id="XmippProtSplitFrames"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_split_frames.html#xmipp3.protocols.protocol_movie_split_frames.XmippProtSplitFrames">[docs]</a><span class="k">class</span> <span class="nc">XmippProtSplitFrames</span><span class="p">(</span><span class="n">ProtPreprocessMicrographs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Wrapper protocol to Xmipp split Odd Even</span>
+<span class="sd">    Wrapper protocol to Xmipp split Odd Even. Applies the possibility of creating 2 different outputs of movies with</span>
+<span class="sd">    a quantity of frames related to their odd or even nature (that is, if each frame represents an odd or even number).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;split frames&#39;</span>
     <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_1_1</span>
@@ -161,25 +163,28 @@
     <span class="c1">#--------------------------- STEPS functions -------------------------------</span>
 
     <span class="k">def</span> <span class="nf">_insertAllSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;splittingStep&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;convertXmdToStackStep&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;createOutputStep&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">splittingStep</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">convertXmdToStackStep</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">separateOddEvenOutputs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">createOutputStep</span><span class="p">)</span>
 
 <div class="viewcode-block" id="XmippProtSplitFrames.splittingStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_split_frames.html#xmipp3.protocols.protocol_movie_split_frames.XmippProtSplitFrames.splittingStep">[docs]</a>    <span class="k">def</span> <span class="nf">splittingStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        
+
         <span class="k">for</span> <span class="n">movie</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
             <span class="n">fnMovie</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">fnMovie</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.mrc&quot;</span><span class="p">):</span>
+                <span class="n">fnMovie</span><span class="o">+=</span><span class="s2">&quot;:mrcs&quot;</span>
 
             <span class="n">fnMovieOdd</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fnMovie</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;_odd.xmd&quot;</span>
             <span class="n">fnMovieEven</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fnMovie</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;_even.xmd&quot;</span>
-            
+
             <span class="n">args</span> <span class="o">=</span> <span class="s1">&#39;--img &quot;</span><span class="si">%s</span><span class="s1">&quot; &#39;</span> <span class="o">%</span> <span class="n">fnMovie</span>
-            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39;-o &quot;</span><span class="si">%s</span><span class="s1">&quot; &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">fnMovieOdd</span><span class="p">)</span>
-            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39;-e </span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">fnMovieEven</span><span class="p">)</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39;-o &quot;</span><span class="si">%s</span><span class="s1">&quot; &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="n">fnMovieOdd</span><span class="p">)</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39;-e </span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="n">fnMovieEven</span><span class="p">)</span>
             <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39;--type frames &#39;</span>
-            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sumFrames</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">sumFrames</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
                 <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39;--sum_frames&#39;</span>
-            
+
             <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_image_odd_even&#39;</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="XmippProtSplitFrames.convertXmdToStackStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_split_frames.html#xmipp3.protocols.protocol_movie_split_frames.XmippProtSplitFrames.convertXmdToStackStep">[docs]</a>    <span class="k">def</span> <span class="nf">convertXmdToStackStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -190,88 +195,123 @@
             <span class="n">fnMovieOdd</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fnMovie</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;_odd.xmd&quot;</span>
             <span class="n">fnMovieEven</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fnMovie</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;_even.xmd&quot;</span>
 
-            <span class="n">fnMovieOddMrc</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fnMovieOdd</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;.mrc&quot;</span>
-            <span class="n">fnMovieEvenMrc</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fnMovieEven</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;.mrc&quot;</span>
+            <span class="n">fnMovieOddMrcs</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fnMovieOdd</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;.mrcs&quot;</span>
+            <span class="n">fnMovieEvenMrcs</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fnMovieEven</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;.mrcs&quot;</span>
 
-            <span class="n">args</span> <span class="o">=</span> <span class="s1">&#39;-i &quot;</span><span class="si">%s</span><span class="s1">&quot; &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">fnMovieOdd</span><span class="p">)</span>
-            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39;-o &quot;</span><span class="si">%s</span><span class="s1">&quot; &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">fnMovieOddMrc</span><span class="p">)</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="s1">&#39;-i &quot;</span><span class="si">%s</span><span class="s1">&quot; &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="n">fnMovieOdd</span><span class="p">)</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39;-o &quot;</span><span class="si">%s</span><span class="s1">&quot; &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">fnMovieOddMrcs</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_image_convert&#39;</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
 
-            <span class="n">args</span> <span class="o">=</span> <span class="s1">&#39;-i &quot;</span><span class="si">%s</span><span class="s1">&quot; &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">fnMovieEven</span><span class="p">)</span>
-            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39;-o &quot;</span><span class="si">%s</span><span class="s1">&quot; &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">fnMovieEvenMrc</span><span class="p">)</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="s1">&#39;-i &quot;</span><span class="si">%s</span><span class="s1">&quot; &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getTmpPath</span><span class="p">(</span><span class="n">fnMovieEven</span><span class="p">)</span>
+            <span class="n">args</span> <span class="o">+=</span> <span class="s1">&#39;-o &quot;</span><span class="si">%s</span><span class="s1">&quot; &#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">fnMovieEvenMrcs</span><span class="p">)</span>
 
             <span class="bp">self</span><span class="o">.</span><span class="n">runJob</span><span class="p">(</span><span class="s1">&#39;xmipp_image_convert&#39;</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span></div>
 
+<div class="viewcode-block" id="XmippProtSplitFrames.separateOddEvenOutputs"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_split_frames.html#xmipp3.protocols.protocol_movie_split_frames.XmippProtSplitFrames.separateOddEvenOutputs">[docs]</a>    <span class="k">def</span> <span class="nf">separateOddEvenOutputs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
-<div class="viewcode-block" id="XmippProtSplitFrames.createOutputStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_split_frames.html#xmipp3.protocols.protocol_movie_split_frames.XmippProtSplitFrames.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">oddDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="s1">&#39;oddFrames&#39;</span><span class="p">)</span>
+        <span class="n">evenDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="s1">&#39;evenFrames&#39;</span><span class="p">)</span>
 
-        <span class="n">oddSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfMovies</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;odd&#39;</span><span class="p">)</span>
-        <span class="n">evenSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfMovies</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;even&#39;</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">oddDir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">evenDir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">movie</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
             <span class="n">fnMovie</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
 
-            <span class="n">fnMovieOddMrc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fnMovie</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;_odd.mrc&quot;</span><span class="p">)</span>
-            <span class="n">fnMovieEvenMrc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fnMovie</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;_even.mrc&quot;</span><span class="p">)</span>
-            
+            <span class="n">fnMovieOddMrcs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fnMovie</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;_odd.mrcs&quot;</span><span class="p">)</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">fnMovieOddMrcs</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">oddDir</span><span class="p">,</span><span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fnMovie</span><span class="p">))</span>
+                                                     <span class="o">+</span> <span class="s2">&quot;.mrcs&quot;</span><span class="p">))</span>
+
+            <span class="n">fnMovieEvenMrcs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fnMovie</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;_even.mrcs&quot;</span><span class="p">)</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">move</span><span class="p">(</span><span class="n">fnMovieEvenMrcs</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">evenDir</span><span class="p">,</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fnMovie</span><span class="p">))</span>
+                                                      <span class="o">+</span> <span class="s2">&quot;.mrcs&quot;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="XmippProtSplitFrames.createOutputStep"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_split_frames.html#xmipp3.protocols.protocol_movie_split_frames.XmippProtSplitFrames.createOutputStep">[docs]</a>    <span class="k">def</span> <span class="nf">createOutputStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="n">inSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+        <span class="n">oddSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfMovies</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;odd&#39;</span><span class="p">)</span>
+        <span class="n">evenSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfMovies</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;even&#39;</span><span class="p">)</span>
+
+        <span class="n">oddSet</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="n">inSet</span><span class="p">)</span>
+        <span class="n">evenSet</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="n">inSet</span><span class="p">)</span>
+
+        <span class="n">oddDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="s1">&#39;oddFrames&#39;</span><span class="p">)</span>
+        <span class="n">evenDir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(),</span> <span class="s1">&#39;evenFrames&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">movie</span> <span class="ow">in</span> <span class="n">inSet</span><span class="p">:</span>
+            <span class="n">fnMovie</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
+
+            <span class="n">fnMovieOddMrcs</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">oddDir</span><span class="p">,</span><span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fnMovie</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;.mrcs&quot;</span><span class="p">)</span>
+            <span class="n">fnMovieEvenMrcs</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">evenDir</span><span class="p">,</span><span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fnMovie</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;.mrcs&quot;</span><span class="p">)</span>
+
             <span class="n">imgOutOdd</span> <span class="o">=</span> <span class="n">Movie</span><span class="p">()</span>
             <span class="n">imgOutEven</span> <span class="o">=</span> <span class="n">Movie</span><span class="p">()</span>
-            
-            <span class="n">imgOutOdd</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">fnMovieOddMrc</span><span class="p">)</span>
-            <span class="n">imgOutEven</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">fnMovieEvenMrc</span><span class="p">)</span>
-            
-            <span class="n">imgOutOdd</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">movie</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
-            <span class="n">imgOutEven</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">movie</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
+
+            <span class="n">imgOutOdd</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
+            <span class="n">imgOutEven</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="n">movie</span><span class="p">)</span>
+
+            <span class="n">imgOutOdd</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">fnMovieOddMrcs</span><span class="p">)</span>
+            <span class="n">imgOutEven</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">fnMovieEvenMrcs</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">movie</span><span class="o">.</span><span class="n">getNumberOfFrames</span><span class="p">()</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">imgOutOdd</span><span class="o">.</span><span class="n">setFramesRange</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">imgOutOdd</span><span class="o">.</span><span class="n">getNumberOfFrames</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+                <span class="n">imgOutEven</span><span class="o">.</span><span class="n">setFramesRange</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="n">imgOutEven</span><span class="o">.</span><span class="n">getNumberOfFrames</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">imgOutOdd</span><span class="o">.</span><span class="n">setFramesRange</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">imgOutOdd</span><span class="o">.</span><span class="n">getNumberOfFrames</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span><span class="p">),</span> <span class="mi">1</span><span class="p">])</span>
+                <span class="n">imgOutEven</span><span class="o">.</span><span class="n">setFramesRange</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="nb">round</span><span class="p">(</span><span class="n">imgOutEven</span><span class="o">.</span><span class="n">getNumberOfFrames</span><span class="p">()</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
 
             <span class="n">oddSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">imgOutOdd</span><span class="p">)</span>
             <span class="n">evenSet</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">imgOutEven</span><span class="p">)</span>
 
-        <span class="n">oddSet</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
-        <span class="n">evenSet</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
+        <span class="n">oddSet</span><span class="o">.</span><span class="n">setFramesRange</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="n">oddSet</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span><span class="o">.</span><span class="n">getNumberOfFrames</span><span class="p">(),</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">evenSet</span><span class="o">.</span><span class="n">setFramesRange</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="n">evenSet</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span><span class="o">.</span><span class="n">getNumberOfFrames</span><span class="p">(),</span><span class="mi">1</span><span class="p">])</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">oddMovie</span><span class="o">=</span><span class="n">oddSet</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">evenMovie</span><span class="o">=</span><span class="n">evenSet</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="n">inSet</span><span class="p">,</span> <span class="n">oddSet</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="n">inSet</span><span class="p">,</span> <span class="n">evenSet</span><span class="p">)</span>
+
+        <span class="sd">&#39;&#39;&#39;for movie in inSet:</span>
+<span class="sd">            self._defineSourceRelation(movie, oddSet)</span>
+<span class="sd">            self._defineSourceRelation(movie, evenSet)&#39;&#39;&#39;</span>
+
         
-        <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="p">,</span> <span class="n">oddSet</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="p">,</span> <span class="n">evenSet</span><span class="p">)</span>
-        
-        <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sumFrames</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">):</span>
-            <span class="n">oddSetAligned</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfMicrographs</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;oddMic&#39;</span><span class="p">)</span>
-            <span class="n">evenSetAligned</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_createSetOfMicrographs</span><span class="p">(</span><span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;evenMic&#39;</span><span class="p">)</span>
+        <span class="sd">&#39;&#39;&#39; if self.sumFrames.get() is True:</span>
+<span class="sd">            oddSetAligned = self._createSetOfMicrographs(suffix=&#39;oddMic&#39;)</span>
+<span class="sd">            evenSetAligned = self._createSetOfMicrographs(suffix=&#39;evenMic&#39;)</span>
 
-            <span class="k">for</span> <span class="n">movie</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
-            
-                <span class="n">fnMovie</span> <span class="o">=</span> <span class="n">movie</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
+<span class="sd">            for movie in self.inputMovies.get():</span>
+<span class="sd">                fnMovie = movie.getFileName()</span>
 
-                <span class="n">fnMicOdd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fnMovie</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;_odd_aligned.mrc&quot;</span><span class="p">)</span>
-                <span class="n">fnMicEven</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="n">pwutils</span><span class="o">.</span><span class="n">removeExt</span><span class="p">(</span><span class="n">basename</span><span class="p">(</span><span class="n">fnMovie</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;_even_aligned.mrc&quot;</span><span class="p">)</span>
+<span class="sd">                fnMicOdd = self._getExtraPath(pwutils.removeExt(basename(fnMovie)) + &quot;_odd_aligned.mrcs&quot;)</span>
+<span class="sd">                fnMicEven = self._getExtraPath(pwutils.removeExt(basename(fnMovie)) + &quot;_even_aligned.mrcs&quot;)</span>
 
-                <span class="n">imgOutOdd</span> <span class="o">=</span> <span class="n">Micrograph</span><span class="p">()</span>
-                <span class="n">imgOutEven</span> <span class="o">=</span> <span class="n">Micrograph</span><span class="p">()</span>
-                
-                <span class="n">imgOutOdd</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">fnMicOdd</span><span class="p">)</span>
-                <span class="n">imgOutEven</span><span class="o">.</span><span class="n">setFileName</span><span class="p">(</span><span class="n">fnMicEven</span><span class="p">)</span>
+<span class="sd">                imgOutOdd = Micrograph()</span>
+<span class="sd">                imgOutEven = Micrograph()</span>
+<span class="sd">                </span>
+<span class="sd">                imgOutOdd.setFileName(fnMicOdd)</span>
+<span class="sd">                imgOutEven.setFileName(fnMicEven)</span>
 
-                <span class="n">imgOutOdd</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">movie</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
-                <span class="n">imgOutEven</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="n">movie</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
+<span class="sd">                imgOutOdd.setSamplingRate(movie.getSamplingRate())</span>
+<span class="sd">                imgOutEven.setSamplingRate(movie.getSamplingRate())</span>
 
-                <span class="n">oddSetAligned</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">imgOutOdd</span><span class="p">)</span>
-                <span class="n">evenSetAligned</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">imgOutEven</span><span class="p">)</span>
+<span class="sd">                oddSetAligned.append(imgOutOdd)</span>
+<span class="sd">                evenSetAligned.append(imgOutEven)</span>
 
-            <span class="n">oddSetAligned</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
-            <span class="n">evenSetAligned</span><span class="o">.</span><span class="n">copyInfo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+<span class="sd">            oddSetAligned.copyInfo(self.inputMovies.get())</span>
+<span class="sd">            evenSetAligned.copyInfo(self.inputMovies.get())</span>
 
-            <span class="n">oddSetAligned</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
-            <span class="n">evenSetAligned</span><span class="o">.</span><span class="n">setSamplingRate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="o">.</span><span class="n">get</span><span class="p">()</span><span class="o">.</span><span class="n">getSamplingRate</span><span class="p">())</span>
+<span class="sd">            oddSetAligned.setSamplingRate(self.inputMovies.get().getSamplingRate())</span>
+<span class="sd">            evenSetAligned.setSamplingRate(self.inputMovies.get().getSamplingRate())</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">oddMicrographs</span><span class="o">=</span><span class="n">oddSetAligned</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_defineOutputs</span><span class="p">(</span><span class="n">evenMicrographs</span><span class="o">=</span><span class="n">evenSetAligned</span><span class="p">)</span>
+<span class="sd">            self._defineOutputs(oddMicrographs=oddSetAligned)</span>
+<span class="sd">            self._defineOutputs(evenMicrographs=evenSetAligned)</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="p">,</span> <span class="n">oddSetAligned</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">inputMovies</span><span class="p">,</span> <span class="n">evenSetAligned</span><span class="p">)</span></div>
-            
-
+<span class="sd">            self._defineSourceRelation(self.inputMovies.get(), oddSetAligned)</span>
+<span class="sd">            self._defineSourceRelation(self.inputMovies.get(), evenSetAligned) &#39;&#39;&#39;</span></div>
 
     <span class="c1"># --------------------------- INFO functions ------------------------------</span>
 
