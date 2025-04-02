@@ -115,9 +115,9 @@ See `Configuration guide <scipion-configuration>`_ for more details about these 
 
 Install xmipp
 =============
-Xmipp is a good partner for Scipion in cryoem. It binds to Scipion environment offering file format (stk, vol, mrc, tiff, dm4,...) conversions for many cryo em methods and more than a hundred of protocols to use in your SPA workflows
+Xmipp <https://i2pc.github.io/docs/index.html>`__ is a good partner for Scipion in cryoem. It binds to Scipion environment offering file format (stk, vol, mrc, tiff, dm4,...) conversions for many cryo em methods and more than a hundred of protocols to use in your SPA workflows
 
-To install `Xmipp <https://i2pc.github.io/docs/index.html>`__ plugin, please review the `requirements <https://i2pc.github.io/docs/Installation/Requirements/index.html>`__ . If all of them are available in your system you can install it you can install Xmipp from the :ref:`Plugin manager guide <Plugin-Manager>` or from the terminal as this:
+To install Xmipp plugin, please review the `requirements <https://i2pc.github.io/docs/Installation/Requirements/index.html>`__ . If all of them are available in your system you can install it you can install Xmipp from the :ref:`Plugin manager guide <Plugin-Manager>` or from the terminal as this:
 
 ::
 

@@ -10,6 +10,7 @@ Submodules
    pyworkflow.project.config
    pyworkflow.project.manager
    pyworkflow.project.project
+   pyworkflow.project.usage
 
 Module contents
 ---------------
