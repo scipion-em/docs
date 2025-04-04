@@ -84,7 +84,7 @@ templates_path = ['_templates']
 smv_tag_whitelist = None
 
 # Whitelist pattern for branches (set to None to ignore all branches)
-smv_branch_whitelist = 'release-3.0.0'
+smv_branch_whitelist = os.environ.get('COMPILE_BRANCH', 'release-3.0.0')
 
 # Whitelist pattern for remotes (set to None to use local branches only)
 smv_remote_whitelist = None

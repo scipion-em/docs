@@ -137,3 +137,14 @@ or :
     scipion3 run sphinx-build .  build docs/developer/symmetries.rst
     
 will only update the "symmetry" page
+
+
+9.- Embedding YouTube videos
+    You can embed Youtube videos in your pages with a code snippet similar to the next one:
+
+.. code-block::
+
+    .. youtube:: <your-video-id>
+   :width: 560
+   :height: 315
+   :align: center
