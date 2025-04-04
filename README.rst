@@ -144,7 +144,9 @@ will only update the "symmetry" page
 
 .. code-block::
 
-    .. youtube:: <your-video-id>
+    .. youtube:: <your-video-id>?vq=hd1080
    :width: 560
    :height: 315
    :align: center
+
+    The ``?vq=hd1080`` flag allows to specifiy the initial resolution of the video when played.
