@@ -60,6 +60,7 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     'sphinxcontrib.bibtex',
     'sphinx_multiversion',
+    'sphinxcontrib.youtube',
 ]
 bibtex_bibfiles = ['em.bib']
 bibtex_reference_style = u'author_year'
