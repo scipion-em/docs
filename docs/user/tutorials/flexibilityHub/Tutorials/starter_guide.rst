@@ -140,6 +140,11 @@ The form only requires as input a set of particles coming from a dimensionality 
 
 Let's extract the representatives of the classes using with |volumes| button. Thanks to this extraction, it will be possible to further analyze the Zernike3D coefficients to extract the conformational states of the representatives and get more information about the motions suffered by the protein.
 
+.. youtube:: -OYTVU1BaSg?vq=hd1080
+   :width: 560
+   :height: 315
+   :align: center
+
 5. Applying deformation fields
 ------------------------------
 
