@@ -149,4 +149,4 @@ will only update the "symmetry" page
    :height: 315
    :align: center
 
-    The ``?vq=hd1080`` flag allows to specifiy the initial resolution of the video when played.
+The ``?vq=hd1080`` flag allows to specifiy the initial resolution of the video when played.
