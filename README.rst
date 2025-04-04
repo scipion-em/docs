@@ -44,7 +44,7 @@ Alternative you could locally run to verify build is ok:
 
 .. code-block::
 
-    scipion3 run sphinx-build . build/<your-branch>
+    COMPILE_BRANCH="<your-branch>" scipion3 run sphinx-build . build
 
 
 Generate API docs
