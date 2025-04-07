@@ -44,7 +44,7 @@ Alternative you could locally run to verify build is ok:
 
 .. code-block::
 
-    scipion3 run sphinx-build . build/<your-branch>
+    COMPILE_BRANCH="<your-branch>" scipion3 run sphinx-build . build
 
 
 Generate API docs
@@ -137,3 +137,16 @@ or :
     scipion3 run sphinx-build .  build docs/developer/symmetries.rst
     
 will only update the "symmetry" page
+
+
+9.- Embedding YouTube videos
+    You can embed Youtube videos in your pages with a code snippet similar to the next one:
+
+.. code-block::
+
+    .. youtube:: <your-video-id>?vq=hd1080
+   :width: 560
+   :height: 315
+   :align: center
+
+The ``?vq=hd1080`` flag allows to specifiy the initial resolution of the video when played.

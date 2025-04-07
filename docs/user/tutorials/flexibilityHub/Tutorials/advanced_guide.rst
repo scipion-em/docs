@@ -8,9 +8,9 @@
 
 .. _Flexibility_Hub_advanced_guide:
 
-====================================================
+===============================
 Flexibility Hub: Advanced guide
-====================================================
+===============================
 
 This tutorial is structured around a workflow defined with experimental data. The data for this tutorial can be downloaded with :code:`scipion3 testdata --download FlexHub_Tutorials`.
 
@@ -20,10 +20,10 @@ Apart from the particle workflow proposed, there exists other possibilities insi
 
 
 Workflow tutorial
-=============================
+=================
 
 Some comments on the data to be used
---------------
+------------------------------------
 
 In this tutorial, we will use the EMPIAR-10028 dataset. However, we will be working with a post-processed version of the dataset where angular information has been gone through a consensus step to improve its accuracy. We strongly recommend doing consensus analysis before defining a flexibility workflow, as the conformational landscapes estimation depend strongly on the aligment of the particles. The modified dataset includes:
 
@@ -36,12 +36,12 @@ In this tutorial, we will use the EMPIAR-10028 dataset. However, we will be work
 We should note that CTF information is usually mandatory for most flexibility algorithms. However, in some cases it might be possible to use corrected particles as well. We will comment on these possibilities during the tutorial.
 
 Where to find Flexibility Hub protocols?
---------------
+----------------------------------------
 
 Flexibility Hub related protocols have been grouped in a new *View* tab in the Scipion GUI called *Flexibility Hub*. In addition, it is possible to use the key :code:`Ctrl+F` to open a protocol search dialog.
 
 1. Importing the data in Scipion
---------------
+--------------------------------
 
 The first step in our workflow is to import our particles, volumes, and structural models in Scipion.
 
@@ -54,7 +54,7 @@ The first step in our workflow is to import our particles, volumes, and structur
 Once all the data has been imported, we are ready to start the flexibility analysis. Note that in a real project, the input data to the Flexibility Hub (particles, maps, models...) might come from different sources (imports, refinements, consensus...).
 
 2. Zernike3Deep landscape estimation
---------------
+------------------------------------
 
 Flexutils includes several Zernike3D programs able to estimate conformational landscapes from CryoEM particles. Among them, generally the best possible choice to start any analysis is the Zernike3Deep algorithm.
 
@@ -94,7 +94,7 @@ One way to check the initial shape of our landscape is to use the Flexutils visu
    :alt: Analyze results landscape
 
 3. CryoDRGN landscape estimation
---------------
+--------------------------------
 
 CryoDRGN is a heterogeneity algorithm able to estimate compositional and continuous variability from a CryoEM particle dataset.
 
@@ -144,7 +144,7 @@ One way to check the initial shape of our landscape is to use the CryoDRGN visua
    :alt: Analyze results CryoDRGN
 
 4. HetSIREN landscape estimation
---------------
+--------------------------------
 HetSIREN is an algorithm able to estimate continuous and compositional heterogeneity from CryoEM particles.
 
 It is based on a neural network able to learn how to perform heterogeneous reconstruction in real space. Therefore, it is possible to focus the analysis on different map regions, learn reconstruction from scratch, or use a reference map as an initial guess.
@@ -182,7 +182,7 @@ Similarly to the previous sections, it is possible to check the initial shape of
    :alt: Analyze results landscape
 
 5. Flexibility consensus
---------------
+------------------------
 At this point, we have perform three independent executions of different algorithms and obtained their corresponding conformational landscapes. The next question we should answer is to decide how confident we really are on the different estimations we have obtained.
 
 Due to the intrinsic complexity of conformational landscapes, it is difficult to do a confidence analysis of the results by hand. Thus, the easiest way to analyze the conformational landscapes' agreement is to do a flexibility consensus.
@@ -232,7 +232,7 @@ After opening the interactive tool on any of the previous two modes, we should g
 The tool shows the consistency histogram for our particles, and allows to interactive determine a consistency threshold to exclude undesired particles. The title of the histogram plot displays the number of particles that will be kept for the current threshold. By clicking on *Subset particles* we can generate a new set of particles containing only the most consistent particles for the selected threshold. It is possible to generate as many subsets as desired, as they will be registered independently inside Scipion.
 
 6. Landscape dimensionality reduction
---------------
+-------------------------------------
 
 Since the landscape estimated after the consensus step has a large number of dimensions, we need to reduce them to a number that we can handle (usually, 2D or 3D). To that end, we can apply the dimensionality reduction protocol from Flexutils to get a meaningful representation base on different methods.
 
@@ -261,7 +261,7 @@ We provide below some images of the forms filled to run any of the different dim
 We recommend checking the results obtained with the different methods, as their performance may vary depending on the dataset. For the next sections in the tutorial, we will use the UMAP representation, although the subsequent sections could be replicated with any of the other two other methods.
 
 7. Interactive landscape clustering
---------------
+-----------------------------------
 
 Once the consensus landscape has been reduced, it is possible to use the interactive tools implemented in Flexutils to explore the different states found. In our case, we have decided to use the Zernike3Deep landscape estimation to generate the consensus output, although the following analysis could be performed with CryoDRGN and HetSIREN as well:
 
@@ -280,8 +280,13 @@ The form only requires as input a set of particles coming from a dimensionality 
 
 Let's extract the representatives of the classes using with |volumes| button. Thanks to this extraction, it will be possible to further analyze the Zernike3D coefficients to extract the conformational states of the representatives and get more information about the motions suffered by the protein.
 
+.. youtube:: -OYTVU1BaSg?vq=hd1080
+   :width: 560
+   :height: 315
+   :align: center
+
 8. Applying deformation fields
---------------
+------------------------------
 
 If we try to open any of the representative volumes extracted from the set of classes generated in the previous step, we will see that all the maps are identical to the reference volume we imported at the beginning of the workflow. Instead, the Zernike3D programs (and other programs estimating motions based on deformation fields) provide several tools to continue analyzing  flexibility information, being one of those tools the application of the estimated deformation fields to approximate a new conformational state.
 
@@ -303,7 +308,7 @@ We provide below an example of the strain visualization in ChimeraX:
 Depending on the provided inputs in the protocol form, the visualization will show either a map or a structural model painted according to the strain/rotation forces acting on each voxel/atom. In the colormap, red colors translates into larger rotational/strain forces while blue colors represent those regions suffering lower forces.
 
 9. Motion statistics
---------------
+--------------------
 
 As we saw in Section 7 from this tutorial, the flexible classes obtained after an interactive conformational space clustering and/or annotation will store the 3D conformational states (or the information needed to recover them), and the particles associated with that 3D conformation.
 
@@ -331,7 +336,7 @@ Once the protocol is executed, it will display an interactive visualization disp
 A more in detailed explanation of the viewer interface is available in the following `video <https://www.youtube.com/watch?v=SOJe4UD4fRQ&list=PLuu0votIJpSxTmPLvKRHV3ijadqlxxHfb&index=3>`__.
 
 10. Map refinements and ZART
---------------
+----------------------------
 
 Particles extracted from an interactive conformational space clustering and/or annotation can also be used as part of any standard workflow in Scipion. For example, the extracted particles could be used to refine a given conformation with Relion, CryoSPARC, Xmipp... in order to get a new map able to capture that specific conformational state.
 
@@ -357,7 +362,7 @@ The description of the form parameters is included below:
 If the input particles provided have Zernike3D information associated, a new form parameter will be displayed **Correct motion blurr artifacts?**. If set to yes, ZART will use the estimated conformational landscape information to correct for the conformational heterogeneity in the dataset and improve the reosolution of flexible areas in the macromolecule.
 
 11. Workflow summary
---------------
+--------------------
 
 Here finishes the Flexibility Hub Advanced guide!
 
