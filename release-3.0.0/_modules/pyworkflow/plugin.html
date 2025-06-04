@@ -130,6 +130,7 @@
 <span class="c1"># **************************************************************************</span>
 <span class="kn">import</span> <span class="nn">logging</span>
 <span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
 
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">Variable</span><span class="p">,</span> <span class="n">VariablesRegistry</span><span class="p">,</span> <span class="n">VarTypes</span>
 <span class="kn">from</span> <span class="nn">.protocol</span> <span class="kn">import</span> <span class="n">Protocol</span>
@@ -180,6 +181,9 @@
     <span class="n">_objects</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">_viewers</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">_wizards</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Preferred viewers:</span>
+    <span class="n">_preferred_viewers</span> <span class="o">=</span> <span class="kc">None</span>
 
 <div class="viewcode-block" id="Domain.registerPlugin"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.plugin.html#pyworkflow.plugin.Domain.registerPlugin">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">registerPlugin</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
@@ -494,56 +498,99 @@
 <div class="viewcode-block" id="Domain.getPreferredViewers"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.plugin.html#pyworkflow.plugin.Domain.getPreferredViewers">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">getPreferredViewers</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">className</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Find and import the preferred viewers for this class. &quot;&quot;&quot;</span>
-        <span class="n">viewerNames</span> <span class="o">=</span> <span class="n">pw</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">VIEWERS</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">className</span><span class="p">,</span> <span class="p">[])</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">viewerNames</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-            <span class="n">viewerNames</span> <span class="o">=</span> <span class="p">[</span><span class="n">viewerNames</span><span class="p">]</span>
-        <span class="n">viewers</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># we will try to import them and store here</span>
-        <span class="k">for</span> <span class="n">prefViewerStr</span> <span class="ow">in</span> <span class="n">viewerNames</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">viewerModule</span><span class="p">,</span> <span class="n">viewerClassName</span> <span class="o">=</span> <span class="n">prefViewerStr</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-                <span class="n">prefViewer</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">importFromPlugin</span><span class="p">(</span><span class="n">viewerModule</span><span class="p">,</span>
-                                                  <span class="n">viewerClassName</span><span class="p">,</span>
-                                                  <span class="n">doRaise</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-                <span class="n">viewers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prefViewer</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t load </span><span class="se">\&quot;</span><span class="si">%s</span><span class="se">\&quot;</span><span class="s2"> as preferred viewer for </span><span class="si">%s</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span>
-                      <span class="s2">&quot;There might be a typo in your VIEWERS variable &quot;</span>
-                      <span class="s2">&quot;or an error in the viewer&#39;s plugin installation&quot;</span>
-                      <span class="o">%</span> <span class="p">(</span><span class="n">prefViewerStr</span><span class="p">,</span> <span class="n">className</span><span class="p">),</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">viewers</span></div>
+
+        <span class="k">if</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_preferred_viewers</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Caching preferred viewers from VIEWERS config variable.&quot;</span><span class="p">)</span>
+            <span class="bp">cls</span><span class="o">.</span><span class="n">_preferred_viewers</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">target</span><span class="p">,</span> <span class="n">viewerNames</span> <span class="ow">in</span> <span class="n">pw</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">VIEWERS</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">viewers</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">prefViewerStr</span> <span class="ow">in</span> <span class="n">viewerNames</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">viewerModule</span><span class="p">,</span> <span class="n">viewerClassName</span> <span class="o">=</span> <span class="n">prefViewerStr</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                        <span class="n">prefViewer</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">importFromPlugin</span><span class="p">(</span><span class="n">viewerModule</span><span class="p">,</span>
+                                                          <span class="n">viewerClassName</span><span class="p">,</span>
+                                                          <span class="n">doRaise</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                        <span class="n">viewers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prefViewer</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Couldn&#39;t load </span><span class="se">\&quot;</span><span class="si">%s</span><span class="se">\&quot;</span><span class="s2"> as preferred viewer for </span><span class="si">%s</span><span class="s2">.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                              <span class="s2">&quot;There might be a typo in your VIEWERS variable &quot;</span>
+                              <span class="s2">&quot;or an error in the viewer&#39;s plugin installation&quot;</span>
+                              <span class="o">%</span> <span class="p">(</span><span class="n">prefViewerStr</span><span class="p">,</span> <span class="n">className</span><span class="p">),</span> <span class="n">exc_info</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
+
+                <span class="bp">cls</span><span class="o">.</span><span class="n">_preferred_viewers</span><span class="p">[</span><span class="n">target</span><span class="p">]</span> <span class="o">=</span> <span class="n">viewers</span>
+
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_preferred_viewers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">className</span><span class="p">,</span> <span class="p">[])</span></div>
+
+<div class="viewcode-block" id="Domain.getViewersSorted"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.plugin.html#pyworkflow.plugin.Domain.getViewersSorted">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="nd">@lru_cache</span>
+    <span class="k">def</span> <span class="nf">getViewersSorted</span><span class="p">(</span><span class="bp">cls</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns all viewers sorted by its class name&quot;&quot;&quot;</span>
+
+        <span class="n">viewers</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getViewers</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">viewers</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">viewers</span><span class="p">)]</span></div>
 
 <div class="viewcode-block" id="Domain.findViewers"><a class="viewcode-back" href="../../api/pyworkflow/pyworkflow.plugin.html#pyworkflow.plugin.Domain.findViewers">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">findViewers</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">className</span><span class="p">,</span> <span class="n">environment</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot; Find the available viewers in this Domain for this class. &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">findViewers</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">environment</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Find the available viewers in this Domain for this target.</span>
+
+<span class="sd">        Sorting criteria:</span>
+
+<span class="sd">        1st Will appear those viewers in VIEWERS variable (preferred viewers) in appearance order</span>
+<span class="sd">        2nd Viewers targeting specifically the target and not any super class of it</span>
+<span class="sd">        3rd rest.</span>
+
+<span class="sd">        In 2nd and 3rd case the order viewers are added depends on the alphabetical order the viewer when discovered.</span>
+<span class="sd">        This usually matches the viewer class name, but could be fine tune using import aliases like:</span>
+
+<span class="sd">        from my_viewer import MyViewer as AAAMyViewer in the viewers folder of the plugin.</span>
+
+<span class="sd">        In case viewers is a file and not a folder with an __init__, I&#39;m afraid class name is what is taken into account</span>
+
+<span class="sd">        The import order is not possible to use since python sort them automatically.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">viewers</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">clazz</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">findClass</span><span class="p">(</span><span class="n">className</span><span class="p">)</span>
+            <span class="n">instance</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;DEVELOPERS: pass the instance/object instead of the class. This mode will be deprecated soon&quot;</span><span class="p">)</span>
+                <span class="n">className</span> <span class="o">=</span> <span class="n">target</span>
+                <span class="n">clazz</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">findClass</span><span class="p">(</span><span class="n">className</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">className</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span>
+                <span class="n">clazz</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="vm">__class__</span>
+                <span class="n">instance</span> <span class="o">=</span> <span class="n">target</span>
+
             <span class="n">baseClasses</span> <span class="o">=</span> <span class="n">clazz</span><span class="o">.</span><span class="n">mro</span><span class="p">()</span>
-            <span class="n">preferredViewers</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getPreferredViewers</span><span class="p">(</span><span class="n">className</span><span class="p">)</span>
-            <span class="n">preferedFlag</span> <span class="o">=</span> <span class="mi">0</span>
 
-            <span class="k">for</span> <span class="n">viewer</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getViewers</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
-                <span class="n">viewerAdded</span><span class="o">=</span><span class="kc">False</span>
+            <span class="c1"># Add preferred viewers</span>
+            <span class="n">preferred_viewers</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">available_preferred_viewers</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getPreferredViewers</span><span class="p">(</span><span class="n">className</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">prefViewer</span> <span class="ow">in</span> <span class="n">available_preferred_viewers</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">prefViewer</span><span class="o">.</span><span class="n">can_handle_this</span><span class="p">(</span><span class="n">baseClasses</span><span class="p">,</span> <span class="n">instance</span><span class="o">=</span><span class="n">instance</span><span class="p">):</span>
+                    <span class="n">preferred_viewers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">prefViewer</span><span class="p">)</span>
+
+
+            <span class="n">specific_viewers</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">other_viewers</span><span class="o">=</span><span class="p">[]</span>
+            <span class="c1"># get all the viewers available</span>
+
+            <span class="k">for</span> <span class="n">viewer</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getViewersSorted</span><span class="p">():</span>
+
                 <span class="k">if</span> <span class="n">environment</span> <span class="ow">in</span> <span class="n">viewer</span><span class="o">.</span><span class="n">_environments</span><span class="p">:</span>
-                    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">viewer</span><span class="o">.</span><span class="n">_targets</span><span class="p">:</span>
-                        <span class="k">if</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">baseClasses</span><span class="p">:</span>
-                            <span class="k">for</span> <span class="n">prefViewer</span> <span class="ow">in</span> <span class="n">preferredViewers</span><span class="p">:</span>
-                                <span class="k">if</span> <span class="n">viewer</span> <span class="ow">is</span> <span class="n">prefViewer</span><span class="p">:</span>
-                                    <span class="n">viewers</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">viewer</span><span class="p">)</span>
-                                    <span class="n">viewerAdded</span><span class="o">=</span><span class="kc">True</span>
-                                    <span class="n">preferedFlag</span> <span class="o">=</span> <span class="mi">1</span>
-                                    <span class="k">break</span>
-                            <span class="k">else</span><span class="p">:</span>
-                                <span class="k">if</span> <span class="n">t</span> <span class="o">==</span> <span class="n">clazz</span><span class="p">:</span>
-                                    <span class="n">viewers</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">preferedFlag</span><span class="p">,</span> <span class="n">viewer</span><span class="p">)</span>
-                                    <span class="n">viewerAdded</span> <span class="o">=</span> <span class="kc">True</span>
-                                <span class="k">else</span><span class="p">:</span>
-                                    <span class="n">viewers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
-                                    <span class="n">viewerAdded</span> <span class="o">=</span> <span class="kc">True</span>
-                                <span class="k">break</span>
 
-                        <span class="k">if</span> <span class="n">viewerAdded</span><span class="p">:</span>
-                            <span class="k">break</span>
+                    <span class="k">if</span> <span class="n">viewer</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">preferred_viewers</span><span class="p">:</span>
+
+                        <span class="n">t</span> <span class="o">=</span> <span class="n">viewer</span><span class="o">.</span><span class="n">can_handle_this</span><span class="p">(</span><span class="n">baseClasses</span><span class="p">,</span> <span class="n">target</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">t</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">t</span> <span class="o">==</span> <span class="n">clazz</span><span class="p">:</span>
+                                <span class="n">specific_viewers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">other_viewers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">viewer</span><span class="p">)</span>
+
+            <span class="n">viewers</span> <span class="o">=</span> <span class="n">preferred_viewers</span> <span class="o">+</span> <span class="n">specific_viewers</span> <span class="o">+</span> <span class="n">other_viewers</span>
 
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="c1"># Catch if there is a missing plugin, we will get Legacy which triggers and Exception</span>

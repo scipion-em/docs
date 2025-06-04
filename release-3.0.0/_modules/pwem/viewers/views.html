@@ -128,7 +128,7 @@
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
 
-<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">SetOfClasses2D</span>
+<span class="kn">from</span> <span class="nn">pwem.objects</span> <span class="kn">import</span> <span class="n">SetOfClasses2D</span><span class="p">,</span> <span class="n">SetOfMicrographs</span><span class="p">,</span> <span class="n">SetOfCTF</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.config</span> <span class="kn">import</span> <span class="n">Config</span> <span class="k">as</span> <span class="n">pwConfig</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.gui</span> <span class="kn">import</span> <span class="n">getDefaultFont</span><span class="p">,</span> <span class="n">openTextFileEditor</span>
 
@@ -249,82 +249,61 @@
                      <span class="bp">self</span><span class="o">.</span><span class="n">getShowJParams</span><span class="p">(),</span> <span class="n">env</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_env</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="MicrographsView"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.views.html#pwem.viewers.views.MicrographsView">[docs]</a><span class="k">class</span> <span class="nc">MicrographsView</span><span class="p">(</span><span class="n">ObjectView</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Customized ObjectView for SetOfCTF objects . &quot;&quot;&quot;</span>
-    <span class="c1"># All extra labels that we want to show if present in the CTF results</span>
-    <span class="n">RENDER_LABELS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;thumbnail._filename&#39;</span><span class="p">,</span> <span class="s1">&#39;psdCorr._filename&#39;</span><span class="p">,</span>
-                     <span class="s1">&#39;plotGlobal._filename&#39;</span><span class="p">]</span>
-    <span class="n">EXTRA_LABELS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_filename&#39;</span><span class="p">]</span>
+<div class="viewcode-block" id="BaseCustomView"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.views.html#pwem.viewers.views.BaseCustomView">[docs]</a><span class="k">class</span> <span class="nc">BaseCustomView</span><span class="p">(</span><span class="n">ObjectView</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Base class for customized ObjectViews with shared logic.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project</span><span class="p">,</span> <span class="n">micSet</span><span class="p">,</span> <span class="n">other</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">first</span> <span class="o">=</span> <span class="n">micSet</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project</span><span class="p">,</span> <span class="n">dataSet</span><span class="p">,</span>
+                 <span class="n">extraViewParams</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">adjustVisible</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">firstItem</span> <span class="o">=</span> <span class="n">dataSet</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span>
 
-        <span class="k">def</span> <span class="nf">existingLabels</span><span class="p">(</span><span class="n">labelList</span><span class="p">):</span>
-            <span class="k">return</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">labelList</span> <span class="k">if</span> <span class="n">first</span><span class="o">.</span><span class="n">hasAttributeExt</span><span class="p">(</span><span class="n">l</span><span class="p">)])</span>
+        <span class="kn">from</span> <span class="nn">pwem.viewers.viewers_data</span> <span class="kn">import</span> <span class="n">RegistryViewerConfig</span>
+        <span class="n">config</span> <span class="o">=</span> <span class="n">RegistryViewerConfig</span><span class="o">.</span><span class="n">getConfig</span><span class="p">(</span><span class="n">dataSet</span><span class="o">.</span><span class="n">getClass</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">viewParams</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
 
-        <span class="n">renderLabels</span> <span class="o">=</span> <span class="n">existingLabels</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">RENDER_LABELS</span><span class="p">)</span>
-        <span class="n">extraLabels</span> <span class="o">=</span> <span class="n">existingLabels</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">EXTRA_LABELS</span><span class="p">)</span>
-        <span class="n">labels</span> <span class="o">=</span> <span class="s1">&#39;id enabled </span><span class="si">%s</span><span class="s1"> </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">renderLabels</span><span class="p">,</span> <span class="n">extraLabels</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cleanLabels</span><span class="p">(</span><span class="n">ORDER</span><span class="p">)</span>
 
-        <span class="n">viewParams</span> <span class="o">=</span> <span class="p">{</span><span class="n">MODE</span><span class="p">:</span> <span class="n">MODE_MD</span><span class="p">,</span>
-                      <span class="n">ORDER</span><span class="p">:</span> <span class="n">labels</span><span class="p">,</span>
-                      <span class="n">VISIBLE</span><span class="p">:</span> <span class="n">labels</span><span class="p">,</span>
-                      <span class="n">ZOOM</span><span class="p">:</span> <span class="mi">50</span>
-                      <span class="p">}</span>
+        <span class="k">if</span> <span class="n">adjustVisible</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">viewParams</span><span class="p">[</span><span class="n">VISIBLE</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewParams</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">ORDER</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">renderLabels</span><span class="p">:</span>
-            <span class="n">viewParams</span><span class="p">[</span><span class="n">RENDER</span><span class="p">]</span> <span class="o">=</span> <span class="n">renderLabels</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cleanLabels</span><span class="p">(</span><span class="n">RENDER</span><span class="p">)</span>
 
-        <span class="n">inputId</span> <span class="o">=</span> <span class="n">micSet</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span> <span class="ow">or</span> <span class="n">micSet</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
-        <span class="n">ObjectView</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project</span><span class="p">,</span>
-                            <span class="n">inputId</span><span class="p">,</span> <span class="n">micSet</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span> <span class="n">other</span><span class="p">,</span>
-                            <span class="n">viewParams</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+        <span class="k">if</span> <span class="n">extraViewParams</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">viewParams</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">extraViewParams</span><span class="p">)</span>
+
+        <span class="n">inputId</span> <span class="o">=</span> <span class="n">dataSet</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span> <span class="ow">or</span> <span class="n">dataSet</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">project</span><span class="p">,</span>
+                         <span class="n">inputId</span><span class="p">,</span>
+                         <span class="n">dataSet</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span>
+                         <span class="s1">&#39;&#39;</span><span class="p">,</span>  <span class="c1"># &#39;other&#39; is unused</span>
+                         <span class="bp">self</span><span class="o">.</span><span class="n">viewParams</span><span class="p">,</span>
+                         <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BaseCustomView.cleanLabels"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.views.html#pwem.viewers.views.BaseCustomView.cleanLabels">[docs]</a>    <span class="k">def</span> <span class="nf">cleanLabels</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">label</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Filter out invalid labels from viewParams[label].&quot;&quot;&quot;</span>
+        <span class="n">labelList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">viewParams</span><span class="p">[</span><span class="n">label</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">labelList</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">firstItem</span><span class="o">.</span><span class="n">hasAttributeExt</span><span class="p">(</span><span class="n">l</span><span class="p">)</span> <span class="ow">or</span> <span class="n">l</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;enabled&#39;</span><span class="p">]]</span>
+        <span class="k">if</span> <span class="n">labels</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">viewParams</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">viewParams</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="CtfView"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.views.html#pwem.viewers.views.CtfView">[docs]</a><span class="k">class</span> <span class="nc">CtfView</span><span class="p">(</span><span class="n">ObjectView</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Customized ObjectView for SetOfCTF objects . &quot;&quot;&quot;</span>
-    <span class="c1"># All extra labels that we want to show if present in the CTF results</span>
-    <span class="n">PSD_LABELS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_micObj.thumbnail._filename&#39;</span><span class="p">,</span> <span class="s1">&#39;_psdFile&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;_xmipp_enhanced_psd&#39;</span><span class="p">,</span> <span class="s1">&#39;_xmipp_ctfmodel_quadrant&#39;</span><span class="p">,</span>
-                  <span class="s1">&#39;_xmipp_ctfmodel_halfplane&#39;</span><span class="p">,</span> <span class="s1">&#39;_micObj.plotGlobal._filename&#39;</span>
-                  <span class="p">]</span>
-    <span class="n">EXTRA_LABELS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;_ctftilt_tiltAxis&#39;</span><span class="p">,</span> <span class="s1">&#39;_ctftilt_tiltAngle&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;_xmipp_ctfCritFirstZero&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;_xmipp_ctfCritCorr13&#39;</span><span class="p">,</span> <span class="s1">&#39;_xmipp_ctfCritIceness&#39;</span><span class="p">,</span> <span class="s1">&#39;_xmipp_ctfCritFitting&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;_xmipp_ctfCritNonAstigmaticValidty&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;_xmipp_ctfCritCtfMargin&#39;</span><span class="p">,</span> <span class="s1">&#39;_xmipp_ctfCritMaxFreq&#39;</span><span class="p">,</span>
-                    <span class="s1">&#39;_xmipp_ctfCritPsdCorr90&#39;</span><span class="p">,</span> <span class="s1">&#39;_xmipp_ctfVPPphaseshift&#39;</span>
-                    <span class="p">]</span>
+<div class="viewcode-block" id="MicrographsView"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.views.html#pwem.viewers.views.MicrographsView">[docs]</a><span class="k">class</span> <span class="nc">MicrographsView</span><span class="p">(</span><span class="n">BaseCustomView</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Customized ObjectView for Micrograph objects.&quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project</span><span class="p">,</span> <span class="n">ctfSet</span><span class="p">,</span> <span class="n">other</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">first</span> <span class="o">=</span> <span class="n">ctfSet</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">()</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project</span><span class="p">,</span> <span class="n">micSet</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">micSet</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
-        <span class="k">def</span> <span class="nf">existingLabels</span><span class="p">(</span><span class="n">labelList</span><span class="p">):</span>
-            <span class="k">return</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">l</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">labelList</span> <span class="k">if</span> <span class="n">first</span><span class="o">.</span><span class="n">hasAttributeExt</span><span class="p">(</span><span class="n">l</span><span class="p">)])</span>
 
-        <span class="n">psdLabels</span> <span class="o">=</span> <span class="n">existingLabels</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">PSD_LABELS</span><span class="p">)</span>
-        <span class="n">extraLabels</span> <span class="o">=</span> <span class="n">existingLabels</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">EXTRA_LABELS</span><span class="p">)</span>
-        <span class="n">labels</span> <span class="o">=</span> <span class="s1">&#39;id enabled </span><span class="si">%s</span><span class="s1"> _defocusU _defocusV &#39;</span> <span class="o">%</span> <span class="n">psdLabels</span>
-        <span class="n">labels</span> <span class="o">+=</span> <span class="s1">&#39;_defocusAngle _defocusRatio &#39;</span>
-        <span class="n">labels</span> <span class="o">+=</span> <span class="s1">&#39;_phaseShift _resolution _fitQuality </span><span class="si">%s</span><span class="s1"> &#39;</span> <span class="o">%</span> <span class="n">extraLabels</span>
-        <span class="n">labels</span> <span class="o">+=</span> <span class="s1">&#39; _micObj._filename&#39;</span>
+<div class="viewcode-block" id="CtfView"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.views.html#pwem.viewers.views.CtfView">[docs]</a><span class="k">class</span> <span class="nc">CtfView</span><span class="p">(</span><span class="n">BaseCustomView</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Customized ObjectView for SetOfCTF objects.&quot;&quot;&quot;</span>
 
-        <span class="n">viewParams</span> <span class="o">=</span> <span class="p">{</span><span class="n">MODE</span><span class="p">:</span> <span class="n">MODE_MD</span><span class="p">,</span>
-                      <span class="n">ORDER</span><span class="p">:</span> <span class="n">labels</span><span class="p">,</span>
-                      <span class="n">VISIBLE</span><span class="p">:</span> <span class="n">labels</span><span class="p">,</span>
-                      <span class="n">ZOOM</span><span class="p">:</span> <span class="mi">50</span>
-                      <span class="p">}</span>
-
-        <span class="k">if</span> <span class="n">psdLabels</span><span class="p">:</span>
-            <span class="n">viewParams</span><span class="p">[</span><span class="n">RENDER</span><span class="p">]</span> <span class="o">=</span> <span class="n">psdLabels</span>
-
-        <span class="k">if</span> <span class="n">ctfSet</span><span class="o">.</span><span class="n">isStreamOpen</span><span class="p">():</span>
-            <span class="n">viewParams</span><span class="p">[</span><span class="s1">&#39;dont_recalc_ctf&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
-
-        <span class="n">inputId</span> <span class="o">=</span> <span class="n">ctfSet</span><span class="o">.</span><span class="n">getObjId</span><span class="p">()</span> <span class="ow">or</span> <span class="n">ctfSet</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
-        <span class="n">ObjectView</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project</span><span class="p">,</span>
-                            <span class="n">inputId</span><span class="p">,</span> <span class="n">ctfSet</span><span class="o">.</span><span class="n">getFileName</span><span class="p">(),</span> <span class="n">other</span><span class="p">,</span>
-                            <span class="n">viewParams</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">project</span><span class="p">,</span> <span class="n">ctfSet</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">extraParams</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;dont_recalc_ctf&#39;</span><span class="p">:</span> <span class="s1">&#39;&#39;</span><span class="p">}</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">project</span><span class="p">,</span> <span class="n">ctfSet</span><span class="p">,</span>
+                         <span class="n">extraViewParams</span><span class="o">=</span><span class="n">extraParams</span><span class="p">,</span>
+                         <span class="n">adjustVisible</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                         <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="ClassesView"><a class="viewcode-back" href="../../../api/pwem/pwem.viewers.views.html#pwem.viewers.views.ClassesView">[docs]</a><span class="k">class</span> <span class="nc">ClassesView</span><span class="p">(</span><span class="n">ObjectView</span><span class="p">):</span>

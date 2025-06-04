@@ -129,6 +129,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">threading</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
@@ -1366,15 +1367,16 @@
         <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">loadSteps</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">__insertStep</span><span class="p">(</span><span class="n">step</span><span class="p">,</span> <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__findStartingStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__updateDoneSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; From a previous run, compare self._steps and self._prevSteps</span>
-<span class="sd">        to find which steps we need to start at, skipping successful done</span>
+<span class="sd">        to find which steps we need to execute, skipping successful done</span>
 <span class="sd">        and not changed steps. Steps that needs to be done, will be deleted</span>
 <span class="sd">        from the previous run storage.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">doneSteps</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">runMode</span> <span class="o">==</span> <span class="n">MODE_RESTART</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_prevSteps</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">return</span> <span class="mi">0</span>
+            <span class="k">return</span> <span class="n">doneSteps</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_prevSteps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loadSteps</span><span class="p">()</span>
 
@@ -1388,21 +1390,24 @@
             <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">oldStep</span><span class="o">.</span><span class="n">isFinished</span><span class="p">()</span> <span class="ow">or</span> <span class="n">newStep</span> <span class="o">!=</span> <span class="n">oldStep</span>
                     <span class="ow">or</span> <span class="ow">not</span> <span class="n">oldStep</span><span class="o">.</span><span class="n">_postconditions</span><span class="p">()):</span>
                 <span class="k">if</span> <span class="n">pw</span><span class="o">.</span><span class="n">Config</span><span class="o">.</span><span class="n">debugOn</span><span class="p">():</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Starting at step </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;     Old step: </span><span class="si">%s</span><span class="s2">, args: </span><span class="si">%s</span><span class="s2">&quot;</span>
-                              <span class="o">%</span> <span class="p">(</span><span class="n">oldStep</span><span class="o">.</span><span class="n">funcName</span><span class="p">,</span> <span class="n">oldStep</span><span class="o">.</span><span class="n">argsStr</span><span class="p">))</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;     New step: </span><span class="si">%s</span><span class="s2">, args: </span><span class="si">%s</span><span class="s2">&quot;</span>
-                              <span class="o">%</span> <span class="p">(</span><span class="n">newStep</span><span class="o">.</span><span class="n">funcName</span><span class="p">,</span> <span class="n">newStep</span><span class="o">.</span><span class="n">argsStr</span><span class="p">))</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;     not oldStep.isFinished(): </span><span class="si">%s</span><span class="s2">&quot;</span>
-                              <span class="o">%</span> <span class="p">(</span><span class="ow">not</span> <span class="n">oldStep</span><span class="o">.</span><span class="n">isFinished</span><span class="p">()))</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;     newStep != oldStep: </span><span class="si">%s</span><span class="s2">&quot;</span>
-                              <span class="o">%</span> <span class="p">(</span><span class="n">newStep</span> <span class="o">!=</span> <span class="n">oldStep</span><span class="p">))</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;     not oldStep._postconditions(): </span><span class="si">%s</span><span class="s2">&quot;</span>
-                              <span class="o">%</span> <span class="p">(</span><span class="ow">not</span> <span class="n">oldStep</span><span class="o">.</span><span class="n">_postconditions</span><span class="p">()))</span>
-                <span class="k">return</span> <span class="n">i</span>
-            <span class="n">newStep</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">oldStep</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Rerunning step </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">oldStep</span><span class="o">.</span><span class="n">isFinished</span><span class="p">():</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;     Old step: </span><span class="si">%s</span><span class="s2">, args: </span><span class="si">%s</span><span class="s2"> was not finished&quot;</span>
+                                  <span class="o">%</span> <span class="p">(</span><span class="n">oldStep</span><span class="o">.</span><span class="n">funcName</span><span class="p">,</span> <span class="n">oldStep</span><span class="o">.</span><span class="n">argsStr</span><span class="p">))</span>
+                    <span class="k">elif</span> <span class="n">newStep</span> <span class="o">!=</span> <span class="n">oldStep</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;     New step: </span><span class="si">%s</span><span class="s2">, args: </span><span class="si">%s</span><span class="s2"> is different&quot;</span>
+                                  <span class="o">%</span> <span class="p">(</span><span class="n">newStep</span><span class="o">.</span><span class="n">funcName</span><span class="p">,</span> <span class="n">newStep</span><span class="o">.</span><span class="n">argsStr</span><span class="p">))</span>
+                    <span class="k">elif</span> <span class="ow">not</span> <span class="n">oldStep</span><span class="o">.</span><span class="n">_postconditions</span><span class="p">():</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;     Old step: </span><span class="si">%s</span><span class="s2">, args: </span><span class="si">%s</span><span class="s2"> postconditions were not met&quot;</span>
+                                  <span class="o">%</span> <span class="p">(</span><span class="n">oldStep</span><span class="o">.</span><span class="n">funcName</span><span class="p">,</span> <span class="n">oldStep</span><span class="o">.</span><span class="n">argsStr</span><span class="p">))</span>
 
-        <span class="k">return</span> <span class="n">n</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">doneSteps</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="c1">#  If the step has not changed and is properly finished, it is copied to the new steps so it is not</span>
+                <span class="c1">#  executed again</span>
+                <span class="n">newStep</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">oldStep</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">doneSteps</span>
 
     <span class="k">def</span> <span class="nf">_storeSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Store the new steps list that can be retrieved</span>
@@ -1475,9 +1480,9 @@
     <span class="k">def</span> <span class="nf">_stepsCheck</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>
 
-    <span class="k">def</span> <span class="nf">_runSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">startIndex</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_runSteps</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doneSteps</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Run all steps defined in self._steps. &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_stepsDone</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">startIndex</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stepsDone</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">doneSteps</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_numberOfSteps</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_steps</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">setRunning</span><span class="p">()</span>
         <span class="c1"># Keep the original value to set in sub-protocols</span>
@@ -1486,7 +1491,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">runMode</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">MODE_RESUME</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">()</span>
 
-        <span class="k">if</span> <span class="n">startIndex</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_steps</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">doneSteps</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_steps</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">lastStatus</span> <span class="o">=</span> <span class="n">STATUS_FINISHED</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">setFinished</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;All steps seem to be FINISHED, nothing to be done.&quot;</span><span class="p">)</span>
@@ -1658,11 +1663,11 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_insertAllSteps</span><span class="p">()</span>  <span class="c1"># Define steps for execute later</span>
         <span class="c1"># Find at which step we need to start</span>
-        <span class="n">startIndex</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__findStartingStep</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot; Starting at step: </span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">startIndex</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">doneSteps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__updateDoneSteps</span><span class="p">()</span>
+        <span class="c1"># self.info(&quot; Starting at step: %d&quot; % (startIndex + 1))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_storeSteps</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot; Running steps &quot;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_runSteps</span><span class="p">(</span><span class="n">startIndex</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_runSteps</span><span class="p">(</span><span class="n">doneSteps</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_getEnviron</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; This function should return an environ variable</span>
@@ -1890,7 +1895,7 @@
             <span class="n">executor</span> <span class="o">=</span> <span class="n">StepExecutor</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getHostConfig</span><span class="p">())</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_stepsExecutor</span> <span class="o">=</span> <span class="n">executor</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_stepsExecutor</span><span class="o">.</span><span class="n">setProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="c1"># executor needs the protocol to store the jobs Ids submitted to a queue</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stepsExecutor</span><span class="o">.</span><span class="n">setProtocol</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>  <span class="c1"># executor needs the protocol to store the jobs Ids submitted to a queue</span></div>
 
 <div class="viewcode-block" id="Protocol.getFiles"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol.getFiles">[docs]</a>    <span class="k">def</span> <span class="nf">getFiles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">resultFiles</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
@@ -2076,9 +2081,9 @@
 
         <span class="n">d</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;JOB_NAME&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">strId</span><span class="p">(),</span>
              <span class="s1">&#39;JOB_QUEUE&#39;</span><span class="p">:</span> <span class="n">queueName</span><span class="p">,</span>
-             <span class="s1">&#39;JOB_NODES&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-             <span class="s1">&#39;JOB_THREADS&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfThreads</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
-             <span class="s1">&#39;JOB_CORES&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfThreads</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
+             <span class="s1">&#39;JOB_NODES&#39;</span><span class="p">:</span> <span class="nb">max</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span><span class="o">.</span><span class="n">get</span><span class="p">()]),</span>
+             <span class="s1">&#39;JOB_THREADS&#39;</span><span class="p">:</span> <span class="nb">max</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">numberOfThreads</span><span class="o">.</span><span class="n">get</span><span class="p">()]),</span>
+             <span class="s1">&#39;JOB_CORES&#39;</span><span class="p">:</span> <span class="nb">max</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">numberOfMpi</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">numberOfThreads</span><span class="o">.</span><span class="n">get</span><span class="p">()]),</span>
              <span class="s1">&#39;JOB_HOURS&#39;</span><span class="p">:</span> <span class="mi">72</span><span class="p">,</span>
              <span class="s1">&#39;GPU_COUNT&#39;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">()),</span>
              <span class="n">QUEUE_FOR_JOBS</span><span class="p">:</span> <span class="s1">&#39;N&#39;</span><span class="p">,</span>
@@ -2599,6 +2604,13 @@
 
     <span class="n">setDefaultLoggingContext</span><span class="p">(</span><span class="n">protId</span><span class="p">,</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getProject</span><span class="p">()</span><span class="o">.</span><span class="n">getShortName</span><span class="p">())</span>
 
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span><span class="n">LegacyProtocol</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;There is a problem loading the protocol </span><span class="si">{</span><span class="n">protId</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">protocol</span><span class="si">}</span><span class="s2">) at </span><span class="si">{</span><span class="n">pwutils</span><span class="o">.</span><span class="n">getHostName</span><span class="p">()</span><span class="si">}</span><span class="s2"> &quot;</span>
+                     <span class="sa">f</span><span class="s2">&quot;Installations of the execution differs from the visualization installation. &quot;</span>
+                     <span class="sa">f</span><span class="s2">&quot;This is probably because you are running this protocol in a cluster node which installation is not &quot;</span>
+                     <span class="sa">f</span><span class="s2">&quot;compatible with the head node or you have a plugin available on the Main GUI process (check launching directory) but &quot;</span>
+                     <span class="sa">f</span><span class="s2">&quot;not properly installed as a plugin in Scipion. Please verify installation.&quot;</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
     <span class="n">hostConfig</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getHostConfig</span><span class="p">()</span>
     <span class="n">gpuList</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getGpuList</span><span class="p">()</span>
 
