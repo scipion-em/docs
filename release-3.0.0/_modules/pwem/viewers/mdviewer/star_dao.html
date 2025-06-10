@@ -128,6 +128,9 @@
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
 <span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">metadataviewer.model</span> <span class="kn">import</span> <span class="n">Table</span>
+
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">()</span>
 
 <span class="kn">from</span> <span class="nn">metadataviewer.dao.model</span> <span class="kn">import</span> <span class="n">IDAO</span>
@@ -142,9 +145,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_tableCount</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tableData</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_labelsTypes</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_aliases</span> <span class="o">=</span> <span class="p">{}</span>
 
     <span class="k">def</span> <span class="nf">__loadFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputFile</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
@@ -166,7 +168,8 @@
         <span class="n">table</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">getTable</span><span class="p">()</span>
         <span class="n">tableName</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">getName</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">table</span><span class="o">.</span><span class="n">hasSortingChanged</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">tableName</span><span class="p">,</span> <span class="n">actualColumn</span><span class="p">,</span> <span class="n">orderAsc</span><span class="p">)</span>
+            <span class="n">columnIndex</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">getColumnIndexFromLabel</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">getSortingColumn</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">tableName</span><span class="p">,</span> <span class="n">columnIndex</span><span class="p">,</span> <span class="n">orderAsc</span><span class="p">)</span>
 
         <span class="c1"># moving to the first row of the page</span>
         <span class="n">pageNumber</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">getPageNumber</span><span class="p">()</span>
@@ -183,10 +186,10 @@
         <span class="sd">&quot;&quot;&quot;Get the number of rows of a given table&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tableCount</span><span class="p">[</span><span class="n">tableName</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="StarFile.getTableNames"><a class="viewcode-back" href="../../../../api/pwem/pwem.viewers.mdviewer.star_dao.html#pwem.viewers.mdviewer.star_dao.StarFile.getTableNames">[docs]</a>    <span class="k">def</span> <span class="nf">getTableNames</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="StarFile.getTables"><a class="viewcode-back" href="../../../../api/pwem/pwem.viewers.mdviewer.star_dao.html#pwem.viewers.mdviewer.star_dao.StarFile.getTables">[docs]</a>    <span class="k">def</span> <span class="nf">getTables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Return all the names of the data_ blocks found in the file and</span>
 <span class="sd">            fill all labels and data of every table name &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_names</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span><span class="p">:</span>
             <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_file</span>
             <span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Reading the star file completely and filling &quot;</span>
@@ -195,21 +198,19 @@
                 <span class="c1"># While searching for a data line, we will store the offsets</span>
                 <span class="c1"># for any data_ line that we find</span>
                 <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;data_&#39;</span><span class="p">):</span>
-                    <span class="n">tn</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;data_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tn</span><span class="p">)</span>
+                    <span class="n">table</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="n">alias</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;data_&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                    <span class="n">tbl</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">table</span><span class="p">)</span>
+                    <span class="n">tbl</span><span class="o">.</span><span class="n">setAlias</span><span class="p">(</span><span class="n">alias</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="o">=</span> <span class="n">tbl</span>
                     <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getData</span><span class="p">()</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_tableCount</span><span class="p">[</span><span class="n">tn</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="p">[</span><span class="n">tn</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_labelsTypes</span><span class="p">[</span><span class="n">tn</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_tableData</span><span class="p">[</span><span class="n">tn</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">_aliases</span><span class="p">[</span><span class="n">tn</span><span class="p">]</span> <span class="o">=</span> <span class="n">tn</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_tableCount</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_labelsTypes</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_tableData</span><span class="p">[</span><span class="n">table</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
                 <span class="n">line</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_names</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="StarFile.getTableAliases"><a class="viewcode-back" href="../../../../api/pwem/pwem.viewers.mdviewer.star_dao.html#pwem.viewers.mdviewer.star_dao.StarFile.getTableAliases">[docs]</a>    <span class="k">def</span> <span class="nf">getTableAliases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get the tables aliases&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_aliases</span></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tables</span></div>
 
     <span class="k">def</span> <span class="nf">_getData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Method to get all information of the table (labels, data,...)&quot;&quot;&quot;</span>
@@ -251,7 +252,7 @@
         <span class="n">colNames</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_labels</span><span class="p">[</span><span class="n">table</span><span class="o">.</span><span class="n">getName</span><span class="p">()]</span>
         <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tableData</span><span class="p">[</span><span class="n">table</span><span class="o">.</span><span class="n">getName</span><span class="p">()][</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">table</span><span class="o">.</span><span class="n">createColumns</span><span class="p">(</span><span class="n">colNames</span><span class="p">,</span> <span class="n">values</span><span class="p">)</span>
-        <span class="n">table</span><span class="o">.</span><span class="n">setAlias</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">getName</span><span class="p">())</span>
+        <span class="n">table</span><span class="o">.</span><span class="n">setAlias</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">getAlias</span><span class="p">())</span>
 
     <span class="k">def</span> <span class="nf">_findLabelLine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Find the first labels line in the star file&quot;&quot;&quot;</span>

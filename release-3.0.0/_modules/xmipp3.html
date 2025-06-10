@@ -129,13 +129,12 @@
 <span class="c1"># **************************************************************************</span>
 
 <span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
 <span class="kn">import</span> <span class="nn">pwem</span>
 <span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">Config</span>
 <span class="kn">import</span> <span class="nn">pyworkflow.utils</span> <span class="k">as</span> <span class="nn">pwutils</span>
-<span class="kn">from</span> <span class="nn">scipion.install.funcs</span> <span class="kn">import</span> <span class="n">CommandDef</span>
-<span class="kn">from</span> <span class="nn">scipion</span> <span class="kn">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">scipionAppVersion</span>
-<span class="kn">from</span> <span class="nn">packaging.version</span> <span class="kn">import</span> <span class="n">Version</span>
+<span class="kn">from</span> <span class="nn">scipion.install.funcs</span> <span class="kn">import</span> <span class="n">CondaCommandDef</span>
 <span class="kn">from</span> <span class="nn">.base</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">.version</span> <span class="kn">import</span> <span class="o">*</span>
 <span class="kn">from</span> <span class="nn">.constants</span> <span class="kn">import</span> <span class="n">XMIPP_HOME</span><span class="p">,</span> <span class="n">XMIPP_URL</span><span class="p">,</span> <span class="n">XMIPP_DLTK_NAME</span><span class="p">,</span> <span class="n">XMIPP_CUDA_BIN</span><span class="p">,</span> <span class="n">XMIPP_CUDA_LIB</span><span class="p">,</span> <span class="n">XMIPP_GIT_URL</span>
@@ -266,9 +265,13 @@
             <span class="s1">&#39;libtiff&#39;</span><span class="p">,</span>
             <span class="s1">&#39;libjpeg-turbo&#39;</span>
         <span class="p">]</span>
-        
-        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;CONDA_PREFIX&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># TODO replace with pyworkflow method when available.</span>
-            <span class="n">commands</span> <span class="o">=</span> <span class="n">CommandDef</span><span class="p">(</span><span class="s1">&#39;conda install -c conda-forge &#39;</span>  <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">CONDA_DEPENDENCIES</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">Config</span><span class="o">.</span><span class="n">isCondaInstallation</span><span class="p">():</span>
+            <span class="n">condaEnvPath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;CONDA_PREFIX&#39;</span><span class="p">]</span>
+            <span class="n">scipionEnv</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">condaEnvPath</span><span class="p">)</span>  <span class="c1"># TODO: use pyworkflow method when released: Config.getEnvName()</span>
+
+            <span class="n">commands</span> <span class="o">=</span> <span class="n">CondaCommandDef</span><span class="p">(</span><span class="n">scipionEnv</span><span class="p">,</span> <span class="bp">cls</span><span class="o">.</span><span class="n">getCondaActivationCmd</span><span class="p">())</span>
+            <span class="n">commands</span><span class="o">.</span><span class="n">condaInstall</span><span class="p">(</span><span class="s1">&#39;-c conda-forge --yes &#39;</span>  <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">CONDA_DEPENDENCIES</span><span class="p">))</span>
+            <span class="n">commands</span><span class="o">.</span><span class="n">touch</span><span class="p">(</span><span class="s2">&quot;deps_installed.txt&quot;</span><span class="p">)</span>
             <span class="n">env</span><span class="o">.</span><span class="n">addPackage</span><span class="p">(</span>
                 <span class="s1">&#39;xmippDep&#39;</span><span class="p">,</span> <span class="n">version</span><span class="o">=</span><span class="n">_currentDepVersion</span><span class="p">,</span>
                 <span class="n">tar</span><span class="o">=</span><span class="s1">&#39;void.tgz&#39;</span><span class="p">,</span>
@@ -319,20 +322,35 @@
         
         <span class="k">return</span> <span class="n">bundleDir</span> <span class="k">if</span> <span class="n">isBundle</span> <span class="k">else</span> <span class="kc">None</span></div>
 
+
 <div class="viewcode-block" id="getNvidiaDriverVersion"><a class="viewcode-back" href="../api/xmipp3/xmipp3.html#xmipp3.getNvidiaDriverVersion">[docs]</a><span class="k">def</span> <span class="nf">getNvidiaDriverVersion</span><span class="p">(</span><span class="n">plugin</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Several ways to retrieve NVIDIA driver version.</span>
+    <span class="sd">&quot;&quot;&quot;Attempt to retrieve the NVIDIA driver version using different methods.</span>
+<span class="sd">    Only returns if a valid version string is found.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">commands</span> <span class="o">=</span> <span class="p">[[</span><span class="s2">&quot;nvidia-smi&quot;</span><span class="p">,</span> <span class="s2">&quot;--query-gpu=driver_version&quot;</span><span class="p">,</span> <span class="s2">&quot;--format=csv,noheader&quot;</span><span class="p">],</span>
-                <span class="p">[</span><span class="s2">&quot;cat&quot;</span><span class="p">,</span> <span class="s2">&quot;/sys/module/nvidia/version&quot;</span><span class="p">]]</span>
+    <span class="n">commands</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="p">[</span><span class="s2">&quot;nvidia-smi&quot;</span><span class="p">,</span> <span class="s2">&quot;--query-gpu=driver_version&quot;</span><span class="p">,</span> <span class="s2">&quot;--format=csv,noheader&quot;</span><span class="p">],</span>
+        <span class="p">[</span><span class="s2">&quot;cat&quot;</span><span class="p">,</span> <span class="s2">&quot;/sys/module/nvidia/version&quot;</span><span class="p">]</span>
+    <span class="p">]</span>
+
     <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="n">commands</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">nvidiaDriverVer</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span>
-                                               <span class="n">env</span><span class="o">=</span><span class="n">plugin</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">(),</span>
-                                               <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span>
-                                               <span class="p">)</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">return</span> <span class="n">nvidiaDriverVer</span>
-        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">FileNotFoundError</span><span class="p">):</span>
-            <span class="k">continue</span></div>
+            <span class="n">output</span> <span class="o">=</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">Popen</span><span class="p">(</span>
+                <span class="n">cmd</span><span class="p">,</span>
+                <span class="n">env</span><span class="o">=</span><span class="n">plugin</span><span class="o">.</span><span class="n">getEnviron</span><span class="p">(),</span>
+                <span class="n">stdout</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span><span class="p">,</span>
+                <span class="n">stderr</span><span class="o">=</span><span class="n">subprocess</span><span class="o">.</span><span class="n">PIPE</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">communicate</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+            <span class="c1"># Check if the output matches a version pattern like 530.30 or 470</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;^(\d+)&#39;</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Return just the major version (e.g., &quot;530&quot;)</span>
+
+        <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">,</span> <span class="ne">FileNotFoundError</span><span class="p">,</span> <span class="n">subprocess</span><span class="o">.</span><span class="n">SubprocessError</span><span class="p">):</span>
+            <span class="k">continue</span>  <span class="c1"># Try next method</span>
+
+    <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># No valid version found</span></div>
+
     
 <div class="viewcode-block" id="installDeepLearningToolkit"><a class="viewcode-back" href="../api/xmipp3/xmipp3.html#xmipp3.installDeepLearningToolkit">[docs]</a><span class="k">def</span> <span class="nf">installDeepLearningToolkit</span><span class="p">(</span><span class="n">plugin</span><span class="p">,</span> <span class="n">env</span><span class="p">):</span>
 
