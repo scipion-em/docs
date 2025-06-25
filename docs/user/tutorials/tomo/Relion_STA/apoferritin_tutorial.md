@@ -7,7 +7,10 @@
  
 # Tutorial - Subtomogram averaging with Reliontomo plugin for Scipion
 
-## Contents:: Table of Contents
+## Table of Contents
+
+* [The dataset](# The dataset)
+* [Import tilt series movies](# Import tilt series movies)
 
 
 # The dataset
