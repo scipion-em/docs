@@ -5,20 +5,20 @@
 .. _reliontomo-sta-workflow:
 
  
-# Tutorial - Subtomogram averaging with Reliontomo plugin for Scipion
+# Subtomogram averaging tutorial. Apoferritin sample
 
 ## Table of Contents
 
 * [The dataset](#The-dataset)
 * [Import tilt series movies](#Import-tilt-series-movies)
-* [# Movie alignment and CTF estimation with Warp](#Movie-alignment-and-CTF-estimation-with-Warp)
-* [# Excluding views and CTFs](#Excluding-views-and-CTFs)
-* [# X-ray eraser](#X-ray-eraser)
-* [# Tilt series alignment](#Tilt-series-alignment)
-* [# Assign transformation matrix to Tilt series](#Assign-transformation-matrix-to-Tilt-series)
-* [# Tomogram reconstruction](#Tomogram-reconstruction)
-* [# Picking](#Picking)
-* [# Subtomogram Averaging with RelionTomo](#Subtomogram-Averaging-with-RelionTomo)
+* [Movie alignment and CTF estimation with Warp](#Movie-alignment-and-CTF-estimation-with-Warp)
+* [Excluding views and CTFs](#Excluding-views-and-CTFs)
+* [X-ray eraser](#X-ray-eraser)
+* [Tilt series alignment](#Tilt-series-alignment)
+* [Assign transformation matrix to Tilt series](#Assign-transformation-matrix-to-Tilt-series)
+* [Tomogram reconstruction](#Tomogram-reconstruction)
+* [Picking](#Picking)
+* [Subtomogram Averaging with RelionTomo](#Subtomogram-Averaging-with-RelionTomo)
 
 
 # The dataset
@@ -33,7 +33,7 @@ It only contains two tilt series. This workflow is ideal to be executed in a nor
 
 > scipion3 testdata --download tomo_apoferritin_tutorial
 
-Alternatively, the dataset can be found in the next link [https://scipion.cnb.csic.es/downloads/scipion/data/tests/apoferritin_tutorial/](https://scipion.cnb.csic.es/downloads/scipion/data/tests/apoferritin_tutorial/)
+Alternatively, the dataset can be found in the next link [https://scipion.cnb.csic.es/downloads/scipion/data/tests/apoferritin_tutorial/](https://scipion.cnb.csic.es/downloads/scipion/data/tests/tomo_apoferritin_tutorial/)
 
 ## Large dataset tutorial
 
@@ -67,7 +67,7 @@ The used parameters are shown in the Figure. The critical ones are:
 - **Dose (e/A^2):** Initial dose 0.0, dose per tilt - leave empty. This value will be read from the mdoc file.
 - **Gain image:** Set here the path to the gain image.
   
-![Import tilt series movies Scipion form](apoferritinTutorial/ImportTsmovies.png)
+![Import tilt series movies Scipion form](Figures_ApoferritinTutorial/ImportTsmovies.png)
 
 # Movie alignment and CTF estimation with Warp
 
@@ -77,7 +77,7 @@ The used parameters are shown in the Figure. The critical ones are:
 
 Once the tilt series movies were imported the acquired frames at each tilt angle will be aligned to obtain tilt series. The protocol `warp - tilt-series motion and ctf estimation` will find and correct the relative movement between the frames. This protocol also allows to estimate the CTF, it means the defocus of ech tilt image.
 
-![warp - tilt-series motion and ctf estimation form](apoferritinTutorial/warpMotionCor.png)
+![warp - tilt-series motion and ctf estimation form](Figures_ApoferritinTutorial/warpMotionCor.png)
 
 The most important parameters are:
 - **Input movies:** The imported set of tilt series movies from the previous step.
@@ -100,7 +100,7 @@ The most important parameters are:
 
 The output of the protocol will be a set of tilt series and a set of CTFs. It is possible to visualize these set with the `TomoViewer` and `CTFtomoViewer`.
 
-![warpOutput](apoferritinTutorial/warpOutput.png)
+![warpOutput](Figures_ApoferritinTutorial/warpOutput.png)
 
 # Excluding views and CTFs
 
@@ -113,7 +113,7 @@ The output of the protocol will be a set of tilt series and a set of CTFs. It is
 
 CTFs can be excluded with the `CTFTomoViewer`. The main reasons to exclude a CTF are: a bad estimation of the defocus value, or a high astigmatism. To exclude a CTF just select the corresponding CTF and press the `space`. Alternatively, it can be marked by clicking on the exclude box. The excluded CTFs will be highlighted in red. Finally, it is neccesary to generate a new set of CTF by clicking on the botton `Generate subsets`. 
 
-![excludeCTFViewer](apoferritinTutorial/excludeCTFsWarp.png)
+![excludeCTFViewer](Figures_ApoferritinTutorial/excludeCTFsWarp.png)
 
 
 # X-ray eraser
@@ -124,7 +124,7 @@ CTFs can be excluded with the `CTFTomoViewer`. The main reasons to exclude a CTF
 
 The interaction of electrons with the sample can generate X-rays. They can be detected by the camera, and identified in the images as very bright pixels. Therefore, the X-ray peaks are an unwanted effect that should be corrected. The protocol `imod - Xray eraser` allows to remove these bright points. The input will be a tilt series (output of the movie alignment). This protocol also can be executed with default parameters.
 
-![FormXrayEraser](apoferritinTutorial/XrayEraser.png)
+![FormXrayEraser](Figures_ApoferritinTutorial/XrayEraser.png)
 
 The ouput of this protocol will be a set of Tilt Series that looks almost identical to the input tilt series.
 
@@ -152,7 +152,7 @@ Before starting with the alignment of the tilt series a binning step will be car
 - **Mean**: 0.0
 - **Standard deviation**: 1.0
 
-![imodTsPreprocess](apoferritinTutorial/imodTsPreprocess.png)
+![imodTsPreprocess](Figures_ApoferritinTutorial/imodTsPreprocess.png)
 
 > **Note**: The tomogram will be reconstructed at bin 10, therefore the CTF correction step will be skipped
 
@@ -173,11 +173,11 @@ To align the tilt series with IMOD the protocol `imod - teamtomo/batchruntomo` w
 
 > **Note**: The output of this protocol is a set of tilt series. In the summary, the output tilt series presents a `+ali` flag. This flag informs about the alignment, the tilt series present an associated transformation matrix (with the estimated shifts). **The +ali indicates that matrix is associated as metadata but not applied to the tilt series**. To visualize the aligned tilt series the flag of the protocol `generate interpolated tilt-series` must be enable. In the summary, the interpolated tilt series can be identified with the flag `!interp`. 
 
-![FormCbatchRun](apoferritinTutorial/batchRunTomo.png)
+![FormCbatchRun](Figures_ApoferritinTutorial/batchRunTomo.png)
 
 The result are two tilt series: non-interpolated (left) and interpolated (right). Nothe how the interpolated shows borders as result of applying the alignment transformation matrix. Moreover, the orientation of the tilt series changes as result of the alignment. The tilt axis must be the Y axis.
 
-![outputbatchRun](apoferritinTutorial/outputbatchRunTomo.png)
+![outputbatchRun](Figures_ApoferritinTutorial/outputbatchRunTomo.png)
 
 > **Tip**: The `TomoViewer` or can be used to check the transformation matrix, the refined tilt angles.
 
@@ -186,11 +186,11 @@ The result are two tilt series: non-interpolated (left) and interpolated (right)
 
 The output of the alignment protocol is a binned image with the alignment parameter +ali. However, we need would like to use the unbinned tilt series with this alignment parameters. For this reason, it would be usefull to assign the alignment information to the raw tilt series. This task can be carried out with the protocol `tomo - tilt-series assign alignment`. The protocol involves two tilt series: One to take the alignment and other to set the alignment. In this tutorial the transformation matrix from the alignment will be set to the output of the x-ray eraser tilt series (see the workflow).
 
-![FormtiltseriesAssignAlignment](apoferritinTutorial/tiltseriesAssignAlignment.png)
+![FormtiltseriesAssignAlignment](Figures_ApoferritinTutorial/tiltseriesAssignAlignment.png)
 
 The transformation matrix after the assignment can be checked with the `TomoViewer`
 
-![resultAssignTransform](apoferritinTutorial/asignAlignmentResult.png)
+![resultAssignTransform](Figures_ApoferritinTutorial/asignAlignmentResult.png)
 
 # Tomogram reconstruction
 
@@ -230,11 +230,11 @@ The protocol can be executed with default parameters:
 - **Cutoff linear region**: 0.35
 - **Radial fall-off**: 0.035
 
-![IMODSIRTtomo](apoferritinTutorial/imodTomogramRec.png)
+![IMODSIRTtomo](Figures_ApoferritinTutorial/imodTomogramRec.png)
 
 The output can be visualized by clicking on Analyze results or alternatively by choosing the visualization tool by right-clicking on the output in the Summary box.
 
-![IMODSIRTtomo](apoferritinTutorial/resultTomoRecImod.png)
+![IMODSIRTtomo](Figures_ApoferritinTutorial/resultTomoRecImod.png)
 
 
 # Picking
@@ -263,7 +263,7 @@ It is neccesary to identify the proteins in the tomograms. The protocol `sphire 
 - **Number of CPU**: 4
 - **Boxsize**: 32
 
-![cryoloPicking](apoferritinTutorial/cryoloPicking.png)
+![cryoloPicking](Figures_ApoferritinTutorial/cryoloPicking.png)
 
 > **Tip**: Cryolo has been trained with a sampling rate of 10A/px. It is a good practice to downsample or bin the tomogram to achieve a pixe size close to that target. 
 
@@ -290,7 +290,7 @@ To extract the pseudo subtomograms the next input data will be required:
 
 > **Warning** This protocol will be executed twice using the same parameters, but first writing output as 3D and later as 2D pseudo-subtomogram. 
 
-![relionTomoExtract](apoferritinTutorial/relionExtractbin10.png)
+![relionTomoExtract](Figures_ApoferritinTutorial/relionExtractbin10.png)
 
 > **Tip**: The 3D pseudo-subtomograms work better for obtaining a 3D initial model than the 2D pseudo-subtomograms.
 
@@ -304,10 +304,10 @@ The initial model can be estimated with the protocol `reliontomo - 3D initial mo
 - **Circular Mask diameter**: 150 A. A good value is to set the protein diameter
 - **Symmetry group**: O. In this case the protein has O symmetry. For initial volumes a C1 symmetry is a good practice, however in this tutorial the symmetry was imposed to speed up the results.
 - **Prior width on tilt angle**: 15.0 degrees. It defines the prior on the tilt to be estimated
-![relionInitialModel](apoferritinTutorial/relionInitialModel.png)
+![relionInitialModel](Figures_ApoferritinTutorial/relionInitialModel.png)
 
 The result of this protocol should be similar to the one shown in the Figure. To visualize it, the average map can be opened with Scipion or Chimera.
-![reliontomoInitialModelResult](apoferritinTutorial/relionInitialVolume.png)
+![reliontomoInitialModelResult](Figures_ApoferritinTutorial/relionInitialVolume.png)
 
 ## 3D Auto-refine
 
@@ -335,7 +335,7 @@ Using the initial model, it is possible to refine it to enhance the map quality 
 
 The result of this protocol should be similar to the one shown in the Figure.
 .
-![relionAutorefinebin6Result](apoferritinTutorial/relionAutorefinebin10Result.png)
+![relionAutorefinebin6Result](Figures_ApoferritinTutorial/relionAutorefinebin10Result.png)
 
 ## Extract pseudo-subtomograms at bin 4
 
@@ -350,14 +350,14 @@ This steps shows how to reduce the binning keeping the alignment of already refi
 - **Maximum dose**: 50 e/A^2.
 - **Write output as 2D stacks**: Set Yes for refinin 2D pseudo-subtomograms are recommended
 
-![extractbin2](apoferritinTutorial/extractbin4.png)
+![extractbin2](Figures_ApoferritinTutorial/extractbin4.png)
 
 
 ## Reconstruct particle at bin 4
 
 In this step the refined pseudo-subtomograms from the previous autorefine are used to reconstruct the protein, but keeping their angular assignment. This is only a reconstruction step. The protocol `reliontomo - reconstruct particle` 
 
-![relionReconstructParticlebin2](apoferritinTutorial/relionReconstructionBin4.png)
+![relionReconstructParticlebin2](Figures_ApoferritinTutorial/relionReconstructionBin4.png)
 
 - **Coordinates/Pseudo-subtomograms**: They will be the refined pseudo-subtomograms from the 'reliontomo - 3d auto-refine`.
 - **Binning**: 4.0.
@@ -368,7 +368,7 @@ In this step the refined pseudo-subtomograms from the previous autorefine are us
 
 The reconstructed protein can be visualized with Scipion (to see the slices) or with Chimera (to see the 3D map). As it can be observed in the figure the map quality enhanced in comparison to the reconstruction at bin 10. 
 
-![reconstructParticlebin2Result](apoferritinTutorial/reconstructionRelionTomo.png)
+![reconstructParticlebin2Result](Figures_ApoferritinTutorial/reconstructionRelionTomo.png)
 
 
 ## Refine volume at bin 4
