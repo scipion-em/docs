@@ -9,9 +9,16 @@
 
 ## Table of Contents
 
-* [The dataset](# The dataset)
-* [Import tilt series movies](# Import tilt series movies)
-
+* [The dataset](#The-dataset)
+* [Import tilt series movies](#Import-tilt-series-movies)
+* [# Movie alignment and CTF estimation with Warp](#Movie-alignment-and-CTF-estimation-with-Warp)
+* [# Excluding views and CTFs](#Excluding-views-and-CTFs)
+* [# X-ray eraser](#X-ray-eraser)
+* [# Tilt series alignment](#Tilt-series-alignment)
+* [# Assign transformation matrix to Tilt series](#Assign-transformation-matrix-to-Tilt-series)
+* [# Tomogram reconstruction](#Tomogram-reconstruction)
+* [# Picking](#Picking)
+* [# Subtomogram Averaging with RelionTomo](#Subtomogram-Averaging-with-RelionTomo)
 
 # The dataset
 
