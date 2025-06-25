@@ -4,11 +4,11 @@
 
 .. _reliontomo-sta-workflow:
 
-=============================================================
-Tutorial - Subtomogram averaging with Reliontomo plugin for Scipion
-=============================================================
+ 
+# Tutorial - Subtomogram averaging with Reliontomo plugin for Scipion
 
-.. contents:: Table of Contents
+## Contents:: Table of Contents
+
 
 # The dataset
 
