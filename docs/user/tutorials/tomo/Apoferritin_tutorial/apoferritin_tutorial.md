@@ -2,7 +2,7 @@
    :width: 250
    :alt: scipion logo
 
-.. _reliontomo-sta-workflow:
+.. `ApoferritinTutorial`:
 
  
 # Subtomogram averaging tutorial. Apoferritin sample
