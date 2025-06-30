@@ -84,7 +84,7 @@ ScipionTomo framework. Our objective is to reconstruct the capsid of the HIV vir
 The subtomogram averaging will be carried out with Relion, however, the preprocessing
 from movies to tomogram will involve a combination of different software packages
 
- *Guide*: `Subtomogram Averaging HIV <https://github.com/Vilax/ScipionTomoTutorial_HIV/blob/main/HIVtutorial.md>`_
+ *Guide*: :ref:`Subtomogram Averaging HIV <HIVTutorial>`
 
 Subtomogram Averaging Ribosome with EMAN plugin for Scipion
 -----------------------------------------------------------
