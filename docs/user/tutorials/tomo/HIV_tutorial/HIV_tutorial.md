@@ -481,7 +481,7 @@ To extract the pseudo subtomograms the next input data will be required:
 
 > **Note** This protocol will be executed twice using the same parameters, but first writing output as 3D and later as 2D pseudo-subtomogram. 
 
-![relionTomoExtract](FiguresHIV/relionTomoExtract.png)
+![relionTomoExtract](FiguresHIV/relionTomoExtractbin6.png)
 
 > **Tip**: The 3D pseudo-subtomograms work better for obtaining a 3D initial model than the 2D pseudo-subtomograms.
 
@@ -524,43 +524,12 @@ Using the initial model, it is possible to refine it to enhance the map quality 
 - **Prior width on tilt angle**: 10 deg
 
 
-![relionAutoRefine](FiguresHIV/relionAutorefineBin4.png)
+![relionAutoRefine](FiguresHIV/relionAutorefineBin6.png)
 
 
-![reliontomoInitialModelResult](FiguresHIV/reliontomoInitialModelResult.png)
-The result of this protocol should be similar to the one shown in the Figure. Fpr the latge dataset the FSC should reach Nyquist, for the small data set with 1-2 picked viruses the FSC should be close to Nyquist, around 20A resolution. If Nyquist resolution is reached, the next step will be to reduce the binning refining again the obtained map
+The result of this protocol should be similar to the one shown in the Figure. For the large dataset the FSC should reach Nyquist, for the small data set with 1-2 picked viruses the FSC should be close to Nyquist, around 20A resolution. If Nyquist resolution is reached, the next step will be to reduce the binning refining again the obtained map
 .
-![relionAutorefinebin4Result](FiguresHIV/relionAutorefinebin4Result.png)
-
-
-## Extract pseudo-subtomograms at bin 2
-
-This steps shows how to reduce the binning keeping the alignment of already refined pseudo-subtomograms. The protocol `reliontomo - extract subtomos` allows this task. The parameters :
-
-- **Coordinates**: They will be the refined pseudo-subtomograms from the 'reliontomo - 3d auto-refine`.
-- **CTF**: The estimated with CTFfind with excluded views.
-- **Tilt series**: The aligned ones with dose and excluded views.
-- **Binning**: 2.
-- **Box size (px)**: 256 px. This box size will be used to correct the CTF in the cropped particles from the tilt series
-- **Croppped box size (px)**: 128 px. This will be the size of the pseudo-subtomograms and therefore of the reconstructed map.
-- **Write output as 2D stacks**: Set Yes for refinin 2D pseudo-subtomograms are recommended
-![extractbin2](FiguresHIV/extractbin2.png)
-
-
-## Reconstruct particle at bin 2
-
-In this step the refined pseudo-subtomograms from the previous autorefine are used to reconstruct the protein, but keeping their angular assignment. This is only a reconstruction step. The protocol `reliontomo - reconstruct particle` 
-
-![relionReconstructParticlebin2](FiguresHIV/relionReconstructParticlebin2.png)
-
-The reconstructed protein can be visualized with Scipion (to see the slices) or with Chimera (to see the 3D map). As it can be observed in the figure the map quality enhanced in comparison to the reconstruction at bin 6. 
-
-![reconstructParticlebin2Result](FiguresHIV/reconstructParticlebin2Result.png)
-
-
-## Refine volume at bin 2
-
-
+![relionAutorefinebin4Result](FiguresHIV/outputRelionTomoAutorefinebin6.png)
 
 # Contact us
 
