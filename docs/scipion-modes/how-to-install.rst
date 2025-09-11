@@ -123,7 +123,7 @@ To install Xmipp plugin, please review the `requirements <https://i2pc.github.io
 
     /path/for/scipion/scipion3 install -p scipion-em-xmipp  | tee -a install.log
 
-If any error arise, check `install.log` file for errors.
+If any error arise, check `install.log` file for errors. 
 
 .. note::
   For HPC clusters the above command should not have installed (compiled) Xmipp. You need to compile it manually following `those steps <https://i2pc.github.io/docs/Installation/Installations/index.html#installation-for-hpc-clusters>`__
