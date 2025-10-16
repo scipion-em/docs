@@ -102,6 +102,7 @@
              
   <h1>Source code for pwem.emlib.image.image_readers</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">enum</span>
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
 
@@ -126,6 +127,7 @@
     <span class="n">NATURAL</span><span class="o">=</span><span class="mi">2</span> <span class="c1"># Rotation will require a bigger image to avoid loosing informatión in the corners</span>
     <span class="n">CONDITIONAL</span><span class="o">=</span><span class="mi">3</span> <span class="c1"># Similar to FIXED, but shifting x and y original dimensions in some cases to reduce</span></div>
                   <span class="c1"># information loss. 45&lt;rot&lt;135 and 225&lt;rot&lt;315</span>
+
 
 <span class="c1"># Classes to replace one day the functionality covered by ImageHandler... which uses xmipp binding</span>
 <div class="viewcode-block" id="ImageStack"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.ImageStack">[docs]</a><span class="k">class</span> <span class="nc">ImageStack</span><span class="p">:</span>
@@ -228,18 +230,23 @@
         <span class="k">return</span> <span class="n">npArray</span><span class="p">[</span><span class="n">start_y</span><span class="p">:</span><span class="n">start_y</span> <span class="o">+</span> <span class="n">target_height</span><span class="p">,</span> <span class="n">start_x</span><span class="p">:</span><span class="n">start_x</span> <span class="o">+</span> <span class="n">target_width</span><span class="p">]</span>
 
 <div class="viewcode-block" id="ImageStack.rotateSlice"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.ImageStack.rotateSlice">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">rotateSlice</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">npArray</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">angle</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">ROT_MODE</span><span class="o">.</span><span class="n">FIXED</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">rotateSlice</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">npArray</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">angle</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">ROT_MODE</span><span class="o">.</span><span class="n">CONDITIONAL</span><span class="p">,</span> <span class="n">bg</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot;Rotates a numpy array&quot;&quot;&quot;</span>
 
-        <span class="n">bg</span> <span class="o">=</span> <span class="n">npArray</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">if</span> <span class="n">bg</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">bg</span> <span class="c1"># Get the mean value</span>
-        <span class="n">reshape</span> <span class="o">=</span> <span class="n">mode</span> <span class="o">!=</span> <span class="n">ROT_MODE</span><span class="o">.</span><span class="n">FIXED</span>  <span class="c1"># Fixed mode should not reshape the array</span>
+        <span class="n">angle</span> <span class="o">=</span> <span class="n">angle</span> <span class="o">%</span> <span class="mi">360</span>  <span class="c1"># negative angles should turn into its equivalent: -15 -&gt; 345</span>
+
+        <span class="k">if</span> <span class="n">angle</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">npArray</span>
+
+        <span class="n">bg</span> <span class="o">=</span> <span class="n">npArray</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">if</span> <span class="n">bg</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">bg</span>  <span class="c1"># Get the mean value</span>
+        <span class="n">reshape</span> <span class="o">=</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">ROT_MODE</span><span class="o">.</span><span class="n">FIXED</span>  <span class="c1"># Fixed mode should not reshape the array</span>
 
         <span class="c1"># Rotate the image</span>
         <span class="n">rotated</span> <span class="o">=</span> <span class="n">rotate</span><span class="p">(</span><span class="n">npArray</span><span class="p">,</span> <span class="n">angle</span><span class="p">,</span> <span class="n">reshape</span><span class="o">=</span><span class="n">reshape</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span> <span class="n">cval</span><span class="o">=</span><span class="n">bg</span><span class="p">)</span>
 
         <span class="c1"># If mode</span>
         <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="n">ROT_MODE</span><span class="o">.</span><span class="n">CONDITIONAL</span><span class="p">:</span>
-            <span class="n">angle</span> <span class="o">=</span> <span class="n">angle</span> <span class="o">%</span> <span class="mi">360</span>  <span class="c1"># negative angles should turn into its equivalent: -15 -&gt; 345</span>
+
             <span class="n">target_height</span><span class="p">,</span> <span class="n">target_width</span> <span class="o">=</span> <span class="n">npArray</span><span class="o">.</span><span class="n">shape</span>
 
             <span class="c1"># If in the region to shift dimension</span>
@@ -258,7 +265,7 @@
 <span class="sd">        :param shifts = float or sequence. If a sequence, first value should be X shift and second Y shift</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="n">bg</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">if</span> <span class="n">bg</span> <span class="ow">is</span>  <span class="kc">None</span> <span class="k">else</span> <span class="n">bg</span><span class="c1"># Get the mean value</span>
+        <span class="n">bg</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span> <span class="k">if</span> <span class="n">bg</span> <span class="ow">is</span>  <span class="kc">None</span> <span class="k">else</span> <span class="n">bg</span>  <span class="c1"># Get the mean value</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">shifts</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
             <span class="c1"># Swap: shift expect first element to be y abd then x. We have opposite convention</span>
@@ -292,6 +299,10 @@
     <span class="k">def</span> <span class="nf">thumbnailSlice</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">npImage</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Calls PIl thumbnail. It is less precise but faster than scaleSlice&quot;&quot;&quot;</span>
 
+        <span class="n">imgX</span><span class="p">,</span> <span class="n">imgY</span> <span class="o">=</span> <span class="n">npImage</span><span class="o">.</span><span class="n">shape</span>
+        <span class="k">if</span> <span class="n">width</span> <span class="o">&gt;</span> <span class="n">imgX</span> <span class="ow">or</span> <span class="n">height</span> <span class="o">&gt;</span> <span class="n">imgY</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;thumbnailSlice does not scale up images.&quot;</span><span class="p">)</span>
+
         <span class="n">img</span> <span class="o">=</span> <span class="bp">cls</span><span class="o">.</span><span class="n">asPilImage</span><span class="p">(</span><span class="n">npImage</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="n">normalize</span><span class="p">)</span>
         <span class="n">img</span><span class="o">.</span><span class="n">thumbnail</span><span class="p">((</span><span class="n">width</span><span class="p">,</span><span class="n">height</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></div>
@@ -303,6 +314,22 @@
 
         <span class="n">mode</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">vertically</span> <span class="k">else</span> <span class="mi">1</span>
         <span class="k">return</span> <span class="n">numpy</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="n">npImage</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ImageStack.highlightSlice"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.ImageStack.highlightSlice">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">highlightSlice</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">npImage</span><span class="p">:</span><span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">stds</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :param npImage: image as 2d numpy array</span>
+<span class="sd">        :param stds: number of STD to apply the contrast</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">imgmean</span> <span class="o">=</span> <span class="n">npImage</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+        <span class="n">imgstd</span> <span class="o">=</span> <span class="n">npImage</span><span class="o">.</span><span class="n">std</span><span class="p">()</span>
+        <span class="n">offset</span> <span class="o">=</span> <span class="n">stds</span> <span class="o">*</span> <span class="n">imgstd</span>
+        <span class="n">low</span> <span class="o">=</span> <span class="n">imgmean</span> <span class="o">-</span> <span class="n">offset</span>
+        <span class="n">high</span> <span class="o">=</span> <span class="n">imgmean</span> <span class="o">+</span> <span class="n">offset</span>
+        <span class="n">contrast_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">npImage</span><span class="p">,</span> <span class="n">low</span><span class="p">,</span> <span class="n">high</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">contrast_data</span></div>
+
 
 <div class="viewcode-block" id="ImageStack.flip"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.ImageStack.flip">[docs]</a>    <span class="k">def</span> <span class="nf">flip</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vertically</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Flip all images of an ImageStack horizontally or vertically.</span>
@@ -347,12 +374,20 @@
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_applyOperation</span><span class="p">(</span><span class="k">lambda</span> <span class="n">npImage</span><span class="p">,</span> <span class="n">factor</span><span class="p">:</span> <span class="n">npImage</span><span class="o">*</span><span class="n">factor</span><span class="p">,</span> <span class="n">factor</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="ImageStack.invert"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.ImageStack.invert">[docs]</a>    <span class="k">def</span> <span class="nf">invert</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Invert values of all slices&quot;&quot;&quot;</span>
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">factor</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="ImageStack.normalize"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.ImageStack.normalize">[docs]</a>    <span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Normalize values of all slices&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_applyOperation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">normalizeSlice</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ImageStack.highlight"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.ImageStack.highlight">[docs]</a>    <span class="k">def</span> <span class="nf">highlight</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stds</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Increases de contrast of all slices</span>
+<span class="sd">        :param stds: number of STD to apply the contrast&quot;&quot;&quot;</span>
+        <span class="k">return</span>  <span class="bp">self</span><span class="o">.</span><span class="n">_applyOperation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">highlightSlice</span><span class="p">,</span> <span class="n">stds</span><span class="o">=</span><span class="n">stds</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_applyOperation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operation</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">rotImg</span> <span class="o">=</span> <span class="n">ImageStack</span><span class="p">()</span>
@@ -406,6 +441,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;write method not implemented. Cannot write </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">fileName</span><span class="p">)</span></div></div>
 
+
 <div class="viewcode-block" id="ImageReadersRegistry"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.ImageReadersRegistry">[docs]</a><span class="k">class</span> <span class="nc">ImageReadersRegistry</span><span class="p">:</span>
     <span class="sd">&quot;&quot;&quot; Class to register image readers to provide basic information about an image like dimensions or getting an image&quot;&quot;&quot;</span>
     <span class="n">_readers</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>  <span class="c1"># Dictionary to hold the readers. The key is the extension</span>
@@ -434,15 +470,43 @@
         <span class="k">return</span> <span class="n">reader</span></div>
 
 <div class="viewcode-block" id="ImageReadersRegistry.open"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.ImageReadersRegistry.open">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="nd">@lru_cache</span>
     <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filePath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImageStack</span><span class="p">:</span>
-        <span class="sd">&quot;&quot;&quot;&quot;Opens the file and returns and ImageStack.</span>
-<span class="sd">        Accepts formats like 1@path/to/my/image.ext.</span>
-<span class="sd">        In this case there can be a performance penalty since readers are reading all the</span>
-<span class="sd">        stack but we are only taking one slice. This may be unavoidable in cases when you want</span>
-<span class="sd">        to read a single image but not optimal when you are going to go through all the stack.</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Opens an image or image stack from the given file path.</span>
+
+<span class="sd">        This method serves as a public interface and delegates the actual loading</span>
+<span class="sd">        to a cached internal method. It extracts the file last modification time</span>
+<span class="sd">        (mtime) to ensure the cache is invalidated if the file changes.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            filePath (str): Path to the image file. Can include a slice index in the format</span>
+<span class="sd">                            &#39;1@path/to/image.ext&#39; to request a specific slice.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ImageStack: The loaded image data, either a single slice or a full stack.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">mTime</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getmtime</span><span class="p">(</span><span class="n">filePath</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="o">.</span><span class="n">_openInternal</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="n">mTime</span><span class="p">)</span></div>
+
+    <span class="nd">@classmethod</span>
+    <span class="nd">@lru_cache</span>
+    <span class="k">def</span> <span class="nf">_openInternal</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filePath</span><span class="p">,</span> <span class="n">mtime</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ImageStack</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Internal method that performs the actual image loading and is cached.</span>
+
+<span class="sd">        This method handles slicing requests if the reader supports it. If not,</span>
+<span class="sd">        it loads the entire image stack and extracts the requested slice manually.</span>
+<span class="sd">        The cache is tied to both filePath and mTime to ensure consistency when files change.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">            filePath (str): Path to the image file. May include a slice index prefix (&#39;N@path&#39;).</span>
+<span class="sd">            mTime (float): Last modification timestamp of the file (used for cache invalidation).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ImageStack: The loaded image data.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Reading image file </span><span class="si">{</span><span class="n">filePath</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
         <span class="n">parts</span> <span class="o">=</span> <span class="n">filePath</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;@&quot;</span><span class="p">)</span>
 
         <span class="n">filePath</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -466,7 +530,7 @@
             <span class="c1"># Get the numpy array</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">imageReader</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filePath</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">ImageStack</span><span class="p">(</span><span class="n">data</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">ImageStack</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ImageReadersRegistry.write"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.ImageReadersRegistry.write">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">imgStack</span><span class="p">:</span> <span class="n">ImageStack</span><span class="p">,</span> <span class="n">fileName</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">isStack</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
@@ -613,7 +677,6 @@
         <span class="k">return</span> <span class="n">imfloat</span></div>
 
 <div class="viewcode-block" id="MRCImageReader.getMrcImage"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.MRCImageReader.getMrcImage">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="nd">@lru_cache</span>
     <span class="k">def</span> <span class="nf">getMrcImage</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">fileName</span><span class="p">):</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Reading </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">fileName</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">mrcfile</span><span class="o">.</span><span class="n">mmap</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;r+&#39;</span><span class="p">,</span> <span class="n">permissive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
