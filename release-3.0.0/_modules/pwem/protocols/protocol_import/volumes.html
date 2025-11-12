@@ -454,6 +454,32 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_insertFunctionStep</span><span class="p">(</span><span class="s1">&#39;createOutputStep&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pdbFile</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
+    <span class="k">def</span> <span class="nf">_addChainA</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pdbPath</span><span class="p">,</span> <span class="n">patchedPath</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add a chain ID &#39;A&#39; to every ATOM/HETATM line of a PDB file.</span>
+<span class="sd">        Keeps original spacing and formatting.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">patched_lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">pdbPath</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">((</span><span class="s2">&quot;ATOM&quot;</span><span class="p">,</span> <span class="s2">&quot;HETATM&quot;</span><span class="p">)):</span>
+                    <span class="c1"># PDB format: chain ID is at column 22 (index 21)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">22</span> <span class="ow">and</span> <span class="n">line</span><span class="p">[</span><span class="mi">21</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot; &quot;</span><span class="p">:</span>
+                        <span class="c1"># insert &#39;A&#39; at position 21</span>
+                        <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="p">[:</span><span class="mi">21</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;A&quot;</span> <span class="o">+</span> <span class="n">line</span><span class="p">[</span><span class="mi">22</span><span class="p">:]</span>
+                <span class="n">patched_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+
+        <span class="c1"># Add TER and END if missing</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;TER&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">patched_lines</span><span class="p">):</span>
+            <span class="n">patched_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;TER</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">l</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;END&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">patched_lines</span><span class="p">):</span>
+            <span class="n">patched_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;END</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">patchedPath</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">writelines</span><span class="p">(</span><span class="n">patched_lines</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">patchedPath</span>
+
 <div class="viewcode-block" id="ProtImportPdb.pdbDownloadStep"><a class="viewcode-back" href="../../../../api/pwem/pwem.protocols.protocol_import.volumes.html#pwem.protocols.protocol_import.volumes.ProtImportPdb.pdbDownloadStep">[docs]</a>    <span class="k">def</span> <span class="nf">pdbDownloadStep</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Download all pdb files in file_list and unzip them.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -477,13 +503,33 @@
 
         <span class="n">chimeraPlugin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__getChimeraPlugin</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">chimeraPlugin</span><span class="p">:</span>
-            <span class="n">localPath</span> <span class="o">=</span> <span class="n">localPath</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="n">localPath</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;.cif&quot;</span><span class="p">)</span>
-            <span class="n">args</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;--nogui --cmd &quot;open </span><span class="si">{</span><span class="n">atomStructPath</span><span class="si">}</span><span class="s1">; save </span><span class="si">{</span><span class="n">localPath</span><span class="si">}</span><span class="s1">; exit&quot;&#39;</span>
-            <span class="n">chimeraPlugin</span><span class="o">.</span><span class="n">runChimeraProgram</span><span class="p">(</span><span class="n">chimeraPlugin</span><span class="o">.</span><span class="n">getProgram</span><span class="p">(),</span> <span class="n">args</span><span class="p">)</span>
+            <span class="n">localCIFPath</span> <span class="o">=</span> <span class="n">localPath</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.cif&quot;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">localPath</span> <span class="o">=</span> <span class="n">localPath</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="n">localPath</span><span class="p">[</span><span class="o">-</span><span class="mi">4</span><span class="p">:]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;.pdb&quot;</span><span class="p">,</span> <span class="s2">&quot;.cif&quot;</span><span class="p">)</span>
+                <span class="n">args</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;--nogui --cmd &quot;open </span><span class="si">{</span><span class="n">atomStructPath</span><span class="si">}</span><span class="s1">; save </span><span class="si">{</span><span class="n">localPath</span><span class="si">}</span><span class="s1">; exit&quot;&#39;</span>
+                <span class="n">chimeraPlugin</span><span class="o">.</span><span class="n">runChimeraProgram</span><span class="p">(</span><span class="n">chimeraPlugin</span><span class="o">.</span><span class="n">getProgram</span><span class="p">(),</span> <span class="n">args</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Normal ChimeraX conversion failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Attempting to patch PDB and retry...&quot;</span><span class="p">)</span>
+
+                <span class="n">patchedPDB</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_addChainA</span><span class="p">(</span><span class="n">atomStructPath</span><span class="p">,</span> <span class="n">localPath</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;_chain.pdb&quot;</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">args</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="sa">f</span><span class="s1">&#39;--nogui --cmd &quot;open </span><span class="si">{</span><span class="n">patchedPDB</span><span class="si">}</span><span class="s1">; &#39;</span>
+                        <span class="sa">f</span><span class="s1">&#39;save </span><span class="si">{</span><span class="n">localCIFPath</span><span class="si">}</span><span class="s1">; exit&quot;&#39;</span>
+                    <span class="p">)</span>
+                    <span class="n">chimeraPlugin</span><span class="o">.</span><span class="n">runChimeraProgram</span><span class="p">(</span><span class="n">chimeraPlugin</span><span class="o">.</span><span class="n">getProgram</span><span class="p">(),</span> <span class="n">args</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;PDB successfully converted after patch.&quot;</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e2</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed again after patch: </span><span class="si">{</span><span class="n">e2</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Copying original PDB instead.&quot;</span><span class="p">)</span>
+                    <span class="n">pwutils</span><span class="o">.</span><span class="n">copyFile</span><span class="p">(</span><span class="n">atomStructPath</span><span class="p">,</span> <span class="n">localPath</span><span class="p">)</span>
+                    <span class="n">localCIFPath</span> <span class="o">=</span> <span class="n">localPath</span>
+
+            <span class="n">localPath</span> <span class="o">=</span> <span class="n">localCIFPath</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">atomStructPath</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">str</span><span class="p">(</span><span class="n">localPath</span><span class="p">):</span>  <span class="c1"># from local file</span>
                 <span class="n">pwutils</span><span class="o">.</span><span class="n">copyFile</span><span class="p">(</span><span class="n">atomStructPath</span><span class="p">,</span> <span class="n">localPath</span><span class="p">)</span>
-
         <span class="n">localPath</span> <span class="o">=</span> <span class="n">relpath</span><span class="p">(</span><span class="n">localPath</span><span class="p">)</span>
 
         <span class="n">pdb</span> <span class="o">=</span> <span class="n">emobj</span><span class="o">.</span><span class="n">AtomStruct</span><span class="p">()</span>
