@@ -24,6 +24,7 @@ maintain a direct communication channel.
 .. `Facilities map <https://www.google.com/maps/d/viewer?
 .. mid=1MHEnnhBsUarOGJnlo0BapQrrGtA&ll=23.859083678630366%2C-5.749884867547308&z=3>`_
 
+
 .. figure:: /docs/images/facilities_map_updated.png
    :align: center
    :width: 900
