@@ -30,7 +30,7 @@ maintain a direct communication channel.
    :width: 900
    :alt: updated facilities map
 
-   `Abrir mapa interactivo <https://www.google.com/maps/d/u/0/edit?mid=1aPGafshsnSW77ATfBBqXXWFWbh5DxWk&usp=sharing>`_
+   `Open interactive map <https://www.google.com/maps/d/u/0/edit?mid=1aPGafshsnSW77ATfBBqXXWFWbh5DxWk&usp=sharing>`_
 
 Streaming processing
 --------------------
