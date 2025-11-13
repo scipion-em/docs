@@ -25,12 +25,13 @@ maintain a direct communication channel.
 .. mid=1MHEnnhBsUarOGJnlo0BapQrrGtA&ll=23.859083678630366%2C-5.749884867547308&z=3>`_
 
 
-.. figure:: /docs/images/facilities_map_updated.png
-   :align: center
-   :width: 900
-   :alt: updated facilities map
+.. raw:: html
 
-   `Open interactive map <https://www.google.com/maps/d/u/0/edit?mid=1aPGafshsnSW77ATfBBqXXWFWbh5DxWk&usp=sharing>`_
+   <iframe src="https://www.google.com/maps/d/u/0/embed?mid=1aPGafshsnSW77ATfBBqXXWFWbh5DxWk&ehbc=2E312F&noprof=1"
+           width="640"
+           height="480"></iframe>
+
+   `Open interactive map of facilities using Scipion <https://www.google.com/maps/d/u/0/edit?mid=1aPGafshsnSW77ATfBBqXXWFWbh5DxWk&usp=sharing>`_
 
 Streaming processing
 --------------------
