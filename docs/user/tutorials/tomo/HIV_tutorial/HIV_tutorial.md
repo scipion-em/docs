@@ -2,7 +2,7 @@
    :width: 250
    :alt: scipion logo
 
-.. _HIV_Tutorial:
+.. _HIV_tutorial:
 
 # Subtomogram averaging tutorial. HIV sample
 
