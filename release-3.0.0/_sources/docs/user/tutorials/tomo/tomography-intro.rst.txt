@@ -1,8 +1,6 @@
-
-.. image:: /docs/images/tomography/scipion-tomo-color.png
-   :width: 100
-   :align: right
-   :alt: scipion tomo logo
+.. figure:: /docs/images/scipion_logo.gif
+   :width: 250
+   :alt: scipion logo
 
 .. _tomography-intro:
 
