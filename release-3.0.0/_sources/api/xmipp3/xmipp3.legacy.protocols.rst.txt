@@ -14,6 +14,8 @@ Submodules
    xmipp3.legacy.protocols.protocol_classification_gpuCorr_semi
    xmipp3.legacy.protocols.protocol_classify_kmeans2d
    xmipp3.legacy.protocols.protocol_deep_align
+   xmipp3.legacy.protocols.protocol_deep_center
+   xmipp3.legacy.protocols.protocol_deep_center_predict
    xmipp3.legacy.protocols.protocol_deep_denoising
    xmipp3.legacy.protocols.protocol_enrich
    xmipp3.legacy.protocols.protocol_extract_particles_movies

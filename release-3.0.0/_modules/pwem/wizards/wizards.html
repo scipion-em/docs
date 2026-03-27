@@ -129,8 +129,13 @@
 <span class="c1"># **************************************************************************</span>
 <span class="sd">&quot;&quot;&quot; This module is for Actual wizards to be able to be discovered from the</span>
 <span class="sd">Domain. wizard.py is left for wizard models and base classes.&quot;&quot;&quot;</span>
-<span class="kn">import</span> <span class="nn">decimal</span>
-<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">json</span>
+<span class="c1"># import decimal</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">http</span> <span class="kn">import</span> <span class="n">HTTPStatus</span>
+
+<span class="c1"># &#39;The server encountered an internal error and was unable to complete the request.&#39;</span>
+
 <span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="kn">import</span> <span class="nn">pyworkflow.object</span> <span class="k">as</span> <span class="nn">pwobj</span>
@@ -146,6 +151,8 @@
 <span class="kn">import</span> <span class="nn">pwem.viewers</span> <span class="k">as</span> <span class="nn">emview</span>
 <span class="kn">import</span> <span class="nn">pwem.objects</span> <span class="k">as</span> <span class="nn">emobj</span>
 <span class="kn">from</span> <span class="nn">pwem.constants</span> <span class="kn">import</span> <span class="n">RESIDUES3TO1</span><span class="p">,</span> <span class="n">RESIDUES1TO3</span>
+
+<span class="n">PDB_URL</span> <span class="o">=</span> <span class="s2">&quot;https://www.rcsb.org/structure/</span><span class="si">{pdbID}</span><span class="s2">&quot;</span>
 
 
 <div class="viewcode-block" id="ImportAcquisitionWizard"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.ImportAcquisitionWizard">[docs]</a><span class="k">class</span> <span class="nc">ImportAcquisitionWizard</span><span class="p">(</span><span class="n">EmWizard</span><span class="p">):</span>
@@ -265,100 +272,109 @@
 
 
 <div class="viewcode-block" id="GetStructureChainsWizard"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.GetStructureChainsWizard">[docs]</a><span class="k">class</span> <span class="nc">GetStructureChainsWizard</span><span class="p">(</span><span class="n">pwizard</span><span class="o">.</span><span class="n">Wizard</span><span class="p">):</span>
-  <span class="c1"># WARNING: this wizard is deprecated. Instead, SelectChainWizard must be used, where inputs, targets and outputs</span>
-  <span class="c1"># can be specified.</span>
-  <span class="sd">&quot;&quot;&quot;Load an atomic structure, parse chain related information as</span>
-<span class="sd">     name, number of residues, list of aminoacids (or other residues)&quot;&quot;&quot;</span>
-  <span class="n">_targets</span> <span class="o">=</span> <span class="p">[(</span><span class="n">emprot</span><span class="o">.</span><span class="n">ProtImportSequence</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;inputStructureChain&#39;</span><span class="p">])</span>
-              <span class="c1"># NOTE: be careful if you change this class since</span>
-              <span class="c1"># chimera-wizard inherits from it.</span>
-              <span class="c1"># (ChimeraModelFromTemplate, [&#39;inputStructureChain&#39;])</span>
-              <span class="c1"># (atomstructutils, [&#39;inputStructureChain&#39;])</span>
-              <span class="p">]</span>
+    <span class="c1"># WARNING: this wizard is deprecated. Instead, </span>
+    <span class="c1"># SelectChainWizard must be used, where inputs, targets and outputs</span>
+    <span class="c1"># can be specified.</span>
+    <span class="sd">&quot;&quot;&quot;Load an atomic structure, parse chain related information as</span>
+<span class="sd">       name, number of residues, list of aminoacids (or other residues)&quot;&quot;&quot;</span>
+    <span class="n">_targets</span> <span class="o">=</span> <span class="p">[(</span><span class="n">emprot</span><span class="o">.</span><span class="n">ProtImportSequence</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;inputStructureChain&#39;</span><span class="p">])</span>
+                <span class="c1"># NOTE: be careful if you change this class since</span>
+                <span class="c1"># chimera-wizard inherits from it.</span>
+                <span class="c1"># (ChimeraModelFromTemplate, [&#39;inputStructureChain&#39;])</span>
+                <span class="c1"># (atomstructutils, [&#39;inputStructureChain&#39;])</span>
+                <span class="p">]</span>
 
-<div class="viewcode-block" id="GetStructureChainsWizard.getModelsChainsStep"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.GetStructureChainsWizard.getModelsChainsStep">[docs]</a>  <span class="nd">@classmethod</span>
-  <span class="k">def</span> <span class="nf">getModelsChainsStep</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">protocol</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Returns (1) list with the information</span>
-<span class="sd">       {&quot;model&quot;: %d, &quot;chain&quot;: &quot;%s&quot;, &quot;residues&quot;: %d} (modelsLength)</span>
-<span class="sd">       (2) list with residues, position and chain (modelsFirstResidue)&quot;&quot;&quot;</span>
-    <span class="n">structureHandler</span> <span class="o">=</span> <span class="n">emconv</span><span class="o">.</span><span class="n">AtomicStructHandler</span><span class="p">()</span>
-    <span class="n">fileName</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="s1">&#39;pdbId&#39;</span><span class="p">):</span>
-      <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">pdbId</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">pdbID</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">pdbId</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-        <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://www.rcsb.org/structure/&quot;</span>
-        <span class="n">URL</span> <span class="o">=</span> <span class="n">url</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pdbID</span><span class="p">)</span>
+<div class="viewcode-block" id="GetStructureChainsWizard.getModelsChainsStep"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.GetStructureChainsWizard.getModelsChainsStep">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">getModelsChainsStep</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">protocol</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns (1) list with the information</span>
+<span class="sd">           {&quot;model&quot;: %d, &quot;chain&quot;: &quot;%s&quot;, &quot;residues&quot;: %d} (modelsLength)</span>
+<span class="sd">           (2) list with residues, position and chain (modelsFirstResidue)&quot;&quot;&quot;</span>
+        <span class="n">structureHandler</span> <span class="o">=</span> <span class="n">emconv</span><span class="o">.</span><span class="n">AtomicStructHandler</span><span class="p">()</span>
+        <span class="n">fileName</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="s1">&#39;pdbId&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">pdbId</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">pdbID</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">pdbId</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+                <span class="n">URL</span> <span class="o">=</span> <span class="n">PDB_URL</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pdbID</span><span class="o">=</span><span class="n">pdbID</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">URL</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot connect to PDB server (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">HTTPStatus</span><span class="o">.</span><span class="n">INTERNAL_SERVER_ERROR</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>  <span class="c1"># 500</span>
+                <span class="k">if</span> <span class="p">((</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span>
+                     <span class="n">HTTPStatus</span><span class="o">.</span><span class="n">INTERNAL_SERVER_ERROR</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+                    <span class="ow">and</span>
+                    <span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span>
+                     <span class="n">HTTPStatus</span><span class="o">.</span><span class="n">INTERNAL_SERVER_ERROR</span><span class="o">.</span><span class="n">value</span><span class="p">)):</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is a wrong PDB ID&quot;</span> <span class="o">%</span> <span class="n">pdbID</span><span class="p">)</span>
+                <span class="n">fileName</span> <span class="o">=</span> <span class="n">structureHandler</span><span class="o">.</span><span class="n">readFromPDBDatabase</span><span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">pdbID</span><span class="p">),</span> <span class="nb">dir</span><span class="o">=</span><span class="s2">&quot;/tmp/&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">fileName</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">pdbFile</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">pdbFileToBeRefined</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">fileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">pdbFileToBeRefined</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="p">)</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
+
+        <span class="n">structureHandler</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fileName</span><span class="p">)</span>
+        <span class="n">structureHandler</span><span class="o">.</span><span class="n">getStructure</span><span class="p">()</span>
+        <span class="c1"># listOfChains, listOfResidues = structureHandler.getModelsChains()</span>
+        <span class="k">return</span> <span class="n">structureHandler</span><span class="o">.</span><span class="n">getModelsChains</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="GetStructureChainsWizard.editionListOfChains"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.GetStructureChainsWizard.editionListOfChains">[docs]</a>    <span class="k">def</span> <span class="nf">editionListOfChains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">listOfChains</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">chainList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">model</span><span class="p">,</span> <span class="n">chainDic</span> <span class="ow">in</span> <span class="n">listOfChains</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">chainID</span><span class="p">,</span> <span class="n">lenResidues</span> <span class="ow">in</span> <span class="n">chainDic</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">chainList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                  <span class="s1">&#39;{&quot;model&quot;: </span><span class="si">%d</span><span class="s1">, &quot;chain&quot;: &quot;</span><span class="si">%s</span><span class="s1">&quot;, &quot;residues&quot;: </span><span class="si">%d</span><span class="s1">}&#39;</span> <span class="o">%</span>
+                  <span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">chainID</span><span class="p">),</span> <span class="n">lenResidues</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="GetStructureChainsWizard.show"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.GetStructureChainsWizard.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">):</span>
+        <span class="n">protocol</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">protocol</span>
         <span class="k">try</span><span class="p">:</span>
-          <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">URL</span><span class="p">)</span>
-        <span class="k">except</span><span class="p">:</span>
-          <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Cannot connect to PDB server&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">500</span><span class="p">):</span>
-          <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is a wrong PDB ID&quot;</span> <span class="o">%</span> <span class="n">pdbID</span><span class="p">)</span>
-        <span class="n">fileName</span> <span class="o">=</span> <span class="n">structureHandler</span><span class="o">.</span><span class="n">readFromPDBDatabase</span><span class="p">(</span>
-          <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">pdbID</span><span class="p">),</span> <span class="nb">dir</span><span class="o">=</span><span class="s2">&quot;/tmp/&quot;</span><span class="p">)</span>
-      <span class="k">else</span><span class="p">:</span>
-        <span class="n">fileName</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">pdbFile</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-    <span class="k">else</span><span class="p">:</span>
-      <span class="k">if</span> <span class="n">protocol</span><span class="o">.</span><span class="n">pdbFileToBeRefined</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">fileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">protocol</span><span class="o">.</span><span class="n">pdbFileToBeRefined</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
-        <span class="p">)</span><span class="o">.</span><span class="n">getFileName</span><span class="p">())</span>
+            <span class="n">listOfChains</span><span class="p">,</span> <span class="n">listOfResidues</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getModelsChainsStep</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR: &quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+            <span class="k">return</span>
 
-    <span class="n">structureHandler</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fileName</span><span class="p">)</span>
-    <span class="n">structureHandler</span><span class="o">.</span><span class="n">getStructure</span><span class="p">()</span>
-    <span class="c1"># listOfChains, listOfResidues = structureHandler.getModelsChains()</span>
-    <span class="k">return</span> <span class="n">structureHandler</span><span class="o">.</span><span class="n">getModelsChains</span><span class="p">()</span></div>
-
-<div class="viewcode-block" id="GetStructureChainsWizard.editionListOfChains"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.GetStructureChainsWizard.editionListOfChains">[docs]</a>  <span class="k">def</span> <span class="nf">editionListOfChains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">listOfChains</span><span class="p">):</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">chainList</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">model</span><span class="p">,</span> <span class="n">chainDic</span> <span class="ow">in</span> <span class="n">listOfChains</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-      <span class="k">for</span> <span class="n">chainID</span><span class="p">,</span> <span class="n">lenResidues</span> <span class="ow">in</span> <span class="n">chainDic</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">chainList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-          <span class="s1">&#39;{&quot;model&quot;: </span><span class="si">%d</span><span class="s1">, &quot;chain&quot;: &quot;</span><span class="si">%s</span><span class="s1">&quot;, &quot;residues&quot;: </span><span class="si">%d</span><span class="s1">}&#39;</span> <span class="o">%</span>
-          <span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">chainID</span><span class="p">),</span> <span class="n">lenResidues</span><span class="p">))</span></div>
-
-<div class="viewcode-block" id="GetStructureChainsWizard.show"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.GetStructureChainsWizard.show">[docs]</a>  <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">):</span>
-    <span class="n">protocol</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">protocol</span>
-    <span class="k">try</span><span class="p">:</span>
-      <span class="n">listOfChains</span><span class="p">,</span> <span class="n">listOfResidues</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getModelsChainsStep</span><span class="p">(</span><span class="n">protocol</span><span class="p">)</span>
-    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-      <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR: &quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
-      <span class="k">return</span>
-
-    <span class="bp">self</span><span class="o">.</span><span class="n">editionListOfChains</span><span class="p">(</span><span class="n">listOfChains</span><span class="p">)</span>
-    <span class="n">finalChainList</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chainList</span><span class="p">:</span>
-      <span class="n">finalChainList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pwobj</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
-    <span class="n">provider</span> <span class="o">=</span> <span class="n">ListTreeProviderString</span><span class="p">(</span><span class="n">finalChainList</span><span class="p">)</span>
-    <span class="n">dlg</span> <span class="o">=</span> <span class="n">dialog</span><span class="o">.</span><span class="n">ListDialog</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s2">&quot;Model chains&quot;</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span>
-                            <span class="s2">&quot;Select one of the chains (model, chain, &quot;</span>
-                            <span class="s2">&quot;number of chain residues)&quot;</span><span class="p">)</span>
-    <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="s1">&#39;inputStructureChain&#39;</span><span class="p">,</span> <span class="n">dlg</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">())</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">editionListOfChains</span><span class="p">(</span><span class="n">listOfChains</span><span class="p">)</span>
+        <span class="n">finalChainList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">chainList</span><span class="p">:</span>
+            <span class="n">finalChainList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pwobj</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+        <span class="n">provider</span> <span class="o">=</span> <span class="n">ListTreeProviderString</span><span class="p">(</span><span class="n">finalChainList</span><span class="p">)</span>
+        <span class="n">dlg</span> <span class="o">=</span> <span class="n">dialog</span><span class="o">.</span><span class="n">ListDialog</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s2">&quot;Model chains&quot;</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span>
+                                <span class="s2">&quot;Select one of the chains (model, chain, &quot;</span>
+                                <span class="s2">&quot;number of chain residues)&quot;</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="s1">&#39;inputStructureChain&#39;</span><span class="p">,</span> <span class="n">dlg</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">())</span></div></div>
 
 
-<div class="viewcode-block" id="SelectChainWizard"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.SelectChainWizard">[docs]</a><span class="k">class</span> <span class="nc">SelectChainWizard</span><span class="p">(</span><span class="n">VariableWizard</span><span class="p">):</span>
-    <span class="sd">&#39;&#39;&#39;Opens the input AtomStruct and allows you to select one of the present chains&#39;&#39;&#39;</span>
-    <span class="n">_targets</span><span class="p">,</span> <span class="n">_inputs</span><span class="p">,</span> <span class="n">_outputs</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">{},</span> <span class="p">{}</span>
+<div class="viewcode-block" id="BaseChainWizard"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.BaseChainWizard">[docs]</a><span class="k">class</span> <span class="nc">BaseChainWizard</span><span class="p">(</span><span class="n">VariableWizard</span>    <span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Base class for chain selection wizards&#39;&#39;&#39;</span>
 
-<div class="viewcode-block" id="SelectChainWizard.getModelsChainsStep"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.SelectChainWizard.getModelsChainsStep">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="BaseChainWizard.getModelsChainsStep"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.BaseChainWizard.getModelsChainsStep">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">getModelsChainsStep</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">protocol</span><span class="p">,</span> <span class="n">inputObj</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Returns (1) list with the information</span>
 <span class="sd">           {&quot;model&quot;: %d, &quot;chain&quot;: &quot;%s&quot;, &quot;residues&quot;: %d} (modelsLength)</span>
 <span class="sd">           (2) list with residues, position and chain (modelsFirstResidue)&quot;&quot;&quot;</span>
         <span class="n">structureHandler</span> <span class="o">=</span> <span class="n">emconv</span><span class="o">.</span><span class="n">AtomicStructHandler</span><span class="p">()</span>
-        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">inputObj</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inputObj</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">inputObj</span><span class="p">):</span>
                 <span class="n">fileName</span> <span class="o">=</span> <span class="n">inputObj</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">pdbID</span> <span class="o">=</span> <span class="n">inputObj</span>
-                <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://www.rcsb.org/structure/&quot;</span>
-                <span class="n">URL</span> <span class="o">=</span> <span class="n">url</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pdbID</span><span class="p">)</span>
+                <span class="n">URL</span> <span class="o">=</span> <span class="n">PDB_URL</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pdbID</span><span class="o">=</span><span class="n">inputObj</span><span class="p">)</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">URL</span><span class="p">)</span>
-                <span class="k">except</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Cannot connect to PDB server&quot;</span><span class="p">)</span>
-                <span class="k">if</span> <span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">500</span><span class="p">):</span>
+                <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot connect to PDB server (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">((</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span>
+                     <span class="n">HTTPStatus</span><span class="o">.</span><span class="n">INTERNAL_SERVER_ERROR</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>  <span class="c1"># 400</span>
+                    <span class="ow">and</span>
+                    <span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span>
+                     <span class="n">HTTPStatus</span><span class="o">.</span><span class="n">INTERNAL_SERVER_ERROR</span><span class="o">.</span><span class="n">value</span><span class="p">)):</span>  <span class="c1"># 500</span>
                     <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is a wrong PDB ID&quot;</span> <span class="o">%</span> <span class="n">pdbID</span><span class="p">)</span>
-                <span class="n">fileName</span> <span class="o">=</span> <span class="n">structureHandler</span><span class="o">.</span><span class="n">readFromPDBDatabase</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">pdbID</span><span class="p">),</span> <span class="nb">dir</span><span class="o">=</span><span class="s2">&quot;/tmp/&quot;</span><span class="p">)</span>
+                <span class="n">tmp_dir</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getTmpDir</span><span class="p">()</span>
+                <span class="n">fileName</span> <span class="o">=</span> <span class="n">structureHandler</span><span class="o">.</span><span class="n">readFromPDBDatabase</span><span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">pdbID</span><span class="p">),</span> <span class="nb">dir</span><span class="o">=</span><span class="n">tmp_dir</span><span class="p">)</span>
 
         <span class="k">elif</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">inputObj</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;SchrodingerAtomStruct&#39;</span><span class="p">:</span>
             <span class="n">fileName</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">inputObj</span><span class="o">.</span><span class="n">convert2PDB</span><span class="p">())</span>
@@ -369,14 +385,19 @@
         <span class="n">structureHandler</span><span class="o">.</span><span class="n">getStructure</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">structureHandler</span><span class="o">.</span><span class="n">getModelsChains</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="SelectChainWizard.editionListOfChains"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.SelectChainWizard.editionListOfChains">[docs]</a>    <span class="k">def</span> <span class="nf">editionListOfChains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">listOfChains</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseChainWizard.editionListOfChains"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.BaseChainWizard.editionListOfChains">[docs]</a>    <span class="k">def</span> <span class="nf">editionListOfChains</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">listOfChains</span><span class="p">):</span>
         <span class="n">chainList</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">model</span><span class="p">,</span> <span class="n">chainDic</span> <span class="ow">in</span> <span class="n">listOfChains</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">for</span> <span class="n">chainID</span><span class="p">,</span> <span class="n">lenResidues</span> <span class="ow">in</span> <span class="n">chainDic</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
                 <span class="n">chainList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
                     <span class="s1">&#39;{&quot;model&quot;: </span><span class="si">%d</span><span class="s1">, &quot;chain&quot;: &quot;</span><span class="si">%s</span><span class="s1">&quot;, &quot;residues&quot;: </span><span class="si">%d</span><span class="s1">}&#39;</span> <span class="o">%</span>
                     <span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">chainID</span><span class="p">),</span> <span class="n">lenResidues</span><span class="p">))</span>
-        <span class="k">return</span> <span class="n">chainList</span></div>
+        <span class="k">return</span> <span class="n">chainList</span></div></div>
+
+
+<div class="viewcode-block" id="SelectChainWizard"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.SelectChainWizard">[docs]</a><span class="k">class</span> <span class="nc">SelectChainWizard</span><span class="p">(</span><span class="n">BaseChainWizard</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Opens the input AtomStruct and allows you to select ONE chain from the structure&#39;&#39;&#39;</span>
+    <span class="n">_targets</span><span class="p">,</span> <span class="n">_inputs</span><span class="p">,</span> <span class="n">_outputs</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">{},</span> <span class="p">{}</span>
 
 <div class="viewcode-block" id="SelectChainWizard.show"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.SelectChainWizard.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">):</span>
         <span class="n">inputParams</span><span class="p">,</span> <span class="n">outputParam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputOutput</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
@@ -398,83 +419,121 @@
                                 <span class="s2">&quot;number of chain residues)&quot;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="n">outputParam</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dlg</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">())</span></div></div>
 
+
+<span class="c1"># Defining target for the SelectChainWizard</span>
 <span class="n">SelectChainWizard</span><span class="p">()</span><span class="o">.</span><span class="n">addTarget</span><span class="p">(</span><span class="n">protocol</span><span class="o">=</span><span class="n">emprot</span><span class="o">.</span><span class="n">ProtImportSequence</span><span class="p">,</span>
                               <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;inputStructureChain&#39;</span><span class="p">],</span>
                               <span class="n">inputs</span><span class="o">=</span><span class="p">[[</span><span class="s1">&#39;pdbId&#39;</span><span class="p">,</span> <span class="s1">&#39;pdbFile&#39;</span><span class="p">,</span> <span class="s1">&#39;inputAS&#39;</span><span class="p">]],</span>
                               <span class="n">outputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;inputStructureChain&#39;</span><span class="p">])</span>
 
 
+<div class="viewcode-block" id="SelectChainSWizard"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.SelectChainSWizard">[docs]</a><span class="k">class</span> <span class="nc">SelectChainSWizard</span><span class="p">(</span><span class="n">BaseChainWizard</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;Opens the input AtomStruct and allows you to select</span>
+<span class="sd">        MULTIPLE chains (1 or more) from the structure&#39;&#39;&#39;</span>
+    <span class="n">_targets</span><span class="p">,</span> <span class="n">_inputs</span><span class="p">,</span> <span class="n">_outputs</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">{},</span> <span class="p">{}</span>
+
+<div class="viewcode-block" id="SelectChainSWizard.show"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.SelectChainSWizard.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">):</span>
+        <span class="n">inputParams</span><span class="p">,</span> <span class="n">outputParam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputOutput</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
+        <span class="n">protocol</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">protocol</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">inputObj</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">inputParams</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+            <span class="n">listOfChains</span><span class="p">,</span> <span class="n">listOfResidues</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getModelsChainsStep</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">inputObj</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR: &quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">chainList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">editionListOfChains</span><span class="p">(</span><span class="n">listOfChains</span><span class="p">)</span>
+        <span class="n">finalChainList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">chainList</span><span class="p">:</span>
+            <span class="n">finalChainList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pwobj</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+        <span class="n">provider</span> <span class="o">=</span> <span class="n">ListTreeProviderString</span><span class="p">(</span><span class="n">finalChainList</span><span class="p">)</span>
+        <span class="n">dlg</span> <span class="o">=</span> <span class="n">dialog</span><span class="o">.</span><span class="n">ListDialog</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s2">&quot;Model chains&quot;</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span>
+                                <span class="s2">&quot;Select one of the chains (model, chain, &quot;</span>
+                                <span class="s2">&quot;number of chain residues)&quot;</span><span class="p">)</span>
+        <span class="n">result_str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="n">separator</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">for</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dlg</span><span class="o">.</span><span class="n">values</span><span class="p">:</span>
+            <span class="n">chain</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">value</span><span class="o">.</span><span class="n">get</span><span class="p">())[</span><span class="s1">&#39;chain&#39;</span><span class="p">]</span>
+            <span class="n">result_str</span> <span class="o">+=</span> <span class="n">separator</span> <span class="o">+</span> <span class="n">chain</span>
+            <span class="n">separator</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span>
+
+        <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="n">outputParam</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">result_str</span><span class="p">)</span></div></div>
+
+
 <div class="viewcode-block" id="SelectResidueWizard"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.SelectResidueWizard">[docs]</a><span class="k">class</span> <span class="nc">SelectResidueWizard</span><span class="p">(</span><span class="n">SelectChainWizard</span><span class="p">):</span>
     <span class="n">_targets</span><span class="p">,</span> <span class="n">_inputs</span><span class="p">,</span> <span class="n">_outputs</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">{},</span> <span class="p">{}</span>
 
 <div class="viewcode-block" id="SelectResidueWizard.editionListOfResidues"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.SelectResidueWizard.editionListOfResidues">[docs]</a>    <span class="k">def</span> <span class="nf">editionListOfResidues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">modelsFirstResidue</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">chain</span><span class="p">):</span>
-      <span class="n">residueList</span> <span class="o">=</span> <span class="p">[]</span>
-      <span class="k">for</span> <span class="n">modelID</span><span class="p">,</span> <span class="n">chainDic</span> <span class="ow">in</span> <span class="n">modelsFirstResidue</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">model</span><span class="p">)</span> <span class="o">==</span> <span class="n">modelID</span><span class="p">:</span>
-          <span class="k">for</span> <span class="n">chainID</span><span class="p">,</span> <span class="n">seq_number</span> <span class="ow">in</span> <span class="n">chainDic</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-            <span class="k">if</span> <span class="n">chain</span> <span class="o">==</span> <span class="n">chainID</span><span class="p">:</span>
-              <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">seq_number</span><span class="p">:</span>
-                <span class="n">residueList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;{&quot;index&quot;: </span><span class="si">%d</span><span class="s1">, &quot;residue&quot;: &quot;</span><span class="si">%s</span><span class="s1">&quot;}&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
-      <span class="k">return</span> <span class="n">residueList</span></div>
+        <span class="n">residueList</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">modelID</span><span class="p">,</span> <span class="n">chainDic</span> <span class="ow">in</span> <span class="n">modelsFirstResidue</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">model</span><span class="p">)</span> <span class="o">==</span> <span class="n">modelID</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">chainID</span><span class="p">,</span> <span class="n">seq_number</span> <span class="ow">in</span> <span class="n">chainDic</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="k">if</span> <span class="n">chain</span> <span class="o">==</span> <span class="n">chainID</span><span class="p">:</span>
+                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">seq_number</span><span class="p">:</span>
+                            <span class="n">residueList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;{&quot;index&quot;: </span><span class="si">%d</span><span class="s1">, &quot;residue&quot;: &quot;</span><span class="si">%s</span><span class="s1">&quot;}&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">])))</span>
+        <span class="k">return</span> <span class="n">residueList</span></div>
 
 <div class="viewcode-block" id="SelectResidueWizard.getResidues"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.SelectResidueWizard.getResidues">[docs]</a>    <span class="k">def</span> <span class="nf">getResidues</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="n">inputObj</span><span class="p">,</span> <span class="n">chainStr</span><span class="p">):</span>
-      <span class="n">protocol</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">protocol</span>
-
-      <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">inputObj</span><span class="p">)</span> <span class="o">==</span> <span class="nb">str</span><span class="p">:</span>
-          <span class="c1"># Select the residues if the input structure parameter is a str (PDB id or PDB file)</span>
-          <span class="n">structureHandler</span> <span class="o">=</span> <span class="n">emconv</span><span class="o">.</span><span class="n">AtomicStructHandler</span><span class="p">()</span>
-          <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">inputObj</span><span class="p">):</span>
-              <span class="n">fileName</span> <span class="o">=</span> <span class="n">inputObj</span>
-          <span class="k">else</span><span class="p">:</span>
-              <span class="n">pdbID</span> <span class="o">=</span> <span class="n">inputObj</span>
-              <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://www.rcsb.org/structure/&quot;</span>
-              <span class="n">URL</span> <span class="o">=</span> <span class="n">url</span> <span class="o">+</span> <span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pdbID</span><span class="p">)</span>
-              <span class="k">try</span><span class="p">:</span>
-                <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">URL</span><span class="p">)</span>
-              <span class="k">except</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;Cannot connect to PDB server&quot;</span><span class="p">)</span>
-              <span class="k">if</span> <span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">500</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is a wrong PDB ID&quot;</span> <span class="o">%</span> <span class="n">pdbID</span><span class="p">)</span>
-
-              <span class="n">fileName</span> <span class="o">=</span> <span class="n">structureHandler</span><span class="o">.</span><span class="n">readFromPDBDatabase</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">pdbID</span><span class="p">),</span> <span class="nb">dir</span><span class="o">=</span><span class="s2">&quot;/tmp/&quot;</span><span class="p">)</span>
-
-          <span class="n">structureHandler</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fileName</span><span class="p">)</span>
-          <span class="n">structureHandler</span><span class="o">.</span><span class="n">getStructure</span><span class="p">()</span>
-          <span class="n">modelsLength</span><span class="p">,</span> <span class="n">modelsFirstResidue</span> <span class="o">=</span> <span class="n">structureHandler</span><span class="o">.</span><span class="n">getModelsChains</span><span class="p">()</span>
-
-          <span class="n">struct</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">chainStr</span><span class="p">)</span>  <span class="c1"># From wizard dictionary</span>
-          <span class="n">chain</span><span class="p">,</span> <span class="n">model</span> <span class="o">=</span> <span class="n">struct</span><span class="p">[</span><span class="s2">&quot;chain&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="nb">int</span><span class="p">(</span><span class="n">struct</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">])</span>
-
-          <span class="n">residueList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">editionListOfResidues</span><span class="p">(</span><span class="n">modelsFirstResidue</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">chain</span><span class="p">)</span>
-          <span class="n">finalResiduesList</span> <span class="o">=</span> <span class="p">[]</span>
-          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">residueList</span><span class="p">:</span>
-              <span class="n">finalResiduesList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">emobj</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
-
-      <span class="k">elif</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">inputObj</span><span class="p">),</span> <span class="n">emobj</span><span class="o">.</span><span class="n">AtomStruct</span><span class="p">):</span>
-          <span class="k">try</span><span class="p">:</span>
-            <span class="n">modelsLength</span><span class="p">,</span> <span class="n">modelsFirstResidue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getModelsChainsStep</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">inputObj</span><span class="p">)</span>
-          <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR: &quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
-            <span class="k">return</span>
-          <span class="n">struct</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">chainStr</span><span class="p">)</span>  <span class="c1"># From wizard dictionary</span>
-          <span class="n">chain</span><span class="p">,</span> <span class="n">model</span> <span class="o">=</span> <span class="n">struct</span><span class="p">[</span><span class="s2">&quot;chain&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="nb">int</span><span class="p">(</span><span class="n">struct</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">])</span>
-
-          <span class="n">residueList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">editionListOfResidues</span><span class="p">(</span><span class="n">modelsFirstResidue</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">chain</span><span class="p">)</span>
-          <span class="n">finalResiduesList</span> <span class="o">=</span> <span class="p">[]</span>
-          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">residueList</span><span class="p">:</span>
-            <span class="n">finalResiduesList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">emobj</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
-
-      <span class="k">elif</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">inputObj</span><span class="p">),</span> <span class="n">emobj</span><span class="o">.</span><span class="n">Sequence</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">inputObj</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;SequenceVariants&#39;</span><span class="p">:</span>
-          <span class="n">finalResiduesList</span> <span class="o">=</span> <span class="p">[]</span>
-          <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">res</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inputObj</span><span class="o">.</span><span class="n">getSequence</span><span class="p">()):</span>
-            <span class="k">if</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">RESIDUES1TO3</span><span class="p">:</span>
-                <span class="n">res3</span> <span class="o">=</span> <span class="n">RESIDUES1TO3</span><span class="p">[</span><span class="n">res</span><span class="p">]</span>
+        <span class="n">protocol</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">protocol</span>
+  
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">inputObj</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="c1"># Select the residues if the input structure parameter is a</span>
+            <span class="c1"># str (PDB id or PDB file)</span>
+            <span class="n">structureHandler</span> <span class="o">=</span> <span class="n">emconv</span><span class="o">.</span><span class="n">AtomicStructHandler</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">inputObj</span><span class="p">):</span>
+                <span class="n">fileName</span> <span class="o">=</span> <span class="n">inputObj</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">res3</span> <span class="o">=</span> <span class="n">res</span>
-            <span class="n">stri</span> <span class="o">=</span> <span class="s1">&#39;{&quot;index&quot;: </span><span class="si">%s</span><span class="s1">, &quot;residue&quot;: &quot;</span><span class="si">%s</span><span class="s1">&quot;}&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">res3</span><span class="p">)</span>
-            <span class="n">finalResiduesList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">emobj</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">stri</span><span class="p">))</span>
+                <span class="n">pdbID</span> <span class="o">=</span> <span class="n">inputObj</span>
+                <span class="n">URL</span> <span class="o">=</span> <span class="n">PDB_URL</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pdbID</span><span class="o">=</span><span class="n">pdbID</span><span class="p">)</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">URL</span><span class="p">)</span>
+                <span class="k">except</span> <span class="n">requests</span><span class="o">.</span><span class="n">exceptions</span><span class="o">.</span><span class="n">RequestException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Cannot connect to PDB server (</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&gt;=</span> <span class="mi">400</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">&lt;</span> <span class="mi">500</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> is a wrong PDB ID&quot;</span> <span class="o">%</span> <span class="n">pdbID</span><span class="p">)</span>
+                <span class="n">tmp_dir</span> <span class="o">=</span> <span class="n">protocol</span><span class="o">.</span><span class="n">getTmpDir</span><span class="p">()</span>
+                <span class="n">fileName</span> <span class="o">=</span> <span class="n">structureHandler</span><span class="o">.</span><span class="n">readFromPDBDatabase</span><span class="p">(</span>
+                    <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">pdbID</span><span class="p">),</span> <span class="nb">dir</span><span class="o">=</span><span class="n">tmp_dir</span><span class="p">)</span>
+  
+            <span class="n">structureHandler</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">fileName</span><span class="p">)</span>
+            <span class="n">structureHandler</span><span class="o">.</span><span class="n">getStructure</span><span class="p">()</span>
+            <span class="n">modelsLength</span><span class="p">,</span> <span class="n">modelsFirstResidue</span> <span class="o">=</span> <span class="n">structureHandler</span><span class="o">.</span><span class="n">getModelsChains</span><span class="p">()</span>
+  
+            <span class="n">struct</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">chainStr</span><span class="p">)</span>  <span class="c1"># From wizard dictionary</span>
+            <span class="n">chain</span><span class="p">,</span> <span class="n">model</span> <span class="o">=</span> <span class="n">struct</span><span class="p">[</span><span class="s2">&quot;chain&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="nb">int</span><span class="p">(</span><span class="n">struct</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">])</span>
+  
+            <span class="n">residueList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">editionListOfResidues</span><span class="p">(</span><span class="n">modelsFirstResidue</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">chain</span><span class="p">)</span>
+            <span class="n">finalResiduesList</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">residueList</span><span class="p">:</span>
+                <span class="n">finalResiduesList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">emobj</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+  
+        <span class="k">elif</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">inputObj</span><span class="p">),</span> <span class="n">emobj</span><span class="o">.</span><span class="n">AtomStruct</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">modelsLength</span><span class="p">,</span> <span class="n">modelsFirstResidue</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getModelsChainsStep</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">inputObj</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR: &quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+                <span class="k">return</span>
+            <span class="n">struct</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">chainStr</span><span class="p">)</span>  <span class="c1"># From wizard dictionary</span>
+            <span class="n">chain</span><span class="p">,</span> <span class="n">model</span> <span class="o">=</span> <span class="n">struct</span><span class="p">[</span><span class="s2">&quot;chain&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="nb">int</span><span class="p">(</span><span class="n">struct</span><span class="p">[</span><span class="s2">&quot;model&quot;</span><span class="p">])</span>
 
-      <span class="k">return</span> <span class="n">finalResiduesList</span></div>
+            <span class="n">residueList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">editionListOfResidues</span><span class="p">(</span><span class="n">modelsFirstResidue</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">chain</span><span class="p">)</span>
+            <span class="n">finalResiduesList</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">residueList</span><span class="p">:</span>
+                <span class="n">finalResiduesList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">emobj</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+
+        <span class="k">elif</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">inputObj</span><span class="p">),</span>
+                        <span class="n">emobj</span><span class="o">.</span><span class="n">Sequence</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">inputObj</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;SequenceVariants&#39;</span><span class="p">:</span>
+            <span class="n">finalResiduesList</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">res</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inputObj</span><span class="o">.</span><span class="n">getSequence</span><span class="p">()):</span>
+                <span class="k">if</span> <span class="n">res</span> <span class="ow">in</span> <span class="n">RESIDUES1TO3</span><span class="p">:</span>
+                    <span class="n">res3</span> <span class="o">=</span> <span class="n">RESIDUES1TO3</span><span class="p">[</span><span class="n">res</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">res3</span> <span class="o">=</span> <span class="n">res</span>
+                <span class="n">stri</span> <span class="o">=</span> <span class="s1">&#39;{&quot;index&quot;: </span><span class="si">%s</span><span class="s1">, &quot;residue&quot;: &quot;</span><span class="si">%s</span><span class="s1">&quot;}&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">res3</span><span class="p">)</span>
+                <span class="n">finalResiduesList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">emobj</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">stri</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">finalResiduesList</span></div>
 
 <div class="viewcode-block" id="SelectResidueWizard.getSequence"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.SelectResidueWizard.getSequence">[docs]</a>    <span class="k">def</span> <span class="nf">getSequence</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">finalResiduesList</span><span class="p">,</span> <span class="n">idxs</span><span class="p">):</span>
         <span class="n">roiStr</span><span class="p">,</span> <span class="n">inSeq</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="kc">False</span>
@@ -482,38 +541,38 @@
             <span class="n">resDic</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">residue</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
             <span class="k">if</span> <span class="n">resDic</span><span class="p">[</span><span class="s1">&#39;residue&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">RESIDUES3TO1</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">resDic</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">idxs</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
-                  <span class="n">inSeq</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="n">inSeq</span> <span class="o">=</span> <span class="kc">True</span>
                 <span class="k">if</span> <span class="n">resDic</span><span class="p">[</span><span class="s1">&#39;index&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">idxs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
-                  <span class="n">inSeq</span> <span class="o">=</span> <span class="kc">False</span>
-                  <span class="n">roiStr</span> <span class="o">+=</span> <span class="n">RESIDUES3TO1</span><span class="p">[</span><span class="n">resDic</span><span class="p">[</span><span class="s1">&#39;residue&#39;</span><span class="p">]]</span>
-                  <span class="k">break</span>
+                    <span class="n">inSeq</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="n">roiStr</span> <span class="o">+=</span> <span class="n">RESIDUES3TO1</span><span class="p">[</span><span class="n">resDic</span><span class="p">[</span><span class="s1">&#39;residue&#39;</span><span class="p">]]</span>
+                    <span class="k">break</span>
 
                 <span class="k">if</span> <span class="n">inSeq</span><span class="p">:</span>
                     <span class="n">roiStr</span> <span class="o">+=</span> <span class="n">RESIDUES3TO1</span><span class="p">[</span><span class="n">resDic</span><span class="p">[</span><span class="s1">&#39;residue&#39;</span><span class="p">]]</span>
         <span class="k">return</span> <span class="n">roiStr</span></div>
 
 <div class="viewcode-block" id="SelectResidueWizard.show"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.SelectResidueWizard.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">):</span>
-      <span class="n">inputParams</span><span class="p">,</span> <span class="n">outputParam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputOutput</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
-      <span class="n">protocol</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">protocol</span>
-      <span class="n">inputObj</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">inputParams</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputParams</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
-          <span class="c1"># For sequence objects, with no chain</span>
-          <span class="n">chainStr</span> <span class="o">=</span> <span class="kc">None</span>
-      <span class="k">else</span><span class="p">:</span>
-          <span class="n">chainStr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">inputParams</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-      <span class="n">finalResiduesList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getResidues</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">inputObj</span><span class="p">,</span> <span class="n">chainStr</span><span class="p">)</span>
+        <span class="n">inputParams</span><span class="p">,</span> <span class="n">outputParam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputOutput</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
+        <span class="n">protocol</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">protocol</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;inputParams: &quot;</span><span class="p">,</span> <span class="n">inputParams</span><span class="p">,</span> <span class="s2">&quot;  type: &quot;</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">inputParams</span><span class="p">))</span>
+        <span class="n">inputObj</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">inputParams</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">inputParams</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># For sequence objects, with no chain</span>
+            <span class="n">chainStr</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">chainStr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">protocol</span><span class="p">,</span> <span class="n">inputParams</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">finalResiduesList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getResidues</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">inputObj</span><span class="p">,</span> <span class="n">chainStr</span><span class="p">)</span>
 
-      <span class="n">provider</span> <span class="o">=</span> <span class="n">ListTreeProviderString</span><span class="p">(</span><span class="n">finalResiduesList</span><span class="p">)</span>
-      <span class="n">dlg</span> <span class="o">=</span> <span class="n">dialog</span><span class="o">.</span><span class="n">ListDialog</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s2">&quot;Chain residues&quot;</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span>
+        <span class="n">provider</span> <span class="o">=</span> <span class="n">ListTreeProviderString</span><span class="p">(</span><span class="n">finalResiduesList</span><span class="p">)</span>
+        <span class="n">dlg</span> <span class="o">=</span> <span class="n">dialog</span><span class="o">.</span><span class="n">ListDialog</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s2">&quot;Chain residues&quot;</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span>
                               <span class="s2">&quot;Select one residue (residue number, &quot;</span>
                               <span class="s2">&quot;residue name)&quot;</span><span class="p">)</span>
 
-      <span class="n">idxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">dlg</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">())[</span><span class="s1">&#39;index&#39;</span><span class="p">],</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">dlg</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">())[</span><span class="s1">&#39;index&#39;</span><span class="p">]]</span>
-      <span class="n">roiStr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSequence</span><span class="p">(</span><span class="n">finalResiduesList</span><span class="p">,</span> <span class="n">idxs</span><span class="p">)</span>
+        <span class="n">idxs</span> <span class="o">=</span> <span class="p">[</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">dlg</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">())[</span><span class="s1">&#39;index&#39;</span><span class="p">],</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">dlg</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">())[</span><span class="s1">&#39;index&#39;</span><span class="p">]]</span>
+        <span class="n">roiStr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getSequence</span><span class="p">(</span><span class="n">finalResiduesList</span><span class="p">,</span> <span class="n">idxs</span><span class="p">)</span>
 
-
-      <span class="n">intervalStr</span> <span class="o">=</span> <span class="s1">&#39;{&quot;index&quot;: &quot;</span><span class="si">%s</span><span class="s1">-</span><span class="si">%s</span><span class="s1">&quot;, &quot;residues&quot;: &quot;</span><span class="si">%s</span><span class="s1">&quot;}&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">idxs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">idxs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">roiStr</span><span class="p">)</span>
-      <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="n">outputParam</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">intervalStr</span><span class="p">)</span></div></div>
+        <span class="n">intervalStr</span> <span class="o">=</span> <span class="s1">&#39;{&quot;index&quot;: &quot;</span><span class="si">%s</span><span class="s1">-</span><span class="si">%s</span><span class="s1">&quot;, &quot;residues&quot;: &quot;</span><span class="si">%s</span><span class="s1">&quot;}&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">idxs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">idxs</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">roiStr</span><span class="p">)</span>
+        <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="n">outputParam</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">intervalStr</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="PythonFormulaeWizard"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.PythonFormulaeWizard">[docs]</a><span class="k">class</span> <span class="nc">PythonFormulaeWizard</span><span class="p">(</span><span class="n">pwizard</span><span class="o">.</span><span class="n">Wizard</span><span class="p">):</span>
@@ -523,7 +582,10 @@
 
 <div class="viewcode-block" id="PythonFormulaeWizard.show"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.PythonFormulaeWizard.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">):</span>
 
-        <span class="n">d</span> <span class="o">=</span> <span class="n">FormulaDialog</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">form</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">inputSet</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">formula</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">formula</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">FormulaDialog</span><span class="p">(</span>
+            <span class="n">form</span><span class="o">.</span><span class="n">root</span><span class="p">,</span>
+            <span class="n">form</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">inputSet</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
+            <span class="n">formula</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">formula</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
         <span class="c1"># If accepted</span>
         <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">resultYes</span><span class="p">():</span>
@@ -536,7 +598,9 @@
 
 <div class="viewcode-block" id="PythonFormulaWizardX1.show"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.PythonFormulaWizardX1.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">):</span>
 
-        <span class="n">d</span> <span class="o">=</span> <span class="n">FormulaDialog</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="n">form</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">inputSet1</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span> <span class="n">formula</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">attribute1</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">FormulaDialog</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">root</span><span class="p">,</span>
+                          <span class="n">form</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">inputSet1</span><span class="o">.</span><span class="n">get</span><span class="p">(),</span>
+                          <span class="n">formula</span><span class="o">=</span><span class="n">form</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">attribute1</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
 
         <span class="c1"># If accepted</span>
         <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">resultYes</span><span class="p">():</span>
@@ -560,17 +624,16 @@
     <span class="sd">&quot;&quot;&quot;Assist in the creation of python formula to be evaluated. In Steps&quot;&quot;&quot;</span>
     <span class="n">_targets</span> <span class="o">=</span> <span class="p">[(</span><span class="n">emprot</span><span class="o">.</span><span class="n">ProtSetFilter</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;rankingField&#39;</span><span class="p">])]</span></div>
 
-            
 
 <div class="viewcode-block" id="SelectAttributeWizard"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.SelectAttributeWizard">[docs]</a><span class="k">class</span> <span class="nc">SelectAttributeWizard</span><span class="p">(</span><span class="n">VariableWizard</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Wizard to select attributes stored in a scipion object or set &quot;&quot;&quot;</span>
     <span class="n">_targets</span><span class="p">,</span> <span class="n">_inputs</span><span class="p">,</span> <span class="n">_outputs</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">{},</span> <span class="p">{}</span>
 
 <div class="viewcode-block" id="SelectAttributeWizard.getInputSet"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.SelectAttributeWizard.getInputSet">[docs]</a>    <span class="k">def</span> <span class="nf">getInputSet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="n">inputParam</span><span class="p">):</span>
-      <span class="n">inputPointer</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span> <span class="n">inputParam</span><span class="p">)</span>
-      <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">inputPointer</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">PointerList</span><span class="p">):</span>
-        <span class="n">inputPointer</span> <span class="o">=</span> <span class="n">inputPointer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-      <span class="k">return</span> <span class="n">inputPointer</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+        <span class="n">inputPointer</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">protocol</span><span class="p">,</span> <span class="n">inputParam</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">issubclass</span><span class="p">(</span><span class="n">inputPointer</span><span class="o">.</span><span class="vm">__class__</span><span class="p">,</span> <span class="n">pwobj</span><span class="o">.</span><span class="n">PointerList</span><span class="p">):</span>
+            <span class="n">inputPointer</span> <span class="o">=</span> <span class="n">inputPointer</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">inputPointer</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="SelectAttributeWizard.getFirstItem"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.SelectAttributeWizard.getFirstItem">[docs]</a>    <span class="k">def</span> <span class="nf">getFirstItem</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="n">inputParam</span><span class="p">):</span>
         <span class="n">inputSet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputSet</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">inputParam</span><span class="p">)</span>
@@ -581,30 +644,34 @@
         <span class="k">return</span> <span class="n">item</span></div>
 
 <div class="viewcode-block" id="SelectAttributeWizard.getInputAttributes"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.SelectAttributeWizard.getInputAttributes">[docs]</a>    <span class="k">def</span> <span class="nf">getInputAttributes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="n">inputParam</span><span class="p">):</span>
-      <span class="n">attrNames</span> <span class="o">=</span> <span class="p">[]</span>
-      <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">inputParam</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-      <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">getAttributesToStore</span><span class="p">():</span>
-        <span class="n">attrNames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
-      <span class="k">return</span> <span class="n">attrNames</span></div>
+        <span class="n">attrNames</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">item</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getFirstItem</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">inputParam</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">item</span><span class="o">.</span><span class="n">getAttributesToStore</span><span class="p">():</span>
+            <span class="n">attrNames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">attrNames</span></div>
 
 <div class="viewcode-block" id="SelectAttributeWizard.show"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.SelectAttributeWizard.show">[docs]</a>    <span class="k">def</span> <span class="nf">show</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">,</span> <span class="o">*</span><span class="n">params</span><span class="p">):</span>
-      <span class="n">inputParam</span><span class="p">,</span> <span class="n">outputParam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputOutput</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
-      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputSet</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">inputParam</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
-        <span class="n">attrsList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputAttributes</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">inputParam</span><span class="p">)</span>
-        <span class="n">finalAttrsList</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">attrsList</span><span class="p">:</span>
-          <span class="n">finalAttrsList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pwobj</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
-        <span class="n">provider</span> <span class="o">=</span> <span class="n">ListTreeProviderString</span><span class="p">(</span><span class="n">finalAttrsList</span><span class="p">)</span>
-        <span class="n">dlg</span> <span class="o">=</span> <span class="n">dialog</span><span class="o">.</span><span class="n">ListDialog</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s2">&quot;Filter set&quot;</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span>
-                              <span class="s2">&quot;Select one of the attributes&quot;</span><span class="p">)</span>
-        <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="n">outputParam</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dlg</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
-      <span class="k">else</span><span class="p">:</span>
-        <span class="n">showError</span><span class="p">(</span><span class="s1">&#39;Input error&#39;</span><span class="p">,</span> <span class="s1">&#39;Input needs to be defined in the form for the wizard be used&#39;</span><span class="p">,</span> <span class="n">form</span><span class="o">.</span><span class="n">root</span><span class="p">)</span></div></div>
+        <span class="n">inputParam</span><span class="p">,</span> <span class="n">outputParam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputOutput</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputSet</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">inputParam</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">attrsList</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">getInputAttributes</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">inputParam</span><span class="p">)</span>
+            <span class="n">finalAttrsList</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">attrsList</span><span class="p">:</span>
+                <span class="n">finalAttrsList</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pwobj</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+            <span class="n">provider</span> <span class="o">=</span> <span class="n">ListTreeProviderString</span><span class="p">(</span><span class="n">finalAttrsList</span><span class="p">)</span>
+            <span class="n">dlg</span> <span class="o">=</span> <span class="n">dialog</span><span class="o">.</span><span class="n">ListDialog</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">root</span><span class="p">,</span> <span class="s2">&quot;Filter set&quot;</span><span class="p">,</span> <span class="n">provider</span><span class="p">,</span>
+                                    <span class="s2">&quot;Select one of the attributes&quot;</span><span class="p">)</span>
+            <span class="n">form</span><span class="o">.</span><span class="n">setVar</span><span class="p">(</span><span class="n">outputParam</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dlg</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">())</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">showError</span><span class="p">(</span><span class="s1">&#39;Input error&#39;</span><span class="p">,</span> <span class="s1">&#39;Input needs to be defined in the form for the wizard be used&#39;</span><span class="p">,</span> <span class="n">form</span><span class="o">.</span><span class="n">root</span><span class="p">)</span></div></div>
+
 
 <div class="viewcode-block" id="ColorScaleWizardRMSD"><a class="viewcode-back" href="../../../api/pwem/pwem.wizards.wizards.html#pwem.wizards.wizards.ColorScaleWizardRMSD">[docs]</a><span class="k">class</span> <span class="nc">ColorScaleWizardRMSD</span><span class="p">(</span><span class="n">ColorScaleWizardBase</span><span class="p">):</span>
-    <span class="n">_targets</span> <span class="o">=</span> <span class="n">ColorScaleWizardBase</span><span class="o">.</span><span class="n">defineTargets</span><span class="p">(</span><span class="n">emview</span><span class="o">.</span><span class="n">ChimeraAttributeViewer</span><span class="p">)</span> <span class="o">+</span> <span class="n">ColorScaleWizardBase</span><span class="o">.</span><span class="n">defineTargets</span><span class="p">(</span><span class="n">emview</span><span class="o">.</span><span class="n">zAngularDistViewer</span><span class="p">)</span></div>
+    <span class="n">_targets</span> <span class="o">=</span> <span class="n">ColorScaleWizardBase</span><span class="o">.</span><span class="n">defineTargets</span><span class="p">(</span>
+        <span class="n">emview</span><span class="o">.</span><span class="n">ChimeraAttributeViewer</span><span class="p">)</span> <span class="o">+</span>\
+              <span class="n">ColorScaleWizardBase</span><span class="o">.</span><span class="n">defineTargets</span><span class="p">(</span><span class="n">emview</span><span class="o">.</span><span class="n">zAngularDistViewer</span><span class="p">)</span></div>
 
-<span class="c1">#Defining target for the SelectAttributeWizard</span>
+
+<span class="c1"># Defining target for the SelectAttributeWizard</span>
 <span class="n">SelectAttributeWizard</span><span class="p">()</span><span class="o">.</span><span class="n">addTarget</span><span class="p">(</span><span class="n">protocol</span><span class="o">=</span><span class="n">emprot</span><span class="o">.</span><span class="n">ProtSetFilter</span><span class="p">,</span>
                                   <span class="n">targets</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;rankingField&#39;</span><span class="p">],</span>
                                   <span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;inputSet&#39;</span><span class="p">],</span>

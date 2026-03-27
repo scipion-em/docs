@@ -103,16 +103,19 @@
   <h1>Source code for pwem.emlib.image.image_readers</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">enum</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">struct</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">lru_cache</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
 <span class="kn">from</span> <span class="nn">tifffile</span> <span class="kn">import</span> <span class="n">TiffFile</span><span class="p">,</span> <span class="n">imread</span><span class="p">,</span> <span class="n">imwrite</span>
 <span class="kn">import</span> <span class="nn">mrcfile</span>
+<span class="kn">from</span> <span class="nn">ncempy.io</span> <span class="kn">import</span> <span class="n">dm</span>
 
 <span class="kn">import</span> <span class="nn">pwem.constants</span> <span class="k">as</span> <span class="nn">emcts</span>
+<span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">cyanStr</span><span class="p">,</span> <span class="n">redStr</span>
 <span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">lib</span>
 <span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="kn">import</span> <span class="n">rotate</span><span class="p">,</span> <span class="n">shift</span>
 <span class="kn">from</span> <span class="nn">skimage.transform</span> <span class="kn">import</span> <span class="n">rescale</span>
@@ -402,11 +405,9 @@
         <span class="n">ImageReadersRegistry</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span></div></div>
 
 
-
-
 <div class="viewcode-block" id="ImageReader"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.ImageReader">[docs]</a><span class="k">class</span> <span class="nc">ImageReader</span><span class="p">:</span>
 <div class="viewcode-block" id="ImageReader.open"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.ImageReader.open">[docs]</a>    <span class="nd">@classmethod</span>
-    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">path</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
         <span class="sd">&quot;&quot;&quot; Opens the image in the path and returns a numpy array with the whole file (all slices included)&quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Image reader </span><span class="si">%s</span><span class="s2"> does not implement &#39;open&#39; method.&quot;</span> <span class="o">%</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span></div>
 
@@ -568,20 +569,201 @@
         <span class="c1"># So far write the first image in the stack</span>
         <span class="n">np_img</span> <span class="o">=</span> <span class="n">imgStack</span><span class="o">.</span><span class="n">getImage</span><span class="p">()</span>
         <span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">fromarray</span><span class="p">(</span><span class="n">numpy</span><span class="o">.</span><span class="n">uint8</span><span class="p">(</span><span class="n">np_img</span><span class="p">))</span>
-        <span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">fileName</span><span class="p">)</span>
+        <span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">fileName</span><span class="p">)</span></div></div>
 
-        <span class="k">return</span> <span class="kc">True</span></div></div>
 
+<div class="viewcode-block" id="EmImageReader"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.EmImageReader">[docs]</a><span class="k">class</span> <span class="nc">EmImageReader</span><span class="p">(</span><span class="n">ImageReader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; EM image reader. Class to handle basic reading and writing of .em format files.</span>
+<span class="sd">    Based on the standard TOM toolbox header structure.&quot;&quot;&quot;</span>
+    <span class="n">HEADER_SIZE</span> <span class="o">=</span> <span class="mi">512</span>
+    <span class="c1"># Data type codes in .em format</span>
+    <span class="n">EM_BYTE</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">EM_SHORT</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">EM_LONG</span> <span class="o">=</span> <span class="mi">4</span>
+    <span class="n">EM_FLOAT</span> <span class="o">=</span> <span class="mi">5</span>
+    <span class="n">EM_DOUBLE</span> <span class="o">=</span> <span class="mi">9</span>
+
+<div class="viewcode-block" id="EmImageReader.getCompatibleExtensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.EmImageReader.getCompatibleExtensions">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getCompatibleExtensions</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;em&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="EmImageReader.open"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.EmImageReader.open">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filepath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Reads an .em file and returns a numpy array.&quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">HEADER_SIZE</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">cls</span><span class="o">.</span><span class="n">HEADER_SIZE</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;File is too small to be a valid .em file&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Dimensions (x, y, z) are stored at bytes 4, 8, 12</span>
+            <span class="c1"># These are 32-bit integers</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s1">&#39;&lt;3i&#39;</span><span class="p">,</span> <span class="n">header</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">16</span><span class="p">])</span>
+            <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">depth</span> <span class="o">=</span> <span class="n">dims</span>
+
+            <span class="c1"># Data type code is at byte 3</span>
+            <span class="n">data_type_code</span> <span class="o">=</span> <span class="n">header</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">data_type_code</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">EM_BYTE</span><span class="p">:</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span>
+            <span class="k">elif</span> <span class="n">data_type_code</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">EM_SHORT</span><span class="p">:</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span>
+            <span class="k">elif</span> <span class="n">data_type_code</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">EM_LONG</span><span class="p">:</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span>
+            <span class="k">elif</span> <span class="n">data_type_code</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">EM_FLOAT</span><span class="p">:</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+            <span class="k">elif</span> <span class="n">data_type_code</span> <span class="o">==</span> <span class="bp">cls</span><span class="o">.</span><span class="n">EM_DOUBLE</span><span class="p">:</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float64</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Fallback: defaults to float32 if type is unknown</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">cyanStr</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Unknown data type code </span><span class="si">{</span><span class="n">data_type_code</span><span class="si">}</span><span class="s2">. Assuming float32.&quot;</span><span class="p">))</span>
+                <span class="n">dtype</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span>
+
+            <span class="c1"># Read remaining binary data</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">fromfile</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+
+            <span class="c1"># Verify size consistency</span>
+            <span class="n">expected_len</span> <span class="o">=</span> <span class="n">width</span> <span class="o">*</span> <span class="n">height</span> <span class="o">*</span> <span class="n">depth</span>
+            <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">size</span> <span class="o">!=</span> <span class="n">expected_len</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Incorrect data size. Expected </span><span class="si">{</span><span class="n">expected_len</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">size</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Reshape to correct volume dimensions.</span>
+            <span class="c1"># .em uses Fortran order (X, Y, Z), numpy uses C order (Z, Y, X).</span>
+            <span class="c1"># We read in Fortran order and then transpose to (Z, Y, X).</span>
+            <span class="n">volume</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">depth</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="s1">&#39;F&#39;</span><span class="p">)</span>
+
+            <span class="c1"># Transpose to match Python/MRC convention (Z, Y, X)</span>
+            <span class="n">volume</span> <span class="o">=</span> <span class="n">volume</span><span class="o">.</span><span class="n">transpose</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+            <span class="k">return</span> <span class="n">volume</span></div>
+
+<div class="viewcode-block" id="EmImageReader.getDimensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.EmImageReader.getDimensions">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getDimensions</span><span class="p">(</span><span class="n">filePath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filePath</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">EmImageReader</span><span class="o">.</span><span class="n">HEADER_SIZE</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">EmImageReader</span><span class="o">.</span><span class="n">HEADER_SIZE</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;File is too small to be a valid .em file&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Dimensions (x, y, z) are stored at bytes 4, 8, 12</span>
+            <span class="c1"># These are 32-bit integers</span>
+            <span class="n">dims</span> <span class="o">=</span> <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s1">&#39;&lt;3i&#39;</span><span class="p">,</span> <span class="n">header</span><span class="p">[</span><span class="mi">4</span><span class="p">:</span><span class="mi">16</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">dims</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dims</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dims</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="EmImageReader.write"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.EmImageReader.write">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span>
+              <span class="n">imageStack</span><span class="p">:</span> <span class="n">ImageStack</span><span class="p">,</span>
+              <span class="n">fileName</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+              <span class="n">samplingRate</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">float</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="sd">&quot;&quot;&quot;Generate a stack of images or a volume from a list of images.&quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">stack</span><span class="p">(</span><span class="n">imageStack</span><span class="o">.</span><span class="n">getImages</span><span class="p">(),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># Ensure array is (Z, Y, X) -&gt; Transpose back to (X, Y, Z) for .em</span>
+        <span class="n">data_to_write</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">transpose</span><span class="p">((</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+        <span class="c1"># Get dimensions</span>
+        <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">depth</span> <span class="o">=</span> <span class="n">data_to_write</span><span class="o">.</span><span class="n">shape</span>  <span class="c1"># X, Y, Z</span>
+
+        <span class="n">header</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span><span class="n">EmImageReader</span><span class="o">.</span><span class="n">HEADER_SIZE</span><span class="p">)</span>
+
+        <span class="c1"># Byte 0: Machine coding (6 = PC)</span>
+        <span class="n">header</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">6</span>
+        <span class="c1"># Byte 3: Data type</span>
+        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
+            <span class="n">header</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">EmImageReader</span><span class="o">.</span><span class="n">EM_FLOAT</span>
+        <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">:</span>
+            <span class="n">header</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">EmImageReader</span><span class="o">.</span><span class="n">EM_SHORT</span>
+        <span class="k">elif</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">int8</span><span class="p">:</span>
+            <span class="n">header</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">EmImageReader</span><span class="o">.</span><span class="n">EM_BYTE</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Convert to float32 by default for other types</span>
+            <span class="n">data_to_write</span> <span class="o">=</span> <span class="n">data_to_write</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">header</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">EmImageReader</span><span class="o">.</span><span class="n">EM_FLOAT</span>
+
+        <span class="c1"># Pack dimensions (x, y, z) into bytes 4, 8, 12</span>
+        <span class="n">struct</span><span class="o">.</span><span class="n">pack_into</span><span class="p">(</span><span class="s1">&#39;&lt;3i&#39;</span><span class="p">,</span> <span class="n">header</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">height</span><span class="p">,</span> <span class="n">depth</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+            <span class="c1"># Write data in Fortran order (column-major)</span>
+            <span class="n">data_to_write</span><span class="o">.</span><span class="n">tofile</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EmImageReader.emToMrc"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.EmImageReader.emToMrc">[docs]</a>    <span class="k">def</span> <span class="nf">emToMrc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">em_path</span><span class="p">,</span> <span class="n">mrc_path</span><span class="p">,</span> <span class="n">pixel_size</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Converts .em file to .mrc&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">volume_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">em_path</span><span class="p">)</span>
+            <span class="k">with</span> <span class="n">mrcfile</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">mrc_path</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">mrc</span><span class="p">:</span>
+                <span class="n">mrc</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="n">volume_data</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">pixel_size</span><span class="p">:</span>
+                    <span class="n">mrc</span><span class="o">.</span><span class="n">voxel_size</span> <span class="o">=</span> <span class="n">pixel_size</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">redStr</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error in em_to_mrc: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="EmImageReader.mrcToEm"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.EmImageReader.mrcToEm">[docs]</a>    <span class="k">def</span> <span class="nf">mrcToEm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mrc_path</span><span class="p">,</span> <span class="n">em_path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Converts .mrc file to .em&quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Use permissive=True for MRC files that might have slightly corrupt headers</span>
+            <span class="k">with</span> <span class="n">mrcfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">mrc_path</span><span class="p">,</span> <span class="n">permissive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">mrc</span><span class="p">:</span>
+                <span class="n">volume_data</span> <span class="o">=</span> <span class="n">mrc</span><span class="o">.</span><span class="n">data</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">em_path</span><span class="p">,</span> <span class="n">volume_data</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">redStr</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error in mrc_to_em: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="Dm4ImageReader"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.Dm4ImageReader">[docs]</a><span class="k">class</span> <span class="nc">Dm4ImageReader</span><span class="p">(</span><span class="n">ImageReader</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Dm4 image reader - Gatan cameras gain and dark image format.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Dm4ImageReader.getCompatibleExtensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.Dm4ImageReader.getCompatibleExtensions">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getCompatibleExtensions</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;dm3&#39;</span><span class="p">,</span> <span class="s1">&#39;dm4&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Dm4ImageReader.open"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.Dm4ImageReader.open">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">open</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">filePath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="n">dm4Img</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">dmReader</span><span class="p">(</span><span class="n">filePath</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">dm4Img</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Dm4ImageReader.getDimensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.Dm4ImageReader.getDimensions">[docs]</a>    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">getDimensions</span><span class="p">(</span><span class="n">filePath</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">Dm4ImageReader</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filePath</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">lr</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">lr</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">lr</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">lr</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">result</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="Dm4ImageReader.dmToMrc"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.Dm4ImageReader.dmToMrc">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">dmToMrc</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span>
+                <span class="n">inDmFileName</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                <span class="n">outMrcFile</span><span class="p">:</span>  <span class="nb">str</span><span class="p">,</span>
+                <span class="n">voxelSize</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">mrcfile</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">outMrcFile</span><span class="p">,</span> <span class="n">overwrite</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">mrc</span><span class="p">:</span>
+                <span class="n">dm4Img</span> <span class="o">=</span> <span class="n">dm</span><span class="o">.</span><span class="n">dmReader</span><span class="p">(</span><span class="n">inDmFileName</span><span class="p">)</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">dm4Img</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">]</span>
+                <span class="n">mrc</span><span class="o">.</span><span class="n">set_data</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>  <span class="c1"># Common in cryoEM data</span>
+
+                <span class="c1"># Beware! If the pixel size is read from the dm file, it may not be in angstrom/px as expected in MRC</span>
+                <span class="n">voxelSize</span> <span class="o">=</span> <span class="n">voxelSize</span> <span class="k">if</span> <span class="n">voxelSize</span> <span class="k">else</span> <span class="n">dm4Img</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pixelSize&#39;</span><span class="p">,</span> <span class="p">[</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">])</span>
+                <span class="n">mrc</span><span class="o">.</span><span class="n">voxel_size</span> <span class="o">=</span> <span class="n">voxelSize</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+                <span class="c1"># Manage the header</span>
+                <span class="n">mrc</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">map</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># Density mode (float)</span>
+                <span class="n">mrc</span><span class="o">.</span><span class="n">update_header_stats</span><span class="p">()</span>  <span class="c1"># Update min/max/mean</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error converting </span><span class="si">{</span><span class="n">inDmFileName</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div></div>
 
 <div class="viewcode-block" id="TiffImageReader"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.TiffImageReader">[docs]</a><span class="k">class</span> <span class="nc">TiffImageReader</span><span class="p">(</span><span class="n">ImageReader</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Tiff image reader&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="TiffImageReader.getCompatibleExtensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.TiffImageReader.getCompatibleExtensions">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">getCompatibleExtensions</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">getCompatibleExtensions</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
         <span class="k">return</span> <span class="p">[</span><span class="s1">&#39;tif&#39;</span><span class="p">,</span> <span class="s1">&#39;tiff&#39;</span><span class="p">,</span> <span class="s1">&#39;gain&#39;</span><span class="p">,</span> <span class="s1">&#39;eer&#39;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="TiffImageReader.getDimensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.TiffImageReader.getDimensions">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">getDimensions</span><span class="p">(</span><span class="n">filePath</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">getDimensions</span><span class="p">(</span><span class="n">filePath</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
         <span class="n">tif</span> <span class="o">=</span> <span class="n">TiffFile</span><span class="p">(</span><span class="n">filePath</span><span class="p">)</span>
         <span class="n">frames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tif</span><span class="o">.</span><span class="n">pages</span><span class="p">)</span>  <span class="c1"># number of pages in the file</span>
         <span class="n">page</span> <span class="o">=</span> <span class="n">tif</span><span class="o">.</span><span class="n">pages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c1"># get shape and dtype of the image in the first page</span>
@@ -601,8 +783,7 @@
 <div class="viewcode-block" id="TiffImageReader.write"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.TiffImageReader.write">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">imgStack</span><span class="p">:</span> <span class="n">ImageStack</span><span class="p">,</span> <span class="n">fileName</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">isStack</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">npImg</span> <span class="o">=</span> <span class="n">imgStack</span><span class="o">.</span><span class="n">getImage</span><span class="p">()</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;uint8&quot;</span><span class="p">)</span>
-        <span class="n">imwrite</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="n">npImg</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">True</span></div></div>
+        <span class="n">imwrite</span><span class="p">(</span><span class="n">fileName</span><span class="p">,</span> <span class="n">npImg</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="EMANImageReader"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.EMANImageReader">[docs]</a><span class="k">class</span> <span class="nc">EMANImageReader</span><span class="p">(</span><span class="n">ImageReader</span><span class="p">):</span>
@@ -610,7 +791,7 @@
 
 <div class="viewcode-block" id="EMANImageReader.getCompatibleExtensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.EMANImageReader.getCompatibleExtensions">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">getCompatibleExtensions</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
-        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;img&quot;</span><span class="p">]</span></div>
+        <span class="k">return</span> <span class="p">[</span><span class="s2">&quot;img&quot;</span><span class="p">,</span> <span class="s2">&quot;hdf&quot;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="EMANImageReader.getDimensions"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.EMANImageReader.getDimensions">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">getDimensions</span><span class="p">(</span><span class="n">filePath</span><span class="p">):</span>
@@ -702,8 +883,7 @@
             <span class="k">if</span> <span class="n">isStack</span><span class="p">:</span>
                 <span class="n">mrc</span><span class="o">.</span><span class="n">header</span><span class="o">.</span><span class="n">ispg</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">mrc</span><span class="o">.</span><span class="n">update_header_from_data</span><span class="p">()</span>
-            <span class="n">mrc</span><span class="o">.</span><span class="n">voxel_size</span> <span class="o">=</span> <span class="n">sr</span>
-        <span class="k">return</span> <span class="kc">True</span></div>
+            <span class="n">mrc</span><span class="o">.</span><span class="n">voxel_size</span> <span class="o">=</span> <span class="n">sr</span></div>
 
 <div class="viewcode-block" id="MRCImageReader.isMrcVolume"><a class="viewcode-back" href="../../../../api/pwem/pwem.emlib.image.image_readers.html#pwem.emlib.image.image_readers.MRCImageReader.isMrcVolume">[docs]</a>    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">isMrcVolume</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">mrcImg</span><span class="p">):</span>
@@ -854,6 +1034,8 @@
 <span class="n">ImageReadersRegistry</span><span class="o">.</span><span class="n">addReader</span><span class="p">(</span><span class="n">EMANImageReader</span><span class="p">)</span>
 <span class="n">ImageReadersRegistry</span><span class="o">.</span><span class="n">addReader</span><span class="p">(</span><span class="n">PILImageReader</span><span class="p">)</span>
 <span class="n">ImageReadersRegistry</span><span class="o">.</span><span class="n">addReader</span><span class="p">(</span><span class="n">TiffImageReader</span><span class="p">)</span>
+<span class="n">ImageReadersRegistry</span><span class="o">.</span><span class="n">addReader</span><span class="p">(</span><span class="n">Dm4ImageReader</span><span class="p">)</span>
+<span class="n">ImageReadersRegistry</span><span class="o">.</span><span class="n">addReader</span><span class="p">(</span><span class="n">EmImageReader</span><span class="p">)</span>
 </pre></div>
 
            </div>

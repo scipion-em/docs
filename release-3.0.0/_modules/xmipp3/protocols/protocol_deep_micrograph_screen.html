@@ -90,7 +90,6 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
-          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_deep_micrograph_screen</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -136,16 +135,32 @@
 <span class="kn">from</span> <span class="nn">pwem.protocols</span> <span class="kn">import</span> <span class="n">ProtExtractParticles</span>
 <span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="n">Set</span><span class="p">,</span> <span class="n">Pointer</span>
 
+<span class="kn">import</span> <span class="nn">mrcfile</span>
+<span class="kn">from</span> <span class="nn">scipy.ndimage</span> <span class="kn">import</span> <span class="n">zoom</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+<span class="kn">from</span> <span class="nn">matplotlib.lines</span> <span class="kn">import</span> <span class="n">Line2D</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Patch</span>
+<span class="n">matplotlib</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;Agg&#39;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Circle</span>
+<span class="kn">from</span> <span class="nn">matplotlib.collections</span> <span class="kn">import</span> <span class="n">PatchCollection</span>
+
 <span class="kn">from</span> <span class="nn">xmipp3.base</span> <span class="kn">import</span> <span class="n">XmippProtocol</span>
 <span class="kn">from</span> <span class="nn">xmipp_base</span> <span class="kn">import</span> <span class="n">createMetaDataFromPattern</span>
 <span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="kn">import</span> <span class="p">(</span><span class="n">writeMicCoordinates</span><span class="p">,</span> <span class="n">readSetOfCoordinates</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">xmipp3.constants</span> <span class="kn">import</span> <span class="n">SAME_AS_PICKING</span><span class="p">,</span> <span class="n">OTHER</span>
+<span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">BETA</span><span class="p">,</span> <span class="n">UPDATED</span><span class="p">,</span> <span class="n">NEW</span><span class="p">,</span> <span class="n">PROD</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">mrcfile</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
+<span class="n">MAX_SIZE_THUMB</span><span class="o">=</span><span class="mi">512</span>
+<span class="n">NUM_THUMBNAILS</span><span class="o">=</span><span class="mi">45</span>
 
 <div class="viewcode-block" id="XmippProtDeepMicrographScreen"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_deep_micrograph_screen.html#xmipp3.protocols.protocol_deep_micrograph_screen.XmippProtDeepMicrographScreen">[docs]</a><span class="k">class</span> <span class="nc">XmippProtDeepMicrographScreen</span><span class="p">(</span><span class="n">ProtExtractParticles</span><span class="p">,</span> <span class="n">XmippProtocol</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Removes coordinates located in carbon regions or large impurities in micrographs using a pre-trained deep learning model. This screening improves particle picking accuracy by filtering out false positives from contaminated areas.&quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;deep micrograph cleaner&#39;</span>
     <span class="n">_conda_env</span><span class="o">=</span> <span class="s2">&quot;xmipp_MicCleaner&quot;</span>
+    <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">PROD</span>
 
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">ProtExtractParticles</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
@@ -214,6 +229,12 @@
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;saveMasks&quot;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span><span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s2">&quot;saveMasks&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Save predicted masks?&quot;</span><span class="p">)</span>
 
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s2">&quot;saveMicThumbnailWithMask&quot;</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">expertLevel</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
+                      <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;saveMasks == True&#39;</span><span class="p">,</span>
+                      <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Save thumbnails (mics and mask)&quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Save a set of 50 micrographs with the predicted masks stamp and coords stamp&quot;</span><span class="p">)</span>
+
+
         <span class="n">form</span><span class="o">.</span><span class="n">addHidden</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">USE_GPU</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                        <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Use GPU for execution&quot;</span><span class="p">,</span>
                        <span class="n">help</span><span class="o">=</span><span class="s2">&quot;This protocol has both CPU and GPU implementation. &quot;</span>
@@ -249,6 +270,7 @@
         <span class="c1"># before the actual processing</span>
         <span class="n">pwutils</span><span class="o">.</span><span class="n">makePath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;inputCoords&#39;</span><span class="p">))</span>
         <span class="n">pwutils</span><span class="o">.</span><span class="n">makePath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;outputCoords&#39;</span><span class="p">))</span>
+        <span class="n">pwutils</span><span class="o">.</span><span class="n">makePath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;thumbnails&#39;</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">saveMasks</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
           <span class="n">pwutils</span><span class="o">.</span><span class="n">makePath</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s2">&quot;predictedMasks&quot;</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_setupBasicProperties</span><span class="p">()</span>
@@ -280,7 +302,6 @@
 
 <div class="viewcode-block" id="XmippProtDeepMicrographScreen.extractMicrographListStepOwn"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_deep_micrograph_screen.html#xmipp3.protocols.protocol_deep_micrograph_screen.XmippProtDeepMicrographScreen.extractMicrographListStepOwn">[docs]</a>    <span class="k">def</span> <span class="nf">extractMicrographListStepOwn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">micKeyList</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
         <span class="n">micList</span> <span class="o">=</span> <span class="p">[]</span>
-
         <span class="k">for</span> <span class="n">micName</span> <span class="ow">in</span> <span class="n">micKeyList</span><span class="p">:</span>
             <span class="n">mic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">micDict</span><span class="p">[</span><span class="n">micName</span><span class="p">]</span>
             <span class="n">micDoneFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getMicDone</span><span class="p">(</span><span class="n">mic</span><span class="p">)</span>
@@ -298,7 +319,12 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_computeMaskForMicrographList</span><span class="p">(</span><span class="n">micList</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">)</span>
 
+        <span class="n">thumbnailCounter</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">for</span> <span class="n">mic</span> <span class="ow">in</span> <span class="n">micList</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">saveMicThumbnailWithMask</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">thumbnailCounter</span> <span class="o">&lt;=</span> <span class="n">NUM_THUMBNAILS</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_generateThumbnail</span><span class="p">(</span><span class="n">mic</span><span class="p">)</span>
+                    <span class="n">thumbnailCounter</span> <span class="o">+=</span> <span class="mi">1</span>
             <span class="c1"># Mark this mic as finished</span>
             <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_getMicDone</span><span class="p">(</span><span class="n">mic</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
 
@@ -624,7 +650,130 @@
         <span class="c1"># database. The pointer defined below points to the outputset object</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_defineSourceRelation</span><span class="p">(</span><span class="n">inputset</span><span class="p">,</span>
                                    <span class="n">Pointer</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">extended</span><span class="o">=</span><span class="n">outputName</span><span class="p">))</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">()</span></div></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_store</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">_generateThumbnail</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mic</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a thumbnail PNG for a given micrograph.</span>
+
+<span class="sd">        Steps performed:</span>
+<span class="sd">        1. Load the micrograph from MRC file and normalize pixel values to 0-255.</span>
+<span class="sd">        2. Optionally read particle coordinates from a .pos file.</span>
+<span class="sd">        3. Optionally read a predicted mask from a .mrc file.</span>
+<span class="sd">        4. Resize the image, mask, and scale coordinates if larger than maxSize.</span>
+<span class="sd">        5. Overlay the mask in blue and draw particles as red circles.</span>
+<span class="sd">        6. Save the final thumbnail as a PNG with minimal padding and compression.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        mic : Micrograph object</span>
+<span class="sd">            The micrograph to generate the thumbnail for.</span>
+<span class="sd">        maxSize : int, optional</span>
+<span class="sd">            Maximum size (in pixels) for the thumbnail (default is 512).</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+<span class="sd">            The thumbnail is saved directly to the &#39;thumbnails&#39; directory.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">micFn</span> <span class="o">=</span> <span class="n">mic</span><span class="o">.</span><span class="n">getFileName</span><span class="p">()</span>
+        <span class="n">micBase</span> <span class="o">=</span> <span class="n">pwutils</span><span class="o">.</span><span class="n">removeBaseExt</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">micFn</span><span class="p">))</span>
+
+        <span class="n">posFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;outputCoords&#39;</span><span class="p">,</span> <span class="n">micBase</span> <span class="o">+</span> <span class="s1">&#39;.pos&#39;</span><span class="p">)</span>
+        <span class="n">maskFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;predictedMasks&#39;</span><span class="p">,</span> <span class="n">micBase</span> <span class="o">+</span> <span class="s1">&#39;.mrc&#39;</span><span class="p">)</span>
+        <span class="n">thumbFn</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;thumbnails&#39;</span><span class="p">,</span> <span class="n">micBase</span> <span class="o">+</span> <span class="s1">&#39;.png&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">thumbFn</span><span class="p">):</span>
+            <span class="k">return</span>
+
+        <span class="c1"># --- Read micrograph ---</span>
+        <span class="k">with</span> <span class="n">mrcfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">micFn</span><span class="p">,</span> <span class="n">permissive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">mrc</span><span class="p">:</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="n">mrc</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+        <span class="c1"># --- Normalize and convert to uint8 ---</span>
+        <span class="n">p1</span><span class="p">,</span> <span class="n">p99</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">percentile</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">99</span><span class="p">))</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">((</span><span class="n">img</span> <span class="o">-</span> <span class="n">p1</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">p99</span> <span class="o">-</span> <span class="n">p1</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="p">(</span><span class="n">img</span> <span class="o">*</span> <span class="mi">255</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+
+        <span class="c1"># --- Read coordinates ---</span>
+        <span class="k">if</span>  <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">posFn</span><span class="p">):</span>
+            <span class="n">coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">read_star_coordinates</span><span class="p">(</span><span class="n">posFn</span><span class="p">)</span>
+
+        <span class="c1"># --- Read mask ---</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">maskFn</span><span class="p">):</span>
+            <span class="k">with</span> <span class="n">mrcfile</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">maskFn</span><span class="p">,</span> <span class="n">permissive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">mrc</span><span class="p">:</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">mrc</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+            <span class="n">mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># --- Resize image, mask, and scale coordinates/radius ---</span>
+        <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">MAX_SIZE_THUMB</span> <span class="o">/</span> <span class="n">h</span><span class="p">,</span> <span class="n">MAX_SIZE_THUMB</span> <span class="o">/</span> <span class="n">w</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">scale</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
+            <span class="c1"># Bilinear resize for image</span>
+            <span class="n">img</span> <span class="o">=</span> <span class="n">zoom</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="n">scale</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">prefilter</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+            <span class="c1"># Nearest neighbor resize for mask</span>
+            <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">zoom</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="p">(</span><span class="n">scale</span><span class="p">,</span> <span class="n">scale</span><span class="p">),</span> <span class="n">order</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+            <span class="c1"># Scale coordinates</span>
+            <span class="k">if</span> <span class="n">coords</span><span class="p">:</span>
+                <span class="n">coords</span> <span class="o">=</span> <span class="p">[(</span><span class="n">x</span> <span class="o">*</span> <span class="n">scale</span><span class="p">,</span> <span class="n">y</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">]</span>
+
+        <span class="n">radius</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">getBoxSize</span><span class="p">()</span> <span class="o">*</span> <span class="n">scale</span><span class="p">)</span> <span class="o">/</span> <span class="mi">4</span>
+        <span class="n">h</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">shape</span>
+
+        <span class="c1"># --- Create figure ---</span>
+        <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">w</span> <span class="o">/</span> <span class="mi">100</span><span class="p">,</span> <span class="n">h</span> <span class="o">/</span> <span class="mi">100</span><span class="p">),</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_position</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>  <span class="c1"># axes fill figure</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+        <span class="c1"># --- Show image ---</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;gray&#39;</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;upper&#39;</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">255</span><span class="p">)</span>
+        <span class="c1"># --- Overlay mask in blue ---</span>
+        <span class="k">if</span> <span class="n">mask</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;YlGnBu&#39;</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="s1">&#39;upper&#39;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">mask</span><span class="p">)</span>
+
+        <span class="c1"># --- Fix axes, remove background and borders ---</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_facecolor</span><span class="p">(</span><span class="s1">&#39;none&#39;</span><span class="p">)</span>
+
+        <span class="c1"># --- Draw particles using PatchCollection ---</span>
+        <span class="k">if</span> <span class="n">coords</span><span class="p">:</span>
+            <span class="n">patches</span> <span class="o">=</span> <span class="p">[</span><span class="n">Circle</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">radius</span><span class="o">=</span><span class="n">radius</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">coords</span><span class="p">]</span>
+            <span class="n">collection</span> <span class="o">=</span> <span class="n">PatchCollection</span><span class="p">(</span><span class="n">patches</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;none&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">collection</span><span class="p">)</span>
+
+        <span class="c1"># --- Save thumbnail ---</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">thumbFn</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">bbox_inches</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pad_inches</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">pil_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;compress_level&quot;</span><span class="p">:</span> <span class="mi">4</span><span class="p">})</span>
+        <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+<div class="viewcode-block" id="XmippProtDeepMicrographScreen.read_star_coordinates"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_deep_micrograph_screen.html#xmipp3.protocols.protocol_deep_micrograph_screen.XmippProtDeepMicrographScreen.read_star_coordinates">[docs]</a>    <span class="k">def</span> <span class="nf">read_star_coordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">posFn</span><span class="p">):</span>
+        <span class="n">coords</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">posFn</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">readlines</span><span class="p">()</span>
+
+        <span class="n">in_data_particles</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">line</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">):</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;data_particles&#39;</span><span class="p">):</span>
+                <span class="n">in_data_particles</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">in_data_particles</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;loop_&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">line</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">):</span>
+                <span class="k">continue</span>
+
+            <span class="n">parts</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="mi">4</span><span class="p">:</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+                <span class="n">coords</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">coords</span></div></div>
 </pre></div>
 
            </div>

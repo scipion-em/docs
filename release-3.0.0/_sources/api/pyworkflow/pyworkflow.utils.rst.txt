@@ -17,6 +17,7 @@ Submodules
    pyworkflow.utils.progressbar
    pyworkflow.utils.properties
    pyworkflow.utils.reflection
+   pyworkflow.utils.retry_streaming
    pyworkflow.utils.utils
    pyworkflow.utils.which
 
