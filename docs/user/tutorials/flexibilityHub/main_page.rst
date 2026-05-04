@@ -14,9 +14,9 @@ Currently, the following softwares have been integrated in the FLexibility Hub f
 
 * Hax (available at `scipion-em-hax <https://github.com/scipion-em/scipion-em-hax>`__)
 * CryoDRGN (available at `scipion-em-cryodrgn <https://github.com/scipion-em/scipion-em-cryodrgn>`__)
-* OpusDSD (available at `scipion-em-cryodrgn <https://github.com/scipion-em/scipion-em-opusdsd>`__)
-* 3DFlex (available at `scipion-em-cryodrgn <https://github.com/scipion-em/scipion-em-cryosparc2>`__)
-* Dynamight (available at `scipion-em-cryodrgn <https://github.com/scipion-em/scipion-em-dynamight>`__)
+* OpusDSD (available at `scipion-em-opusdsd <https://github.com/scipion-em/scipion-em-opusdsd>`__)
+* 3DFlex (available at `scipion-em-cryosparc2 <https://github.com/scipion-em/scipion-em-cryosparc2>`__)
+* Dynamight (available at `scipion-em-relion <https://github.com/scipion-em/scipion-em-relion>`__)
 * :doc:`ContinuousFlex <Tutorials/MDSPACE_Tutorial_v0>` (available at `scipion-em-continuousflex <https://github.com/scipion-em/scipion-em-continuousflex>`__)
 * ProDy (available at `scipion-em-prody <https://github.com/scipion-em/scipion-em-prody>`__)
 
