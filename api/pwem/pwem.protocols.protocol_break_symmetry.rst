@@ -1,7 +1,7 @@
-xmipp3.protocols.protocol\_classify\_pca module
+pwem.protocols.protocol\_break\_symmetry module
 ===============================================
 
-.. automodule:: xmipp3.protocols.protocol_classify_pca
+.. automodule:: pwem.protocols.protocol_break_symmetry
    :members:
    :undoc-members:
    :show-inheritance:

@@ -1,7 +1,7 @@
-pyworkflow.webservices.repository module
+pyworkflow.utils.retry\_streaming module
 ========================================
 
-.. automodule:: pyworkflow.webservices.repository
+.. automodule:: pyworkflow.utils.retry_streaming
    :members:
    :undoc-members:
    :show-inheritance:

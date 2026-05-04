@@ -16,6 +16,7 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
+   xmipp3.protocols.protocol_alignPCA_2D
    xmipp3.protocols.protocol_align_volume
    xmipp3.protocols.protocol_align_volume_and_particles
    xmipp3.protocols.protocol_analyze_local_ctf
@@ -31,8 +32,6 @@ Submodules
    xmipp3.protocols.protocol_cl2d_align
    xmipp3.protocols.protocol_cl2d_clustering
    xmipp3.protocols.protocol_classes_2d_mapping
-   xmipp3.protocols.protocol_classify_pca
-   xmipp3.protocols.protocol_classify_pca_streaming
    xmipp3.protocols.protocol_compare_angles
    xmipp3.protocols.protocol_compare_reprojections
    xmipp3.protocols.protocol_compute_likelihood
@@ -42,11 +41,10 @@ Submodules
    xmipp3.protocols.protocol_core_analysis
    xmipp3.protocols.protocol_create_gallery
    xmipp3.protocols.protocol_ctf_consensus
+   xmipp3.protocols.protocol_ctf_correct_phase
    xmipp3.protocols.protocol_ctf_correct_wiener2d
    xmipp3.protocols.protocol_ctf_defocus_group
    xmipp3.protocols.protocol_ctf_micrographs
-   xmipp3.protocols.protocol_deep_center
-   xmipp3.protocols.protocol_deep_center_predict
    xmipp3.protocols.protocol_deep_hand
    xmipp3.protocols.protocol_deep_micrograph_screen
    xmipp3.protocols.protocol_denoise_particles

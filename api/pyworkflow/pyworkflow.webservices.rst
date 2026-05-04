@@ -9,7 +9,6 @@ Submodules
 
    pyworkflow.webservices.config
    pyworkflow.webservices.notifier
-   pyworkflow.webservices.repository
    pyworkflow.webservices.workflowhub
 
 Module contents

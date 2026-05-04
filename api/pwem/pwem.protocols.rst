@@ -27,10 +27,13 @@ Submodules
    pwem.protocols.protocol_batch
    pwem.protocols.protocol_boxsize_checkpoint
    pwem.protocols.protocol_boxsize_parameters
+   pwem.protocols.protocol_break_symmetry
    pwem.protocols.protocol_classes_selector
    pwem.protocols.protocol_create_stream_data
+   pwem.protocols.protocol_crop_resize_vols
    pwem.protocols.protocol_ctf_assign
    pwem.protocols.protocol_extract_coordinates
+   pwem.protocols.protocol_filter_by_normal
    pwem.protocols.protocol_mathematical_operator
    pwem.protocols.protocol_micrographs
    pwem.protocols.protocol_movie_eraser

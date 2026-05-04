@@ -22,7 +22,9 @@ Submodules
    xmipp3.bibtex
    xmipp3.checkProtocolsConf
    xmipp3.constants
+   xmipp3.logParser
    xmipp3.programs
+   xmipp3.protocolsCollectInfo
    xmipp3.utils
    xmipp3.version
    xmipp3.wizards

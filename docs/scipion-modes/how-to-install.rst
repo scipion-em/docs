@@ -15,18 +15,25 @@ All is needed is either conda available or virtualenv to install Scipion.
 Installation
 ============
 
-1. If you do not have **conda** already installed (run ``which conda`` in your console), install `Miniconda <https://docs.conda.io/en/latest/miniconda.html#linux-installers>`__ as in example below. Alternatively, proceed to step 3.
+1. If you do not have **conda** already installed (run ``which conda`` in your console), install Miniforge from its `official GitHub repository <https://github.com/conda-forge/miniforge>`__ or from `conda-forge <https://conda-forge.org/miniforge/>`__ as in the example below. Alternatively, proceed to step 3.
 
 ::
 
-    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
-    bash Miniconda3-latest-Linux-x86_64.sh -b -p /path/for/miniconda
+    wget https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Linux-x86_64.sh
+    bash Miniforge3-Linux-x86_64.sh
+
+During the process:
+
+* Press Enter to scroll through the license agreement.
+* Type yes to accept the terms.
+* Confirm the default installation path (usually /home/your_user/miniforge3) or introduce the desired path.
+* Crucial Step: When asked if you want to initialize Miniforge by running conda init, if you type yes, it ensures your shell is configured automatically, and in you type no, it won't be initialized each time a new terminal is opened, but only when you decide to manually launch it. In terms of Scipion installation, no matter the option chosen, the installer will take it into consideration and will work correspondingly.
 
 2. Make sure you are running **bash** shell (run ``echo $SHELL`` in your console), then initialize conda:
 
 ::
 
-    source /path/for/miniconda/etc/profile.d/conda.sh
+    source /path/for/miniforge3/etc/profile.d/conda.sh
 
 3. Activate **base** conda environment and install Scipion installer with **pip3** provided by **conda**.
 
@@ -115,7 +122,7 @@ See `Configuration guide <scipion-configuration>`_ for more details about these 
 
 Install xmipp
 =============
-Xmipp <https://i2pc.github.io/docs/index.html>`__ is a good partner for Scipion in cryoem. It binds to Scipion environment offering file format (stk, vol, mrc, tiff, dm4,...) conversions for many cryo em methods and more than a hundred of protocols to use in your SPA workflows
+`Xmipp <https://i2pc.github.io/docs/index.html>`__ is a good partner for Scipion in cryoem. It binds to Scipion environment offering file format (stk, vol, mrc, tiff, dm4,...) conversions for many cryo em methods and more than a `hundred of protocols <https://i2pc.github.io/docs/protocolsMap.html>`__ to use in your SPA workflows
 
 To install Xmipp plugin, please review the `requirements <https://i2pc.github.io/docs/Installation/Requirements/index.html>`__ . If all of them are available in your system you can install it you can install Xmipp from the :ref:`Plugin manager guide <Plugin-Manager>` or from the terminal as this:
 
@@ -123,7 +130,7 @@ To install Xmipp plugin, please review the `requirements <https://i2pc.github.io
 
     /path/for/scipion/scipion3 install -p scipion-em-xmipp  | tee -a install.log
 
-If any error arise, check `install.log` file for errors.
+If any error arise, check `install.log` file for errors. 
 
 .. note::
   For HPC clusters the above command should not have installed (compiled) Xmipp. You need to compile it manually following `those steps <https://i2pc.github.io/docs/Installation/Installations/index.html#installation-for-hpc-clusters>`__

@@ -1,7 +1,7 @@
-xmipp3.protocols.protocol\_deep\_center module
+xmipp3.protocols.protocol\_alignPCA\_2D module
 ==============================================
 
-.. automodule:: xmipp3.protocols.protocol_deep_center
+.. automodule:: xmipp3.protocols.protocol_alignPCA_2D
    :members:
    :undoc-members:
    :show-inheritance:

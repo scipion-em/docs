@@ -182,18 +182,18 @@ Exercise 5 (hard)
 
 Let's explore conda-based installation. A lot of new cryo-em software comes with its own conda environment so this seems like an appropriate use case.
 
-First, you need to make sure that you have conda installed (we recommend *miniconda3*). If you have used conda for Scipion installation then there should be no problem.
+First, you need to make sure that you have conda installed (we recommend *miniforge*). If you have used conda for Scipion installation then there should be no problem.
 You also need to know how to activate it, this depends on the system and the SHELL you are using. Below is an example for bash:
 
 .. code-block:: bash
 
-    . /path/to/miniconda3/etc/profile.d/conda.sh
+    . /path/to/miniforge3/etc/profile.d/conda.sh
 
 We need to define the following constants in your **scipion3/config/scipion.conf** file:
 
 .. code-block:: bash
 
-    CONDA_ACTIVATION_CMD = . /path/to/miniconda3/etc/profile.d/conda.sh
+    CONDA_ACTIVATION_CMD = . /path/to/miniforge3/etc/profile.d/conda.sh
     MYPROG_ENV_ACTIVATION = conda activate myprogenv-1.0
 
 Add the following functions to the Plugin class:

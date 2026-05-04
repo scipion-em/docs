@@ -26,7 +26,13 @@ You may download a fully solved compressed project (Example_10248_Scipion3.tgz) 
 *Workflow*:
 `download <http://workflows.scipion.i2pc.es/workflow_detail/36/atom-struct-modeling-demo/>`__\
 
+Projects from Stanford's course
+-----------------
 
+We gave a very extensive course at Stanford's Univ. Here are all the projects that we executed there\
+
+*Projects*:
+`projects <https://scipion.cnb.csic.es/downloads/scipion/data/tutorials/AdvancedSPA/ScipionUserData/projects/>`__
 
 Relion in Scipion
 -----------------
