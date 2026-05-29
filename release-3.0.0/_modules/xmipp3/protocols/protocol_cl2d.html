@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_cl2d</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -165,7 +166,205 @@
 
 
 <div class="viewcode-block" id="XmippProtCL2D"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_cl2d.html#xmipp3.protocols.protocol_cl2d.XmippProtCL2D">[docs]</a><span class="k">class</span> <span class="nc">XmippProtCL2D</span><span class="p">(</span><span class="n">ProtClassify2D</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Classifies a set of 2D images using clustering algorithms. It subdivides the original dataset into user-defined classes, aiding the identification of particle heterogeneity or structural variations within the data. &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Classifies a set of 2D images using clustering algorithms. It</span>
+<span class="sd">    subdivides the original dataset into user-defined classes, aiding the</span>
+<span class="sd">    identification of particle heterogeneity or structural variations within</span>
+<span class="sd">    the data.</span>
+
+<span class="sd">    AI Generated:</span>
+
+<span class="sd">    What this protocol is for</span>
+
+<span class="sd">    CL2D is Xmipp’s classic 2D classification method for single-particle</span>
+<span class="sd">    datasets. Its goal is to take a set of particle images and organize them</span>
+<span class="sd">    into 2D classes so that particles with similar views cluster together. In</span>
+<span class="sd">    practice, this is one of the most useful “dataset-understanding” steps in</span>
+<span class="sd">    a workflow: it helps you see whether your sample is homogeneous, whether</span>
+<span class="sd">    you have different conformations or compositions, whether there is</span>
+<span class="sd">    preferred orientation, and how much junk/contamination is present.</span>
+
+<span class="sd">    Compared to very fast “quick look” approaches, CL2D is designed to be a</span>
+<span class="sd">    robust, iterative classifier that can build structure in the dataset</span>
+<span class="sd">    gradually. A particularly helpful concept in this protocol is the idea of</span>
+<span class="sd">    cores: subsets of particles that are most representative of each class (and</span>
+<span class="sd">    optionally “stable cores”, which are particles that remain consistently</span>
+<span class="sd">    grouped through the multilevel process). For biological users, cores are</span>
+<span class="sd">    often the easiest way to obtain a cleaner subset without doing aggressive</span>
+<span class="sd">    manual rejection.</span>
+
+<span class="sd">    Inputs: what you need to provide</span>
+
+<span class="sd">    You provide a single mandatory input: a SetOfParticles (your particle</span>
+<span class="sd">    stack). These particles do not need to be aligned beforehand for CL2D to</span>
+<span class="sd">    work as a classifier, but the quality of the result always depends on the</span>
+<span class="sd">    usual prerequisites: reasonable particle extraction, sensible box size,</span>
+<span class="sd">    and (often) some form of downsampling if the sampling rate is very small</span>
+<span class="sd">    and you are only aiming at a medium-resolution 2D classification.</span>
+
+<span class="sd">    Optionally, you may provide initial classes/averages if you prefer to start</span>
+<span class="sd">    from known references rather than random initialization. This is useful</span>
+<span class="sd">    when you want reproducibility, when you are “updating” a previously known</span>
+<span class="sd">    set of views, or when you already trust a set of 2D averages and want the</span>
+<span class="sd">    classification to converge around them.</span>
+
+<span class="sd">    The most important knob: how many classes to ask for</span>
+
+<span class="sd">    The parameter Number of classes controls the granularity of the</span>
+<span class="sd">    classification. Biologically, this is where you decide whether you want a</span>
+<span class="sd">    coarse view of the data (fewer classes, more particles per class, easier to</span>
+<span class="sd">    interpret) or a finer partition (more classes, smaller classes, better at</span>
+<span class="sd">    separating rare views or subtle heterogeneity but also easier to</span>
+<span class="sd">    over-fragment noise).</span>
+
+<span class="sd">    A practical way to think about it is the “typical number of images per</span>
+<span class="sd">    class”. If you have N particles and choose K classes, the average class</span>
+<span class="sd">    size is N/K. CL2D is often most interpretable when classes have enough</span>
+<span class="sd">    particles to average out noise (hundreds is comfortable for many datasets),</span>
+<span class="sd">    but this depends strongly on SNR and particle size.</span>
+
+<span class="sd">    How initialization works, and when to use each mode</span>
+
+<span class="sd">    CL2D can start in two different ways.</span>
+
+<span class="sd">    If you enable random initialization, the algorithm will build the</span>
+<span class="sd">    classification starting from a small number of initial classes (the</span>
+<span class="sd">    “first level”), and then progressively refine/split them until the final</span>
+<span class="sd">    number of classes is reached. This is the most common choice when you do</span>
+<span class="sd">    not have a reliable set of starting references. The key advanced parameter</span>
+<span class="sd">    here is Number of initial classes: conceptually, you begin with a small</span>
+<span class="sd">    number of broad groups and then increase complexity in later levels. If you</span>
+<span class="sd">    set this too low, the early grouping can be overly coarse; if you set it</span>
+<span class="sd">    too high, you lose the benefit of gradual organization and can become more</span>
+<span class="sd">    sensitive to noise.</span>
+
+<span class="sd">    If you disable random initialization, you provide Initial classes (a set of</span>
+<span class="sd">    2D classes or averages). In this mode, CL2D starts from those references</span>
+<span class="sd">    and tends to behave more like “classify relative to these starting views”.</span>
+<span class="sd">    This is often useful for controlled workflows (e.g., you already have a</span>
+<span class="sd">    trusted set of views from a previous run or a known sample) or when you</span>
+<span class="sd">    want more repeatable outcomes between runs.</span>
+
+<span class="sd">    Iterations and convergence: what “Number of iterations” really means</span>
+
+<span class="sd">    Within each level of the multilevel process, CL2D performs iterative</span>
+<span class="sd">    refinement. The parameter Number of iterations sets an upper bound for how</span>
+<span class="sd">    long it will refine at each level. Biologically, increasing iterations can</span>
+<span class="sd">    help when particles are noisy or when the dataset has subtle differences</span>
+<span class="sd">    that need more refinement to separate. On the other hand, very large</span>
+<span class="sd">    iteration counts are not always beneficial: if the dataset contains a lot</span>
+<span class="sd">    of junk or highly heterogeneous content, extra iterations may mostly refine</span>
+<span class="sd">    noise patterns rather than producing cleaner biology.</span>
+
+<span class="sd">    A common, practical approach is to keep a moderate value for routine runs</span>
+<span class="sd">    and only increase it if you see unstable or underdeveloped class averages.</span>
+
+<span class="sd">    How similarity is measured: correlation vs correntropy</span>
+
+<span class="sd">    CL2D lets you choose a comparison method that defines how “close” two</span>
+<span class="sd">    images are during clustering.</span>
+
+<span class="sd">    With correlation, similarity is driven by standard cross-correlation–like</span>
+<span class="sd">    behavior. This tends to work well for many cryo-EM particle sets and is</span>
+<span class="sd">    usually a safe default.</span>
+
+<span class="sd">    With correntropy, similarity becomes more robust to certain kinds of</span>
+<span class="sd">    outliers and non-Gaussian noise. Biologically, this option can sometimes</span>
+<span class="sd">    help when a dataset contains a mixture of good particles and difficult</span>
+<span class="sd">    contaminants, or when you suspect that outliers are pulling classes in</span>
+<span class="sd">    unhelpful directions. It is not a magic switch, but it is a reasonable</span>
+<span class="sd">    alternative if correlation-based grouping produces classes that look</span>
+<span class="sd">    “washed” or dominated by a few atypical images.</span>
+
+<span class="sd">    How clustering is done: classical vs robust</span>
+
+<span class="sd">    The clustering method controls the criterion used to build and update</span>
+<span class="sd">    classes.</span>
+
+<span class="sd">    The classical criterion is the standard behavior and is typically the</span>
+<span class="sd">    first choice.</span>
+
+<span class="sd">    The robust option is meant to be less sensitive to problematic particles.</span>
+<span class="sd">    For biological users, a good rule of thumb is: if the dataset is clean and</span>
+<span class="sd">    you mostly want to resolve views, classical is usually fine; if you have</span>
+<span class="sd">    strong junk, variable backgrounds, or particles with systematic artifacts,</span>
+<span class="sd">    robust clustering may give more stable, interpretable classes.</span>
+
+<span class="sd">    Core analysis: extracting the “most representative” particles per class</span>
+
+<span class="sd">    One of the most biologically useful features of this protocol is core</span>
+<span class="sd">    analysis. When core analysis is enabled, CL2D analyzes each class and</span>
+<span class="sd">    identifies a subset of particles that are close to the class center</span>
+<span class="sd">    according to internal criteria (including Z-score–like measures and</span>
+<span class="sd">    PCA-based distances). Intuitively, the core is the set of particles that</span>
+<span class="sd">    best represent the class signal and are least likely to be junk or</span>
+<span class="sd">    misassigned.</span>
+
+<span class="sd">    The parameters Junk Zscore and PCA Zscore control how strict this selection</span>
+<span class="sd">    is. Lower thresholds reject more particles (giving smaller, cleaner cores),</span>
+<span class="sd">    while higher thresholds accept more (giving larger cores that may include</span>
+<span class="sd">    more borderline particles). If your goal is to build a high-quality subset</span>
+<span class="sd">    for downstream refinement, stricter cores are often attractive. If your</span>
+<span class="sd">    goal is to avoid losing rare but real views, you may want to be less strict.</span>
+
+<span class="sd">    CL2D can also compute a stable core, which is a stricter idea: particles</span>
+<span class="sd">    that have remained essentially grouped throughout the multilevel</span>
+<span class="sd">    classification. The Tolerance parameter controls how many “exceptions” are</span>
+<span class="sd">    allowed across levels. With tolerance set to zero, stable core membership</span>
+<span class="sd">    becomes very stringent; with higher tolerance, you keep more particles</span>
+<span class="sd">    while still favoring stable assignments. For biological workflows, stable</span>
+<span class="sd">    cores are often a good way to define “high-confidence” subsets for more</span>
+<span class="sd">    delicate steps, like initial model generation or high-resolution refinement.</span>
+
+<span class="sd">    Optional hierarchy: understanding how classes split across levels</span>
+
+<span class="sd">    If you enable Compute class hierarchy, CL2D will track how classes relate</span>
+<span class="sd">    between levels (how groups split and evolve). This is mostly a diagnostic</span>
+<span class="sd">    feature, but it can be biologically informative: it helps you see whether a</span>
+<span class="sd">    class is stable, whether it splits into meaningful sub-views, or whether it</span>
+<span class="sd">    fragments in ways that look like noise.</span>
+
+<span class="sd">    Optional analysis of rejected particles</span>
+
+<span class="sd">    If you enable Analyze rejected particles, the protocol will generate</span>
+<span class="sd">    additional information in the run directory showing what was excluded from</span>
+<span class="sd">    cores (and stable cores). This can be useful when you want to understand</span>
+<span class="sd">    the nature of the rejected set—whether it is mostly obvious junk, rare</span>
+<span class="sd">    orientations, contaminants, or simply low-SNR particles.</span>
+
+<span class="sd">    Outputs: what you get at the end</span>
+
+<span class="sd">    The main output is outputClasses, a SetOfClasses2D with your final</span>
+<span class="sd">    classification.</span>
+
+<span class="sd">    If core analysis is enabled and applicable, you also get</span>
+<span class="sd">    outputClasses_core, which contains the “core” particles for each class.</span>
+
+<span class="sd">    If stable core analysis is enabled and applicable, you also get</span>
+<span class="sd">    outputClasses_stable_core, which contains the most stable, high-confidence</span>
+<span class="sd">    particles per class.</span>
+
+<span class="sd">    From a biological processing standpoint, these outputs give you three</span>
+<span class="sd">    practical processing paths: you can continue with the full classified</span>
+<span class="sd">    dataset, or you can continue with a cleaner “core” subset, or you can</span>
+<span class="sd">    choose the most conservative “stable core” subset when you want maximum</span>
+<span class="sd">     reliability at the cost of throwing away more particles.</span>
+
+<span class="sd">    Typical processing strategies (how users usually apply CL2D)</span>
+
+<span class="sd">    A very common strategy is to run CL2D with a reasonable number of classes</span>
+<span class="sd">    and then visually inspect the class averages to decide what to keep. In</span>
+<span class="sd">    parallel, core/stable core outputs can be used as an automated way to</span>
+<span class="sd">    define a cleaner subset, especially when you want to reduce bias in manual</span>
+<span class="sd">    selection.</span>
+
+<span class="sd">    Another common approach is iterative: run CL2D once to diagnose dataset</span>
+<span class="sd">    quality and remove obvious junk, then rerun CL2D on the cleaner subset with</span>
+<span class="sd">    more classes to resolve views and heterogeneity more finely.</span>
+
+<span class="sd">    Finally, if you already have a reliable set of 2D averages (from previous</span>
+<span class="sd">    runs or a known sample), starting from initial classes can make outcomes</span>
+<span class="sd">    more reproducible and can help the classification converge to the expected</span>
+<span class="sd">    view set more quickly.&quot;&quot;&quot;</span>
     
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;cl2d&#39;</span>
     <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">PROD</span>

@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_validate_nontilt</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -149,7 +150,313 @@
 
 <div class="viewcode-block" id="XmippProtValidateNonTilt"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_validate_nontilt.html#xmipp3.protocols.protocol_validate_nontilt.XmippProtValidateNonTilt">[docs]</a><span class="k">class</span> <span class="nc">XmippProtValidateNonTilt</span><span class="p">(</span><span class="n">ProtAnalysis3D</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;    </span>
-<span class="sd">    Ranks a set of volumes based on alignment reliability using a clusterability test. This validation helps identify well-aligned structures and discard poorly aligned or inconsistent reconstructions, improving final data quality.</span>
+<span class="sd">    Ranks a set of volumes based on alignment reliability using a</span>
+<span class="sd">    clusterability test. This validation helps identify well-aligned</span>
+<span class="sd">    structures and discard poorly aligned or inconsistent reconstructions,</span>
+<span class="sd">    improving final data quality.</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Validate Nontilt protocol evaluates one or more candidate 3D volumes using</span>
+<span class="sd">    a set of experimental particle images.</span>
+
+<span class="sd">    This protocol is intended for validation situations where tilted-pair data are</span>
+<span class="sd">    not available. Instead of using tilt geometry, it tests how reliably the input</span>
+<span class="sd">    particles can be assigned to projections of each candidate volume. A volume</span>
+<span class="sd">    that produces stable, meaningful, and clusterable angular assignments is</span>
+<span class="sd">    considered more consistent with the particle data than a volume that produces</span>
+<span class="sd">    ambiguous or unreliable assignments.</span>
+
+<span class="sd">    The protocol generates projection galleries from each input volume, aligns the</span>
+<span class="sd">    input particles against those galleries, and then applies a non-tilt validation</span>
+<span class="sd">    test. The result is an output set of volumes annotated with a quality weight.</span>
+<span class="sd">    This weight can be used to compare or rank the candidate volumes.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The protocol requires:</span>
+
+<span class="sd">    - one volume or a set of volumes to validate;</span>
+<span class="sd">    - a set of particles or 2D classes used as projection images.</span>
+
+<span class="sd">    For each input volume, the protocol performs the following steps:</span>
+
+<span class="sd">    1. writes the input particles to Xmipp metadata;</span>
+<span class="sd">    2. band-pass filters the volume to the selected resolution range;</span>
+<span class="sd">    3. generates a projection gallery from the filtered volume;</span>
+<span class="sd">    4. assigns possible orientations to the particles using either projection</span>
+<span class="sd">       matching or significant alignment;</span>
+<span class="sd">    5. runs the non-tilt validation test;</span>
+<span class="sd">    6. stores the validation score and clustering-tendency information.</span>
+
+<span class="sd">    The final output is a set of volumes copied from the input volumes and</span>
+<span class="sd">    annotated with the validation weight.</span>
+
+<span class="sd">    ## Input Volumes</span>
+
+<span class="sd">    The **Input volumes** parameter defines the candidate volume or volumes to be</span>
+<span class="sd">    validated.</span>
+
+<span class="sd">    The input can be a single **Volume** or a **SetOfVolumes**. Each volume is</span>
+<span class="sd">    processed independently and receives its own validation metadata.</span>
+
+<span class="sd">    This protocol is useful when several possible initial models, class volumes, or</span>
+<span class="sd">    alternative reconstructions are available and the user wants to assess which</span>
+<span class="sd">    ones are most consistent with the particle images.</span>
+
+<span class="sd">    The volumes should correspond to the same specimen and should be comparable to</span>
+<span class="sd">    the input particle set. Unrelated volumes may still produce a numerical result,</span>
+<span class="sd">    but it will not be biologically meaningful.</span>
+
+<span class="sd">    ## Input Particles</span>
+
+<span class="sd">    The **Input particles** parameter provides the projection images used for</span>
+<span class="sd">    validation.</span>
+
+<span class="sd">    The input can be a **SetOfParticles** or a **SetOfClasses2D**. These images are</span>
+<span class="sd">    written to Xmipp metadata and compared against projections of each candidate</span>
+<span class="sd">    volume.</span>
+
+<span class="sd">    The quality and representativeness of these particles are critical. If the</span>
+<span class="sd">    particle set contains many contaminants, junk particles, strong heterogeneity,</span>
+<span class="sd">    or missing views, the validation result may be difficult to interpret.</span>
+
+<span class="sd">    ## Symmetry Group</span>
+
+<span class="sd">    The **Symmetry group** parameter defines the symmetry used when generating</span>
+<span class="sd">    projections and during validation.</span>
+
+<span class="sd">    For asymmetric particles, use **c1**. If the structure has known symmetry, the</span>
+<span class="sd">    corresponding Xmipp symmetry group can be provided.</span>
+
+<span class="sd">    Correct symmetry can make angular assignment more stable and biologically</span>
+<span class="sd">    consistent. Incorrect symmetry can make a wrong volume appear artificially</span>
+<span class="sd">    better or can hide important asymmetric differences.</span>
+
+<span class="sd">    Use symmetry only when it is justified by the specimen.</span>
+
+<span class="sd">    ## Image Alignment Method</span>
+
+<span class="sd">    The **Image alignment** parameter controls how particles are assigned to</span>
+<span class="sd">    possible projections of the candidate volume.</span>
+
+<span class="sd">    There are two options:</span>
+
+<span class="sd">    **Projection_Matching** uses standard angular projection matching against the</span>
+<span class="sd">    projection gallery.</span>
+
+<span class="sd">    **Significant** uses significant angular assignment, keeping a selected number</span>
+<span class="sd">    of plausible orientations per particle. This is the default mode.</span>
+
+<span class="sd">    The significant mode is often useful for validation because it considers</span>
+<span class="sd">    alignment reliability and ambiguity rather than forcing only one orientation</span>
+<span class="sd">    too early.</span>
+
+<span class="sd">    ## Resolution to Filter</span>
+
+<span class="sd">    The **Resolution to filter** parameters define a band-pass filter applied to</span>
+<span class="sd">    each candidate volume before projections are generated.</span>
+
+<span class="sd">    The parameters are:</span>
+
+<span class="sd">    - **High**, the high-pass filtering resolution in angstroms;</span>
+<span class="sd">    - **Low**, the low-pass filtering resolution in angstroms.</span>
+
+<span class="sd">    The protocol converts these values into digital frequencies using the sampling</span>
+<span class="sd">    rate of the particle set.</span>
+
+<span class="sd">    Filtering helps focus the validation on a controlled resolution range. It can</span>
+<span class="sd">    remove very low-frequency background and high-frequency noise that may not be</span>
+<span class="sd">    reliable for angular assignment.</span>
+
+<span class="sd">    The default values define a broad band-pass range suitable for many validation</span>
+<span class="sd">    workflows.</span>
+
+<span class="sd">    ## Angular Sampling</span>
+
+<span class="sd">    The **Angular Sampling** parameter defines the angular spacing, in degrees, of</span>
+<span class="sd">    the projection gallery.</span>
+
+<span class="sd">    A smaller value generates a denser gallery and allows more precise orientation</span>
+<span class="sd">    assignment, but increases computation time.</span>
+
+<span class="sd">    A larger value is faster but may make alignment less accurate and may reduce</span>
+<span class="sd">    the reliability of the validation.</span>
+
+<span class="sd">    The default value is 5 degrees, which provides a practical compromise for many</span>
+<span class="sd">    datasets.</span>
+
+<span class="sd">    ## Number of Orientations per Particle</span>
+
+<span class="sd">    The **Number of orientations per particle** parameter defines how many possible</span>
+<span class="sd">    orientations are retained for each particle during alignment.</span>
+
+<span class="sd">    Keeping several orientations is important for assessing ambiguity. A particle</span>
+<span class="sd">    that can be explained equally well by many unrelated orientations provides</span>
+<span class="sd">    weaker evidence for the volume than a particle with a stable, well-defined</span>
+<span class="sd">    orientation.</span>
+
+<span class="sd">    The default value is 10.</span>
+
+<span class="sd">    Increasing this number may provide a richer description of angular ambiguity</span>
+<span class="sd">    but also increases computation and metadata size.</span>
+
+<span class="sd">    ## Significance</span>
+
+<span class="sd">    The **Significance** parameter controls the validation test against a reference</span>
+<span class="sd">    distribution of uniformly distributed random points.</span>
+
+<span class="sd">    The default value is 0.95.</span>
+
+<span class="sd">    This value affects how strictly the protocol evaluates whether the angular</span>
+<span class="sd">    assignments show meaningful clusterability or reliability. A higher</span>
+<span class="sd">    significance is more stringent; a lower value is more permissive.</span>
+
+<span class="sd">    Most users should start with the default value.</span>
+
+<span class="sd">    ## Projection Gallery</span>
+
+<span class="sd">    For each candidate volume, the protocol creates a projection gallery.</span>
+
+<span class="sd">    The gallery is generated from the filtered volume using the selected angular</span>
+<span class="sd">    sampling and symmetry group. The gallery also stores neighbor information and</span>
+<span class="sd">    angular-distance information needed by later alignment and validation steps.</span>
+
+<span class="sd">    The experimental particles are then compared against this gallery.</span>
+
+<span class="sd">    ## Significant Alignment Mode</span>
+
+<span class="sd">    In significant alignment mode, the protocol assigns particles to projections</span>
+<span class="sd">    using a significant angular-assignment procedure.</span>
+
+<span class="sd">    When GPU execution is enabled, the protocol uses the Xmipp CUDA significant</span>
+<span class="sd">    alignment program. When GPU execution is disabled, it uses the CPU significant</span>
+<span class="sd">    reconstruction/alignment machinery without reconstruction.</span>
+
+<span class="sd">    This mode keeps the best selected number of orientations per particle and uses</span>
+<span class="sd">    them for validation.</span>
+
+<span class="sd">    GPU execution can substantially speed up this step.</span>
+
+<span class="sd">    ## Projection Matching Mode</span>
+
+<span class="sd">    In projection-matching mode, the protocol uses standard projection matching.</span>
+
+<span class="sd">    The search uses the generated projection gallery, an outer radius based on half</span>
+<span class="sd">    the particle box size, and a maximum shift/search range based on one tenth of</span>
+<span class="sd">    the particle box size.</span>
+
+<span class="sd">    This mode is more classical and direct. It may be useful for comparison with</span>
+<span class="sd">    older workflows or when the user wants a standard projection-matching</span>
+<span class="sd">    validation path.</span>
+
+<span class="sd">    ## Non-Tilt Validation Step</span>
+
+<span class="sd">    After angular assignment, the protocol runs the Xmipp non-tilt validation</span>
+<span class="sd">    program.</span>
+
+<span class="sd">    The validation uses:</span>
+
+<span class="sd">    - the assigned orientations;</span>
+<span class="sd">    - the filtered candidate volume;</span>
+<span class="sd">    - the selected symmetry;</span>
+<span class="sd">    - the significance value;</span>
+<span class="sd">    - whether significant alignment was used.</span>
+
+<span class="sd">    The validation produces metadata files describing the quality of the volume and</span>
+<span class="sd">    the clustering tendency of the angular assignments.</span>
+
+<span class="sd">    These files are stored for each input volume.</span>
+
+<span class="sd">    ## Output Volumes</span>
+
+<span class="sd">    The main output is **outputVolumes**.</span>
+
+<span class="sd">    This output contains copies of the input volumes, each annotated with an Xmipp</span>
+<span class="sd">    quality weight. The weight is read from the validation metadata and stored as</span>
+<span class="sd">    an attribute of the output volume.</span>
+
+<span class="sd">    The output set sampling rate is set to the sampling rate of the input particle</span>
+<span class="sd">    set.</span>
+
+<span class="sd">    The output volumes can be inspected, compared, or ranked according to their</span>
+<span class="sd">    validation weights.</span>
+
+<span class="sd">    ## Validation Metadata</span>
+
+<span class="sd">    For each volume, the protocol writes validation metadata files in the protocol</span>
+<span class="sd">    output directory.</span>
+
+<span class="sd">    The files include:</span>
+
+<span class="sd">    - a `validation.xmd` file containing the main validation result;</span>
+<span class="sd">    - a `clusteringTendency.xmd` file containing clustering-tendency information.</span>
+
+<span class="sd">    The protocol renames these files with a volume-specific prefix, such as</span>
+<span class="sd">    `vol001_validation.xmd` and `vol001_clusteringTendency.xmd`.</span>
+
+<span class="sd">    These files are useful for advanced inspection of the validation results.</span>
+
+<span class="sd">    ## Interpreting the Weight</span>
+
+<span class="sd">    The output weight is a validation score derived from the non-tilt validation</span>
+<span class="sd">    analysis.</span>
+
+<span class="sd">    It should be used as a relative indicator when comparing candidate volumes</span>
+<span class="sd">    against the same particle set and with the same protocol parameters.</span>
+
+<span class="sd">    A better-scoring volume is more consistent with the particle alignment</span>
+<span class="sd">    reliability under this test. However, the score should not be interpreted</span>
+<span class="sd">    alone. It should be considered together with visual inspection, refinement</span>
+<span class="sd">    behavior, FSC, class averages, and biological plausibility.</span>
+
+<span class="sd">    ## GPU Execution</span>
+
+<span class="sd">    The protocol supports GPU execution for the significant-alignment mode.</span>
+
+<span class="sd">    If GPU execution is requested but the required Xmipp CUDA programs are not</span>
+<span class="sd">    available, the protocol reports a validation error.</span>
+
+<span class="sd">    GPU execution is recommended when available, especially for large particle sets</span>
+<span class="sd">    or dense angular sampling.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    Use this protocol when you have several possible initial volumes and want to</span>
+<span class="sd">    rank them without tilted-pair validation.</span>
+
+<span class="sd">    Use the same particle set and the same parameters for all candidate volumes so</span>
+<span class="sd">    that scores are comparable.</span>
+
+<span class="sd">    Start with the default significant alignment mode, angular sampling, and</span>
+<span class="sd">    significance level.</span>
+
+<span class="sd">    Use projection matching when you want a standard angular-assignment comparison</span>
+<span class="sd">    or when significant alignment is not desired.</span>
+
+<span class="sd">    Apply symmetry only when it is biologically justified.</span>
+
+<span class="sd">    Choose filtering limits that remove irrelevant noise but preserve the</span>
+<span class="sd">    structural features needed for alignment.</span>
+
+<span class="sd">    Inspect both the output weights and the original volumes. A high score does</span>
+<span class="sd">    not automatically guarantee that the volume is biologically correct.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    Validate Nontilt is a reference-validation protocol for single-particle data</span>
+<span class="sd">    when tilted-pair validation is not available.</span>
+
+<span class="sd">    For biological users, its main value is that it provides a way to compare</span>
+<span class="sd">    candidate 3D volumes based on how reliably experimental particles align to</span>
+<span class="sd">    their projection galleries. This can help select among alternative initial</span>
+<span class="sd">    models or reconstructions before committing to further refinement.</span>
+
+<span class="sd">    The protocol should be used as part of a broader validation strategy, together</span>
+<span class="sd">    with visual inspection, 2D class consistency, FSC analysis, refinement</span>
+<span class="sd">    behavior, and biological knowledge.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;validate_nontilt&#39;</span>

@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_eliminate_empty_images</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -150,7 +151,254 @@
     <span class="sd">&quot;&quot;&quot; Base to eliminate images using statistical methods</span>
 <span class="sd">    (variance of variances of sub-parts of input image) eliminates those samples,</span>
 <span class="sd">    where there is no object/particle (only noise is presented there).</span>
-<span class="sd">    Threshold parameter can be used for fine-tuning the algorithm for type of data.</span>
+<span class="sd">    Threshold parameter can be used for fine-tuning the algorithm for type of</span>
+<span class="sd">    data.</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Eliminate Empty protocols identify images that appear to contain little</span>
+<span class="sd">    or no meaningful particle signal and separate them from the rest of the</span>
+<span class="sd">    dataset. The decision is based on statistical image features that measure</span>
+<span class="sd">    whether the image behaves more like structured particle content or like</span>
+<span class="sd">    mostly background noise.</span>
+
+<span class="sd">    There are two variants of the protocol. One works on</span>
+<span class="sd">    **individual particles**, and the other works on **2D classes or averages**.</span>
+<span class="sd">    In both cases, the goal is similar: to remove images that look empty,</span>
+<span class="sd">    noise-dominated, or otherwise uninformative.</span>
+
+<span class="sd">    In practical cryo-EM workflows, these protocols are quality-control tools.</span>
+<span class="sd">    They are especially useful when a dataset contains a substantial fraction</span>
+<span class="sd">    of bad particle picks, empty boxes, very weak classes, or classes dominated</span>
+<span class="sd">    by background. Used carefully, they can reduce the burden on later</span>
+<span class="sd">    classification and interpretation steps. However, because they rely on</span>
+<span class="sd">    statistical criteria rather than biological understanding, they should</span>
+<span class="sd">    always be used with some caution.</span>
+
+<span class="sd">    ## General Principle</span>
+
+<span class="sd">    The underlying idea is that images containing a real particle tend to show</span>
+<span class="sd">    more meaningful internal structure than images containing only background</span>
+<span class="sd">    noise. The protocol evaluates this using statistical descriptors based on</span>
+<span class="sd">    the variability of subregions within the image.</span>
+
+<span class="sd">    In simple terms, truly empty images tend to look more uniform in a</span>
+<span class="sd">    statistical sense, whereas particle-containing images tend to exhibit</span>
+<span class="sd">    localized variations associated with the molecular projection. The protocol</span>
+<span class="sd">    converts this idea into an **emptiness score** and then uses a threshold to</span>
+<span class="sd">    decide whether the image is kept or rejected.</span>
+
+<span class="sd">    For biological users, the important point is that this is a</span>
+<span class="sd">    **screening method**, not a classification of biological states. It</span>
+<span class="sd">    distinguishes likely signal from likely emptiness, but it does not know</span>
+<span class="sd">    whether a particle is biologically interesting, well centered, damaged,</span>
+<span class="sd">    or heterogeneous.</span>
+
+<span class="sd">    ## Two Variants: Particles and Classes</span>
+
+<span class="sd">    ### Eliminate Empty Particles</span>
+
+<span class="sd">    This variant operates on a **set of particles**. It is intended to remove</span>
+<span class="sd">    extracted images that appear to contain mostly noise rather than a</span>
+<span class="sd">    recognizable particle.</span>
+
+<span class="sd">    This can be useful after particle picking and extraction, especially when</span>
+<span class="sd">    the picking step has produced many false positives from ice, contaminants,</span>
+<span class="sd">    or empty background regions.</span>
+
+<span class="sd">    ### Eliminate Empty Classes</span>
+
+<span class="sd">    This variant operates on a **set of 2D classes or averages**. It is</span>
+<span class="sd">    intended to remove classes that do not appear to contain a real particle</span>
+<span class="sd">    signal, or that are too poorly populated to be considered useful.</span>
+
+<span class="sd">    This is especially useful after 2D classification, when some classes</span>
+<span class="sd">    correspond to noise, carbon edges, contamination, or very weak particle</span>
+<span class="sd">    content.</span>
+
+<span class="sd">    ## Threshold: Main Control of the Selection</span>
+
+<span class="sd">    The most important parameter in both variants is the</span>
+<span class="sd">    **threshold used in elimination**.</span>
+
+<span class="sd">    Higher threshold values produce a more aggressive selection, meaning that</span>
+<span class="sd">    more particles or classes will be rejected as empty. Lower values are more</span>
+<span class="sd">    permissive and retain more data.</span>
+
+<span class="sd">    A special case is **threshold = -1**. In this mode, the protocol does not</span>
+<span class="sd">    actually eliminate anything, but it still computes and stores the emptiness</span>
+<span class="sd">    score for each image. This is often a very good strategy when using the</span>
+<span class="sd">    protocol for the first time on a dataset, because it allows the user to</span>
+<span class="sd">    inspect the scores before deciding how strict the filtering should be.</span>
+
+<span class="sd">    From a practical point of view, the threshold controls the balance between:</span>
+<span class="sd">    * removing obviously bad data, and</span>
+<span class="sd">    * accidentally rejecting weak but real particle images or classes.</span>
+
+<span class="sd">    For difficult datasets with low contrast or small particles, overly</span>
+<span class="sd">    aggressive thresholds can be risky.</span>
+
+<span class="sd">    ## Optional Denoising</span>
+
+<span class="sd">    Both variants offer an advanced option to use **denoising** during the</span>
+<span class="sd">    computation of the emptiness feature. This applies a Gaussian blurring step</span>
+<span class="sd">    before the emptiness score is evaluated.</span>
+
+<span class="sd">    The purpose of this denoising is to suppress fine-grained noise and make</span>
+<span class="sd">    the broad distinction between empty and non-empty images more robust. In</span>
+<span class="sd">    some datasets this improves the discrimination, especially when the raw</span>
+<span class="sd">    images are extremely noisy.</span>
+
+<span class="sd">    The **denoising factor** controls how strong this smoothing is. Higher</span>
+<span class="sd">    values apply stronger blurring.</span>
+
+<span class="sd">    Biologically, the denoising does not improve the particle itself; it only</span>
+<span class="sd">    changes the way the emptiness feature is computed. For this reason, it is</span>
+<span class="sd">    mainly a technical aid for the scoring process.</span>
+
+<span class="sd">    ## Add Features Option</span>
+
+<span class="sd">    An advanced option allows the protocol to</span>
+<span class="sd">    **attach the computed ranking features** to the input particles or classes.</span>
+<span class="sd">    This is useful when the user wants not only the accepted and rejected</span>
+<span class="sd">    outputs, but also the underlying numerical information used for the</span>
+<span class="sd">    decision.</span>
+
+<span class="sd">    This option is particularly valuable in exploratory workflows, since it</span>
+<span class="sd">    allows later inspection, sorting, or manual analysis of the images</span>
+<span class="sd">    according to their emptiness-related score.</span>
+
+<span class="sd">    ## Eliminate Empty Particles: Typical Use</span>
+
+<span class="sd">    The particle variant is best understood as a cleaning step for extracted</span>
+<span class="sd">    particles. It evaluates each particle individually and separates the</span>
+<span class="sd">    input into:</span>
+<span class="sd">    * **accepted particles**, and</span>
+<span class="sd">    * **eliminated particles**.</span>
+
+<span class="sd">    The output particles also carry the computed emptiness score, which can be</span>
+<span class="sd">    useful for later inspection.</span>
+
+<span class="sd">    In practical workflows, this protocol is often useful after particle</span>
+<span class="sd">    extraction and before expensive downstream classification. It can reduce</span>
+<span class="sd">    the number of obvious false positives and make subsequent 2D classification</span>
+<span class="sd">    more efficient.</span>
+
+<span class="sd">    However, users should be careful with weak or low-contrast particles. A</span>
+<span class="sd">    particle may be real but still appear statistically close to noise,</span>
+<span class="sd">    especially if it is small, poorly centered, or strongly affected by CTF</span>
+<span class="sd">    and low dose.</span>
+
+<span class="sd">    ## Eliminate Empty Classes: Typical Use</span>
+
+<span class="sd">    The class variant works on **2D classes or averages** and can use two</span>
+<span class="sd">    complementary criteria:</span>
+<span class="sd">    * the image-based emptiness criterion, and</span>
+<span class="sd">    * optionally, the **class population**.</span>
+
+<span class="sd">    The image-based criterion evaluates whether the class average itself</span>
+<span class="sd">    appears to contain meaningful structure. This is useful for identifying</span>
+<span class="sd">    classes that are mostly noise or background.</span>
+
+<span class="sd">    The population criterion rejects classes whose size is too small relative</span>
+<span class="sd">    to the mean class population. The parameter **minimum population (%)**</span>
+<span class="sd">    expresses how large a class must be, relative to the average class size,</span>
+<span class="sd">    in order to be accepted.</span>
+
+<span class="sd">    This is biologically useful because very small classes are often unstable</span>
+<span class="sd">    or poorly representative, although they may sometimes correspond to rare</span>
+<span class="sd">    but meaningful states. For that reason, the population criterion should</span>
+<span class="sd">    be used carefully when minority conformations are of interest.</span>
+
+<span class="sd">    ## Population Filtering in Class Mode</span>
+
+<span class="sd">    When **use class population** is enabled, a class can be rejected not</span>
+<span class="sd">    because it is visually empty, but because too few particles contributed to</span>
+<span class="sd">    it.</span>
+
+<span class="sd">    This criterion only works when the input is a true **set of classes** with</span>
+<span class="sd">    membership information. It is not available when the input consists only of</span>
+<span class="sd">    standalone averages, because in that case the protocol does not know how</span>
+<span class="sd">    many particles contributed to each average.</span>
+
+<span class="sd">    From a practical perspective, population filtering is a good way to remove</span>
+<span class="sd">    weak, unstable classes in large datasets. But in heterogeneous samples it</span>
+<span class="sd">    can also remove rare but biologically important states. Users interested in</span>
+<span class="sd">    low-population conformations should therefore apply this criterion</span>
+<span class="sd">    conservatively, or disable it.</span>
+
+<span class="sd">    ## Streaming Behavior</span>
+
+<span class="sd">    These protocols are designed to work in **streaming mode** as well as in</span>
+<span class="sd">    standard batch mode. This means that they can process new particles or</span>
+<span class="sd">    classes as they arrive and progressively update the accepted and rejected</span>
+<span class="sd">    outputs.</span>
+
+<span class="sd">    This is especially useful in facility pipelines or automated workflows</span>
+<span class="sd">    where image data are generated continuously and early filtering is</span>
+<span class="sd">    desirable.</span>
+
+<span class="sd">    For most users, the streaming logic remains mostly transparent, but it</span>
+<span class="sd">    explains why the protocol can produce outputs incrementally rather than</span>
+<span class="sd">    only at the very end.</span>
+
+<span class="sd">    ## Outputs and Their Interpretation</span>
+
+<span class="sd">    ### Particle Variant</span>
+
+<span class="sd">    The protocol can produce:</span>
+<span class="sd">    * **outputParticles**: accepted particles</span>
+<span class="sd">    * **eliminatedParticles**: rejected particles</span>
+
+<span class="sd">    ### Class Variant</span>
+<span class="sd">    The protocol can produce:</span>
+<span class="sd">    * **outputAverages** and, when applicable, **outputClasses**</span>
+<span class="sd">    * **eliminatedAverages** and, when applicable, **eliminatedClasses**</span>
+
+<span class="sd">    The average outputs contain the representative images, while the class</span>
+<span class="sd">    outputs preserve the class structure and their member particles when the</span>
+<span class="sd">    input was a real set of classes.</span>
+
+<span class="sd">    In all cases, the outputs should be interpreted as a split of the original</span>
+<span class="sd">    dataset into a more promising subset and a more questionable subset. The</span>
+<span class="sd">    rejected subset is not useless: it is often worth inspecting, since it helps</span>
+<span class="sd">    the user understand what kind of low-quality data were present in the input.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    For particles, a good strategy is often to begin conservatively, especially</span>
+<span class="sd">    in low-SNR datasets. Running with **threshold = -1** first can be very</span>
+<span class="sd">    helpful because it lets the user inspect the emptiness scores before</span>
+<span class="sd">    deciding how much to reject.</span>
+
+<span class="sd">    For classes, this protocol is particularly useful after 2D classification,</span>
+<span class="sd">    when many classes are clearly noise-like. The population criterion can be</span>
+<span class="sd">    very effective in large datasets, but it should be used carefully if rare</span>
+<span class="sd">    states are biologically important.</span>
+
+<span class="sd">    The denoising option is often helpful when the images are extremely noisy,</span>
+<span class="sd">    but it should still be regarded as a technical aid rather than a universal</span>
+<span class="sd">    improvement.</span>
+
+<span class="sd">    As with many automatic filtering protocols, the best practice is not to</span>
+<span class="sd">    rely exclusively on the numerical decision. Visual inspection of at least</span>
+<span class="sd">    a representative subset of accepted and eliminated items is strongly</span>
+<span class="sd">    recommended.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    The Eliminate Empty protocols are statistical cleaning tools designed to</span>
+<span class="sd">    separate informative images from images that are likely dominated by</span>
+<span class="sd">    background or noise. They are useful for both particle-level and class-level</span>
+<span class="sd">    quality control and can simplify downstream processing by reducing obviously</span>
+<span class="sd">    poor data.</span>
+
+<span class="sd">    For most cryo-EM users, their main value lies in providing an automatic</span>
+<span class="sd">    first pass over the dataset. Used thoughtfully, they can save substantial</span>
+<span class="sd">    effort and improve the quality of later analysis, but they should always be</span>
+<span class="sd">    combined with visual inspection and biological judgment.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_2_0</span>
 

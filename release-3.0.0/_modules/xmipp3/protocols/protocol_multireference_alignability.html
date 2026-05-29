@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_multireference_alignability</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -153,6 +154,364 @@
 <span class="sd">    Performs soft alignment validation of a set of particles confronting them</span>
 <span class="sd">    against a given 3DEM map. This protocol produces particle alignment</span>
 <span class="sd">    precision and accuracy parameters.</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Multireference Alignability protocol evaluates how reliably a set of</span>
+<span class="sd">    particles can be aligned against one or more 3D reference volumes.</span>
+
+<span class="sd">    In single-particle cryo-EM, each particle image must be assigned an orientation</span>
+<span class="sd">    relative to a 3D map. Some particles are easy to align because their projection</span>
+<span class="sd">    contains distinctive features. Other particles are ambiguous because many</span>
+<span class="sd">    orientations produce similar projections, because the particle is noisy, or</span>
+<span class="sd">    because the structure has symmetry or pseudo-symmetry.</span>
+
+<span class="sd">    This protocol performs a soft alignment-validation analysis. It compares the</span>
+<span class="sd">    experimental particles with projection libraries generated from the reference</span>
+<span class="sd">    volume and estimates alignability-related scores for each particle. These</span>
+<span class="sd">    scores describe how precise and how accurate the angular assignment is expected</span>
+<span class="sd">    to be.</span>
+
+<span class="sd">    The protocol also reports global alignability quality parameters for each</span>
+<span class="sd">    input volume and produces a 2D validation plot showing the relationship between</span>
+<span class="sd">    angular precision and angular accuracy.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The protocol requires:</span>
+
+<span class="sd">    - one input volume, or a set of input volumes;</span>
+<span class="sd">    - a set of input particles with alignment information.</span>
+
+<span class="sd">    The particles are first converted to Xmipp metadata format. Optionally, the</span>
+<span class="sd">    particles are CTF-corrected by Wiener filtering. They are then resized or</span>
+<span class="sd">    filtered according to the target resolution used for the validation.</span>
+
+<span class="sd">    For each input volume, the protocol generates a projection library. It then</span>
+<span class="sd">    compares the experimental particles with the reference projections and keeps a</span>
+<span class="sd">    set of the most similar candidate orientations for each particle. A second</span>
+<span class="sd">    comparison is performed using projections generated from the reference volume</span>
+<span class="sd">    itself, so that experimental particles and reference projections can be</span>
+<span class="sd">    evaluated under comparable conditions.</span>
+
+<span class="sd">    Finally, the protocol computes alignability scores and produces output</span>
+<span class="sd">    particles annotated with precision, accuracy, and mirror-related scores. It</span>
+<span class="sd">    also outputs the input volumes enriched with global alignability parameters.</span>
+
+<span class="sd">    ## Input Volume or Volumes</span>
+
+<span class="sd">    The **Input volume** parameter provides the 3D map used as reference for the</span>
+<span class="sd">    alignability analysis.</span>
+
+<span class="sd">    Although the interface presents this as an input volume, the protocol can</span>
+<span class="sd">    internally handle either a single volume or a set of volumes. Each volume is</span>
+<span class="sd">    processed separately, and a different alignability analysis is produced for</span>
+<span class="sd">    each one.</span>
+
+<span class="sd">    The reference volume should represent the structure that the particles are</span>
+<span class="sd">    expected to contain. If the volume is wrong, too low quality, or corresponds to</span>
+<span class="sd">    a different conformation, the alignability scores may reflect model mismatch</span>
+<span class="sd">    rather than true orientation uncertainty.</span>
+
+<span class="sd">    This protocol is especially useful when comparing alternative references or</span>
+<span class="sd">    when evaluating whether some volumes provide more reliable particle alignment</span>
+<span class="sd">    than others.</span>
+
+<span class="sd">    ## Input Particles</span>
+
+<span class="sd">    The **Input particles** parameter should point to a particle set with alignment</span>
+<span class="sd">    information.</span>
+
+<span class="sd">    The protocol uses these particles as the experimental images to be validated.</span>
+<span class="sd">    The particles should correspond to the same specimen represented by the input</span>
+<span class="sd">    volume. They should also have appropriate CTF metadata if CTF correction is</span>
+<span class="sd">    enabled.</span>
+
+<span class="sd">    Poorly centered particles, contaminants, strong heterogeneity, or incorrect</span>
+<span class="sd">    preprocessing can reduce apparent alignability. Therefore, the scores should</span>
+<span class="sd">    always be interpreted in relation to the quality and composition of the input</span>
+<span class="sd">    particle set.</span>
+
+<span class="sd">    ## Symmetry Group</span>
+
+<span class="sd">    The **Symmetry group** parameter defines the symmetry used when generating</span>
+<span class="sd">    projections and evaluating orientations.</span>
+
+<span class="sd">    For asymmetric particles, this is usually **c1**. For symmetric structures, the</span>
+<span class="sd">    appropriate symmetry group should be specified using Xmipp symmetry notation.</span>
+
+<span class="sd">    Correct symmetry is important because equivalent orientations should not be</span>
+<span class="sd">    treated as different biological views. If the wrong symmetry is used, the</span>
+<span class="sd">    protocol may overestimate or underestimate orientation ambiguity.</span>
+
+<span class="sd">    For example, a symmetric map may appear difficult to align if symmetry</span>
+<span class="sd">    equivalences are not properly taken into account.</span>
+
+<span class="sd">    ## Pseudo-Symmetry Group</span>
+
+<span class="sd">    The **Pseudo symmetry group** parameter is an advanced option used when the map</span>
+<span class="sd">    is close to a more restrictive symmetry than the one reported in the main</span>
+<span class="sd">    symmetry parameter.</span>
+
+<span class="sd">    Pseudo-symmetry can make alignment ambiguous. A particle may match several</span>
+<span class="sd">    orientations almost equally well because the structure has repeated or nearly</span>
+<span class="sd">    repeated features.</span>
+
+<span class="sd">    Providing a pseudo-symmetry group allows the protocol to account for this type</span>
+<span class="sd">    of ambiguity in the validation step.</span>
+
+<span class="sd">    This option should only be used when there is a clear structural reason to</span>
+<span class="sd">    suspect pseudo-symmetry.</span>
+
+<span class="sd">    ## Angular Sampling</span>
+
+<span class="sd">    The **Angular Sampling** parameter defines the angular distance, in degrees,</span>
+<span class="sd">    between neighboring projection directions in the generated projection library.</span>
+
+<span class="sd">    A smaller angular sampling gives a denser projection library and can detect</span>
+<span class="sd">    orientation ambiguity more precisely, but it increases computation time. A</span>
+<span class="sd">    larger angular sampling is faster, but may miss fine differences between nearby</span>
+<span class="sd">    orientations.</span>
+
+<span class="sd">    The default value is a practical compromise for many datasets. Advanced users</span>
+<span class="sd">    may refine it depending on particle size, expected resolution, and the degree</span>
+<span class="sd">    of angular ambiguity.</span>
+
+<span class="sd">    ## Number of Orientations for Particle</span>
+
+<span class="sd">    The **Number of Orientations for particle** parameter controls how many of the</span>
+<span class="sd">    best matching projection directions are kept for each particle during the</span>
+<span class="sd">    validation.</span>
+
+<span class="sd">    Keeping several candidate orientations is essential for alignability analysis.</span>
+<span class="sd">    If only one orientation fits well, the particle is more likely to be</span>
+<span class="sd">    unambiguous. If several orientations fit almost equally well, the particle may</span>
+<span class="sd">    be difficult to align precisely or accurately.</span>
+
+<span class="sd">    A larger value explores more alternative orientations but increases</span>
+<span class="sd">    computation. A smaller value focuses only on the most competitive candidates.</span>
+
+<span class="sd">    ## Minimum and Maximum Tilt Angles</span>
+
+<span class="sd">    The **Minimum allowed tilt angle** and **Maximum allowed tilt angle without</span>
+<span class="sd">    mirror check** parameters restrict the tilt-angle range considered during</span>
+<span class="sd">    alignment.</span>
+
+<span class="sd">    These advanced parameters can be useful when the user knows that certain views</span>
+<span class="sd">    should not be considered, or when the acquisition geometry imposes limits on</span>
+<span class="sd">    expected orientations.</span>
+
+<span class="sd">    Restricting the tilt range can reduce ambiguity and computation, but it should</span>
+<span class="sd">    be done carefully. If the true particle orientations fall outside the allowed</span>
+<span class="sd">    range, the alignability analysis will be biased.</span>
+
+<span class="sd">    ## CTF Correction</span>
+
+<span class="sd">    The **CTF correction** option performs CTF correction by Wiener filtering</span>
+<span class="sd">    before the alignability analysis.</span>
+
+<span class="sd">    CTF effects can make particles harder to compare with ideal projections of a</span>
+<span class="sd">    volume. Wiener filtering attempts to compensate for these effects and can make</span>
+<span class="sd">    the alignment-validation comparison more meaningful.</span>
+
+<span class="sd">    This option requires reliable CTF information in the input particles. If the</span>
+<span class="sd">    particles have already been phase-flipped, the protocol passes that information</span>
+<span class="sd">    to the correction step.</span>
+
+<span class="sd">    CTF correction is usually helpful when the goal is to compare particles with</span>
+<span class="sd">    reference projections at a meaningful resolution, but it should be interpreted</span>
+<span class="sd">    in relation to the quality of the CTF estimates.</span>
+
+<span class="sd">    ## Isotropic Correction</span>
+
+<span class="sd">    The **Isotropic Correction** option is used when CTF correction is enabled.</span>
+
+<span class="sd">    If selected, the correction assumes that there is no astigmatism and applies an</span>
+<span class="sd">    isotropic CTF correction. This simplifies the correction by treating the CTF as</span>
+<span class="sd">    radially symmetric.</span>
+
+<span class="sd">    This may be appropriate when astigmatism is negligible or when a simpler</span>
+<span class="sd">    correction is desired. If significant astigmatism is present, an isotropic</span>
+<span class="sd">    correction may be less accurate.</span>
+
+<span class="sd">    ## Padding Factor and Wiener Constant</span>
+
+<span class="sd">    The **Padding factor** and **Wiener constant** are advanced parameters for the</span>
+<span class="sd">    Wiener CTF correction.</span>
+
+<span class="sd">    The padding factor controls the amount of padding used during correction. The</span>
+<span class="sd">    Wiener constant controls the strength of the Wiener filtering. If the Wiener</span>
+<span class="sd">    constant is negative, the default behavior of the underlying program is used.</span>
+
+<span class="sd">    Most users should leave these parameters at their default values unless they</span>
+<span class="sd">    have experience with CTF correction and a specific reason to tune them.</span>
+
+<span class="sd">    ## Correct for CTF Envelope</span>
+
+<span class="sd">    The **Correct for CTF envelope** option is an advanced CTF-correction setting.</span>
+
+<span class="sd">    It should only be used when the envelope function has been well estimated. If</span>
+<span class="sd">    the envelope is inaccurate, correcting for it may introduce artifacts or make</span>
+<span class="sd">    the particle comparison less reliable.</span>
+
+<span class="sd">    For most routine workflows, this option should remain disabled unless there is</span>
+<span class="sd">    a clear reason to enable it.</span>
+
+<span class="sd">    ## Target Resolution</span>
+
+<span class="sd">    The **Target resolution** parameter controls the resolution to which particles</span>
+<span class="sd">    are effectively low-pass filtered or resized for the alignability analysis.</span>
+
+<span class="sd">    The protocol modifies the working sampling and image size according to this</span>
+<span class="sd">    target. The default value is intended to focus the analysis on robust</span>
+<span class="sd">    medium-resolution information. Values around 8 to 10 Å are often useful because</span>
+<span class="sd">    they preserve enough structural signal for alignment while reducing the</span>
+<span class="sd">    influence of high-frequency noise.</span>
+
+<span class="sd">    Changing this value should be done carefully. A very high-resolution target may</span>
+<span class="sd">    make the analysis too sensitive to noise. A very low-resolution target may hide</span>
+<span class="sd">    orientation-specific features and underestimate alignability.</span>
+
+<span class="sd">    ## GPU Execution</span>
+
+<span class="sd">    The protocol can use a GPU implementation for the significant-orientation</span>
+<span class="sd">    search. GPU execution is enabled by default through hidden execution</span>
+<span class="sd">    parameters.</span>
+
+<span class="sd">    If GPU execution is requested but the required Xmipp CUDA program is not</span>
+<span class="sd">    available, the protocol reports a validation error.</span>
+
+<span class="sd">    GPU execution is useful because the projection-search steps can be</span>
+<span class="sd">    computationally demanding.</span>
+
+<span class="sd">    ## Alignability Precision</span>
+
+<span class="sd">    The **alignability precision** score describes how sharply the particle</span>
+<span class="sd">    orientation is determined.</span>
+
+<span class="sd">    A particle with high precision has a well-defined best orientation: nearby or</span>
+<span class="sd">    alternative orientations fit worse. A particle with low precision has several</span>
+<span class="sd">    similar candidate orientations, meaning its exact angular assignment is</span>
+<span class="sd">    uncertain.</span>
+
+<span class="sd">    Low precision may occur because of low signal-to-noise ratio, small particle</span>
+<span class="sd">    size, lack of distinctive features, preferred views, or symmetry-related</span>
+<span class="sd">    ambiguity.</span>
+
+<span class="sd">    ## Alignability Accuracy</span>
+
+<span class="sd">    The **alignability accuracy** score describes whether the assigned orientation</span>
+<span class="sd">    is expected to be correct relative to the reference.</span>
+
+<span class="sd">    A particle may be precise but inaccurate if the algorithm confidently selects a</span>
+<span class="sd">    wrong orientation. Conversely, a particle may be approximately accurate but not</span>
+<span class="sd">    very precise if several nearby orientations fit similarly.</span>
+
+<span class="sd">    Accuracy and precision should therefore be interpreted together. The protocol</span>
+<span class="sd">    produces both particle-level scores and global volume-level parameters.</span>
+
+<span class="sd">    ## Mirror Score</span>
+
+<span class="sd">    The protocol also computes a mirror-related score.</span>
+
+<span class="sd">    Mirror ambiguity is important in cryo-EM because some projections may be</span>
+<span class="sd">    difficult to distinguish from their mirrored counterparts, especially for</span>
+<span class="sd">    certain views, symmetries, or low-resolution particles.</span>
+
+<span class="sd">    A high mirror ambiguity may indicate that the particle view is not reliable for</span>
+<span class="sd">    determining handedness or that the reference has features that make mirrored</span>
+<span class="sd">    orientations difficult to separate.</span>
+
+<span class="sd">    ## Output Particles</span>
+
+<span class="sd">    For each analyzed volume, the protocol produces an output particle set.</span>
+
+<span class="sd">    The output particles preserve the input particle information and are annotated</span>
+<span class="sd">    with Xmipp alignability scores, including:</span>
+
+<span class="sd">    - alignability precision score;</span>
+<span class="sd">    - alignability accuracy score;</span>
+<span class="sd">    - mirror score;</span>
+<span class="sd">    - a combined weight derived from accuracy and precision.</span>
+
+<span class="sd">    These particle-level scores can be used to inspect which particles are</span>
+<span class="sd">    reliably alignable and which ones are more ambiguous.</span>
+
+<span class="sd">    They may also help identify subsets of particles that contribute more strongly</span>
+<span class="sd">    to reliable angular assignment.</span>
+
+<span class="sd">    ## Output Volumes</span>
+
+<span class="sd">    The protocol also produces an output volume set.</span>
+
+<span class="sd">    Each output volume corresponds to one input volume and is annotated with global</span>
+<span class="sd">    alignability parameters, including precision, accuracy, and mirror-related</span>
+<span class="sd">    weights.</span>
+
+<span class="sd">    These global values summarize how well the particle set can be aligned against</span>
+<span class="sd">    each reference volume.</span>
+
+<span class="sd">    When several reference volumes are analyzed, these values can help compare</span>
+<span class="sd">    which reference provides more reliable alignment.</span>
+
+<span class="sd">    ## Soft Alignment Validation Plot</span>
+
+<span class="sd">    For each input volume, the protocol creates a 2D plot of particle-level</span>
+<span class="sd">    alignability.</span>
+
+<span class="sd">    The plot shows angular precision on one axis and angular accuracy on the other.</span>
+<span class="sd">    Each point corresponds to a particle.</span>
+
+<span class="sd">    This plot provides a visual summary of the alignment-validation landscape. A</span>
+<span class="sd">    cluster of particles with high precision and high accuracy suggests reliable</span>
+<span class="sd">    alignment. A broad distribution or many particles with low values suggests</span>
+<span class="sd">    substantial angular ambiguity.</span>
+
+<span class="sd">    The plot is useful for diagnosing whether poor reconstruction quality may be</span>
+<span class="sd">    related to ambiguous particle orientations.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    Use this protocol when you want to evaluate whether particles can be reliably</span>
+<span class="sd">    aligned against a given reference volume.</span>
+
+<span class="sd">    Use the correct symmetry group. Incorrect symmetry can strongly affect the</span>
+<span class="sd">    interpretation of orientation ambiguity.</span>
+
+<span class="sd">    Keep the target resolution near the default range unless there is a clear</span>
+<span class="sd">    reason to change it. Medium-resolution information is often more reliable for</span>
+<span class="sd">    alignment validation than very high-frequency detail.</span>
+
+<span class="sd">    Enable CTF correction when reliable CTF metadata are available and when the</span>
+<span class="sd">    particles have not already been corrected in a way that would make the setting</span>
+<span class="sd">    inconsistent.</span>
+
+<span class="sd">    Interpret precision, accuracy, and mirror scores together. A particle may fail</span>
+<span class="sd">    one aspect of alignability while still looking acceptable in another.</span>
+
+<span class="sd">    When comparing several reference volumes, examine both the global volume scores</span>
+<span class="sd">    and the particle-level score distributions.</span>
+
+<span class="sd">    Use the soft alignment validation plot to identify whether the dataset contains</span>
+<span class="sd">    a large population of ambiguous particles.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    Multireference Alignability is a validation protocol for angular assignment.</span>
+<span class="sd">    It estimates how reliably particles can be oriented with respect to one or more</span>
+<span class="sd">    3D reference volumes.</span>
+
+<span class="sd">    For biological users, this is useful because not all particles contribute</span>
+<span class="sd">    equally to a reliable reconstruction. Some views or particles may be inherently</span>
+<span class="sd">    ambiguous, especially in the presence of symmetry, pseudo-symmetry, noise, or</span>
+<span class="sd">    weak structural features.</span>
+
+<span class="sd">    By providing particle-level and volume-level alignability scores, the protocol</span>
+<span class="sd">    helps assess whether a reconstruction problem may come from poor angular</span>
+<span class="sd">    information rather than only from particle number, refinement settings, or</span>
+<span class="sd">    sample quality.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;multireference alignability&#39;</span>
 

@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_cl2d_align</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -136,7 +137,123 @@
 
 
 <div class="viewcode-block" id="XmippProtCL2DAlign"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_cl2d_align.html#xmipp3.protocols.protocol_cl2d_align.XmippProtCL2DAlign">[docs]</a><span class="k">class</span> <span class="nc">XmippProtCL2DAlign</span><span class="p">(</span><span class="n">ProtAlign2D</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Aligns a set of particles using the CL2D algorithm, allowing for an optional reference 2D image. Accurate alignment is critical for improving class averages and achieving high-quality 2D classifications.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Aligns a set of particles using the CL2D algorithm, allowing for an</span>
+<span class="sd">    optional reference 2D image. Accurate alignment is critical for improving</span>
+<span class="sd">    class averages and achieving high-quality 2D classifications.</span>
+
+<span class="sd">    AI Generated:</span>
+
+<span class="sd">    This protocol uses the CL2D engine to perform a pure alignment of a</span>
+<span class="sd">    particle stack in 2D. Conceptually, it runs CL2D in the special case of</span>
+<span class="sd">    one reference class (--nref 1), so the algorithm iteratively estimates for</span>
+<span class="sd">    every particle the in-plane rotation/shift that best matches a reference,</span>
+<span class="sd">    and it stores those alignment parameters back into the particle</span>
+<span class="sd">    transformations. The practical point is simple: you end up with a new</span>
+<span class="sd">    particle set that has a consistent 2D alignment (in-plane rotation + x/y</span>
+<span class="sd">    shifts), plus an average image that summarizes the aligned data. This can</span>
+<span class="sd">    be used as a preprocessing step before 2D classification, for diagnostics,</span>
+<span class="sd">    or for making a clean average quickly.</span>
+
+<span class="sd">    What you provide as input</span>
+
+<span class="sd">    You provide a SetOfParticles as input. The protocol writes them into an</span>
+<span class="sd">    Xmipp metadata file (images.xmd) with alignment cleared (ALIGN_NONE) so</span>
+<span class="sd">    that CL2D starts from the raw images without inheriting previous alignment</span>
+<span class="sd">    information. The alignment results are then written by CL2D into that</span>
+<span class="sd">    metadata and later imported back into Scipion objects.</span>
+
+<span class="sd">    Reference strategy: with or without a user-provided reference</span>
+
+<span class="sd">    The main user choice is whether to align against a specific reference</span>
+<span class="sd">    image or to let CL2D generate one internally.</span>
+
+<span class="sd">    If Use a Reference Image is enabled, you provide one reference image</span>
+<span class="sd">    through the referenceImage parameter. The protocol accepts three types: a</span>
+<span class="sd">    single Particle, a SetOfAverages, or a SetOfClasses2D. Internally it always</span>
+<span class="sd">    resolves this to one image: if you provide a set (averages or classes), it</span>
+<span class="sd">    simply takes the first item (for classes it takes the representative of the</span>
+<span class="sd">    first class). This resolved image is passed to CL2D as</span>
+<span class="sd">    --ref0 &lt;imageLocation&gt;, and all particles will be aligned to it. This</span>
+<span class="sd">    mode is useful when you already have a trusted target view (for example, a</span>
+<span class="sd">    good 2D average from a previous run) and you want the whole dataset</span>
+<span class="sd">    brought into that reference frame.</span>
+
+<span class="sd">    If Use a Reference Image is disabled, the protocol does not use --ref0.</span>
+<span class="sd">    Instead it runs CL2D with --nref0 1, meaning CL2D will build an initial</span>
+<span class="sd">    reference automatically (in practice, by averaging subsets according to</span>
+<span class="sd">    its internal initialization). This is the usual “no-prior” mode when you</span>
+<span class="sd">    just want a stable alignment without deciding in advance what the reference</span>
+<span class="sd">    should look like.</span>
+
+<span class="sd">    A key practical implication: using a reference can make alignment outcomes</span>
+<span class="sd">    more reproducible and can force alignment toward a particular view, while</span>
+<span class="sd">    “no reference” tends to produce a reference that reflects the dominant</span>
+<span class="sd">    signal in your data (which can be good, but may also drift if your dataset</span>
+<span class="sd">    has mixed views or strong junk).</span>
+
+<span class="sd">    How strong the alignment is allowed to be</span>
+
+<span class="sd">    Two parameters control the alignment search.</span>
+
+<span class="sd">    Maximum shift (px) sets the translation search window. Biologically, this</span>
+<span class="sd">    should match your expectation of miscentering: if particles are already</span>
+<span class="sd">    well centered, small values are fine and faster; if extraction/centering is</span>
+<span class="sd">    rough, too small a maximum shift will prevent correct alignment and you may</span>
+<span class="sd">    see blurred averages.</span>
+
+<span class="sd">    Number of iterations controls how many refinement rounds CL2D will do. More</span>
+<span class="sd">    iterations give the algorithm more opportunity to converge, particularly</span>
+<span class="sd">    when SNR is low, but the cost increases and over-refinement of noise is</span>
+<span class="sd">    possible if the dataset is very heterogeneous or dominated by junk.</span>
+
+<span class="sd">    What the protocol runs internally</span>
+
+<span class="sd">    After converting input to Xmipp metadata (images.xmd), the protocol runs:</span>
+
+<span class="sd">    xmipp_classify_CL2D -i images.xmd --odir &lt;extraDir&gt; --nref 1 --iter &lt;N&gt;</span>
+<span class="sd">    --maxShift &lt;S&gt; ...</span>
+
+<span class="sd">    with either --ref0 &lt;reference&gt; (reference mode) or --nref0 1 (no-reference</span>
+<span class="sd">    mode). Even though the executable name says “classify”, here it is being</span>
+<span class="sd">    used as an alignment tool because the classification is restricted to a</span>
+<span class="sd">    single class; the only thing that changes across iterations is the estimated</span>
+<span class="sd">    alignment of each particle to that class/reference.</span>
+
+<span class="sd">    Outputs you get</span>
+
+<span class="sd">    You get two outputs:</span>
+
+<span class="sd">    outputAverage: a single Particle pointing to the CL2D-produced class</span>
+<span class="sd">    average (internally it is taken from level_00/class_classes.stk, image</span>
+<span class="sd">    index 1). This is the aligned average of your dataset with respect to the</span>
+<span class="sd">    chosen (or internally generated) reference.</span>
+
+<span class="sd">    outputParticles: a new SetOfParticles where each particle has a 2D</span>
+<span class="sd">    transform imported from the CL2D metadata via createItemMatrix(...,</span>
+<span class="sd">    align=ALIGN_2D). The set is explicitly marked as ALIGN_2D, and the protocol</span>
+<span class="sd">    also sets the representative of the particle set to the produced average,</span>
+<span class="sd">    which is handy for quick visualization.</span>
+
+<span class="sd">    Validation checks (what can make it fail)</span>
+
+<span class="sd">    The main hard requirement is that MPI must be &gt; 1 (the protocol enforces</span>
+<span class="sd">    this because it expects CL2D to run in parallel).</span>
+
+<span class="sd">    If you use a reference image, the protocol checks that the reference and</span>
+<span class="sd">    input particles have exactly the same dimensions. If sizes differ, the</span>
+<span class="sd">    protocol refuses to run because CL2D cannot align images of different box</span>
+<span class="sd">    sizes.</span>
+
+<span class="sd">    When this protocol is most useful in practice</span>
+
+<span class="sd">    In a typical workflow, this is useful when you want a quick, consistent 2D</span>
+<span class="sd">    alignment for: generating a clean average for reporting/diagnostics,</span>
+<span class="sd">    preparing particles for subsequent 2D classification (especially if your</span>
+<span class="sd">    next step benefits from roughly aligned inputs), or aligning a subset</span>
+<span class="sd">    against a known reference view to compare datasets. If you notice that</span>
+<span class="sd">    results are dominated by a wrong view or drift, switching between</span>
+<span class="sd">    “reference” and “no reference”, or tightening the maximum shift, are</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;align with cl2d&#39;</span>
     
     <span class="c1"># --------------------------- DEFINE param functions -----------------------</span>

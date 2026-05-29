@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_movie_dose_analysis</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -152,7 +153,277 @@
 
 <div class="viewcode-block" id="XmippProtMovieDoseAnalysis"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_dose_analysis.html#xmipp3.protocols.protocol_movie_dose_analysis.XmippProtMovieDoseAnalysis">[docs]</a><span class="k">class</span> <span class="nc">XmippProtMovieDoseAnalysis</span><span class="p">(</span><span class="n">ProtProcessMovies</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Analyzes the electron dose applied throughout a movie acquisition. This protocol helps assess dose accumulation and its effects on image quality, providing information essential for dose weighting and optimizing reconstruction..</span>
+<span class="sd">    Analyzes the electron dose applied throughout a movie acquisition. This</span>
+<span class="sd">    protocol helps assess dose accumulation and its effects on image quality,</span>
+<span class="sd">    providing information essential for dose weighting and optimizing</span>
+<span class="sd">    reconstruction.</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Movie Dose Analysis protocol evaluates whether the electron dose in a set</span>
+<span class="sd">    of movies is consistent across the acquisition.</span>
+
+<span class="sd">    In cryo-EM, the electron dose per frame is a key acquisition parameter. If the</span>
+<span class="sd">    dose is too low, the frames may have insufficient signal for reliable alignment</span>
+<span class="sd">    and later processing. If the dose is too high, the specimen may suffer stronger</span>
+<span class="sd">    radiation damage. More importantly for this protocol, if the dose changes</span>
+<span class="sd">    unexpectedly during data collection, some movies may not be directly comparable</span>
+<span class="sd">    with the rest of the dataset.</span>
+
+<span class="sd">    This protocol estimates an experimental dose value for each movie by measuring</span>
+<span class="sd">    the average intensity in selected frames. It then compares each movie with a</span>
+<span class="sd">    global reference dose. Movies whose estimated dose differs too much from the</span>
+<span class="sd">    reference are separated into a discarded output set, while movies within the</span>
+<span class="sd">    accepted interval are kept in the accepted output set.</span>
+
+<span class="sd">    The protocol is therefore a quality-control step for detecting possible dose</span>
+<span class="sd">    inconsistencies, acquisition instabilities, or incorrectly recorded dose</span>
+<span class="sd">    metadata.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The main input is a set of movies.</span>
+
+<span class="sd">    For each movie, the protocol reads a few representative frames and estimates</span>
+<span class="sd">    the mean dose per square angstrom from their average image intensity and the</span>
+<span class="sd">    movie sampling rate.</span>
+
+<span class="sd">    After enough movies have been processed, the protocol estimates a global</span>
+<span class="sd">    reference dose. If a dose per frame is available in the acquisition metadata,</span>
+<span class="sd">    the protocol compares it with the experimentally estimated dose. If the two</span>
+<span class="sd">    values are compatible, the metadata value is used. If they differ too much, the</span>
+<span class="sd">    protocol uses the experimental median instead.</span>
+
+<span class="sd">    Each movie is then compared with the global reference dose. Movies inside the</span>
+<span class="sd">    allowed percentage interval are accepted. Movies outside the interval are</span>
+<span class="sd">    discarded.</span>
+
+<span class="sd">    The protocol also generates dose-analysis plots showing dose values and dose</span>
+<span class="sd">    differences over time.</span>
+
+<span class="sd">    ## Input Movies</span>
+
+<span class="sd">    The **Input movies** parameter should point to the movie set to be evaluated.</span>
+
+<span class="sd">    The protocol assumes that the movie files can be read frame by frame. For each</span>
+<span class="sd">    movie, it reads representative frames from the beginning, middle, and end of</span>
+<span class="sd">    the exposure, and uses their mean intensity to estimate dose-related</span>
+<span class="sd">    statistics.</span>
+
+<span class="sd">    The input movie set may be static or streaming. In streaming mode, the protocol</span>
+<span class="sd">    updates its analysis as new movies arrive.</span>
+
+<span class="sd">    This protocol does not align movies and does not correct them. It only</span>
+<span class="sd">    evaluates dose consistency.</span>
+
+<span class="sd">    ## Experimental Dose Estimation</span>
+
+<span class="sd">    For each movie, the protocol estimates the mean dose from selected frames.</span>
+
+<span class="sd">    Conceptually, it reads three frames:</span>
+
+<span class="sd">    - the first frame;</span>
+<span class="sd">    - a middle frame;</span>
+<span class="sd">    - the last frame.</span>
+
+<span class="sd">    For each frame, it computes the mean pixel value and converts it into an</span>
+<span class="sd">    estimated dose per square angstrom using the sampling rate. The protocol then</span>
+<span class="sd">    computes basic statistics across these frame estimates: mean, standard</span>
+<span class="sd">    deviation, minimum, and maximum.</span>
+
+<span class="sd">    The resulting mean value is used as the movie-level dose estimate.</span>
+
+<span class="sd">    This is a practical quality-control estimate. It is not intended to replace a</span>
+<span class="sd">    full physical detector calibration, but it can detect strong inconsistencies in</span>
+<span class="sd">    dose behavior across a dataset.</span>
+
+<span class="sd">    ## Global Reference Dose</span>
+
+<span class="sd">    The protocol needs a global reference dose to decide whether each movie is</span>
+<span class="sd">    consistent with the dataset.</span>
+
+<span class="sd">    If the input movie metadata contain a valid dose-per-frame value, the protocol</span>
+<span class="sd">    initially considers this value as the expected reference. However, it also</span>
+<span class="sd">    estimates an experimental median dose from a sample of movies.</span>
+
+<span class="sd">    If the metadata dose and the experimental median agree closely, the metadata</span>
+<span class="sd">    dose is used as the reference. If they disagree beyond an internal tolerance,</span>
+<span class="sd">    the protocol switches to the experimental median and reports that the provided</span>
+<span class="sd">    dose per frame does not match the measured one.</span>
+
+<span class="sd">    This behavior is useful because dose metadata may sometimes be missing,</span>
+<span class="sd">    incorrect, or inconsistent with the actual recorded images.</span>
+
+<span class="sd">    ## Samples to Estimate the Median Dose</span>
+
+<span class="sd">    The **Samples to estimate the median dose** parameter defines how many movies</span>
+<span class="sd">    are used before the protocol establishes the initial experimental global</span>
+<span class="sd">    median.</span>
+
+<span class="sd">    By default, the protocol waits until 20 movies have been measured. This avoids</span>
+<span class="sd">    making acceptance decisions from too few examples.</span>
+
+<span class="sd">    A larger value gives a more stable estimate of the global dose, but delays the</span>
+<span class="sd">    start of accepted/discarded output production. A smaller value allows earlier</span>
+<span class="sd">    classification of movies, but the reference dose may be less robust.</span>
+
+<span class="sd">    In streaming workflows, this parameter is especially important because the</span>
+<span class="sd">    protocol must estimate the reference dose while data are still arriving.</span>
+
+<span class="sd">    ## Maximum Percentage Difference</span>
+
+<span class="sd">    The **Maximum percentage difference** parameter defines the accepted interval</span>
+<span class="sd">    around the global reference dose.</span>
+
+<span class="sd">    For example, with a value of 5%, a movie is accepted if its estimated dose is</span>
+<span class="sd">    within ±5% of the global reference dose. Movies outside this interval are</span>
+<span class="sd">    discarded.</span>
+
+<span class="sd">    A smaller percentage makes the protocol stricter and more sensitive to dose</span>
+<span class="sd">    changes. A larger percentage is more permissive and may be preferable when</span>
+<span class="sd">    small dose fluctuations are expected or when the estimate is noisy.</span>
+
+<span class="sd">    The default value is intended to detect clear dose inconsistencies without</span>
+<span class="sd">    being overly sensitive to small fluctuations.</span>
+
+<span class="sd">    ## Window Step</span>
+
+<span class="sd">    The **Window step** parameter controls how often the protocol evaluates whether</span>
+<span class="sd">    there is a persistent dose anomaly over time.</span>
+
+<span class="sd">    For example, with a window of 50 movies, the protocol examines the most recent</span>
+<span class="sd">    50 dose estimates and calculates the fraction that fall outside the accepted</span>
+<span class="sd">    dose interval.</span>
+
+<span class="sd">    This is useful because a single bad movie may not indicate a serious</span>
+<span class="sd">    acquisition problem, whereas a long sequence of abnormal movies may indicate a</span>
+<span class="sd">    persistent issue, such as a change in beam conditions, detector behavior, or</span>
+<span class="sd">    recorded acquisition settings.</span>
+
+<span class="sd">    ## Maximum Faulty Percentage</span>
+
+<span class="sd">    The **Maximum faulty percentage** parameter defines when a warning should be</span>
+<span class="sd">    issued for a time window.</span>
+
+<span class="sd">    If the percentage of movies outside the accepted dose interval within the</span>
+<span class="sd">    current window exceeds this threshold, the protocol writes a warning. This</span>
+<span class="sd">    indicates that the dose anomaly may be persistent rather than isolated.</span>
+
+<span class="sd">    For example, if the threshold is 30%, and more than 30% of the movies in a</span>
+<span class="sd">    window are outside the accepted dose interval, the protocol considers this a</span>
+<span class="sd">    potential acquisition problem.</span>
+
+<span class="sd">    This parameter is mainly useful in streaming or chronological acquisition</span>
+<span class="sd">    analysis, where changes over time are important.</span>
+
+<span class="sd">    ## Accepted Movies</span>
+
+<span class="sd">    The **outputMovies** set contains movies whose estimated dose is within the</span>
+<span class="sd">    accepted interval around the global reference dose.</span>
+
+<span class="sd">    These movies are considered dose-consistent according to the selected</span>
+<span class="sd">    threshold. The output movies preserve the original movie information and also</span>
+<span class="sd">    receive additional metadata fields describing the estimated dose statistics.</span>
+
+<span class="sd">    These accepted movies can be passed to downstream processing steps such as</span>
+<span class="sd">    movie alignment, CTF estimation, particle picking, or reconstruction.</span>
+
+<span class="sd">    ## Discarded Movies</span>
+
+<span class="sd">    The **outputMoviesDiscarded** set contains movies whose estimated dose falls</span>
+<span class="sd">    outside the accepted interval.</span>
+
+<span class="sd">    A discarded movie is not necessarily unusable in all contexts. It means that</span>
+<span class="sd">    its measured dose is inconsistent with the reference dose according to the</span>
+<span class="sd">    selected threshold. The user should inspect discarded examples to determine</span>
+<span class="sd">    whether the difference reflects a real acquisition problem, metadata error,</span>
+<span class="sd">    detector artifact, or an overly strict threshold.</span>
+
+<span class="sd">    This output is useful for troubleshooting and for documenting possible</span>
+<span class="sd">    acquisition instabilities.</span>
+
+<span class="sd">    ## Metadata Added to Movies</span>
+
+<span class="sd">    For each evaluated movie, the protocol stores dose-related metadata, including:</span>
+
+<span class="sd">    - the estimated mean dose per square angstrom;</span>
+<span class="sd">    - the standard deviation of dose estimates across sampled frames;</span>
+<span class="sd">    - the minimum and maximum estimated frame dose;</span>
+<span class="sd">    - the percentage difference relative to the global reference dose.</span>
+
+<span class="sd">    These metadata help the user understand why a movie was accepted or discarded.</span>
+
+<span class="sd">    They can also be useful for later plotting, reporting, or correlating dose</span>
+<span class="sd">    behavior with other quality indicators.</span>
+
+<span class="sd">    ## Dose Analysis Plots</span>
+
+<span class="sd">    The protocol generates two diagnostic plots.</span>
+
+<span class="sd">    The first plot shows the estimated dose values over movie order, together with</span>
+<span class="sd">    the global median and the upper and lower acceptance limits.</span>
+
+<span class="sd">    The second plot shows the percentage difference of each movie relative to the</span>
+<span class="sd">    global reference dose over time.</span>
+
+<span class="sd">    These plots are useful for detecting trends. For example, the user may see a</span>
+<span class="sd">    stable dose throughout acquisition, isolated outlier movies, or a sudden shift</span>
+<span class="sd">    in dose after a particular point in the session.</span>
+
+<span class="sd">    Such temporal patterns can be very informative for facility quality control and</span>
+<span class="sd">    for diagnosing acquisition problems.</span>
+
+<span class="sd">    ## Streaming Behavior</span>
+
+<span class="sd">    The protocol supports streaming movie input.</span>
+
+<span class="sd">    As new movies arrive, the protocol processes them in batches, estimates their</span>
+<span class="sd">    dose statistics, and updates the accepted and discarded outputs once the global</span>
+<span class="sd">    reference dose has been established.</span>
+
+<span class="sd">    The output streams remain open while the input stream is open and are closed</span>
+<span class="sd">    when all input movies have been processed.</span>
+
+<span class="sd">    This makes the protocol suitable for online monitoring during data collection.</span>
+<span class="sd">    It can provide early warning if the dose becomes inconsistent during a session.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    Use this protocol as an early quality-control step when dose consistency is</span>
+<span class="sd">    important, especially in automated or streaming workflows.</span>
+
+<span class="sd">    Keep the default maximum percentage difference at first. If many apparently</span>
+<span class="sd">    good movies are discarded, consider relaxing the threshold. If subtle dose</span>
+<span class="sd">    changes are important for the project, consider using a stricter threshold.</span>
+
+<span class="sd">    Use enough samples to estimate a stable global median. Very small values may</span>
+<span class="sd">    make the reference dose unreliable.</span>
+
+<span class="sd">    Inspect the dose-analysis plots rather than relying only on the accepted and</span>
+<span class="sd">    discarded outputs. The plots can reveal temporal trends that are not obvious</span>
+<span class="sd">    from individual movie decisions.</span>
+
+<span class="sd">    Pay attention to warnings about persistent faulty percentages within a window.</span>
+<span class="sd">    A sustained dose anomaly may indicate a problem in the acquisition session.</span>
+
+<span class="sd">    Remember that this protocol evaluates dose consistency, not all aspects of</span>
+<span class="sd">    movie quality. A movie can have correct dose but still be poor because of</span>
+<span class="sd">    drift, contamination, bad ice, poor gain correction, or other problems.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    Movie Dose Analysis is a quality-control protocol for detecting inconsistent</span>
+<span class="sd">    electron dose across a movie dataset.</span>
+
+<span class="sd">    For biological users and cryo-EM facilities, it provides a practical way to</span>
+<span class="sd">    separate dose-consistent movies from suspicious ones, monitor dose behavior</span>
+<span class="sd">    over time, and detect possible acquisition anomalies early.</span>
+
+<span class="sd">    The protocol is especially useful in streaming workflows, where identifying</span>
+<span class="sd">    dose problems during acquisition can help prevent large numbers of problematic</span>
+<span class="sd">    movies from entering the downstream processing pipeline.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># FIXME: WITH .mrcs IT DOES NOT FILL THE LABELS</span>
 

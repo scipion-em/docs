@@ -141,6 +141,7 @@
 <span class="kn">from</span> <span class="nn">pyworkflow.utils.path</span> <span class="kn">import</span> <span class="n">cleanPath</span>
 
 <span class="kn">from</span> <span class="nn">xmipp3.constants</span> <span class="kn">import</span> <span class="n">SYM_URL</span>
+<span class="kn">from</span> <span class="nn">pyworkflow</span> <span class="kn">import</span> <span class="n">BETA</span><span class="p">,</span> <span class="n">UPDATED</span><span class="p">,</span> <span class="n">NEW</span><span class="p">,</span> <span class="n">PROD</span>
 
 <span class="n">ALIGN_MASK_CIRCULAR</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">ALIGN_MASK_BINARY_FILE</span> <span class="o">=</span> <span class="mi">1</span>
@@ -159,14 +160,220 @@
 
 <div class="viewcode-block" id="XmippProtAlignVolumeParticles"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_align_volume_and_particles.html#xmipp3.protocols.protocol_align_volume_and_particles.XmippProtAlignVolumeParticles">[docs]</a><span class="k">class</span> <span class="nc">XmippProtAlignVolumeParticles</span><span class="p">(</span><span class="n">ProtAlignVolume</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; </span>
-<span class="sd">    Aligns a volume (inputVolume) using a Fast Fourier method</span>
-<span class="sd">    with respect to a reference one (inputReference).</span>
+<span class="sd">     Aligns a volume (inputVolume) using a Fast Fourier method</span>
+<span class="sd">     with respect to a reference one (inputReference).</span>
 <span class="sd">     The obtained alignment parameters are used to align the set of particles or subtomograms</span>
 <span class="sd">     (inputParticles) that generated the input volume.</span>
+
+<span class="sd">     AI Generated:</span>
+
+<span class="sd">        What this protocol does and when to use it</span>
+
+<span class="sd">        Align Volume and Particles is designed for a very practical situation</span>
+<span class="sd">        in cryo-EM (and also subtomogram averaging): you already have an input</span>
+<span class="sd">        volume reconstructed from a set of particles (or subtomograms), and you</span>
+<span class="sd">        want that volume to match a reference volume in orientation and</span>
+<span class="sd">        position. Once the protocol finds the rigid-body transformation that</span>
+<span class="sd">        aligns the input volume to the reference, it propagates exactly the</span>
+<span class="sd">        same transformation to the underlying particle orientations/transforms.</span>
+<span class="sd">        In other words, it is a “volume-level registration” step that</span>
+<span class="sd">        automatically updates the corresponding particle set so everything</span>
+<span class="sd">        stays consistent.</span>
+
+<span class="sd">        Biologically, this is useful whenever you want to compare, merge, or</span>
+<span class="sd">        re-express particle metadata in the coordinate system of a reference</span>
+<span class="sd">        map. Typical examples include bringing results from different</span>
+<span class="sd">        refinements into the same frame, standardizing orientations before</span>
+<span class="sd">        downstream classification/analysis, or aligning two reconstructions</span>
+<span class="sd">        from related conditions so that particle poses become directly</span>
+<span class="sd">        comparable.</span>
+
+<span class="sd">        A key requirement is that the input particles/subtomograms must</span>
+<span class="sd">        already have alignment information (orientation/shift matrices).</span>
+<span class="sd">        If the particle set is not aligned yet, the protocol will not run.</span>
+
+<span class="sd">        Inputs: what you need to provide</span>
+
+<span class="sd">        You will provide three inputs: a reference volume, an input volume,</span>
+<span class="sd">        and the input particles (or subtomograms) that generated that input</span>
+<span class="sd">        volume. The alignment is computed only between the two volumes, but</span>
+<span class="sd">        the output includes both an aligned version of the input volume and a</span>
+<span class="sd">        transformed particle set whose poses have been updated.</span>
+
+<span class="sd">        From a user perspective, the most important conceptual point is</span>
+<span class="sd">        consistency: the input particle set should correspond to the input</span>
+<span class="sd">        volume you are aligning. If you accidentally provide a particle set</span>
+<span class="sd">        that does not match the input volume (for example, from a different</span>
+<span class="sd">        refinement or different half-set), the protocol may still run but the</span>
+<span class="sd">        resulting particle transforms will not be meaningful.</span>
+
+<span class="sd">        Alignment mode: Global vs Local</span>
+
+<span class="sd">        The protocol offers two alignment modes, intended to balance</span>
+<span class="sd">        robustness and speed.</span>
+
+<span class="sd">        If you choose Global alignment, the protocol performs a broad,</span>
+<span class="sd">        “global” search using the Fast Fourier approach. This is typically</span>
+<span class="sd">        the right choice when you do not trust the initial relative orientation</span>
+<span class="sd">        between the two volumes, for example when the input volume comes from</span>
+<span class="sd">        a different pipeline, a different processing branch, or when you</span>
+<span class="sd">        suspect the map might be rotated or shifted with respect to the</span>
+<span class="sd">        reference.</span>
+
+<span class="sd">        If you choose Local alignment, the protocol performs a local refinement</span>
+<span class="sd">        around the current pose. This is faster and is best used when the input</span>
+<span class="sd">        volume is already close to the reference (for example, when you are</span>
+<span class="sd">        just making small adjustments, or when both maps come from similar</span>
+<span class="sd">        processing with only mild differences).</span>
+
+<span class="sd">        In practice, many biological users start with Global for safety when</span>
+<span class="sd">        integrating results across workflows, and switch to Local when</span>
+<span class="sd">        refining a known alignment.</span>
+
+<span class="sd">        Consider mirrors: handling handedness and mirror solutions</span>
+
+<span class="sd">        The Consider mirrors option enables the alignment procedure to</span>
+<span class="sd">        evaluate mirrored solutions. This can matter when there is a</span>
+<span class="sd">        possibility of a mirror ambiguity between maps, or when you suspect a</span>
+<span class="sd">        handedness-related discrepancy. In most routine workflows where all</span>
+<span class="sd">        processing has been consistent, you will keep this disabled. However,</span>
+<span class="sd">        it becomes relevant when comparing volumes coming from different</span>
+<span class="sd">        sources or historical datasets, or when you have reasons to suspect</span>
+<span class="sd">        that the map might be mirrored with respect to the reference.</span>
+
+<span class="sd">        Because mirror solutions can sometimes produce deceptively good</span>
+<span class="sd">        correlation scores, it is good practice to enable this option only when</span>
+<span class="sd">        you have a concrete motivation and to validate the result visually and</span>
+<span class="sd">        biologically (for example by checking known chiral features, helix</span>
+<span class="sd">        handedness, or consistency with atomic models).</span>
+
+<span class="sd">        Symmetry group: what it means here</span>
+
+<span class="sd">        You can specify a symmetry group (e.g., c1, c2, d7, i1, etc.) using</span>
+<span class="sd">        Xmipp’s symmetry conventions. Biologically, symmetry can help alignment</span>
+<span class="sd">        when the object is symmetric, but it also introduces the usual</span>
+<span class="sd">        interpretation caveat: a symmetric object may have multiple equivalent</span>
+<span class="sd">        orientations.</span>
+
+<span class="sd">        In many workflows you will leave this as c1 unless you are working with</span>
+<span class="sd">        a truly symmetric assembly and you want the alignment to treat</span>
+<span class="sd">        symmetry-equivalent poses appropriately. If your goal is to make</span>
+<span class="sd">        particle poses comparable between two analyses of the same symmetric</span>
+<span class="sd">        complex, setting the correct symmetry can prevent avoidable mismatches.</span>
+<span class="sd">        On the other hand, if you care about a specific asymmetric feature</span>
+<span class="sd">        (bound ligand, partial occupancy, asymmetric subunit), forcing symmetry</span>
+<span class="sd">        may not be desirable.</span>
+
+<span class="sd">        Wrap option: advanced edge behavior during alignment</span>
+
+<span class="sd">        The Wrap parameter controls whether the input volume is treated as</span>
+<span class="sd">        wrapping around at the borders during alignment. Most biological users</span>
+<span class="sd">        will not need to change this. If your map is well boxed and the object</span>
+<span class="sd">        is not interacting with the borders, leaving wrap disabled is typically</span>
+<span class="sd">        safe and avoids artifacts that can appear when densities are allowed</span>
+<span class="sd">        to “wrap” across edges.</span>
+
+<span class="sd">        Masking: focusing the alignment on the biologically relevant region</span>
+
+<span class="sd">        As with most volume alignment problems, masking can be decisive.</span>
+<span class="sd">        This protocol allows you to apply a mask to the volumes during</span>
+<span class="sd">        alignment, so that the transformation is driven primarily by the</span>
+<span class="sd">        region you care about.</span>
+
+<span class="sd">        If you enable masking, you can choose either a circular (spherical)</span>
+<span class="sd">        mask or a binary mask file. The circular mask is quick and can work</span>
+<span class="sd">        well for compact particles. The binary mask is more flexible and is</span>
+<span class="sd">        usually preferred for real biological cases where only part of the</span>
+<span class="sd">        structure is stable or informative, such as multi-domain proteins,</span>
+<span class="sd">        flexible complexes, membrane proteins with large solvent regions, or</span>
+<span class="sd">        when you want to align using a conserved core while ignoring a</span>
+<span class="sd">        variable periphery.</span>
+
+<span class="sd">        A biologically sensible mask typically includes the rigid, conserved</span>
+<span class="sd">        domain(s) and excludes highly flexible regions and noise-dominated</span>
+<span class="sd">        solvent. If the alignment is unstable or “snaps” to the wrong solution,</span>
+<span class="sd">        applying a focused mask is often the first and most effective remedy.</span>
+
+<span class="sd">        What happens internally from the user point of view: resizing and</span>
+<span class="sd">        consistency</span>
+
+<span class="sd">        The protocol ensures that the reference and input volume are</span>
+<span class="sd">        compatible in size before alignment. If their box dimensions</span>
+<span class="sd">        differ, it will adjust the reference volume to match the input</span>
+<span class="sd">        volume dimension for the purpose of the alignment. For a biological</span>
+<span class="sd">        user, the takeaway is that you should still aim to provide volumes</span>
+<span class="sd">        with consistent sampling and comparable boxing, because extreme</span>
+<span class="sd">        differences in box definition, filtering, or masking style can still</span>
+<span class="sd">        complicate interpretation even if the dimensions are made compatible.</span>
+
+<span class="sd">        Outputs: what you get and how to interpret it</span>
+
+<span class="sd">        After running, the protocol produces two outputs.</span>
+
+<span class="sd">        First, it generates an aligned version of the input volume,</span>
+<span class="sd">        transformed into the coordinate system of the reference. This output</span>
+<span class="sd">        is the most direct way to visually check whether the alignment makes</span>
+<span class="sd">        biological sense: you can overlay it with the reference, compare</span>
+<span class="sd">        sections, or inspect key landmarks.</span>
+
+<span class="sd">        Second, it produces a new aligned particle (or subtomogram) set. In</span>
+<span class="sd">        \this output set, each particle’s existing transformation matrix is</span>
+<span class="sd">        updated by composing it with the volume-to-volume alignment</span>
+<span class="sd">        transformation. Conceptually, you can think of it as re-expressing</span>
+<span class="sd">        all particle poses in the coordinate frame of the reference map,</span>
+<span class="sd">        while preserving each particle’s relative orientation/shift within</span>
+<span class="sd">        the reconstruction.</span>
+
+<span class="sd">        This particle output is the main reason the protocol exists: it lets</span>
+<span class="sd">        you continue downstream processing—classification, refinement,</span>
+<span class="sd">        comparison, export—without having to manually reframe orientations.</span>
+
+<span class="sd">        Practical guidance: common processing scenarios</span>
+
+<span class="sd">        If your goal is simply to bring an existing reconstruction into the</span>
+<span class="sd">        frame of a known reference so that you can compare them or create</span>
+<span class="sd">        consistent figures, the typical workflow is to run the protocol in</span>
+<span class="sd">        Global mode, optionally with a mask around the stable core, and then</span>
+<span class="sd">        verify by overlay in a viewer.</span>
+
+<span class="sd">        If your goal is to merge or compare particle metadata across pipelines,</span>
+<span class="sd">        the particle output becomes the key product. In that case, it is worth</span>
+<span class="sd">        being conservative: use a mask that focuses on the most reliable region</span>
+<span class="sd">        and validate the aligned volume carefully, because any mistake at the</span>
+<span class="sd">        volume alignment step will be propagated to every particle.</span>
+
+<span class="sd">        If your volumes are already nearly aligned (for example, coming from</span>
+<span class="sd">        two very similar refinements or from consecutive steps of the same</span>
+<span class="sd">        workflow), then Local mode is usually sufficient and faster. This is a</span>
+<span class="sd">        common choice when you want a gentle correction rather than a full</span>
+<span class="sd">        re-registration.</span>
+
+<span class="sd">        If you suspect a mirror discrepancy or handedness issue between</span>
+<span class="sd">        datasets, enabling Consider mirrors can help detect it, but it should</span>
+<span class="sd">        be treated as a hypothesis-testing tool: always validate the chosen</span>
+<span class="sd">        solution with biological constraints.</span>
+
+<span class="sd">        A final note on requirements and validation</span>
+
+<span class="sd">        This protocol assumes that the input particles/subtomograms already</span>
+<span class="sd">        contain alignment transforms. It does not perform particle alignment</span>
+<span class="sd">        itself; instead, it transfers a volume-derived rigid transformation</span>
+<span class="sd">        onto existing particle poses. Because of that, a good validation habit</span>
+<span class="sd">        is to (1) visually check the aligned input volume against the</span>
+<span class="sd">        reference, and (2) if you intend to use the aligned particles for</span>
+<span class="sd">        further refinement, run a quick downstream sanity check (for example,</span>
+<span class="sd">        a short refinement or a quick comparison of angular distributions)</span>
+<span class="sd">        to confirm that the new frame is consistent.</span>
+
+<span class="sd">        If you want, I can also write a short “recommended settings by</span>
+<span class="sd">        scenario” paragraph specifically for SPA vs subtomogram averaging</span>
+<span class="sd">        (when subtomograms are present), still in the same textual style.</span>
 <span class="sd">     &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;align volume and particles&#39;</span>
     <span class="n">_possibleOutputs</span> <span class="o">=</span> <span class="n">AlignVolPartOutputs</span>
+    <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">PROD</span>
     <span class="n">nVols</span> <span class="o">=</span> <span class="mi">0</span>
+
     
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">):</span>
         <span class="n">ProtAlignVolume</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">args</span><span class="p">)</span>

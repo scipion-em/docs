@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_extract_particles</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -152,7 +153,255 @@
 <div class="viewcode-block" id="XmippProtExtractParticles"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_extract_particles.html#xmipp3.protocols.protocol_extract_particles.XmippProtExtractParticles">[docs]</a><span class="k">class</span> <span class="nc">XmippProtExtractParticles</span><span class="p">(</span><span class="n">ProtExtractParticles</span><span class="p">,</span> <span class="n">XmippProtocol</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Extracts particle images from micrographs based on provided coordinates.</span>
 <span class="sd">    This essential step prepares particle stacks for further processing such as</span>
-<span class="sd">    classification and reconstruction.&quot;&quot;&quot;</span>
+<span class="sd">    classification and reconstruction.</span>
+
+<span class="sd">    AI Generated:</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Extract Particles protocol cuts out particle images from micrographs</span>
+<span class="sd">    using a set of input coordinates. This is one of the central steps in a</span>
+<span class="sd">    cryo-EM workflow, because it transforms the coordinate list produced by</span>
+<span class="sd">    picking into an actual stack of particle images that can later be</span>
+<span class="sd">    classified, aligned, and reconstructed.</span>
+
+<span class="sd">    In practical use, extraction is much more than simple cropping. The</span>
+<span class="sd">    protocol can also rescale the particles, remove extreme pixel outliers,</span>
+<span class="sd">    invert contrast, apply phase flipping, normalize the images, and annotate</span>
+<span class="sd">    each particle with local quality descriptors. These operations make the</span>
+<span class="sd">    extracted particles more suitable for downstream analysis and can strongly</span>
+<span class="sd">    influence the quality of 2D classes and later 3D reconstructions.</span>
+
+<span class="sd">    For a biological user, the main idea is that this protocol defines exactly</span>
+<span class="sd">    what the “working particle images” will look like in the rest of the</span>
+<span class="sd">    project. Choices made here affect both interpretability and the behavior of</span>
+<span class="sd">    later algorithms.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The protocol starts from a **set of coordinates**, and from the micrographs</span>
+<span class="sd">    associated with those coordinates. In some workflows, the extraction can</span>
+<span class="sd">    also be performed from a different set of micrographs, provided that the</span>
+<span class="sd">    relationship between the coordinates and the micrographs is still valid.</span>
+
+<span class="sd">    For each micrograph, the protocol reads the coordinate positions,</span>
+<span class="sd">    optionally rescales them if the extraction micrographs differ from the</span>
+<span class="sd">    picking micrographs, and cuts particle boxes centered at those positions.</span>
+<span class="sd">    Before or during extraction, the protocol may apply several preprocessing</span>
+<span class="sd">    operations to the micrograph or to the particle images, such as dust</span>
+<span class="sd">    removal, downsampling, phase flipping, contrast inversion, and</span>
+<span class="sd">    normalization.</span>
+
+<span class="sd">    The final output is a **set of particles** ready for downstream processing.</span>
+
+<span class="sd">    ## Choosing the Particle Box Size</span>
+
+<span class="sd">    The **particle box size** is one of the most important parameters. It</span>
+<span class="sd">    defines how large the extracted particle image will be, in pixels.</span>
+
+<span class="sd">    Biologically and practically, the box should be large enough to contain the</span>
+<span class="sd">    full particle plus a surrounding region of background. The background is</span>
+<span class="sd">    important because many downstream methods use it to estimate noise</span>
+<span class="sd">    statistics and to stabilize alignment. If the box is too small, part of the</span>
+<span class="sd">    particle may be cut off, which can strongly damage classification and</span>
+<span class="sd">    refinement. If it is too large, unnecessary background is added, increasing</span>
+<span class="sd">    computational cost and sometimes making alignment harder.</span>
+
+<span class="sd">    The protocol suggests a box size close to **1.5 times the picking box size**,</span>
+<span class="sd">    which is often a good starting point. In routine workflows, users should</span>
+<span class="sd">    visually inspect a few extracted particles to verify that the particle fits</span>
+<span class="sd">    comfortably within the box without wasting too much empty area.</span>
+
+<span class="sd">    ## Rescaling and Downsampling</span>
+
+<span class="sd">    The protocol can optionally **rescale particles during extraction**. This</span>
+<span class="sd">    can be done by specifying a downsampling factor, a target output box size,</span>
+<span class="sd">    or a target sampling rate.</span>
+
+<span class="sd">    This option is especially useful in early stages of processing. Larger</span>
+<span class="sd">    particles at very fine sampling may be unnecessarily expensive for initial</span>
+<span class="sd">    2D classification, whereas a moderate downsampling often speeds up</span>
+<span class="sd">    processing considerably without compromising early decisions.</span>
+
+<span class="sd">    When particles are rescaled, the protocol also adjusts the coordinate</span>
+<span class="sd">    scaling and the extraction box size accordingly. An advanced option allows</span>
+<span class="sd">    the user to **force the output particle box size**, which can be useful in</span>
+<span class="sd">    specialized workflows but should be used carefully because it may break the</span>
+<span class="sd">    original size ratio between picking and extraction.</span>
+
+<span class="sd">    From a biological point of view, rescaling does not change the underlying</span>
+<span class="sd">    specimen, but it changes how finely the image is sampled. A strong</span>
+<span class="sd">    downsampling can remove high-resolution information, so it is usually</span>
+<span class="sd">    appropriate for exploratory or initial classification steps rather than for</span>
+<span class="sd">    the final high-resolution stages.</span>
+
+<span class="sd">    ## Border Handling</span>
+
+<span class="sd">    By default, Xmipp skips particles whose boxes would extend outside the</span>
+<span class="sd">    micrograph borders. This is often a sensible behavior because border</span>
+<span class="sd">    particles are incomplete and may be problematic in downstream analysis.</span>
+
+<span class="sd">    However, the protocol allows the user to **fill pixels outside the borders**</span>
+<span class="sd">    with the nearest available pixel values. This makes it possible to retain</span>
+<span class="sd">    particles near the edges of the micrograph.</span>
+
+<span class="sd">    In practice, this option is only useful if those edge particles are expected</span>
+<span class="sd">    to be important. In most workflows, excluding border particles is safer,</span>
+<span class="sd">    since partially boxed particles often behave poorly in classification.</span>
+
+<span class="sd">    ## Dust Removal</span>
+
+<span class="sd">    The protocol can perform **dust removal**, which replaces extreme pixel</span>
+<span class="sd">    outliers with values drawn from a more normal image background distribution.</span>
+
+<span class="sd">    This step is recommended in many cryo-EM workflows because micrographs may</span>
+<span class="sd">    contain very bright or very dark artifacts caused by detector defects,</span>
+<span class="sd">    contaminants, or occasional image anomalies. Such pixels can interfere with</span>
+<span class="sd">    normalization and classification.</span>
+
+<span class="sd">    The **dust threshold** controls how extreme a pixel must be before it is</span>
+<span class="sd">    replaced. For cryo-EM data, moderate thresholds are usually appropriate.</span>
+<span class="sd">    For negative stain or other higher-contrast images, users may need to be</span>
+<span class="sd">    more conservative, since the true signal itself may become extreme.</span>
+
+<span class="sd">    Biologically, dust removal is not meant to alter the particle signal. Its</span>
+<span class="sd">    purpose is to eliminate obvious non-biological artifacts.</span>
+
+<span class="sd">    ## Contrast Inversion</span>
+
+<span class="sd">    The protocol can **invert image contrast** during extraction. This is often</span>
+<span class="sd">    necessary because different software packages expect particles with</span>
+<span class="sd">    opposite contrast conventions.</span>
+
+<span class="sd">    In most standard cryo-EM workflows using Xmipp, Relion, Spider, or EMAN</span>
+<span class="sd">    conventions, particles are usually expected to be</span>
+<span class="sd">    **white on a dark background**. If the raw micrographs show particles as</span>
+<span class="sd">    dark features on a bright background, inversion is recommended.</span>
+
+<span class="sd">    This step does not change the structure, only the sign convention of the</span>
+<span class="sd">    image. Nevertheless, it is important because using the wrong contrast</span>
+<span class="sd">    convention can confuse downstream methods or make visual inspection</span>
+<span class="sd">    misleading.</span>
+
+<span class="sd">    ## Phase Flipping</span>
+
+<span class="sd">    The protocol can apply **CTF phase flipping** during extraction, provided</span>
+<span class="sd">    that CTF information is available for the micrographs.</span>
+
+<span class="sd">    Phase flipping compensates for the phase reversals introduced by the</span>
+<span class="sd">    contrast transfer function. This is a relatively simple form of CTF</span>
+<span class="sd">    correction and is useful in some processing traditions, particularly in</span>
+<span class="sd">    Xmipp and EMAN workflows.</span>
+
+<span class="sd">    However, not all packages expect or require phase-flipped particles. Some</span>
+<span class="sd">    modern refinement programs prefer to work with unflipped particles and</span>
+<span class="sd">    model the CTF internally. Therefore, this option should be chosen according</span>
+<span class="sd">    to the overall workflow.</span>
+
+<span class="sd">    From a biological perspective, phase flipping can improve the coherence of</span>
+<span class="sd">    particle images, but only if the CTF estimation is reliable. It should not</span>
+<span class="sd">    be used unless valid CTF information is attached to the micrographs.</span>
+
+<span class="sd">    ## Normalization</span>
+
+<span class="sd">    The protocol can **normalize the extracted particles**, which is strongly</span>
+<span class="sd">    recommended in most workflows. Normalization places the particle images on</span>
+<span class="sd">    a more consistent intensity scale and typically forces the background to</span>
+<span class="sd">    have approximately zero mean and unit variance.</span>
+
+<span class="sd">    Several normalization strategies are available. The simplest normalizes the</span>
+<span class="sd">    whole image. More refined methods estimate the background from pixels</span>
+<span class="sd">    outside a given circular radius and normalize with respect to that</span>
+<span class="sd">    background. The **Ramp** option also subtracts a background trend before</span>
+<span class="sd">    normalization.</span>
+
+<span class="sd">    The **background radius** determines which pixels are considered background.</span>
+<span class="sd">    If set automatically, the protocol uses approximately half the box size.</span>
+<span class="sd">    This works well in many cases, but users should ensure that the chosen</span>
+<span class="sd">    background region is mostly outside the particle.</span>
+
+<span class="sd">    Normalization is extremely important biologically and computationally</span>
+<span class="sd">    because it makes particles more comparable across micrographs and imaging</span>
+<span class="sd">    conditions.</span>
+
+<span class="sd">    ## Patch Size and Local Micrograph Quality Measures</span>
+
+<span class="sd">    An additional feature of this protocol is that it computes local descriptors</span>
+<span class="sd">    of the micrograph region around each coordinate, including measures related</span>
+<span class="sd">    to **local variance** and **Gini coefficient**. These can help characterize</span>
+<span class="sd">    whether a particle lies in a noisy or heterogeneous local region of the</span>
+<span class="sd">    micrograph.</span>
+
+<span class="sd">    The **patch size** controls the neighborhood used for this local analysis.</span>
+<span class="sd">    If not set manually, the protocol uses a value related to the particle box</span>
+<span class="sd">    size.</span>
+
+<span class="sd">    These descriptors do not directly alter the particles, but they are useful</span>
+<span class="sd">    for later quality analysis or filtering. In practice, they provide extra</span>
+<span class="sd">    information about whether a coordinate came from a locally stable or</span>
+<span class="sd">    problematic region of the micrograph.</span>
+
+<span class="sd">    ## Coordinate Scaling and Different Micrograph Sources</span>
+
+<span class="sd">    If extraction is performed from a micrograph set different from the one</span>
+<span class="sd">    used for picking, the protocol automatically handles the difference in</span>
+<span class="sd">    sampling rate and rescales the coordinates accordingly.</span>
+
+<span class="sd">    This is important in workflows where picking was done on one representation</span>
+<span class="sd">    of the micrographs and extraction is performed on another. The protocol is</span>
+<span class="sd">    designed to preserve geometric consistency, but users should still make</span>
+<span class="sd">    sure that the coordinate-to-micrograph relationship is correct.</span>
+
+<span class="sd">    From a practical point of view, this feature is very useful in multiscale</span>
+<span class="sd">    workflows, where picking may happen on downsampled micrographs and</span>
+<span class="sd">    extraction on full-resolution ones.</span>
+
+
+<span class="sd">    ## Outputs and Their Interpretation</span>
+
+<span class="sd">    The protocol produces a **set of extracted particles**. Each particle</span>
+<span class="sd">    retains its coordinate and micrograph association, and when available it</span>
+<span class="sd">    may also carry CTF information and local quality descriptors.</span>
+
+<span class="sd">    These particles are the main working dataset for downstream cryo-EM</span>
+<span class="sd">    analysis. Their appearance, sampling, normalization state, and possible</span>
+<span class="sd">    phase flipping all depend on the choices made in this protocol.</span>
+
+<span class="sd">    Biologically, the output should be understood as the standardized image</span>
+<span class="sd">    representation of the experimental particle projections that will be used</span>
+<span class="sd">    for all later computational interpretation.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    A good general strategy is to begin with a reasonable box size that</span>
+<span class="sd">    comfortably contains the particle plus background, and to keep normalization</span>
+<span class="sd">    enabled. Dust removal is also usually beneficial.</span>
+
+<span class="sd">    If the dataset is large or the particle is big, moderate rescaling can</span>
+<span class="sd">    greatly accelerate initial classification. For final high-resolution work,</span>
+<span class="sd">    however, it is often preferable to return to particles extracted at the</span>
+<span class="sd">    most appropriate sampling.</span>
+
+<span class="sd">    Contrast inversion should be chosen according to the requirements of the</span>
+<span class="sd">    downstream software. Phase flipping should only be used when it is</span>
+<span class="sd">    consistent with the rest of the workflow and when reliable CTF estimates</span>
+<span class="sd">    are available.</span>
+
+<span class="sd">    Users should also inspect a representative subset of extracted particles</span>
+<span class="sd">    visually. This remains one of the best ways to verify that the box size,</span>
+<span class="sd">    normalization, and contrast choices are sensible.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    The Extract Particles protocol is one of the key points where raw cryo-EM</span>
+<span class="sd">    data become a workable particle dataset. It does not just crop boxes: it</span>
+<span class="sd">    defines the image representation that downstream algorithms will receive.</span>
+
+<span class="sd">    For most cryo-EM users, careful configuration of this protocol is essential.</span>
+<span class="sd">    Good extraction choices can make the rest of the workflow easier, cleaner,</span>
+<span class="sd">    and more robust, while poor choices can propagate problems throughout</span>
+<span class="sd">    classification and reconstruction.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;extract particles&#39;</span>
     <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">PROD</span>
     <span class="n">RESIZE_FACTOR</span> <span class="o">=</span> <span class="mi">0</span>

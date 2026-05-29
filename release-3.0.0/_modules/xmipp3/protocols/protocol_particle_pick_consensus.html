@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_particle_pick_consensus</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -126,10 +127,6 @@
 <span class="c1"># *  e-mail address &#39;coss@cnb.csic.es&#39;</span>
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Consensus picking protocol</span>
-<span class="sd">&quot;&quot;&quot;</span>
-
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">enum</span>
 <span class="kn">from</span> <span class="nn">math</span> <span class="kn">import</span> <span class="n">sqrt</span>
@@ -150,6 +147,236 @@
 
 <div class="viewcode-block" id="ProtPickingConsensusOutput"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_particle_pick_consensus.html#xmipp3.protocols.protocol_particle_pick_consensus.ProtPickingConsensusOutput">[docs]</a><span class="k">class</span> <span class="nc">ProtPickingConsensusOutput</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Possible outputs for particle picking protocols</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Picking Consensus protocol combines several particle-picking results and</span>
+<span class="sd">    keeps coordinates that are supported by a user-defined level of agreement.</span>
+
+<span class="sd">    Different particle pickers, or the same picker with different parameters, may</span>
+<span class="sd">    select slightly different coordinates. Some picks may be reliable because</span>
+<span class="sd">    several methods select the same particle. Other picks may be method-specific</span>
+<span class="sd">    and may correspond to false positives, contaminants, weak particles, or</span>
+<span class="sd">    borderline cases.</span>
+
+<span class="sd">    This protocol compares multiple coordinate sets micrograph by micrograph. A</span>
+<span class="sd">    coordinate is considered to represent the same particle as another coordinate</span>
+<span class="sd">    if the two positions are within a user-defined radius. The protocol then counts</span>
+<span class="sd">    how many input pickers support each candidate particle and writes a consensus</span>
+<span class="sd">    coordinate set.</span>
+
+<span class="sd">    The protocol can behave strictly, keeping only particles selected by all</span>
+<span class="sd">    pickers, or flexibly, keeping particles selected by one or more pickers. This</span>
+<span class="sd">    makes it useful both for cleaning particle sets and for merging complementary</span>
+<span class="sd">    picking strategies.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The input is a list of coordinate sets.</span>
+
+<span class="sd">    Each input coordinate set should correspond to particle picks on the same</span>
+<span class="sd">    micrographs, although the protocol can also handle streaming situations where</span>
+<span class="sd">    different coordinate sets become available progressively.</span>
+
+<span class="sd">    For each micrograph, the protocol collects the coordinates from all input</span>
+<span class="sd">    coordinate sets. If the input coordinate sets have different sampling rates,</span>
+<span class="sd">    their coordinates are rescaled to the sampling rate of the first coordinate</span>
+<span class="sd">    set.</span>
+
+<span class="sd">    The protocol then groups nearby coordinates within the selected consensus</span>
+<span class="sd">    radius. Each group receives a number of votes corresponding to how many input</span>
+<span class="sd">    coordinate sets contributed a coordinate to that group.</span>
+
+<span class="sd">    Finally, the protocol keeps only the coordinate groups that satisfy the</span>
+<span class="sd">    selected consensus rule and writes them as a new Scipion coordinate set.</span>
+
+<span class="sd">    ## Input Coordinates</span>
+
+<span class="sd">    The **Input coordinates** parameter contains the coordinate sets to compare.</span>
+
+<span class="sd">    These coordinate sets may come from different particle-picking protocols,</span>
+<span class="sd">    different picking algorithms, different parameter settings, or manual and</span>
+<span class="sd">    automatic picking runs.</span>
+
+<span class="sd">    The first input coordinate set is used as the main reference for micrograph</span>
+<span class="sd">    information, box size, and sampling-rate scaling. The output coordinate set is</span>
+<span class="sd">    linked to the micrographs of this first input.</span>
+
+<span class="sd">    For best results, all input coordinate sets should refer to the same</span>
+<span class="sd">    micrographs or to matching micrograph sets. If the input pickers were run on</span>
+<span class="sd">    different subsets of micrographs, the protocol processes only the micrographs</span>
+<span class="sd">    that are available according to its streaming and readiness logic.</span>
+
+<span class="sd">    ## Consensus Radius</span>
+
+<span class="sd">    The **Radius** parameter defines the distance, in pixels, within which two</span>
+<span class="sd">    coordinates are considered to correspond to the same particle.</span>
+
+<span class="sd">    For example, if the radius is 10 pixels, two picks closer than 10 pixels are</span>
+<span class="sd">    merged into a single candidate particle. The merged coordinate is updated as a</span>
+<span class="sd">    weighted average of the contributing positions.</span>
+
+<span class="sd">    A small radius is strict. It requires different pickers to place coordinates</span>
+<span class="sd">    very close to each other. This may reduce false matches but can also fail to</span>
+<span class="sd">    merge picks that clearly correspond to the same particle but are slightly</span>
+<span class="sd">    shifted.</span>
+
+<span class="sd">    A large radius is more permissive. It can merge picks with larger positional</span>
+<span class="sd">    differences, but if it is too large it may incorrectly merge nearby distinct</span>
+<span class="sd">    particles.</span>
+
+<span class="sd">    The radius should be chosen according to particle size, picking precision, and</span>
+<span class="sd">    typical particle separation. It should normally be smaller than the particle</span>
+<span class="sd">    diameter.</span>
+
+<span class="sd">    ## Consensus Number</span>
+
+<span class="sd">    The **Consensus** parameter defines how many input coordinate sets must support</span>
+<span class="sd">    a particle for it to be included in the output.</span>
+
+<span class="sd">    If the value is set to **-1**, the protocol requires support from all input</span>
+<span class="sd">    coordinate sets. This corresponds to an AND operation. It is the strictest</span>
+<span class="sd">    mode.</span>
+
+<span class="sd">    If the value is set to **1**, a coordinate is accepted if it is selected by at</span>
+<span class="sd">    least one input coordinate set. This corresponds to an OR operation. It is the</span>
+<span class="sd">    most permissive mode.</span>
+
+<span class="sd">    Intermediate values allow more flexible behavior. For example, if four picking</span>
+<span class="sd">    methods are provided and the consensus value is 3, a particle is accepted if</span>
+<span class="sd">    three or more pickers agree on it, depending on the selected consensus mode.</span>
+
+<span class="sd">    This parameter controls the balance between precision and recall. Strict</span>
+<span class="sd">    consensus reduces false positives but may discard true particles missed by some</span>
+<span class="sd">    pickers. Flexible consensus recovers more particles but may retain more false</span>
+<span class="sd">    positives.</span>
+
+<span class="sd">    ## Consensus Mode</span>
+
+<span class="sd">    The **Consensus mode** parameter controls how the number of votes is compared</span>
+<span class="sd">    with the consensus number.</span>
+
+<span class="sd">    If the mode is **&gt;=**, a particle is accepted if it has at least the selected</span>
+<span class="sd">    number of votes. This is the usual and more flexible behavior.</span>
+
+<span class="sd">    If the mode is **=**, a particle is accepted only if it has exactly the selected</span>
+<span class="sd">    number of votes. This is more specialized and can be useful when the user wants</span>
+<span class="sd">    to isolate particles picked by a specific number of methods.</span>
+
+<span class="sd">    For most workflows, the **&gt;=** mode is recommended.</span>
+
+<span class="sd">    ## Coordinate Merging</span>
+
+<span class="sd">    When coordinates from different pickers fall within the consensus radius, the</span>
+<span class="sd">    protocol merges them into a single candidate coordinate.</span>
+
+<span class="sd">    The merged coordinate is computed progressively as an average of the positions</span>
+<span class="sd">    that vote for the same particle. This means that the output coordinate may not</span>
+<span class="sd">    be exactly equal to any individual input coordinate, but instead represents the</span>
+<span class="sd">    central consensus position.</span>
+
+<span class="sd">    This is useful when different pickers identify the same particle with slightly</span>
+<span class="sd">    different centers.</span>
+
+<span class="sd">    ## AND and OR Interpretations</span>
+
+<span class="sd">    The protocol can be understood in terms of familiar logical operations.</span>
+
+<span class="sd">    With **Consensus = -1**, the protocol behaves like an AND operation: a particle</span>
+<span class="sd">    is accepted only if all input pickers selected it.</span>
+
+<span class="sd">    With **Consensus = 1** and mode **&gt;=**, the protocol behaves like an OR</span>
+<span class="sd">    operation: a particle is accepted if at least one picker selected it.</span>
+
+<span class="sd">    Values between these extremes implement majority-like rules. For example, with</span>
+<span class="sd">    three input pickers and Consensus = 2, the protocol keeps particles selected by</span>
+<span class="sd">    at least two pickers.</span>
+
+<span class="sd">    These modes allow users to tune how conservative the final coordinate set</span>
+<span class="sd">    should be.</span>
+
+<span class="sd">    ## Jaccard Index File</span>
+
+<span class="sd">    During consensus calculation, the protocol writes a Jaccard-like agreement</span>
+<span class="sd">    value for each processed micrograph.</span>
+
+<span class="sd">    This value summarizes the degree of overlap between the input coordinate sets</span>
+<span class="sd">    for that micrograph. It can help identify micrographs where pickers agree well</span>
+<span class="sd">    and micrographs where the picking results are inconsistent.</span>
+
+<span class="sd">    Low agreement may indicate poor micrograph quality, difficult particle</span>
+<span class="sd">    appearance, contaminants, low contrast, or strong differences between picking</span>
+<span class="sd">    methods.</span>
+
+<span class="sd">    This file is mainly diagnostic and should be interpreted as a guide to picking</span>
+<span class="sd">    agreement rather than as an absolute quality measure.</span>
+
+<span class="sd">    ## Output Consensus Coordinates</span>
+
+<span class="sd">    The main output is **consensusCoordinates**, a new SetOfCoordinates.</span>
+
+<span class="sd">    This output contains the coordinates that satisfy the selected consensus rule.</span>
+<span class="sd">    It is linked to the micrographs of the first input coordinate set and uses the</span>
+<span class="sd">    box size from that same set.</span>
+
+<span class="sd">    The consensus coordinate set can be passed to particle extraction protocols in</span>
+<span class="sd">    the same way as any other coordinate set.</span>
+
+<span class="sd">    Depending on the selected consensus parameters, the output may be smaller,</span>
+<span class="sd">    similar in size, or larger than the individual input coordinate sets.</span>
+
+<span class="sd">    ## Streaming Behavior</span>
+
+<span class="sd">    The protocol supports streaming coordinate inputs.</span>
+
+<span class="sd">    In streaming mode, the protocol waits until coordinates for a micrograph are</span>
+<span class="sd">    available from the relevant input coordinate sets before computing consensus</span>
+<span class="sd">    for that micrograph. When all input streams are closed, it processes any</span>
+<span class="sd">    remaining available micrographs and closes the output stream.</span>
+
+<span class="sd">    This makes the protocol suitable for automated pipelines where particle</span>
+<span class="sd">    picking results are produced progressively by different pickers.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    Use this protocol when you have several picking results and want to combine</span>
+<span class="sd">    them in a controlled way.</span>
+
+<span class="sd">    For a conservative cleaned set, use Consensus = -1, requiring all pickers to</span>
+<span class="sd">    agree. This can reduce false positives but may lose true particles.</span>
+
+<span class="sd">    For a permissive merged set, use Consensus = 1 with mode &gt;=. This keeps any</span>
+<span class="sd">    particle selected by at least one picker, but later cleaning by particle</span>
+<span class="sd">    screening or 2D classification becomes more important.</span>
+
+<span class="sd">    For a balanced strategy, use a majority rule, such as requiring 2 out of 3</span>
+<span class="sd">    pickers or 3 out of 4 pickers.</span>
+
+<span class="sd">    Choose the consensus radius carefully. It should reflect expected picking</span>
+<span class="sd">    uncertainty but should not be so large that nearby particles are merged.</span>
+
+<span class="sd">    Inspect the output coordinates visually on representative micrographs. This is</span>
+<span class="sd">    especially important when combining pickers with very different behavior.</span>
+
+<span class="sd">    Use the Jaccard agreement information to identify micrographs where picking</span>
+<span class="sd">    methods disagree strongly.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    Picking Consensus is a coordinate-combination and quality-control protocol. It</span>
+<span class="sd">    does not pick particles directly. Instead, it integrates the results of several</span>
+<span class="sd">    picking methods or parameter settings and produces a coordinate set based on</span>
+<span class="sd">    their agreement.</span>
+
+<span class="sd">    For biological users, this is useful because no single picker is perfect.</span>
+<span class="sd">    Consensus can help reduce method-specific false positives, recover robust</span>
+<span class="sd">    particles, and create more reliable coordinate sets for extraction.</span>
+
+<span class="sd">    The protocol is most effective when the input pickers are complementary and</span>
+<span class="sd">    when the consensus radius and voting threshold are chosen according to the</span>
+<span class="sd">    particle size and the desired strictness of the workflow.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">consensusCoordinates</span> <span class="o">=</span> <span class="n">SetOfCoordinates</span></div>
 

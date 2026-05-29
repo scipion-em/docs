@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_resolution_deepres</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -164,7 +165,240 @@
 
 <div class="viewcode-block" id="XmippProtDeepRes"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_resolution_deepres.html#xmipp3.protocols.protocol_resolution_deepres.XmippProtDeepRes">[docs]</a><span class="k">class</span> <span class="nc">XmippProtDeepRes</span><span class="p">(</span><span class="n">ProtAnalysis3D</span><span class="p">,</span> <span class="n">XmippProtocol</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;    </span>
-<span class="sd">    A deep-learning-based method designed to estimate local resolution in cryo-electron microscopy maps. It analyzes 3D structural features directly from the map data to assign local resolution values to beach voxel of a 3D map.. Using models trained on simulated and experimental data, DeepRes provides spatially resolved estimates that reflect variations in structural clarity across the map. The method captures subtle improvements from post-processing steps, offering a refined view of resolution distribution that supports better interpretation and validation of cryo-EM structures.</span>
+<span class="sd">    A deep-learning-based method designed to estimate local resolution in</span>
+<span class="sd">    cryo-electron microscopy maps. It analyzes 3D structural features directly</span>
+<span class="sd">    from the map data to assign local resolution values to beach voxel of a</span>
+<span class="sd">    3D map.. Using models trained on simulated and experimental data, DeepRes</span>
+<span class="sd">    provides spatially resolved estimates that reflect variations in structural</span>
+<span class="sd">    clarity across the map. The method captures subtle improvements from</span>
+<span class="sd">    post-processing steps, offering a refined view of resolution distribution</span>
+<span class="sd">    that supports better interpretation and validation of cryo-EM structures.</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Local deepRes protocol estimates the local resolution of a cryo-EM map</span>
+<span class="sd">    using a deep-learning model.</span>
+
+<span class="sd">    Local resolution describes how map quality varies across different regions of</span>
+<span class="sd">    a 3D reconstruction. Some parts of a structure may be highly resolved, while</span>
+<span class="sd">    others may be more flexible, less ordered, or supported by fewer particles.</span>
+<span class="sd">    Instead of assigning a single global resolution to the whole map, this protocol</span>
+<span class="sd">    produces a 3D resolution map, where each voxel inside the mask is assigned an</span>
+<span class="sd">    estimated local resolution value.</span>
+
+<span class="sd">    The method uses trained DeepRes neural-network models. The user selects the</span>
+<span class="sd">    expected resolution range, and the protocol applies the corresponding model to</span>
+<span class="sd">    the masked input volume.</span>
+
+<span class="sd">    The main output is a local-resolution volume at the original sampling rate of</span>
+<span class="sd">    the input map.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The protocol requires:</span>
+
+<span class="sd">    - an input volume;</span>
+<span class="sd">    - a binary mask;</span>
+<span class="sd">    - an expected resolution range.</span>
+
+<span class="sd">    The mask is first dilated slightly and multiplied by the input volume so that</span>
+<span class="sd">    the analysis focuses on the specimen region. The volume and mask are then</span>
+<span class="sd">    resized to the sampling rate expected by the selected DeepRes model.</span>
+
+<span class="sd">    The protocol runs the deep-learning local-resolution estimator and produces a</span>
+<span class="sd">    resolution map. This map is then resized back to the original dimensions and</span>
+<span class="sd">    sampling rate of the input volume.</span>
+
+<span class="sd">    Finally, the protocol computes basic resolution statistics and creates a</span>
+<span class="sd">    histogram of local-resolution values inside the mask.</span>
+
+<span class="sd">    ## Input Volume</span>
+
+<span class="sd">    The **Input Volume** parameter defines the map whose local resolution will be</span>
+<span class="sd">    estimated.</span>
+
+<span class="sd">    This volume should be a 3D cryo-EM reconstruction with a correct sampling rate.</span>
+<span class="sd">    The sampling rate is important because the protocol uses it when resizing the</span>
+<span class="sd">    map and interpreting resolution values in angstroms.</span>
+
+<span class="sd">    The input map should correspond to the structure covered by the mask. Strong</span>
+<span class="sd">    artifacts, incorrect sharpening, extreme filtering, or poor masking may affect</span>
+<span class="sd">    the local-resolution estimates.</span>
+
+<span class="sd">    ## Mask</span>
+
+<span class="sd">    The **Mask** parameter is required.</span>
+
+<span class="sd">    The mask defines which voxels correspond to the specimen and which voxels are</span>
+<span class="sd">    background. It should be a binary mask, with the specimen region included</span>
+<span class="sd">    inside the mask and the background outside it.</span>
+
+<span class="sd">    The protocol dilates the mask by one voxel before multiplying it by the input</span>
+<span class="sd">    volume. This helps include boundary regions of the specimen during the</span>
+<span class="sd">    analysis.</span>
+
+<span class="sd">    The quality of the mask is important. If the mask is too tight, real density</span>
+<span class="sd">    may be excluded and local-resolution estimates near the boundary may be</span>
+<span class="sd">    distorted. If it is too loose, background noise may influence the analysis.</span>
+
+<span class="sd">    ## Expected Resolution Range</span>
+
+<span class="sd">    The **Expected resolutions range** parameter selects which trained DeepRes</span>
+<span class="sd">    model is used.</span>
+
+<span class="sd">    There are two options:</span>
+
+<span class="sd">    **2.5 Å - 13.0 Å** uses the model intended for lower- to medium-resolution</span>
+<span class="sd">    maps. In this mode, the protocol works internally at a sampling rate of 1.0 Å.</span>
+
+<span class="sd">    **1.5 Å - 6.0 Å** uses the model intended for higher-resolution maps. In this</span>
+<span class="sd">    mode, the protocol works internally at a sampling rate of 0.5 Å.</span>
+
+<span class="sd">    The user should choose the range that best matches the expected resolution of</span>
+<span class="sd">    the map. Choosing an inappropriate range may reduce the reliability of the</span>
+<span class="sd">    local-resolution estimate.</span>
+
+<span class="sd">    ## Resizing and Internal Sampling</span>
+
+<span class="sd">    Before running DeepRes, the protocol resizes the input volume and mask to the</span>
+<span class="sd">    sampling rate expected by the selected model.</span>
+
+<span class="sd">    For the 2.5–13.0 Å range, the working sampling is 1.0 Å.</span>
+
+<span class="sd">    For the 1.5–6.0 Å range, the working sampling is 0.5 Å.</span>
+
+<span class="sd">    If the input sampling is coarser than the required working sampling, the</span>
+<span class="sd">    protocol resizes the data. If the input sampling is finer, it applies</span>
+<span class="sd">    low-pass filtering before resizing to avoid aliasing.</span>
+
+<span class="sd">    After DeepRes finishes, the output resolution map is resized back to the</span>
+<span class="sd">    original sampling rate and dimensions of the input volume.</span>
+
+<span class="sd">    ## Thresholding the Mask</span>
+
+<span class="sd">    After resizing, the protocol thresholds the mask to make it binary again.</span>
+
+<span class="sd">    Values below 0.15 are selected and substituted using a binarization operation.</span>
+<span class="sd">    This step ensures that the mask used by DeepRes clearly separates specimen and</span>
+<span class="sd">    background after interpolation and resizing.</span>
+
+<span class="sd">    A properly binarized mask helps the neural network focus on the relevant map</span>
+<span class="sd">    region.</span>
+
+<span class="sd">    ## DeepRes Resolution Estimation</span>
+
+<span class="sd">    The core step runs the Xmipp DeepRes local-resolution estimator.</span>
+
+<span class="sd">    The protocol provides the selected trained model, the resized volume, the</span>
+<span class="sd">    resized binary mask, the input sampling rate, and the output file name.</span>
+
+<span class="sd">    The result is a 3D volume in which voxel values represent estimated local</span>
+<span class="sd">    resolution in angstroms.</span>
+
+<span class="sd">    The calculation uses GPU-compatible TensorFlow execution, with GPU memory</span>
+<span class="sd">    growth enabled to reduce memory-allocation problems.</span>
+
+<span class="sd">    ## Output Resolution Volume</span>
+
+<span class="sd">    The main output is **resolution_Volume**.</span>
+
+<span class="sd">    This output is the DeepRes local-resolution map resized back to the original</span>
+<span class="sd">    sampling rate of the input volume. It is registered as a Scipion Volume and</span>
+<span class="sd">    linked to the input volume.</span>
+
+<span class="sd">    Voxel values inside the mask represent estimated local resolution in angstroms.</span>
+<span class="sd">    Lower values correspond to better local resolution, and higher values</span>
+<span class="sd">    correspond to worse local resolution.</span>
+
+<span class="sd">    The output can be visualized as a volume map or used in downstream protocols</span>
+<span class="sd">    that analyze local-resolution variation.</span>
+
+<span class="sd">    ## Chimera Visualization Volume</span>
+
+<span class="sd">    The protocol also creates an auxiliary Chimera-oriented resolution volume.</span>
+
+<span class="sd">    In this auxiliary map, background voxels with value zero are replaced by the</span>
+<span class="sd">    median local-resolution value. This can make visualization in Chimera or</span>
+<span class="sd">    ChimeraX easier by avoiding empty or zero-valued regions that may distort the</span>
+<span class="sd">    color scale.</span>
+
+<span class="sd">    This file is mainly a visualization aid. The main scientific output remains</span>
+<span class="sd">    the local-resolution volume.</span>
+
+<span class="sd">    ## Histogram and Resolution Statistics</span>
+
+<span class="sd">    After producing the resolution map, the protocol computes basic statistics</span>
+<span class="sd">    inside the nonzero region of the DeepRes output.</span>
+
+<span class="sd">    The summary reports:</span>
+
+<span class="sd">    - the median resolution;</span>
+<span class="sd">    - the highest resolution;</span>
+<span class="sd">    - the lowest resolution.</span>
+
+<span class="sd">    Here, “highest resolution” corresponds to the smallest numerical resolution</span>
+<span class="sd">    value in angstroms, while “lowest resolution” corresponds to the largest</span>
+<span class="sd">    numerical value.</span>
+
+<span class="sd">    The protocol also creates a histogram metadata file describing the distribution</span>
+<span class="sd">    of local-resolution values inside the mask.</span>
+
+<span class="sd">    These statistics are useful for summarizing the spatial resolution variation</span>
+<span class="sd">    of the map.</span>
+
+<span class="sd">    ## Interpreting the Local-Resolution Map</span>
+
+<span class="sd">    The local-resolution map should be interpreted as a spatial estimate of map</span>
+<span class="sd">    quality.</span>
+
+<span class="sd">    Regions with lower angstrom values are estimated to contain better-resolved</span>
+<span class="sd">    features. Regions with higher values are estimated to be less resolved, which</span>
+<span class="sd">    may reflect flexibility, weaker density, preferred orientation effects,</span>
+<span class="sd">    compositional heterogeneity, masking problems, or lower local signal.</span>
+
+<span class="sd">    The map should be interpreted together with the original density, half-map FSC,</span>
+<span class="sd">    global resolution, local map features, and biological knowledge.</span>
+
+<span class="sd">    Local resolution is not a direct atomic certainty measure. It is an estimate of</span>
+<span class="sd">    local map quality and should not be overinterpreted at single-voxel level.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    Use a mask that includes the full molecular density but avoids unnecessary</span>
+<span class="sd">    background.</span>
+
+<span class="sd">    Choose the expected resolution range according to the approximate global</span>
+<span class="sd">    resolution of the map. Use the 2.5–13.0 Å range for medium/lower-resolution</span>
+<span class="sd">    maps and the 1.5–6.0 Å range for high-resolution maps.</span>
+
+<span class="sd">    Inspect the output resolution map together with the original cryo-EM density.</span>
+<span class="sd">    Check whether well-ordered regions show better resolution than flexible or</span>
+<span class="sd">    peripheral regions.</span>
+
+<span class="sd">    Use the median, minimum, and maximum values as summary descriptors, but inspect</span>
+<span class="sd">    the spatial distribution rather than relying only on global statistics.</span>
+
+<span class="sd">    Be cautious near mask boundaries, flexible domains, low-occupancy regions, or</span>
+<span class="sd">    areas with strong artifacts.</span>
+
+<span class="sd">    If the output appears inconsistent with the visual quality of the map, review</span>
+<span class="sd">    the mask, selected resolution range, input sampling rate, and map</span>
+<span class="sd">    preprocessing.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    Local deepRes is a deep-learning-based local-resolution estimation protocol.</span>
+
+<span class="sd">    For biological users, its main value is that it provides a spatial map of</span>
+<span class="sd">    resolution variation across the reconstruction. This can help identify rigid</span>
+<span class="sd">    well-resolved cores, flexible domains, weaker peripheral regions, and areas</span>
+<span class="sd">    where interpretation should be more cautious.</span>
+
+<span class="sd">    The output should be used as part of a broader validation workflow, together</span>
+<span class="sd">    with FSC analysis, map inspection, local model fit, and biological</span>
+<span class="sd">    interpretation.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;local deepRes&#39;</span>
     <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_2_0</span>

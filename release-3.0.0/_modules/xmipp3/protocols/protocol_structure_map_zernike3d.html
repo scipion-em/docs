@@ -152,6 +152,371 @@
 <span class="sd">    Multidimensional Scaling - Given a matrix of interpoint distances,</span>
 <span class="sd">    find a set of low dimensional points that have similar interpoint</span>
 <span class="sd">    distances.</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Struct Map - Zernike3D protocol compares several 3D volumes using</span>
+<span class="sd">    deformable Zernike3D-based registration.</span>
+
+<span class="sd">    The goal is to build a structural map that represents how similar or different</span>
+<span class="sd">    a set of volumes are. Unlike simple correlation-based comparison, this protocol</span>
+<span class="sd">    also estimates how much deformation is needed to transform one volume into</span>
+<span class="sd">    another. Volumes that can be transformed into each other with small</span>
+<span class="sd">    deformations are considered structurally close, while volumes requiring larger</span>
+<span class="sd">    deformations are considered more distant.</span>
+
+<span class="sd">    The protocol computes two complementary descriptions:</span>
+
+<span class="sd">    - a deformation-distance map based on Zernike3D deformation;</span>
+<span class="sd">    - a correlation-distance map after deformable fitting.</span>
+
+<span class="sd">    It also computes consensus embeddings that combine the deformation-based and</span>
+<span class="sd">    correlation-based structural maps.</span>
+
+<span class="sd">    This protocol is useful for analyzing conformational variability, comparing</span>
+<span class="sd">    sets of maps, and visualizing structural relationships among multiple 3D</span>
+<span class="sd">    volumes.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The input is one or more volumes or sets of volumes.</span>
+
+<span class="sd">    The protocol first collects all input volumes and rescales them to a common</span>
+<span class="sd">    working sampling rate determined by the target resolution. It also crops them</span>
+<span class="sd">    to a common box size. Then, all volumes except the first are locally aligned to</span>
+<span class="sd">    the first volume, which acts as the common reference frame.</span>
+
+<span class="sd">    After this preparation, the protocol performs pairwise deformable comparisons.</span>
+<span class="sd">    For each pair of different volumes, it estimates a Zernike3D deformation that</span>
+<span class="sd">    maps one volume onto the other. The protocol stores both the deformation</span>
+<span class="sd">    distance and the correlation distance after deformation.</span>
+
+<span class="sd">    Finally, it converts the distance matrices into low-dimensional coordinates</span>
+<span class="sd">    using multidimensional scaling and computes consensus mappings between the</span>
+<span class="sd">    deformation-based and correlation-based representations.</span>
+
+<span class="sd">    ## Input Volume(s)</span>
+
+<span class="sd">    The **Input volume(s)** parameter accepts one or more individual volumes or</span>
+<span class="sd">    sets of volumes.</span>
+
+<span class="sd">    Each selected volume is included in the structural map. If a SetOfVolumes is</span>
+<span class="sd">    provided, all volumes in the set are used.</span>
+
+<span class="sd">    The input volumes should represent related structures. For example, they may be</span>
+<span class="sd">    different 3D classes, different conformational states, maps from different</span>
+<span class="sd">    processing branches, or maps from related datasets.</span>
+
+<span class="sd">    The method assumes that meaningful structural relationships can be described by</span>
+<span class="sd">    deformations between volumes. Completely unrelated maps may produce distances</span>
+<span class="sd">    that are technically computable but biologically difficult to interpret.</span>
+
+<span class="sd">    ## Compare Two Sets</span>
+
+<span class="sd">    The **Compare two sets?** option enables a two-set comparison mode.</span>
+
+<span class="sd">    This is useful when the user wants to compare two groups of volumes, for</span>
+<span class="sd">    example experimental EMDB-like maps against maps generated from atomic models,</span>
+<span class="sd">    or two different families of reconstructions.</span>
+
+<span class="sd">    When this option is enabled, the user provides a **Second set of volumes**.</span>
+<span class="sd">    The protocol combines both sets for the pairwise calculations, but it also</span>
+<span class="sd">    writes submatrices that separate within-set and between-set comparisons.</span>
+
+<span class="sd">    This helps distinguish relationships inside each group from relationships</span>
+<span class="sd">    between the two groups.</span>
+
+<span class="sd">    ## Second Set of Volumes</span>
+
+<span class="sd">    The **Second set of volumes** parameter is used only when two-set comparison is</span>
+<span class="sd">    enabled.</span>
+
+<span class="sd">    It accepts one or more volumes or sets of volumes. These volumes are appended</span>
+<span class="sd">    to the first input group and included in the same deformation and correlation</span>
+<span class="sd">    analyses.</span>
+
+<span class="sd">    For meaningful interpretation, the two sets should be comparable in scale,</span>
+<span class="sd">    orientation, molecular content, and resolution range.</span>
+
+<span class="sd">    ## Target Resolution</span>
+
+<span class="sd">    The **Target resolution** parameter defines the resolution used to prepare the</span>
+<span class="sd">    volumes for comparison.</span>
+
+<span class="sd">    The protocol rescales the volumes so that this resolution is placed at</span>
+<span class="sd">    approximately two thirds of the Fourier spectrum. This focuses the comparison</span>
+<span class="sd">    on structural information at the selected scale and reduces the influence of</span>
+<span class="sd">    high-frequency noise.</span>
+
+<span class="sd">    The default value is 8 Å, which is suitable for comparing global shape and</span>
+<span class="sd">    medium-resolution conformational differences.</span>
+
+<span class="sd">    A lower numerical target resolution includes finer detail but may make the</span>
+<span class="sd">    comparison more sensitive to noise or reconstruction artifacts. A higher value</span>
+<span class="sd">    focuses on coarser structural differences.</span>
+
+<span class="sd">    ## Multiresolution</span>
+
+<span class="sd">    The **Multiresolution** parameter defines the filter settings used during the</span>
+<span class="sd">    Zernike3D deformation comparison.</span>
+
+<span class="sd">    The values specify cutoff frequencies in normalized units, normalized to one</span>
+<span class="sd">    half of the Fourier spectrum. The protocol can therefore compare different</span>
+<span class="sd">    filtered versions of the volumes during deformation estimation.</span>
+
+<span class="sd">    This multiresolution strategy helps the deformation fit use information at</span>
+<span class="sd">    different spatial scales. It can make the comparison more robust than relying</span>
+<span class="sd">    on a single frequency band.</span>
+
+<span class="sd">    The default values provide a simple two-level comparison.</span>
+
+<span class="sd">    ## Sphere Radius</span>
+
+<span class="sd">    The **Sphere radius** parameter defines the radius, in voxels, of the sphere</span>
+<span class="sd">    where the spherical harmonics are computed.</span>
+
+<span class="sd">    If the value is 0, the underlying deformation program uses its default behavior.</span>
+
+<span class="sd">    This is an advanced parameter. It should be adjusted only when the user knows</span>
+<span class="sd">    that the deformation support should be restricted to a specific radius.</span>
+
+<span class="sd">    The radius is internally rescaled when the volumes are resized to the working</span>
+<span class="sd">    sampling rate.</span>
+
+<span class="sd">    ## Zernike Degree</span>
+
+<span class="sd">    The **Zernike Degree** parameter controls the degree of the Zernike polynomials</span>
+<span class="sd">    used to model the deformation.</span>
+
+<span class="sd">    Higher degrees allow more complex deformations. Lower degrees restrict the</span>
+<span class="sd">    deformation to smoother, simpler changes.</span>
+
+<span class="sd">    The default value is intended to capture relatively smooth structural</span>
+<span class="sd">    variability.</span>
+
+<span class="sd">    Increasing this value may help describe more complex conformational changes,</span>
+<span class="sd">    but it can also make the deformation more flexible and potentially less robust.</span>
+
+<span class="sd">    ## Harmonic Degree</span>
+
+<span class="sd">    The **Harmonical Degree** parameter controls the degree of the spherical</span>
+<span class="sd">    harmonics used in the deformation model.</span>
+
+<span class="sd">    Together with the Zernike degree, it determines the complexity of the allowed</span>
+<span class="sd">    deformation field.</span>
+
+<span class="sd">    The protocol validates that the Zernike degree must be greater than or equal</span>
+<span class="sd">    to the harmonic degree. If the harmonic degree is larger, the protocol reports</span>
+<span class="sd">    an error.</span>
+
+<span class="sd">    ## Regularization</span>
+
+<span class="sd">    The **Regularization** parameter penalizes deformation magnitude.</span>
+
+<span class="sd">    A larger regularization value discourages large or complex deformations. A</span>
+<span class="sd">    smaller value allows the model to deform more freely.</span>
+
+<span class="sd">    Regularization is important because a deformation model that is too flexible</span>
+<span class="sd">    may fit noise or local artifacts rather than meaningful structural</span>
+<span class="sd">    differences. A model that is too restricted may fail to capture real</span>
+<span class="sd">    conformational changes.</span>
+
+<span class="sd">    The default value is a practical compromise for many structural mapping tasks.</span>
+
+<span class="sd">    ## GPU Execution</span>
+
+<span class="sd">    The protocol supports both GPU and CPU execution.</span>
+
+<span class="sd">    When GPU execution is enabled, the protocol uses the CUDA implementation of the</span>
+<span class="sd">    Zernike3D deformation program. This is usually faster and is recommended when</span>
+<span class="sd">    available.</span>
+
+<span class="sd">    When GPU execution is disabled, the CPU implementation is used.</span>
+
+<span class="sd">    Because the protocol performs many pairwise deformable registrations, GPU</span>
+<span class="sd">    execution can substantially reduce runtime for large volume sets.</span>
+
+<span class="sd">    ## Volume Rescaling and Cropping</span>
+
+<span class="sd">    Before pairwise comparison, all volumes are resized to a common working</span>
+<span class="sd">    sampling rate determined by the target resolution and the original sampling</span>
+<span class="sd">    rates.</span>
+
+<span class="sd">    They are then cropped to a common box size, using the smallest box dimension</span>
+<span class="sd">    among the input volumes.</span>
+
+<span class="sd">    This makes pairwise comparison technically consistent. However, users should</span>
+<span class="sd">    ensure that important density is not lost during cropping and that all volumes</span>
+<span class="sd">    represent comparable molecular regions.</span>
+
+<span class="sd">    ## Initial Local Alignment</span>
+
+<span class="sd">    Before deformable comparison, all volumes except the first are locally aligned</span>
+<span class="sd">    to the first volume.</span>
+
+<span class="sd">    This places the volume set into a common approximate coordinate frame. The</span>
+<span class="sd">    Zernike3D deformation step can then focus on structural differences rather than</span>
+<span class="sd">    large rigid-body misalignments.</span>
+
+<span class="sd">    This local alignment assumes that the volumes are already roughly comparable.</span>
+<span class="sd">    The protocol is not intended to align completely unrelated maps from arbitrary</span>
+<span class="sd">    orientations.</span>
+
+<span class="sd">    ## Pairwise Zernike3D Deformation</span>
+
+<span class="sd">    For each ordered pair of different volumes, the protocol estimates a</span>
+<span class="sd">    Zernike3D deformation from one volume to the other.</span>
+
+<span class="sd">    The deformation program writes files describing the pairwise deformation and</span>
+<span class="sd">    the deformation distance. The protocol collects these values into a</span>
+<span class="sd">    deformation-distance matrix.</span>
+
+<span class="sd">    This matrix reflects how much deformation is needed to relate each volume to</span>
+<span class="sd">    each other volume.</span>
+
+<span class="sd">    ## Correlation After Deformation</span>
+
+<span class="sd">    After deforming one volume toward another, the protocol computes the</span>
+<span class="sd">    correlation between the deformed volume and the reference volume.</span>
+
+<span class="sd">    It converts this value into a correlation distance:</span>
+
+<span class="sd">    \[</span>
+<span class="sd">    \text{distance} = 1 - \text{correlation}</span>
+<span class="sd">    \]</span>
+
+<span class="sd">    This provides a complementary measure of how well the deformation explains the</span>
+<span class="sd">    relationship between the two maps.</span>
+
+<span class="sd">    The protocol stores these values in a correlation-distance matrix.</span>
+
+<span class="sd">    ## Deformation Distance Matrix</span>
+
+<span class="sd">    The deformation-distance matrix is written to:</span>
+
+<span class="sd">    `DistanceMatrix.txt`</span>
+
+<span class="sd">    This matrix contains the pairwise deformation distances between all input</span>
+<span class="sd">    volumes.</span>
+
+<span class="sd">    Small values indicate that two volumes can be related by a smaller deformation.</span>
+<span class="sd">    Large values indicate that stronger deformation is needed.</span>
+
+<span class="sd">    When two-set comparison is enabled, the protocol also writes deformation</span>
+<span class="sd">    submatrices that separate within-set and between-set comparisons.</span>
+
+<span class="sd">    ## Correlation Distance Matrix</span>
+
+<span class="sd">    The correlation-distance matrix is written to:</span>
+
+<span class="sd">    `CorrMatrix.txt`</span>
+
+<span class="sd">    This matrix contains distances derived from the correlation between deformed</span>
+<span class="sd">    and reference volumes.</span>
+
+<span class="sd">    It complements the deformation matrix. Two volumes may require a moderate</span>
+<span class="sd">    deformation but still achieve high correlation after fitting, or they may show</span>
+<span class="sd">    poor correlation even after deformation.</span>
+
+<span class="sd">    When two-set comparison is enabled, correlation submatrices are also written.</span>
+
+<span class="sd">    ## Low-Dimensional Coordinate Maps</span>
+
+<span class="sd">    The protocol converts both distance matrices into coordinate representations</span>
+<span class="sd">    using multidimensional scaling.</span>
+
+<span class="sd">    For the deformation-distance matrix, it writes:</span>
+
+<span class="sd">    - `CoordinateMatrix1.txt`;</span>
+<span class="sd">    - `CoordinateMatrix2.txt`;</span>
+<span class="sd">    - `CoordinateMatrix3.txt`.</span>
+
+<span class="sd">    For the correlation-distance matrix, it writes:</span>
+
+<span class="sd">    - `CoordinateMatrixCorr1.txt`;</span>
+<span class="sd">    - `CoordinateMatrixCorr2.txt`;</span>
+<span class="sd">    - `CoordinateMatrixCorr3.txt`.</span>
+
+<span class="sd">    These files contain 1D, 2D, and 3D embeddings of the volume relationships.</span>
+
+<span class="sd">    The 2D and 3D maps are usually most useful for visualization. Nearby points</span>
+<span class="sd">    represent structurally similar volumes; distant points represent more distinct</span>
+<span class="sd">    volumes.</span>
+
+<span class="sd">    ## Consensus Structural Maps</span>
+
+<span class="sd">    The protocol also computes consensus mappings between the deformation-based</span>
+<span class="sd">    and correlation-based embeddings.</span>
+
+<span class="sd">    For 2D and 3D embeddings, it aligns the two coordinate maps, considers possible</span>
+<span class="sd">    mirror relationships, and searches for an optimal mixture between them. The</span>
+<span class="sd">    criterion is based on an entropy measure of the point distribution.</span>
+
+<span class="sd">    The consensus maps are written as:</span>
+
+<span class="sd">    - `ConsensusMatrix2.txt`;</span>
+<span class="sd">    - `ConsensusMatrix3.txt`.</span>
+
+<span class="sd">    These consensus representations are intended to combine information from both</span>
+<span class="sd">    deformation distance and correlation distance.</span>
+
+<span class="sd">    ## Interpreting the Structural Map</span>
+
+<span class="sd">    The structural map should be interpreted as a relative map of structural</span>
+<span class="sd">    relationships among the input volumes.</span>
+
+<span class="sd">    Clusters may indicate related conformations or similar reconstructions.</span>
+<span class="sd">    Gradients may indicate continuous conformational changes. Outliers may</span>
+<span class="sd">    represent distinct states, artifacts, poorly reconstructed maps, or volumes</span>
+<span class="sd">    that are difficult to deform into the others.</span>
+
+<span class="sd">    The deformation-based map emphasizes how much shape change is needed between</span>
+<span class="sd">    volumes. The correlation-based map emphasizes how similar the volumes are after</span>
+<span class="sd">    deformable fitting. The consensus map attempts to combine these perspectives.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    Use this protocol when several related volumes need to be compared in terms of</span>
+<span class="sd">    structural variability.</span>
+
+<span class="sd">    Use the two-set option when comparing two groups of maps, such as experimental</span>
+<span class="sd">    maps versus model-derived maps.</span>
+
+<span class="sd">    Start with the default target resolution of 8 Å for global or medium-resolution</span>
+<span class="sd">    structural comparison.</span>
+
+<span class="sd">    Use conservative Zernike and harmonic degrees at first. Increase them only if</span>
+<span class="sd">    the expected conformational changes require more flexible deformation.</span>
+
+<span class="sd">    Keep regularization enabled and avoid making it too small, especially when maps</span>
+<span class="sd">    are noisy.</span>
+
+<span class="sd">    Use GPU execution when available, because the pairwise deformation calculations</span>
+<span class="sd">    can be computationally demanding.</span>
+
+<span class="sd">    Inspect deformation-based, correlation-based, and consensus coordinate maps.</span>
+<span class="sd">    Agreement among them supports a stable interpretation, while disagreement may</span>
+<span class="sd">    indicate complex differences or sensitivity to the comparison metric.</span>
+
+<span class="sd">    Always inspect the original volumes as well. The structural map summarizes</span>
+<span class="sd">    relationships but does not explain their biological cause by itself.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    Struct Map - Zernike3D is a comparative volume-analysis protocol based on</span>
+<span class="sd">    deformable registration.</span>
+
+<span class="sd">    For biological users, its main value is that it transforms a collection of 3D</span>
+<span class="sd">    maps into a structural landscape. This can help reveal clusters, continuous</span>
+<span class="sd">    conformational variability, outliers, and relationships between two groups of</span>
+<span class="sd">    maps.</span>
+
+<span class="sd">    The protocol should be used as an exploratory and interpretative tool. Its</span>
+<span class="sd">    outputs suggest structural relationships, but biological conclusions should be</span>
+<span class="sd">    supported by visual inspection, reconstruction quality, class sizes, and the</span>
+<span class="sd">    experimental context.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># Distance matrix size</span>

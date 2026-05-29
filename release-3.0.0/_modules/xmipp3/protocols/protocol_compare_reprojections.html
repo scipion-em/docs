@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_compare_reprojections</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -155,13 +156,121 @@
 
         
 <div class="viewcode-block" id="XmippProtCompareReprojections"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_compare_reprojections.html#xmipp3.protocols.protocol_compare_reprojections.XmippProtCompareReprojections">[docs]</a><span class="k">class</span> <span class="nc">XmippProtCompareReprojections</span><span class="p">(</span><span class="n">ProtAnalysis3D</span><span class="p">,</span> <span class="n">ProjMatcher</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Compares a set of classes or averages with the corresponding projections of a reference volume.</span>
-<span class="sd">    The set of images must have a 3D angular assignment and the protocol computes the residues</span>
-<span class="sd">    (the difference between the experimental images and the reprojections). The zscore of the mean</span>
-<span class="sd">    and variance of the residues are computed. Large values of these scores may indicate outliers.</span>
-<span class="sd">    The protocol also analyze the covariance matrix of the residual and computes the logarithm of</span>
-<span class="sd">    its determinant [Cherian2013]. The extremes of this score (called zScoreResCov), that is</span>
-<span class="sd">    values particularly low or high, may indicate outliers.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Compares a set of classes or averages with the corresponding projections</span>
+<span class="sd">    of a reference volume. The set of images must have a 3D angular assignment</span>
+<span class="sd">    and the protocol computes the residues (the difference between the</span>
+<span class="sd">    experimental images and the reprojections). The zscore of the mean</span>
+<span class="sd">    and variance of the residues are computed. Large values of these scores</span>
+<span class="sd">    may indicate outliers. The protocol also analyze the covariance matrix of</span>
+<span class="sd">    the residual and computes the logarithm of its determinant [Cherian2013].</span>
+<span class="sd">    The extremes of this score (called zScoreResCov), that is</span>
+<span class="sd">    values particularly low or high, may indicate outliers.</span>
+
+<span class="sd">    AI Generated:</span>
+
+<span class="sd">    This protocol is a sanity-check and diagnostics tool: it compares what your</span>
+<span class="sd">    2D data “looks like” against what a 3D reference volume “predicts” it</span>
+<span class="sd">    should look like from the corresponding viewing directions. In practice,</span>
+<span class="sd">    you use it to (a) detect outliers or problematic classes/particles, (b)</span>
+<span class="sd">    check whether an assigned orientation set is consistent with a given map,</span>
+<span class="sd">    and (c) optionally decide which map (among several candidates) best</span>
+<span class="sd">    explains your data.</span>
+
+<span class="sd">    It takes as input a 2D dataset (particles, class averages, 2D classes, or</span>
+<span class="sd">    even 3D classes’ projections if provided as 2D images) and a 3D reference</span>
+<span class="sd">    (a single volume or a set of volumes / 3D classes). The central requirement</span>
+<span class="sd">    is that the 2D images have—or can be given—an angular assignment so they</span>
+<span class="sd">    can be matched to reprojections. If your inputs already have reliable</span>
+<span class="sd">    projection alignment (Euler angles/shifts), the protocol can reuse it; if</span>
+<span class="sd">    not, it can estimate orientations by projection matching against a</span>
+<span class="sd">    projection gallery generated from the volume. This “use existing assignment</span>
+<span class="sd">    vs. compute one” choice is the most important conceptual switch: the first</span>
+<span class="sd">    mode tests the consistency of an existing solution; the second mode</span>
+<span class="sd">    searches for the best explanation of your images given the map.</span>
+
+<span class="sd">    The output is a new dataset in which each input image (or each class</span>
+<span class="sd">    representative) is enriched with the reference reprojection it matched to</span>
+<span class="sd">    and several quality scores that summarize the mismatch. Conceptually, for</span>
+<span class="sd">    every input image the protocol generates (or retrieves) the best-matching</span>
+<span class="sd">    projection of the 3D reference, refines angles/shifts in a local continuous</span>
+<span class="sd">    way, and then measures how much of the experimental image is not explained</span>
+<span class="sd">    by that reprojection. Those unexplained components are the “residuals.”</span>
+<span class="sd">    When residuals are small and structureless, the image is well explained by</span>
+<span class="sd">    the reference. When residuals are large or have systematic structure, the</span>
+<span class="sd">    image is suspicious: it may be an outlier, belong to a different</span>
+<span class="sd">    conformation, be poorly aligned, be contaminated, or the reference map may</span>
+<span class="sd">    simply be wrong for that subset.</span>
+
+<span class="sd">    From a user’s point of view, there are three practical aims you will</span>
+<span class="sd">    typically choose between.</span>
+
+<span class="sd">    If you want outlier detection, you run the protocol on a set of class</span>
+<span class="sd">    averages (or 2D classes) against a reference volume and inspect the</span>
+<span class="sd">    reported residual statistics. Large residual mean/variance scores are a</span>
+<span class="sd">    red flag: they indicate that the reprojection consistently fails to</span>
+<span class="sd">    explain part of the image, or that the mismatch fluctuates strongly. If</span>
+<span class="sd">    you enable the more expensive residual evaluation option, the protocol</span>
+<span class="sd">    also characterizes residuals by their covariance structure and reports a</span>
+<span class="sd">    score derived from it (the log-determinant idea from Cherian et al.).</span>
+<span class="sd">    Extremely high or low values of that covariance-based score can indicate</span>
+<span class="sd">    abnormal residual structure—useful for spotting classes that look</span>
+<span class="sd">    “explained” by simple variance but still have structured, non-random</span>
+<span class="sd">    leftover signal.</span>
+
+<span class="sd">    If you want orientation/assignment consistency checking, you provide two</span>
+<span class="sd">    things: a dataset with an angular assignment (for example, particles after</span>
+<span class="sd">    a refinement step) and the volume that assignment supposedly corresponds</span>
+<span class="sd">    to. You keep “use assignment” enabled. The protocol then tests “given</span>
+<span class="sd">    these angles, do the reprojections match the images?” This is often the</span>
+<span class="sd">    fastest way to detect when a refinement has drifted, when symmetry handling</span>
+<span class="sd">    is wrong, when CTF inconsistencies matter, or when a subset of particles</span>
+<span class="sd">    is fundamentally incompatible with the map.</span>
+
+<span class="sd">    If you want map selection/ranking, you give a set of candidate volumes or</span>
+<span class="sd">    3D classes, together with the same 2D dataset, and enable ranking. The</span>
+<span class="sd">    protocol evaluates the match for each candidate and reports which volume</span>
+<span class="sd">    achieves the best overall score. If the candidates are 3D classes (not</span>
+<span class="sd">    just volumes), it can also extract the particles associated with the best</span>
+<span class="sd">    class and/or the best volume itself, which is a convenient way to choose</span>
+<span class="sd">    the “best explaining” 3D solution and immediately continue processing</span>
+<span class="sd">    downstream.</span>
+
+<span class="sd">    Several options strongly affect what “match quality” means in practice. The</span>
+<span class="sd">    symmetry group matters because it defines which orientations are</span>
+<span class="sd">    considered equivalent; the wrong symmetry can make good images look</span>
+<span class="sd">    inconsistent or vice versa. The angular sampling controls how densely the</span>
+<span class="sd">    protocol searches orientations when it needs to do projection matching;</span>
+<span class="sd">    coarse sampling is faster but may miss the correct view and inflate</span>
+<span class="sd">    residuals. The “ignore CTF” choice is mainly about whether you want a</span>
+<span class="sd">    comparison that resembles what humans expect (CTF ignored: cleaner-looking</span>
+<span class="sd">    projections) or what the microscope produced (CTF considered: more faithful</span>
+<span class="sd">    to physics). For diagnostics of structural compatibility, ignoring the CTF</span>
+<span class="sd">    is often fine; for strict quantitative consistency, including CTF is more</span>
+<span class="sd">    principled, but it can make projections look counterintuitive and sometimes</span>
+<span class="sd">    harder to interpret visually.</span>
+
+<span class="sd">    Downsampling is a practical speed knob. When enabled, both the 2D input</span>
+<span class="sd">    and the 3D reference are rescaled to a coarser pixel size (targeting around</span>
+<span class="sd">    3 Å/px) to reduce runtime and memory. This usually preserves enough</span>
+<span class="sd">    information to flag gross inconsistencies and outliers, but it is not meant</span>
+<span class="sd">    for subtle, high-resolution discrepancies. If you are troubleshooting</span>
+<span class="sd">    overall heterogeneity or gross alignment problems, downsampling is</span>
+<span class="sd">    typically the right choice; if you are testing very fine differences,</span>
+<span class="sd">    you may prefer to keep native sampling and accept longer runs.</span>
+
+<span class="sd">    What you should expect to obtain at the end is not “a new reconstruction,”</span>
+<span class="sd">    but a set of diagnostic outputs per image/class: the matched reprojection,</span>
+<span class="sd">    the refined alignment parameters (if refinement was performed), and</span>
+<span class="sd">    mismatch/residual scores that let you sort or filter your dataset. The most</span>
+<span class="sd">    common workflow is to sort by the residual-related scores, inspect the</span>
+<span class="sd">    worst (and sometimes also the best) cases, and then decide whether to</span>
+<span class="sd">    remove outliers, split the dataset, adjust symmetry, rerun refinement with</span>
+<span class="sd">    a better initial map, or compare against alternative maps.</span>
+
+<span class="sd">    In short: use this protocol when you want a practical answer to “does this</span>
+<span class="sd">    3D map explain these 2D images, and which images (or which map) are the</span>
+<span class="sd">    exceptions?”</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;compare reprojections&#39;</span>
     <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_3_0</span>

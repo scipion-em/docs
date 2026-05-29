@@ -155,12 +155,252 @@
 
 
 <div class="viewcode-block" id="XmippProtComputeLikelihood"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_compute_likelihood.html#xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood">[docs]</a><span class="k">class</span> <span class="nc">XmippProtComputeLikelihood</span><span class="p">(</span><span class="n">ProtAnalysis3D</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This protocol computes the log likelihood or correlation of a set of particles with assigned angles when compared to a set of maps or atomic models&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;This protocol computes the log likelihood or correlation of a set of</span>
+<span class="sd">    particles with assigned angles when compared to a set of maps or atomic</span>
+<span class="sd">    models</span>
+
+<span class="sd">    AI Generated:</span>
+
+<span class="sd">    Overview</span>
+
+<span class="sd">    The Log Likelihood protocol evaluates how well experimental cryo-EM particle</span>
+<span class="sd">     images agree with one or more reference structures. These references can</span>
+<span class="sd">     be 3D volumes obtained from previous reconstructions or sets of volumes</span>
+<span class="sd">     representing different structural states. For each particle, the protocol</span>
+<span class="sd">     computes a statistical measure—typically a log likelihood score—that</span>
+<span class="sd">     quantifies how consistent the particle image is with the projections of</span>
+<span class="sd">     each reference.</span>
+
+<span class="sd">    In practice, this protocol answers a biologically meaningful question:</span>
+
+<span class="sd">    Given the current particle orientations, which structural model best</span>
+<span class="sd">    explains each particle image?</span>
+
+<span class="sd">    This type of analysis is useful in several situations. It can help compare</span>
+<span class="sd">    particles against multiple candidate structures, quantify the quality of</span>
+<span class="sd">    particle assignments, or evaluate how well experimental data support a</span>
+<span class="sd">    given model. The protocol can also automatically group particles according</span>
+<span class="sd">    to the reference that best explains them, providing a simple form of</span>
+<span class="sd">    likelihood-based classification.</span>
+
+<span class="sd">    Because the protocol relies on already assigned particle orientations, it</span>
+<span class="sd">    is typically applied after alignment or refinement steps in the cryo-EM</span>
+<span class="sd">    workflow.</span>
+
+<span class="sd">    Inputs and General Workflow</span>
+
+<span class="sd">    The protocol requires two main inputs:</span>
+
+<span class="sd">    Input particles</span>
+
+<span class="sd">    These must be particle images with assigned projection angles. In other</span>
+<span class="sd">    words, each particle should already have orientation parameters describing</span>
+<span class="sd">    how it relates to a 3D structure. These orientations usually come from</span>
+<span class="sd">    previous reconstruction or refinement steps.</span>
+
+<span class="sd">    Reference volumes</span>
+
+<span class="sd">    The user can provide either:</span>
+<span class="sd">    - a single volume, or</span>
+<span class="sd">    - a set of volumes representing different structural hypotheses or</span>
+<span class="sd">    conformational states.</span>
+
+<span class="sd">    For each particle, the protocol generates projections of the reference</span>
+<span class="sd">    volume(s) using the particle’s assigned orientation and compares them with</span>
+<span class="sd">    the experimental image.</span>
+
+<span class="sd">    The comparison produces a log likelihood score, reflecting how probable the</span>
+<span class="sd">    experimental image is given the reference projection and the estimated</span>
+<span class="sd">    noise. When multiple references are provided, the protocol compares each</span>
+<span class="sd">    particle against all references and determines which one best explains the</span>
+<span class="sd">    data.</span>
+
+<span class="sd">    Particle and Noise Regions</span>
+
+<span class="sd">    A key concept in this protocol is the separation between particle signal</span>
+<span class="sd">    and background noise. The algorithm estimates the noise statistics from a</span>
+<span class="sd">    region surrounding the particle and uses this information when computing</span>
+<span class="sd">    the likelihood score.</span>
+
+<span class="sd">    Two parameters control this separation.</span>
+
+<span class="sd">    Particle radius. This defines the circular region that contains the particle signal.</span>
+<span class="sd">    Ideally, this radius should include the full particle but avoid large</span>
+<span class="sd">    solvent regions. Choosing a value that is too large may dilute the signal,</span>
+<span class="sd">    while a value that is too small may exclude important structural features.</span>
+
+<span class="sd">    If this parameter is left at the default value, the protocol assumes that</span>
+<span class="sd">    the particle occupies roughly half the image width.</span>
+
+<span class="sd">    Noise radius. This defines the outer radius used to estimate background noise. The</span>
+<span class="sd">    region between the particle radius and the noise radius forms a ring where</span>
+<span class="sd">    the algorithm measures noise statistics.</span>
+
+<span class="sd">    In practice:</span>
+
+<span class="sd">    The particle radius should cover the particle.</span>
+
+<span class="sd">    The noise radius should extend slightly beyond the particle.</span>
+
+<span class="sd">    If the noise radius is not specified, the protocol automatically uses the</span>
+<span class="sd">    outer image region.</span>
+
+<span class="sd">    Correct estimation of noise is important because it strongly affects the</span>
+<span class="sd">    likelihood calculation.</span>
+
+<span class="sd">    Reference Projections and Residual Images</span>
+
+<span class="sd">    For each particle and each reference volume, the protocol generates a</span>
+<span class="sd">    projection of the reference using the particle’s assigned orientation.</span>
+<span class="sd">    This projection is then compared with the experimental image.</span>
+
+<span class="sd">    The difference between the projection and the experimental particle image</span>
+<span class="sd">    is called the residual image. Residuals contain information about:</span>
+<span class="sd">    - noise in the experimental image</span>
+<span class="sd">    - model inaccuracies</span>
+<span class="sd">    - structural differences between particle and reference</span>
+
+<span class="sd">    These residuals are used internally to estimate the likelihood score and</span>
+<span class="sd">    can optionally be stored for further analysis.</span>
+
+<span class="sd">    From a biological perspective, large residuals often indicate that the</span>
+<span class="sd">    particle is poorly explained by the reference model.</span>
+
+<span class="sd">    Gray Level Optimization</span>
+
+<span class="sd">    Experimental particle images and simulated projections may differ in</span>
+<span class="sd">    overall intensity scale. The protocol therefore includes an option to</span>
+<span class="sd">    optimize the gray scale factor between the projection and the experimental</span>
+<span class="sd">    image.</span>
+
+<span class="sd">    When enabled, the algorithm adjusts the intensity scale to maximize the</span>
+<span class="sd">    agreement between the two images. This step improves robustness when image</span>
+<span class="sd">    normalization or detector scaling differs across datasets.</span>
+
+<span class="sd">    A parameter called maximum gray change limits how much the scale can vary.</span>
+<span class="sd">    Restricting this range prevents unrealistic intensity adjustments that</span>
+<span class="sd">    could artificially inflate the likelihood score.</span>
+
+<span class="sd">    In most practical cases, enabling gray optimization improves stability and</span>
+<span class="sd">    is recommended.</span>
+
+<span class="sd">    Normalization Options</span>
+
+<span class="sd">    The protocol optionally performs intensity normalization of both particles</span>
+<span class="sd">    and reference projections. Normalization ensures that the likelihood</span>
+<span class="sd">    calculation is not biased by global intensity differences.</span>
+
+<span class="sd">    Three normalization strategies are available:</span>
+
+<span class="sd">    Old Xmipp normalization</span>
+
+<span class="sd">    The entire image is normalized so that the mean intensity becomes zero and</span>
+<span class="sd">    the standard deviation becomes one.</span>
+
+<span class="sd">    New Xmipp normalization</span>
+
+<span class="sd">    Normalization is performed using only the background region of the image.</span>
+<span class="sd">    This approach better preserves the particle signal and is generally</span>
+<span class="sd">    preferred for cryo-EM analysis.</span>
+
+<span class="sd">    Ramp normalization</span>
+
+<span class="sd">    This method subtracts background gradients before applying normalization.</span>
+<span class="sd">    It is particularly useful when micrographs contain slow intensity</span>
+<span class="sd">    variations or illumination gradients.</span>
+
+<span class="sd">    For most cryo-EM workflows, the newer normalization approaches provide</span>
+<span class="sd">    more reliable statistical behavior.</span>
+
+<span class="sd">    CTF Considerations</span>
+
+<span class="sd">    The protocol can optionally ignore the Contrast Transfer Function (CTF)</span>
+<span class="sd">    during the comparison between particles and projections.</span>
+
+<span class="sd">    In general, CTF effects should be considered during likelihood calculations</span>
+<span class="sd">    because they influence the appearance of particle images. However, this</span>
+<span class="sd">    option becomes useful when images have already been CTF-corrected using</span>
+<span class="sd">    Wiener filtering or similar procedures.</span>
+
+<span class="sd">    If the dataset has already undergone strong CTF correction, disabling CTF</span>
+<span class="sd">    application can avoid redundant processing.</span>
+
+<span class="sd">    Outputs and Their Interpretation</span>
+
+<span class="sd">    After execution, the protocol produces several outputs.</span>
+
+<span class="sd">    Particle set with likelihood values</span>
+
+<span class="sd">    Each particle receives a log likelihood score describing how well it</span>
+<span class="sd">    matches each reference. These values can be used to evaluate particle</span>
+<span class="sd">    quality or to study the consistency between particles and structural models.</span>
+
+<span class="sd">    Residual images (optional)</span>
+
+<span class="sd">    Residual images represent the difference between experimental particles</span>
+<span class="sd">    and reference projections. Inspecting residuals can reveal systematic</span>
+<span class="sd">    mismatches, noise patterns, or structural variability.</span>
+
+<span class="sd">    Likelihood matrix</span>
+
+<span class="sd">    Internally, the protocol constructs a matrix containing the likelihood of</span>
+<span class="sd">    every particle with respect to every reference. This matrix provides a</span>
+<span class="sd">    quantitative view of how strongly each particle supports each structural</span>
+<span class="sd">    hypothesis.</span>
+
+<span class="sd">    3D classes based on likelihood</span>
+
+<span class="sd">    When multiple references are provided, the protocol assigns each particle</span>
+<span class="sd">    to the reference with the highest likelihood score. The resulting grouping</span>
+<span class="sd">    is stored as a set of 3D classes, where each class corresponds to one</span>
+<span class="sd">    reference volume.</span>
+
+<span class="sd">    Biologically, this allows users to see which particles are most compatible</span>
+<span class="sd">    with each structural state.</span>
+
+<span class="sd">    Practical Recommendations</span>
+
+<span class="sd">    In most workflows, this protocol is applied after particle orientations</span>
+<span class="sd">     have been determined, typically following a refinement or reconstruction</span>
+<span class="sd">     step.</span>
+
+<span class="sd">    A common use case is to compare particles against several candidate models</span>
+<span class="sd">    representing different conformations or processing strategies. In this</span>
+<span class="sd">    situation, the likelihood scores provide a quantitative way to determine</span>
+<span class="sd">    which model best explains the experimental data.</span>
+
+<span class="sd">    When selecting the particle radius, it is usually better to slightly</span>
+<span class="sd">    overestimate the particle size rather than risk excluding relevant</span>
+<span class="sd">    structural features. However, the noise ring should still contain a</span>
+<span class="sd">    reasonable background region for estimating noise variance.</span>
+
+<span class="sd">    If the dataset has inconsistent intensity scaling, enabling gray</span>
+<span class="sd">    optimization usually improves the reliability of the results.</span>
+
+<span class="sd">    When analyzing heterogeneous datasets, the likelihood-based classification</span>
+<span class="sd">    produced by the protocol can serve as an initial indicator of structural</span>
+<span class="sd">    variability. However, it should not replace dedicated classification</span>
+<span class="sd">    methods, which are typically more sensitive to subtle conformational</span>
+<span class="sd">    differences.</span>
+
+<span class="sd">    Final Perspective</span>
+
+<span class="sd">    Likelihood evaluation provides a statistically grounded way to connect</span>
+<span class="sd">    experimental particle images with structural models. Rather than relying</span>
+<span class="sd">    solely on visual inspection or correlation scores, the log likelihood</span>
+<span class="sd">    measures how probable each particle image is under a given structural</span>
+<span class="sd">    hypothesis.</span>
+
+<span class="sd">    For cryo-EM users, this protocol offers a powerful tool for model</span>
+<span class="sd">    validation, particle quality assessment, and reference comparison,</span>
+<span class="sd">    helping ensure that biological interpretations are supported by the</span>
+<span class="sd">    underlying experimental data.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;log likelihood&#39;</span>
     <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_1_1</span>
     <span class="n">_possibleOutputs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;reprojections&quot;</span><span class="p">:</span> <span class="n">SetOfParticles</span><span class="p">}</span>
-    <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">NEW</span>
+    <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">PROD</span>
     <span class="n">stepsExecutionMode</span> <span class="o">=</span> <span class="n">STEPS_PARALLEL</span>
 
     <span class="c1"># Normalization enum constants</span>
@@ -208,8 +448,8 @@
 
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;doNorm&#39;</span><span class="p">,</span> <span class="n">BooleanParam</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Normalize&#39;</span><span class="p">,</span> <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>
-                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Whether to subtract background gray values and normalize&#39;</span>
-                           <span class="s1">&#39;so that in the background there is 0 mean and&#39;</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;Whether to subtract background gray values and normalize &#39;</span>
+                           <span class="s1">&#39;so that in the background there is 0 mean and &#39;</span>
                            <span class="s1">&#39;standard deviation 1. This is applied to particles and volumes&#39;</span><span class="p">)</span>
         <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;normType&#39;</span><span class="p">,</span> <span class="n">EnumParam</span><span class="p">,</span> <span class="n">condition</span><span class="o">=</span><span class="s1">&#39;doNorm&#39;</span><span class="p">,</span>
                       <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Particle normalization type&#39;</span><span class="p">,</span> <span class="n">expertLevel</span><span class="o">=</span><span class="n">LEVEL_ADVANCED</span><span class="p">,</span>

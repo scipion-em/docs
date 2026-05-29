@@ -224,16 +224,207 @@
              
   <div class="section" id="module-xmipp3.protocols.protocol_movie_alignment_consensus">
 <span id="xmipp3-protocols-protocol-movie-alignment-consensus-module"></span><h1>xmipp3.protocols.protocol_movie_alignment_consensus module<a class="headerlink" href="#module-xmipp3.protocols.protocol_movie_alignment_consensus" title="Permalink to this heading"></a></h1>
-<p>Consensus alignment protocol</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="xmipp3.protocols.protocol_movie_alignment_consensus.XmippProtConsensusMovieAlignment">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">xmipp3.protocols.protocol_movie_alignment_consensus.</span></span><span class="sig-name descname"><span class="pre">XmippProtConsensusMovieAlignment</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_movie_alignment_consensus.html#XmippProtConsensusMovieAlignment"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_movie_alignment_consensus.XmippProtConsensusMovieAlignment" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="../pwem/pwem.protocols.protocol_align_movies.html#pwem.protocols.protocol_align_movies.ProtAlignMovies" title="pwem.protocols.protocol_align_movies.ProtAlignMovies"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtAlignMovies</span></code></a>, <a class="reference internal" href="../pyworkflow/pyworkflow.protocol.protocol.html#pyworkflow.protocol.protocol.Protocol" title="pyworkflow.protocol.protocol.Protocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">Protocol</span></code></a></p>
-<p>The protocol compares two sets of aligned movies (reference and secondary) to evaluate their alignment consistency.
-It calculates the correlation between shift trajectories, allowing for a minimum correlation threshold to be set.
-Movies with correlations below this threshold can be discarded. The protocol can also generate plots showing
-the trajectories and correlations for each movie. This helps in identifying and validating the quality of movie alignments
-based on consensus among different alignment runs.</p>
+<p>The protocol compares two sets of aligned movies (reference and secondary)
+to evaluate their alignment consistency. It calculates the correlation
+between shift trajectories, allowing for a minimum correlation threshold to
+be set. Movies with correlations below this threshold can be discarded. The
+protocol can also generate plots showing the trajectories and correlations
+for each movie. This helps in identifying and validating the quality of
+movie alignments based on consensus among different alignment runs.</p>
+<p>AI Generated</p>
+<p>## Overview</p>
+<p>The Movie Alignment Consensus protocol compares two independent movie-alignment
+results and evaluates whether their estimated frame-shift trajectories are
+consistent.</p>
+<p>Movie alignment is one of the first critical steps in cryo-EM processing. If
+the estimated shifts are wrong or unstable, the final averaged micrograph may
+be blurred, and this can affect CTF estimation, particle picking,
+classification, and reconstruction. One way to assess the reliability of movie
+alignment is to compare two alignment runs produced by different methods,
+different parameters, or different protocols.</p>
+<p>This protocol takes one set of aligned movies as the reference and a second set
+as the comparison. For each movie present in both sets, it compares the global
+alignment trajectories. Movies whose trajectories disagree below a user-defined
+correlation threshold can be discarded.</p>
+<p>The protocol produces accepted and discarded sets of movies and micrographs.
+It can also generate trajectory plots to help users visually inspect the
+agreement between the two alignments.</p>
+<p>## Inputs and General Workflow</p>
+<p>The protocol requires two input sets of aligned movies:</p>
+<ul class="simple">
+<li><p>a reference set of aligned movies;</p></li>
+<li><p>a secondary set of aligned movies.</p></li>
+</ul>
+<p>Both input sets must already contain movie-alignment information. The protocol
+does not align movies itself. Instead, it reads the frame shifts estimated by
+the two previous alignment protocols and compares them.</p>
+<p>For each movie found in both input sets, the protocol extracts the X and Y
+shift trajectories from the two alignments. It then computes several measures
+of agreement, including correlation, root mean square error, and maximum error.</p>
+<p>If the agreement is high enough, the movie is accepted. If the agreement is
+below the selected consensus threshold, the movie is discarded. The reference
+alignment is used for the accepted output movies and micrographs.</p>
+<p>## Reference Aligned Movies</p>
+<p>The <strong>Reference Aligned Movies</strong> input defines the alignment that will be used
+as the main reference.</p>
+<p>The global shifts from this set are used as the reference trajectories. The
+accepted output movies preserve the alignment from this first input set.</p>
+<p>In practice, this input should usually be the alignment result that the user
+trusts most, or the result from the main movie-alignment protocol used in the
+workflow.</p>
+<p>The protocol also obtains the corresponding output micrographs from the
+protocol that generated this reference movie set, when available.</p>
+<p>## Secondary Aligned Movies</p>
+<p>The <strong>Secondary Aligned Movies</strong> input provides the alignment trajectories to
+compare against the reference.</p>
+<p>This second set may come from another alignment program, another run of the
+same program with different parameters, or an alternative alignment strategy.</p>
+<p>The purpose of this second input is not to replace the reference alignment, but
+to test whether an independent alignment estimate agrees with it. Agreement
+between two independent runs increases confidence that the estimated motion is
+robust.</p>
+<p>## Minimum Consensus Shifts Correlation</p>
+<p>The <strong>Minimum consensus shifts correlation</strong> parameter defines the threshold
+used to accept or discard movies.</p>
+<p>For each movie, the protocol compares the X and Y shift trajectories from the
+two alignment sets. It computes a correlation for X and a correlation for Y,
+and then uses the smaller of the two as the global consensus score.</p>
+<p>If this score is greater than or equal to the threshold, the movie is accepted.
+If it is below the threshold, the movie is discarded.</p>
+<p>A value close to 1 is strict and requires very strong agreement between the two
+alignment trajectories. A lower value is more permissive.</p>
+<p>If the value is set to -1, no movies are discarded based on the correlation
+threshold.</p>
+<p>This parameter should be chosen according to how conservative the user wants
+the quality-control step to be. A strict threshold may remove problematic
+movies, but it may also discard usable movies when the two methods produce
+slightly different but still acceptable trajectories.</p>
+<p>## Minimum Range Shift to Apply Consensus</p>
+<p>The <strong>Minimum range shift to apply consensus</strong> parameter defines when the
+trajectory comparison should be considered meaningful.</p>
+<p>Some movies have very small estimated motion. In such cases, the shift
+trajectory may be almost flat. When shifts are very small, correlation values
+can become unstable or difficult to interpret, because there is little motion
+signal to compare.</p>
+<p>To avoid overinterpreting such cases, the protocol checks the range of the
+shift trajectory in X and Y. If the motion range is below the selected
+threshold, the movie is omitted from the strict consensus calculation and is
+accepted.</p>
+<p>This is useful because two nearly flat trajectories may have a poor numerical
+correlation even though both indicate essentially no significant motion.</p>
+<p>The threshold is expressed in pixels.</p>
+<p>## Trajectory Comparison</p>
+<p>When the motion range is large enough to make comparison meaningful, the
+protocol compares the two shift trajectories.</p>
+<p>Before computing the final comparison, the secondary trajectory is transformed
+to best match the reference trajectory. This compensates for global differences
+in trajectory placement and focuses the comparison on the shape and consistency
+of the motion path.</p>
+<p>The protocol then computes:</p>
+<ul class="simple">
+<li><p>correlation in X;</p></li>
+<li><p>correlation in Y;</p></li>
+<li><p>the minimum of the two correlations;</p></li>
+<li><p>root mean square error;</p></li>
+<li><p>maximum error.</p></li>
+</ul>
+<p>The minimum of the X and Y correlations is used as the main consensus score.
+This conservative choice means that a movie must show good agreement in both
+directions to pass the consensus test.</p>
+<p>## Global Alignment Trajectory Plot</p>
+<p>The option <strong>Global Alignment Trajectory Plot</strong> makes the protocol generate a
+plot for each movie.</p>
+<p>The plot overlays the reference and secondary shift trajectories. It also
+stores the correlation values associated with the comparison.</p>
+<p>These plots are useful for visual inspection. They allow the user to see
+whether the two alignments describe the same motion path, whether one method
+introduces jumps, or whether the disagreement is limited to a small part of the
+movie.</p>
+<p>Generating plots may increase output size and processing time, especially for
+large datasets. It is most useful when setting up the workflow, debugging
+alignment problems, or preparing quality-control reports.</p>
+<p>## Accepted Outputs</p>
+<p>The protocol produces accepted output sets when movies pass the consensus
+criteria.</p>
+<p>The accepted outputs include:</p>
+<ul class="simple">
+<li><p>accepted aligned movies;</p></li>
+<li><p>accepted micrographs.</p></li>
+</ul>
+<p>The accepted movies preserve the alignment information from the reference
+input. The accepted micrographs also receive additional metadata describing the
+alignment consensus, such as the trajectory correlation and error measures.</p>
+<p>These accepted outputs can be used for downstream processing, such as CTF
+estimation, particle picking, extraction, classification, and reconstruction.</p>
+<p>## Discarded Outputs</p>
+<p>The protocol can also produce discarded output sets.</p>
+<p>These contain movies and micrographs whose alignment trajectories did not pass
+the consensus threshold. They are useful for inspection and troubleshooting.</p>
+<p>A discarded movie is not necessarily biologically bad in every sense. It means
+that the two alignment runs did not agree sufficiently according to the chosen
+threshold. The cause may be poor movie quality, excessive drift, low signal,
+bad gain correction, unstable alignment parameters, or differences between the
+two alignment methods.</p>
+<p>Users should inspect some discarded examples before deciding whether the
+threshold is appropriate.</p>
+<p>## Streaming Behavior</p>
+<p>The protocol supports streaming workflows.</p>
+<p>As new aligned movies appear in the two input sets, the protocol checks which
+movie identifiers are present in both sets. It then compares only movies that
+are available in both inputs and updates the accepted and discarded outputs
+progressively.</p>
+<p>The output streams remain open until both input movie streams are closed and
+all common movies have been processed.</p>
+<p>This makes the protocol suitable for online or near-real-time quality control
+during data acquisition or automated processing.</p>
+<p>## Interpreting the Consensus Score</p>
+<p>The consensus correlation measures whether two alignment trajectories have a
+similar shape.</p>
+<p>High correlation suggests that the two alignment methods agree about the
+direction and evolution of beam-induced motion. This increases confidence in
+the correction.</p>
+<p>Low correlation suggests disagreement. This may indicate that one or both
+alignments are unstable, that the movie has too little signal for reliable
+alignment, or that some preprocessing issue affects one of the runs.</p>
+<p>The root mean square error and maximum error provide complementary information
+about the magnitude of the disagreement. Two trajectories may be correlated but
+still differ by a noticeable amount, or they may have low correlation because
+the motion is very small.</p>
+<p>For this reason, consensus scores should be interpreted together with the
+motion range and, when available, trajectory plots.</p>
+<p>## Practical Recommendations</p>
+<p>Use this protocol when you have two independent movie-alignment results and
+want to identify movies whose motion correction is robust.</p>
+<p>Choose the most trusted alignment as the reference input, because accepted
+outputs keep the reference alignment.</p>
+<p>Start with the default correlation threshold and inspect both accepted and
+discarded examples. Adjust the threshold if too many reasonable movies are
+discarded or if clearly problematic movies are accepted.</p>
+<p>Keep the minimum range-shift threshold enabled. It prevents movies with almost
+no motion from being unfairly rejected due to unstable correlation estimates.</p>
+<p>Enable trajectory plots when validating a new workflow or comparing alignment
+methods. Once the workflow is established, plots may be disabled to reduce
+output size.</p>
+<p>Remember that this protocol evaluates agreement between two alignment
+trajectories. It does not directly measure final reconstruction quality.
+Consensus is a strong quality-control signal, but it should be interpreted
+together with PSDs, CTF quality, particle classes, and reconstruction results.</p>
+<p>## Final Perspective</p>
+<p>Movie Alignment Consensus is a quality-control protocol for motion correction.
+It does not perform movie alignment itself. Instead, it asks whether two
+independent alignment estimates agree for each movie.</p>
+<p>For biological users and facility workflows, this is useful because movie
+alignment errors can propagate through the entire cryo-EM pipeline. By keeping
+movies with consistent alignment trajectories and separating those with
+discrepant behavior, the protocol helps produce a cleaner and more reliable
+set of motion-corrected micrographs.</p>
+<p>The protocol is especially valuable when comparing alignment methods, tuning
+movie-alignment parameters, or building automated workflows where problematic
+movies should be detected early.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="xmipp3.protocols.protocol_movie_alignment_consensus.XmippProtConsensusMovieAlignment.alignmentCorrelationMovieStep">
 <span class="sig-name descname"><span class="pre">alignmentCorrelationMovieStep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">movieId</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_movie_alignment_consensus.html#XmippProtConsensusMovieAlignment.alignmentCorrelationMovieStep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_movie_alignment_consensus.XmippProtConsensusMovieAlignment.alignmentCorrelationMovieStep" title="Permalink to this definition"></a></dt>

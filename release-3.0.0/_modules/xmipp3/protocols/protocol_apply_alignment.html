@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_apply_alignment</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -138,7 +139,129 @@
 
         
 <div class="viewcode-block" id="XmippProtApplyAlignment"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_apply_alignment.html#xmipp3.protocols.protocol_apply_alignment.XmippProtApplyAlignment">[docs]</a><span class="k">class</span> <span class="nc">XmippProtApplyAlignment</span><span class="p">(</span><span class="n">ProtAlign2D</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Applies previously calculated alignment parameters to a set of images, producing a new aligned dataset. This step is critical for improving the consistency and quality of images before further analysis or reconstruction. &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Applies previously calculated alignment parameters to a set of images,</span>
+<span class="sd">    producing a new aligned dataset. This step is critical for improving the</span>
+<span class="sd">    consistency and quality of images before further analysis or reconstruction.</span>
+
+<span class="sd">    AI Generated:</span>
+
+<span class="sd">    What this protocol is for</span>
+
+<span class="sd">        Apply Alignment 2D takes a set of particles that already have 2D</span>
+<span class="sd">        alignment parameters (in-plane rotation and shifts) and applies those</span>
+<span class="sd">        transforms to the actual particle images, producing a new dataset where</span>
+<span class="sd">        the images themselves are physically aligned. This is an important</span>
+<span class="sd">        conceptual distinction for many biological users: after a 2D</span>
+<span class="sd">        classification or alignment step, particles usually store alignment</span>
+<span class="sd">        parameters in metadata, but the underlying image pixels remain</span>
+<span class="sd">        unchanged. This protocol “bakes in” the alignment, generating a new</span>
+<span class="sd">        aligned image stack that is often easier to use for visualization,</span>
+<span class="sd">        downstream averaging, and certain workflows where you want aligned</span>
+<span class="sd">        images without relying on metadata transforms.</span>
+
+<span class="sd">        A typical reason to run this protocol is to produce a clean, directly</span>
+<span class="sd">        comparable particle stack and a representative average image that</span>
+<span class="sd">        reflects the aligned dataset. It is also useful when exporting</span>
+<span class="sd">        particles to external tools or sharing a dataset where you want the</span>
+<span class="sd">        alignment already applied.</span>
+
+<span class="sd">        Input requirement</span>
+
+<span class="sd">        The protocol accepts a single input: a SetOfParticles that must</span>
+<span class="sd">        already contain 2D alignment information. In practical terms, the set</span>
+<span class="sd">        must come from a step that has assigned 2D transforms (for example, a</span>
+<span class="sd">        2D alignment or 2D classification protocol that computes in-plane</span>
+<span class="sd">        alignment). If the particle set does not have 2D alignment, there is</span>
+<span class="sd">        nothing to apply, and this protocol is not applicable.</span>
+
+<span class="sd">        From a biological workflow perspective, this is typically used after</span>
+<span class="sd">        you have obtained a set of well-aligned particles—often after cleaning</span>
+<span class="sd">        out junk classes—so that the resulting aligned stack reflects</span>
+<span class="sd">        meaningful particle centering and orientation.</span>
+
+<span class="sd">        What happens during processing</span>
+
+<span class="sd">        The protocol reads the input particle set, including each particle’s</span>
+<span class="sd">        2D alignment parameters, and then applies the corresponding geometric</span>
+<span class="sd">        transform to each particle image. The result is written to a new aligned</span>
+<span class="sd">        stack (a new set of image files), and the output particle set is</span>
+<span class="sd">        updated so that each particle now points to its newly transformed image.</span>
+
+<span class="sd">        A key point for interpretation is that the protocol then removes the</span>
+<span class="sd">        2D alignment metadata from the output particles. This is intentional:</span>
+<span class="sd">        because the image pixels have already been transformed, the output set</span>
+<span class="sd">        is considered “already aligned” in the image data itself and no longer</span>
+<span class="sd">        needs 2D alignment parameters in the metadata. For the user, the</span>
+<span class="sd">        simplest way to think about it is: the output particles are now in a</span>
+<span class="sd">        consistent orientation/centering without requiring further application</span>
+<span class="sd">        of transforms.</span>
+
+<span class="sd">        Outputs and how to use them</span>
+
+<span class="sd">        The protocol produces two outputs.</span>
+
+<span class="sd">        The first is outputParticles, a new particle set whose images are the</span>
+<span class="sd">        aligned versions of the originals. This is the dataset you would use</span>
+<span class="sd">        if you want a particle stack that is visually coherent, straightforward</span>
+<span class="sd">        to average, or ready for export. It is also convenient for manual</span>
+<span class="sd">        inspection because particles appear consistently centered and oriented</span>
+<span class="sd">        (to the extent that the input alignment was meaningful).</span>
+
+<span class="sd">        The second output is outputAverage, which is a single average image</span>
+<span class="sd">        computed from the aligned output particle set. Biologically, this</span>
+<span class="sd">        average can be used as a quick quality indicator: if the alignment was</span>
+<span class="sd">        good and the dataset is reasonably homogeneous in view, the average</span>
+<span class="sd">        will look sharper and more structured than the average of unaligned</span>
+<span class="sd">        particles. If the average remains blurry, it may indicate residual</span>
+<span class="sd">        heterogeneity, poor alignment quality upstream, or that the particles</span>
+<span class="sd">        represent many different orientations (in which case a single 2D</span>
+<span class="sd">        average is not expected to be sharp).</span>
+
+<span class="sd">        Practical guidance for biological users</span>
+
+<span class="sd">        This protocol is most useful when you are at a stage where you trust</span>
+<span class="sd">        the 2D alignment parameters and you want to materialize them into the</span>
+<span class="sd">        images. A common pattern is to first run a 2D classification, select</span>
+<span class="sd">        the good classes (thus filtering out junk and contaminants), and then</span>
+<span class="sd">        apply alignment to the selected particles to obtain a clean aligned</span>
+<span class="sd">        stack and a representative average.</span>
+
+<span class="sd">        It is less useful if you plan to continue doing 2D classification or</span>
+<span class="sd">        alignment steps that expect alignment metadata, because after applying</span>
+<span class="sd">        alignment the output set no longer carries 2D alignment transforms.</span>
+<span class="sd">        That does not prevent further processing, but it changes the</span>
+<span class="sd">        interpretation: downstream tools will treat the images as already</span>
+<span class="sd">        aligned rather than needing to apply stored transforms.</span>
+
+<span class="sd">        Another common use is interoperability: if you need to export a</span>
+<span class="sd">        particle stack for visualization or external processing and you want</span>
+<span class="sd">        what you export to already reflect the alignment you computed in</span>
+<span class="sd">        Scipion/Xmipp, this protocol provides a direct way to do that.</span>
+
+<span class="sd">        What this protocol does not do</span>
+
+<span class="sd">        Apply Alignment 2D does not compute new alignments and does not improve</span>
+<span class="sd">        alignment by itself; it only applies what was computed previously. If</span>
+<span class="sd">        the upstream alignment is wrong (for example, dominated by noise, or</span>
+<span class="sd">        driven by junk particles), applying it will simply produce a</span>
+<span class="sd">        consistently wrong aligned stack. That is why, in biological practice,</span>
+<span class="sd">        it is usually best applied after you have already curated the dataset</span>
+<span class="sd">        to contain mostly valid particles and reasonably consistent alignments.</span>
+
+<span class="sd">        Recommended checks after running</span>
+
+<span class="sd">        A quick sanity check is to inspect the outputAverage and compare it to</span>
+<span class="sd">        an average before alignment. If the alignment was meaningful, the</span>
+<span class="sd">        aligned average should show improved contrast and sharper structural</span>
+<span class="sd">        features. It is also useful to browse a subset of outputParticles to</span>
+<span class="sd">        confirm that centering and orientation look consistent and that no</span>
+<span class="sd">        obvious artifacts were introduced.</span>
+
+<span class="sd">        In short, this protocol is a practical “finalization” step that turns</span>
+<span class="sd">        alignment metadata into an aligned particle stack and a representative</span>
+<span class="sd">        aligned average, which can simplify downstream handling and improve</span>
+<span class="sd">        interpretability for many common cryo-EM workflows.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;apply alignment 2d&#39;</span>
 
     <span class="c1">#--------------------------- DEFINE param functions --------------------------------------------</span>

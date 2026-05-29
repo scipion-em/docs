@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_subtract_projection</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -143,7 +144,315 @@
 
 <div class="viewcode-block" id="XmippProtSubtractProjectionBase"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_subtract_projection.html#xmipp3.protocols.protocol_subtract_projection.XmippProtSubtractProjectionBase">[docs]</a><span class="k">class</span> <span class="nc">XmippProtSubtractProjectionBase</span><span class="p">(</span><span class="n">EMProtocol</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Helper class that contains some Protocol utilities methods</span>
-<span class="sd">    used by both  XmippProtSubtractProjection and XmippProtBoostParticles.&quot;&quot;&quot;</span>
+<span class="sd">    used by both  XmippProtSubtractProjection and XmippProtBoostParticles.</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Subtract Projection protocol subtracts projections of a reference volume</span>
+<span class="sd">    from a set of experimental particles.</span>
+
+<span class="sd">    In single-particle cryo-EM, each particle image corresponds to a projection of</span>
+<span class="sd">    the 3D structure in a particular orientation. If the particles already have</span>
+<span class="sd">    alignment information, the protocol can project a reference volume using those</span>
+<span class="sd">    same orientations and compare each experimental particle with its corresponding</span>
+<span class="sd">    reference projection.</span>
+
+<span class="sd">    This protocol uses that idea to remove, or alternatively keep, selected</span>
+<span class="sd">    regions of the particle signal. It is useful when the user wants to focus</span>
+<span class="sd">    downstream analysis on a specific part of a complex, remove a dominant region,</span>
+<span class="sd">    or generate particles where a chosen structural component has been subtracted.</span>
+
+<span class="sd">    The protocol can use a circular mask or a 3D protein mask during the numerical</span>
+<span class="sd">    adjustment, can optionally use a region-of-interest mask, can take CTF into</span>
+<span class="sd">    account, and can use either Fourier or real-space projection.</span>
+
+<span class="sd">    The main output is a new particle set containing the processed particles and</span>
+<span class="sd">    subtraction-related metadata.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The protocol requires:</span>
+
+<span class="sd">    - a set of particles;</span>
+<span class="sd">    - a reference volume;</span>
+<span class="sd">    - a mask strategy;</span>
+<span class="sd">    - optionally, a region-of-interest mask.</span>
+
+<span class="sd">    The input particles are first written to Xmipp metadata format. The reference</span>
+<span class="sd">    volume is then projected using the orientations stored in the particle set.</span>
+<span class="sd">    For each particle, the protocol compares the experimental image with the</span>
+<span class="sd">    corresponding projection of the reference volume.</span>
+
+<span class="sd">    The projection and particle are numerically adjusted, and the selected</span>
+<span class="sd">    subtraction or keeping operation is applied. The resulting particles are saved</span>
+<span class="sd">    as a new particle stack and read back into Scipion as an output particle set.</span>
+
+<span class="sd">    The output particles include additional metadata describing the subtraction fit.</span>
+
+<span class="sd">    ## Input Particles</span>
+
+<span class="sd">    The **Particles** parameter defines the particle set to be processed.</span>
+
+<span class="sd">    The particles must have projection-alignment information, because the protocol</span>
+<span class="sd">    uses the orientation of each particle to generate the corresponding projection</span>
+<span class="sd">    of the reference volume.</span>
+
+<span class="sd">    The input particles and reference volume must have the same X and Y</span>
+<span class="sd">    dimensions, and they must have the same sampling rate. The protocol validates</span>
+<span class="sd">    these requirements before running.</span>
+
+<span class="sd">    This protocol is therefore intended for particles that have already been</span>
+<span class="sd">    aligned or refined against a compatible reference.</span>
+
+<span class="sd">    ## Reference Volume</span>
+
+<span class="sd">    The **Reference volume** parameter defines the 3D map that will be projected</span>
+<span class="sd">    and compared with the particles.</span>
+
+<span class="sd">    For each particle, the protocol generates the projection of this volume using</span>
+<span class="sd">    the particle orientation. This projected reference is then adjusted and used</span>
+<span class="sd">    for subtraction or signal keeping.</span>
+
+<span class="sd">    The reference volume should correspond to the same structure and coordinate</span>
+<span class="sd">    system as the input particles. If the reference is shifted, rotated, scaled, or</span>
+<span class="sd">    sampled differently from the particles, the subtraction will be unreliable.</span>
+
+<span class="sd">    ## Mask Used for the Adjustment</span>
+
+<span class="sd">    The **Mask** parameter controls which region is considered during the numerical</span>
+<span class="sd">    adjustment between each particle and its corresponding reference projection.</span>
+
+<span class="sd">    There are two options:</span>
+
+<span class="sd">    **Circular mask** applies a circular mask to every particle.</span>
+
+<span class="sd">    **Protein mask** uses a 3D specimen mask indicating the region of the map that</span>
+<span class="sd">    should be considered in the analysis.</span>
+
+<span class="sd">    Pixels outside the selected mask are ignored during the adjustment. This helps</span>
+<span class="sd">    avoid fitting the reference projection to solvent, background, or irrelevant</span>
+<span class="sd">    regions.</span>
+
+<span class="sd">    ## Circular Mask Radius</span>
+
+<span class="sd">    The **Circular mask radius** parameter is used when the mask option is</span>
+<span class="sd">    **Circular mask**.</span>
+
+<span class="sd">    It defines the radius of the circular mask applied to the particles. The</span>
+<span class="sd">    purpose of this mask is to avoid edge artifacts and restrict the comparison to</span>
+<span class="sd">    the central particle region.</span>
+
+<span class="sd">    If the value is **-1**, the protocol uses half the X dimension of the input</span>
+<span class="sd">    particles.</span>
+
+<span class="sd">    A smaller radius focuses the fit on the central region. A larger radius includes</span>
+<span class="sd">    more peripheral density and background.</span>
+
+<span class="sd">    ## Protein Mask</span>
+
+<span class="sd">    The **Mask** volume parameter is used when the mask option is **Protein mask**.</span>
+
+<span class="sd">    This mask should define the region of the input volume that must be considered</span>
+<span class="sd">    during the particle-projection adjustment.</span>
+
+<span class="sd">    The mask must have the same dimensions and sampling rate as the reference</span>
+<span class="sd">    volume. The protocol validates these conditions.</span>
+
+<span class="sd">    A good mask should include the density that should drive the fit while</span>
+<span class="sd">    excluding solvent and irrelevant background. Masks with values in background</span>
+<span class="sd">    regions should be avoided when they are not intended to contribute to the</span>
+<span class="sd">    analysis.</span>
+
+<span class="sd">    ## ROI Mask</span>
+
+<span class="sd">    The **ROI mask** parameter defines the region that the user wants to keep or</span>
+<span class="sd">    subtract.</span>
+
+<span class="sd">    This mask is different from the main fitting mask. The main mask controls the</span>
+<span class="sd">    region used for numerical adjustment, while the ROI mask defines the structural</span>
+<span class="sd">    region affected by the final operation.</span>
+
+<span class="sd">    If no ROI mask is provided, the subtraction is performed on the whole particle</span>
+<span class="sd">    image.</span>
+
+<span class="sd">    The ROI mask should correspond to the region of the reference volume that the</span>
+<span class="sd">    user wants to remove or preserve. It should avoid including background voxels</span>
+<span class="sd">    as part of the region of interest.</span>
+
+<span class="sd">    ## Keep or Subtract</span>
+
+<span class="sd">    The **Mask contains the part to** parameter controls how the ROI mask is</span>
+<span class="sd">    interpreted.</span>
+
+<span class="sd">    If **Keep** is selected, the protocol keeps the region represented by the ROI</span>
+<span class="sd">    mask and removes the rest according to the projection-subtraction operation.</span>
+
+<span class="sd">    If **Subtract** is selected, the protocol subtracts the region represented by</span>
+<span class="sd">    the ROI mask from the particles.</span>
+
+<span class="sd">    This option determines whether the ROI mask marks the part of the structure to</span>
+<span class="sd">    retain or the part to remove.</span>
+
+<span class="sd">    ## Ignore CTF</span>
+
+<span class="sd">    The **Ignore CTF** option controls whether CTF effects are considered during</span>
+<span class="sd">    the subtraction.</span>
+
+<span class="sd">    If this option is disabled, the protocol considers CTF information when</span>
+<span class="sd">    matching the reference projections to the particles.</span>
+
+<span class="sd">    If this option is enabled, CTF is ignored. This is appropriate when the input</span>
+<span class="sd">    particles have already been CTF corrected or when the user intentionally wants</span>
+<span class="sd">    to perform the subtraction without CTF modulation.</span>
+
+<span class="sd">    Using the wrong CTF setting can produce incomplete or biased subtraction.</span>
+
+<span class="sd">    ## Maximum Resolution</span>
+
+<span class="sd">    The **Maximum resolution** parameter defines the highest resolution used in the</span>
+<span class="sd">    subtraction calculation, in angstroms.</span>
+
+<span class="sd">    If the value is **-1**, the protocol uses its default behavior, described in</span>
+<span class="sd">    the help as approximately the sampling divided by square root of 2.</span>
+
+<span class="sd">    Limiting the maximum resolution can make the subtraction more stable by</span>
+<span class="sd">    avoiding high-frequency noise or details not reliably represented by the</span>
+<span class="sd">    reference volume.</span>
+
+<span class="sd">    The value should be greater than 0 if explicitly provided.</span>
+
+<span class="sd">    ## Ignore Particles with Negative beta0 or R2</span>
+
+<span class="sd">    The **Ignore particles with negative beta0 or R2?** option controls whether</span>
+<span class="sd">    particles with problematic fitting parameters are excluded from the output.</span>
+
+<span class="sd">    The subtraction procedure estimates numerical parameters describing how the</span>
+<span class="sd">    reference projection fits each particle. Particles with negative beta0 or R2</span>
+<span class="sd">    are considered bad particles by the protocol.</span>
+
+<span class="sd">    When this option is enabled, these particles are not included in the output</span>
+<span class="sd">    particle set. Negative beta values also do not contribute to the mean beta when</span>
+<span class="sd">    the corresponding mean option is used internally.</span>
+
+<span class="sd">    This option helps remove particles for which the projection fit is not</span>
+<span class="sd">    reliable.</span>
+
+<span class="sd">    ## Projector</span>
+
+<span class="sd">    The **Projector** parameter controls how projections of the reference volume</span>
+<span class="sd">    are generated.</span>
+
+<span class="sd">    There are two options:</span>
+
+<span class="sd">    **Fourier** projection is faster but may be more prone to artifacts.</span>
+
+<span class="sd">    **Real space** projection is slower but more accurate.</span>
+
+<span class="sd">    The mask is always projected in real space.</span>
+
+<span class="sd">    For exploratory workflows or large datasets, Fourier projection may be</span>
+<span class="sd">    convenient. For more accurate subtraction, real-space projection may be</span>
+<span class="sd">    preferable.</span>
+
+<span class="sd">    ## Filter Decay Sigma</span>
+
+<span class="sd">    The **Decay of the filter (sigma)** parameter is used with the Fourier</span>
+<span class="sd">    projector.</span>
+
+<span class="sd">    It controls the smoothness of the mask transition. A smoother transition can</span>
+<span class="sd">    reduce edge artifacts during projection and subtraction.</span>
+
+<span class="sd">    This is an advanced parameter. Most users should keep the default unless they</span>
+<span class="sd">    observe mask-related artifacts or have a specific reason to tune the filter</span>
+<span class="sd">    decay.</span>
+
+<span class="sd">    ## Fourier Padding Factor</span>
+
+<span class="sd">    The **Fourier padding factor** parameter is used with the Fourier projector.</span>
+
+<span class="sd">    It defines how much the volume is zero-padded before generating projections.</span>
+<span class="sd">    Padding can improve projection accuracy but increases memory use.</span>
+
+<span class="sd">    The protocol warns that if the input particles are very large, for example</span>
+<span class="sd">    larger than about 750 pixels, users may consider reducing the padding factor to</span>
+<span class="sd">    1 to save RAM.</span>
+
+<span class="sd">    ## Output Particles</span>
+
+<span class="sd">    The main output is **outputParticles**.</span>
+
+<span class="sd">    This output contains the processed particles after projection subtraction or</span>
+<span class="sd">    signal keeping. The particles are saved in a new MRC stack and metadata file,</span>
+<span class="sd">    then read back into Scipion.</span>
+
+<span class="sd">    The output particle set preserves input particle information and includes</span>
+<span class="sd">    additional Xmipp metadata labels related to the subtraction fit, including:</span>
+
+<span class="sd">    - subtraction R2;</span>
+<span class="sd">    - beta0;</span>
+<span class="sd">    - beta1;</span>
+<span class="sd">    - beta.</span>
+
+<span class="sd">    These values can be useful for inspecting how well each particle was explained</span>
+<span class="sd">    by the reference projection.</span>
+
+<span class="sd">    ## Interpreting the Output</span>
+
+<span class="sd">    The output particles should be interpreted as modified images in which a</span>
+<span class="sd">    reference-derived projection has been used to remove or preserve selected</span>
+<span class="sd">    signal.</span>
+
+<span class="sd">    This operation depends strongly on the quality of the reference volume, the</span>
+<span class="sd">    accuracy of particle orientations, the correctness of the masks, and the CTF</span>
+<span class="sd">    setting.</span>
+
+<span class="sd">    Incomplete subtraction may occur if the reference does not match the particles,</span>
+<span class="sd">    if the particles are heterogeneous, if alignments are inaccurate, or if the</span>
+<span class="sd">    mask is poorly defined.</span>
+
+<span class="sd">    Over-subtraction or artifacts may occur if the reference projection is fitted</span>
+<span class="sd">    too aggressively or if the ROI mask includes inappropriate regions.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    Use this protocol only with particles that have reliable projection-alignment</span>
+<span class="sd">    parameters.</span>
+
+<span class="sd">    Make sure the particle box size and sampling rate match the reference volume.</span>
+
+<span class="sd">    Use a reference volume in the same coordinate frame as the input particles.</span>
+
+<span class="sd">    Use a protein mask when the fitting should focus on the molecular region.</span>
+<span class="sd">    Use a circular mask for simpler, central-particle masking.</span>
+
+<span class="sd">    Define the ROI mask carefully. It should correspond to the region to keep or</span>
+<span class="sd">    subtract and should not include background unnecessarily.</span>
+
+<span class="sd">    Use **Ignore CTF** only when particles have already been CTF corrected or when</span>
+<span class="sd">    CTF-aware subtraction is not desired.</span>
+
+<span class="sd">    Start with conservative maximum-resolution settings. Avoid relying on noisy</span>
+<span class="sd">    high-frequency information for subtraction.</span>
+
+<span class="sd">    Inspect output particles visually and examine subtraction metadata before using</span>
+<span class="sd">    the output for downstream classification or refinement.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    Subtract Projection is a focused particle-processing protocol for removing or</span>
+<span class="sd">    preserving reference-derived signal in aligned particles.</span>
+
+<span class="sd">    For biological users, its main value is that it allows analysis to focus on a</span>
+<span class="sd">    selected region of a larger structure. For example, a dominant stable domain</span>
+<span class="sd">    can be subtracted so that variability in another region becomes easier to</span>
+<span class="sd">    classify, or a region of interest can be kept while the rest of the particle is</span>
+<span class="sd">    suppressed.</span>
+
+<span class="sd">    The quality of the result depends on accurate alignments, an appropriate</span>
+<span class="sd">    reference volume, correct CTF handling, and carefully designed masks.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">PROD</span>
 
     <span class="c1"># --------------------------- DEFINE param functions --------------------------------------------</span>

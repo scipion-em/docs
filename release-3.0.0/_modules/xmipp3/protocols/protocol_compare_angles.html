@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_compare_angles</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -139,9 +140,120 @@
 
 <div class="viewcode-block" id="XmippProtCompareAngles"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_compare_angles.html#xmipp3.protocols.protocol_compare_angles.XmippProtCompareAngles">[docs]</a><span class="k">class</span> <span class="nc">XmippProtCompareAngles</span><span class="p">(</span><span class="n">ProtAnalysis3D</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;    </span>
-<span class="sd">    Compare two sets of angles. The output is a list of all common particles with</span>
-<span class="sd">    the angular difference between both assignments. The output is constructed by </span>
-<span class="sd">    keeping the information from the Set 1 and adding the shiftDiff and angularDiff.</span>
+<span class="sd">    Compare two sets of angles. The output is a list of all common particles</span>
+<span class="sd">    with the angular difference between both assignments. The output is</span>
+<span class="sd">    constructed by keeping the information from the Set 1 and adding the</span>
+<span class="sd">    shiftDiff and angularDiff.</span>
+
+<span class="sd">    This protocol answers a very practical question:</span>
+
+<span class="sd">    “How different are the angular assignments (and shifts) of the same</span>
+<span class="sd">    particles between two alignment/refinement results?”</span>
+
+<span class="sd">    You give it two particle sets that already have projection alignment</span>
+<span class="sd">    (rot/tilt/psi + shifts). It outputs a new particle set containing only the</span>
+<span class="sd">    particles that exist in both inputs, with two extra per-particle measures:</span>
+
+<span class="sd">    - angularDiff: the angular distance (in degrees) between the two assigned</span>
+<span class="sd">    orientations</span>
+<span class="sd">    - shiftDiff: the difference between the two in-plane shifts</span>
+
+<span class="sd">    It keeps the “identity” and metadata of Set 1, and appends these comparison</span>
+<span class="sd">    numbers.</span>
+
+<span class="sd">    When is this useful?</span>
+
+<span class="sd">    Common scenarios:</span>
+
+<span class="sd">    - Compare two refinements / two pipelines</span>
+<span class="sd">    - Same dataset refined with different settings (mask, solvent flattening,</span>
+<span class="sd">    CTF refinement, high/low-pass choices, etc.).</span>
+<span class="sd">    - You want to see if orientations are stable or if the solution “moved”.</span>
+<span class="sd">    - Check for alignment instability / overfitting</span>
+
+<span class="sd">    If many particles show large angularDiff, it can indicate:</span>
+<span class="sd">    - poor SNR / bad particles,</span>
+<span class="sd">    - ambiguous views,</span>
+<span class="sd">    - reference bias or wrong initial model,</span>
+<span class="sd">    - symmetry/mirror ambiguities.</span>
+
+<span class="sd">    Quantify effect of symmetry choice</span>
+
+<span class="sd">    You can compare runs with/without symmetry, or with different symmetry</span>
+<span class="sd">    handling, using the appropriate symmetryGroup in this protocol.</span>
+
+<span class="sd">    Compare “consensus” vs “per-class/per-iteration” assignments</span>
+
+<span class="sd">    E.g., angles from a global refinement vs angles imported from another software.</span>
+
+<span class="sd">    What you get out (and how you’d interpret it)</span>
+<span class="sd">    Output</span>
+
+<span class="sd">    A SetOfParticles (projection-aligned) containing:</span>
+
+<span class="sd">    Only common particles (intersection by itemId)</span>
+
+<span class="sd">    Two added attributes per particle:</span>
+
+<span class="sd">    angleDiff</span>
+
+<span class="sd">    shiftDiff</span>
+
+<span class="sd">    Interpretation heuristics</span>
+
+<span class="sd">    Small angularDiff for most particles → assignments are consistent; your</span>
+<span class="sd">    refinement is stable.</span>
+
+<span class="sd">    A tail of large angularDiff → subset of particles is unstable (often junk,</span>
+<span class="sd">    low SNR, flexible regions, rare views).</span>
+
+<span class="sd">    Large angularDiff cluster-wide → runs disagree globally (different minima,</span>
+<span class="sd">    wrong symmetry, reference bias, different masking strategy, etc.).</span>
+
+<span class="sd">    Small angularDiff but large shiftDiff → orientations agree but</span>
+<span class="sd">    centering/translation differs (box center issues, different alignment</span>
+<span class="sd">    constraints).</span>
+
+<span class="sd">    A very practical follow-up is to plot histograms of angularDiff and</span>
+<span class="sd">    shiftDiff, and/or to filter particles with large differences to inspect</span>
+<span class="sd">    them (do they look like junk? do they concentrate in certain views?).</span>
+
+<span class="sd">    The “symmetry group” parameter matters</span>
+
+<span class="sd">    Angular differences are computed modulo symmetry using Xmipp conventions. In practice:</span>
+
+<span class="sd">    If your particle is in C3, two orientations that differ by a 120° rotation</span>
+<span class="sd">    around the symmetry axis should be considered equivalent.</span>
+
+<span class="sd">    This protocol accounts for that by using the symmetryGroup you provide.</span>
+
+<span class="sd">    It also enables --check_mirrors, so it tries to resolve mirror ambiguities</span>
+<span class="sd">    when comparing assignments (useful when a solution might flip</span>
+<span class="sd">    handedness/mirror-related assignments).</span>
+
+<span class="sd">    Rule of thumb: set symmetryGroup to the same symmetry you used in</span>
+<span class="sd">    refinement (or the one you want to compare under).</span>
+
+<span class="sd">    What this protocol does not do</span>
+
+<span class="sd">    It doesn’t “decide which assignment is correct”.</span>
+
+<span class="sd">    It doesn’t modify the original angles to reconcile them.</span>
+
+<span class="sd">    It doesn’t compare particles that are not common to both sets (it</span>
+<span class="sd">    explicitly intersects by particle ID).</span>
+
+<span class="sd">    It’s a diagnostic/QA tool.</span>
+
+<span class="sd">    Typical practitioner workflow</span>
+
+<span class="sd">    - Run two refinements / two angle assignment methods.</span>
+<span class="sd">    - Use Compare Angles with the same symmetry assumption used in the run.</span>
+<span class="sd">    - Inspect distribution of angularDiff and shiftDiff.</span>
+<span class="sd">    Optionally:</span>
+<span class="sd">    - exclude particles with large differences,</span>
+<span class="sd">    - inspect those particles by class/view,</span>
+<span class="sd">    - re-run refinement with improved cleaning or constraints.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;compare angles&#39;</span>

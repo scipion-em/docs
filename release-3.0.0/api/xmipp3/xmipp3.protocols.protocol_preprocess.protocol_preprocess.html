@@ -237,7 +237,195 @@ used by both  XmippProtPreprocessParticles and XmippProtPreprocessVolumes.</p>
 <dt class="sig sig-object py" id="xmipp3.protocols.protocol_preprocess.protocol_preprocess.XmippProtPreprocessParticles">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">xmipp3.protocols.protocol_preprocess.protocol_preprocess.</span></span><span class="sig-name descname"><span class="pre">XmippProtPreprocessParticles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_preprocess/protocol_preprocess.html#XmippProtPreprocessParticles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_preprocess.protocol_preprocess.XmippProtPreprocessParticles" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="xmipp3.protocols.protocol_preprocess.protocol_process.html#xmipp3.protocols.protocol_preprocess.protocol_process.XmippProcessParticles" title="xmipp3.protocols.protocol_preprocess.protocol_process.XmippProcessParticles"><code class="xref py py-class docutils literal notranslate"><span class="pre">XmippProcessParticles</span></code></a></p>
-<p>Preprocesses particle images by applying the optional steps:  dust removal, randomize phase, normalize, center images, phase flip images, invert contrast, threshold, fill with below, abs_bellow or above, a threshold grey value below which all voxels should be set to 0, fill value or substitute by value binarize or  average. This cleaning stage improves particle quality and consistency for downstream tasks.</p>
+<p>Preprocesses particle images by applying the optional steps:  dust
+removal, randomize phase, normalize, center images, phase flip images,
+invert contrast, threshold, fill with below, abs_bellow or above, a
+threshold grey value below which all voxels should be set to 0, fill
+value or substitute by value binarize or  average. This cleaning stage
+improves particle quality and consistency for downstream tasks.</p>
+<p>AI Generated</p>
+<p>## Overview</p>
+<p>The Preprocess Particles protocol applies a sequence of optional preprocessing
+operations to a set of particle images.</p>
+<p>Particle preprocessing is often used to clean images, standardize contrast,
+normalize background statistics, remove extreme pixel values, phase-flip CTF
+effects, or prepare particles for later alignment, classification, and
+reconstruction.</p>
+<p>The protocol can apply several operations, including:</p>
+<ul class="simple">
+<li><p>dust removal;</p></li>
+<li><p>phase randomization beyond a selected resolution;</p></li>
+<li><p>normalization;</p></li>
+<li><p>image centering;</p></li>
+<li><p>phase flipping;</p></li>
+<li><p>contrast inversion;</p></li>
+<li><p>thresholding.</p></li>
+</ul>
+<p>The selected operations are applied in the order defined by the protocol. The
+main output is a new set of preprocessed particles.</p>
+<p>## Inputs and General Workflow</p>
+<p>The input is a set of particles.</p>
+<p>The protocol converts the input particle set to Xmipp metadata format. It then
+runs the selected preprocessing operations sequentially. Each operation uses
+the output of the previous one, so the order of selected operations matters.</p>
+<p>The output particle set preserves the input metadata when possible and points
+to the processed particle images.</p>
+<p>## Input Particles</p>
+<p>The <strong>Input particles</strong> parameter defines the particle set to be preprocessed.</p>
+<p>The protocol does not change the biological identity of the particles. It
+changes the image values and, for phase flipping, updates the phase-flipped
+status of the output set.</p>
+<p>The output particles can be used in downstream protocols such as 2D
+classification, alignment, reconstruction, screening, or additional cleaning.</p>
+<p>## Dust Removal</p>
+<p>The <strong>Dust removal</strong> option detects pixels with unusually large absolute values
+and replaces them with random values from a Gaussian distribution with zero
+mean and unit standard deviation.</p>
+<p>This is useful for removing isolated very bright or very dark artifacts, such
+as detector spikes, hot pixels, or other extreme outliers.</p>
+<p>The <strong>Threshold for dust removal</strong> parameter controls how extreme a pixel must
+be to be treated as dust. Pixels with signal higher or lower than this value
+times the image standard deviation are affected.</p>
+<p>The default value, 3.5, is suggested for cryo-EM. For high-contrast negative
+stain images, a higher value may be preferable because real signal can be much
+stronger.</p>
+<p>## Randomize Phases</p>
+<p>The <strong>Randomize phases</strong> option randomizes Fourier phases beyond a selected
+resolution.</p>
+<p>The <strong>Maximum Resolution</strong> parameter defines the resolution, in angstroms,
+beyond which phases are randomized.</p>
+<p>This operation is useful for control experiments or for removing high-frequency
+phase information beyond a chosen limit. It should not be used as routine
+particle cleaning unless the user has a specific validation or preprocessing
+reason.</p>
+<p>## Normalize</p>
+<p>The <strong>Normalize</strong> option standardizes particle intensity values.</p>
+<p>The protocol supports three normalization modes:</p>
+<p><strong>OldXmipp</strong> sets the whole-image mean to 0 and standard deviation to 1.</p>
+<p><strong>NewXmipp</strong> sets the background mean to 0 and background standard deviation to
+1.</p>
+<p><strong>Ramp</strong> subtracts a background ramp and then applies the NewXmipp background
+normalization.</p>
+<p>Normalization is useful because many downstream algorithms assume comparable
+particle intensity statistics.</p>
+<p>## Background Radius</p>
+<p>The <strong>Background radius</strong> parameter is used for NewXmipp and Ramp
+normalization.</p>
+<p>Pixels outside this circle are treated as background. Their statistics are used
+to normalize the particle images. If the radius is less than or equal to 0, the
+protocol uses half the particle box size.</p>
+<p>The radius should be chosen so that the background region does not include
+significant particle density. If the radius is too small or too large,
+background statistics may be biased.</p>
+<p>The protocol validates that the background radius is not larger than the
+particle half-size.</p>
+<p>## Center Images</p>
+<p>The <strong>Center images</strong> option recenters particle images using the Xmipp image
+centering tool.</p>
+<p>This can be useful when particles are approximately centered but still show
+small systematic shifts.</p>
+<p>Centering should be used carefully. If particles contain multiple components,
+strong background artifacts, or highly asymmetric density, automatic centering
+may not correspond to the desired biological center.</p>
+<p>## Phase Flip Images</p>
+<p>The <strong>Phase flip images</strong> option applies CTF phase flipping to the particle
+images.</p>
+<p>The protocol uses the particle sampling rate and the CTF information associated
+with the input particles.</p>
+<p>Phase flipping changes the phase-flipped status of the output particle set.
+The output set is marked as phase flipped if the input was not phase flipped,
+and vice versa.</p>
+<p>This option is useful when the user wants to correct CTF phase inversions while
+keeping a relatively simple CTF treatment.</p>
+<p>## Invert Contrast</p>
+<p>The <strong>Invert contrast</strong> option multiplies particle images by -1.</p>
+<p>This is useful when the particles have the opposite contrast convention from
+what downstream protocols expect. For example, it can convert black particles
+on a white background into white particles on a darker background, or the other
+way around.</p>
+<p>Incorrect contrast inversion can make later processing fail, so the output
+should be inspected visually.</p>
+<p>## Threshold</p>
+<p>The <strong>Threshold</strong> option replaces selected pixel values according to a
+threshold rule.</p>
+<p>The protocol first selects pixels using one of three modes:</p>
+<p><strong>abs_below</strong> selects pixels whose absolute value is below the threshold.</p>
+<p><strong>below</strong> selects pixels below the threshold.</p>
+<p><strong>above</strong> selects pixels above the threshold.</p>
+<p>Then it substitutes the selected pixels using the selected substitution mode.</p>
+<p>## Threshold Value</p>
+<p>The <strong>Threshold value</strong> parameter defines the gray-value cutoff used by the
+threshold operation.</p>
+<p>The meaning of this value depends on the selected threshold type. For example,
+in <strong>below</strong> mode, pixels below this value are selected. In <strong>above</strong> mode,
+pixels above this value are selected.</p>
+<p>Thresholding can be useful for cleaning or binarization-like operations, but it
+can also remove weak signal if used too aggressively.</p>
+<p>## Substitute By</p>
+<p>The <strong>Substitute by</strong> parameter controls how selected pixels are replaced.</p>
+<p>The options are:</p>
+<p><strong>value</strong>, where selected pixels are replaced by the user-provided fill value;</p>
+<p><strong>binarize</strong>, where selected and non-selected pixels are converted into a
+binary representation;</p>
+<p><strong>avg</strong>, where selected pixels are replaced by the average of the non-selected
+pixels.</p>
+<p>This parameter determines whether thresholding behaves as intensity clipping,
+mask-like binarization, or background substitution.</p>
+<p>## Fill Value</p>
+<p>The <strong>Fill value</strong> parameter is used when <strong>Substitute by = value</strong>.</p>
+<p>It defines the numerical value assigned to selected pixels.</p>
+<p>A common value is 0, but other values may be useful depending on the image
+normalization and background convention.</p>
+<p>## Output Particles</p>
+<p>The main output is <strong>outputParticles</strong>.</p>
+<p>This output contains the preprocessed particle images after all selected
+operations have been applied.</p>
+<p>The output particle set can be used directly in downstream Scipion protocols.
+When phase flipping is applied, the phase-flipped state of the output set is
+updated accordingly.</p>
+<p>## Operation Order</p>
+<p>The protocol applies operations in a defined order:</p>
+<ol class="arabic simple">
+<li><p>dust removal;</p></li>
+<li><p>phase randomization;</p></li>
+<li><p>normalization;</p></li>
+<li><p>centering;</p></li>
+<li><p>phase flipping;</p></li>
+<li><p>contrast inversion;</p></li>
+<li><p>thresholding.</p></li>
+</ol>
+<p>This order matters. For example, inverting contrast before thresholding may
+produce a different result than thresholding before inversion. Users should
+therefore select operations with the intended sequence in mind.</p>
+<p>## Interpreting the Result</p>
+<p>The output particles should be interpreted as processed versions of the input
+particles.</p>
+<p>Preprocessing can improve consistency, remove artifacts, and prepare images
+for later algorithms. However, it can also remove useful signal or introduce
+bias if parameters are inappropriate.</p>
+<p>The processed particles should be inspected visually, especially when using
+thresholding, contrast inversion, phase randomization, or aggressive dust
+removal.</p>
+<p>## Practical Recommendations</p>
+<p>Use dust removal to suppress isolated extreme pixels.</p>
+<p>Use normalization for most particle-processing workflows, especially before
+classification or alignment.</p>
+<p>Use Ramp normalization when background gradients are visible.</p>
+<p>Use phase flipping only when CTF metadata are reliable and when the workflow
+requires phase-flipped particles.</p>
+<p>Use contrast inversion only after confirming the expected contrast convention.</p>
+<p>Use thresholding cautiously and inspect the output.</p>
+<p>Apply only the operations that are needed. Avoid unnecessary preprocessing
+that may alter the particle signal.</p>
+<p>## Final Perspective</p>
+<p>Preprocess Particles is a general particle-cleaning and normalization protocol.</p>
+<p>For biological users, its value is that it prepares particle images for later
+processing by standardizing intensity, correcting contrast conventions,
+removing extreme artifacts, and optionally applying phase flipping or
+thresholding.</p>
+<p>The protocol is a preprocessing utility. Its output should improve technical
+consistency, but it should always be checked before being used in major
+downstream steps.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="xmipp3.protocols.protocol_preprocess.protocol_preprocess.XmippProtPreprocessParticles.NORM_NEW">
 <span class="sig-name descname"><span class="pre">NORM_NEW</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#xmipp3.protocols.protocol_preprocess.protocol_preprocess.XmippProtPreprocessParticles.NORM_NEW" title="Permalink to this definition"></a></dt>
@@ -299,7 +487,241 @@ used by both  XmippProtPreprocessParticles and XmippProtPreprocessVolumes.</p>
 <dt class="sig sig-object py" id="xmipp3.protocols.protocol_preprocess.protocol_preprocess.XmippProtPreprocessVolumes">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">xmipp3.protocols.protocol_preprocess.protocol_preprocess.</span></span><span class="sig-name descname"><span class="pre">XmippProtPreprocessVolumes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_preprocess/protocol_preprocess.html#XmippProtPreprocessVolumes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_preprocess.protocol_preprocess.XmippProtPreprocessVolumes" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="xmipp3.protocols.protocol_preprocess.protocol_process.html#xmipp3.protocols.protocol_preprocess.protocol_process.XmippProcessVolumes" title="xmipp3.protocols.protocol_preprocess.protocol_process.XmippProcessVolumes"><code class="xref py py-class docutils literal notranslate"><span class="pre">XmippProcessVolumes</span></code></a></p>
-<p>Preprocesses 3D volumes using Xmipp tools to prepare them for further analysis. Operations include: normalization, change hand, change icosahedral orientation, randomize phase, symmetry, symmetry group, aggregation mode, wrap, apply Laplacian, mask volume. adjust gray value, segment, normalize background, invert contrast and threshold.</p>
+<p>Preprocesses 3D volumes using Xmipp tools to prepare them for further
+analysis. Operations include: normalization, change hand, change
+icosahedral orientation, randomize phase, symmetry, symmetry group,
+aggregation mode, wrap, apply Laplacian, mask volume. adjust gray value,
+segment, normalize background, invert contrast and threshold.</p>
+<p>AI Generated</p>
+<p>## Overview</p>
+<p>The Preprocess Volumes protocol applies a sequence of optional preprocessing
+operations to one volume or to a set of volumes.</p>
+<p>Volume preprocessing is useful for changing map handedness, changing
+icosahedral conventions, randomizing phases, applying symmetry, denoising,
+adjusting gray levels, segmenting the molecule, normalizing the background,
+inverting contrast, or thresholding voxel values.</p>
+<p>The protocol can be used as a general preparation tool before map comparison,
+alignment, validation, visualization, masking, subtraction, or refinement.</p>
+<p>The main output is a processed volume or processed set of volumes.</p>
+<p>## Inputs and General Workflow</p>
+<p>The input can be a single volume or a set of volumes.</p>
+<p>The selected operations are applied sequentially. Each operation acts on the
+result of the previous operation. For volume sets, the operation is applied to
+each volume in the set whenever applicable.</p>
+<p>The protocol writes the processed volume or volume set and registers it as the
+output.</p>
+<p>## Input Volumes</p>
+<p>The <strong>Input volumes</strong> parameter defines the map or maps to be processed.</p>
+<p>The input may be a single volume or a set of volumes.</p>
+<p>The protocol does not decide which operations are biologically appropriate. The
+user selects the intended preprocessing steps and should inspect the result
+afterwards.</p>
+<p>## Change Hand</p>
+<p>The <strong>Change hand</strong> option applies a mirror transformation along the X axis.</p>
+<p>This changes the handedness of the map.</p>
+<p>Changing hand is useful when a reconstruction is known to have the wrong
+handedness or when comparing maps that use different hand conventions. It
+should not be applied casually, because it changes the chirality of the
+structure.</p>
+<p>## Change Icosahedral Orientation</p>
+<p>The <strong>Change icosahedral orientation</strong> option converts a volume from one
+standard icosahedral orientation convention to another.</p>
+<p>The user selects the source convention in <strong>from</strong> and the target convention in
+<strong>to</strong>. The available conventions are:</p>
+<ul class="simple">
+<li><p>i1;</p></li>
+<li><p>i2;</p></li>
+<li><p>i3;</p></li>
+<li><p>i4.</p></li>
+</ul>
+<p>This option is useful when maps with icosahedral symmetry need to be converted
+between Xmipp-supported symmetry conventions.</p>
+<p>## Randomize Phases</p>
+<p>The <strong>Randomize phases</strong> option randomizes Fourier phases beyond a selected
+resolution.</p>
+<p>The <strong>Maximum Resolution</strong> parameter defines the resolution, in angstroms,
+beyond which phases are randomized.</p>
+<p>This operation can be useful for control experiments or for suppressing
+high-frequency phase information beyond a chosen limit. It should be used with
+a clear validation or preprocessing purpose.</p>
+<p>## Symmetrize</p>
+<p>The <strong>Symmetrize</strong> option applies a symmetry group to the input volume.</p>
+<p>The <strong>Symmetry group</strong> parameter defines the Xmipp symmetry to apply. The user
+should provide a valid symmetry group, such as a cyclic, dihedral, or
+icosahedral group. If no symmetry should be applied, the Symmetrize option
+should be disabled rather than setting the group to c1.</p>
+<p>The protocol validates that c1 is not used as the symmetry group when
+symmetrization is requested.</p>
+<p>## Aggregation Mode</p>
+<p>The <strong>Aggregation mode</strong> parameter controls how symmetrized copies are combined.</p>
+<p>There are two options:</p>
+<p><strong>Average</strong> averages the symmetry-related copies.</p>
+<p><strong>Sum</strong> sums them.</p>
+<p>Average is usually appropriate when the goal is to produce a symmetrized map
+with comparable intensity scale. Sum may be useful in technical workflows where
+the accumulated density is desired.</p>
+<p>## Wrap</p>
+<p>The <strong>Wrap</strong> option controls whether density is wrapped around the box during
+symmetrization.</p>
+<p>When enabled, wrapping is allowed. When disabled, the protocol uses a
+non-wrapping behavior.</p>
+<p>Disabling wrap can help avoid artificial density appearing on the opposite side
+of the box when transformed density crosses a boundary.</p>
+<p>## Mask Volume for Symmetrization or Laplacian</p>
+<p>The <strong>Mask volume</strong> parameter can be used with symmetrization or Laplacian
+filtering.</p>
+<p>For symmetrization, the mask can restrict the region used during the operation.
+For Laplacian filtering, it can provide a mask for the denoising step.</p>
+<p>The mask should be in the same coordinate frame as the input volume.</p>
+<p>## Apply Laplacian</p>
+<p>The <strong>Apply Laplacian</strong> option applies a Laplacian-like denoising operation
+using Xmipp filtering.</p>
+<p>The protocol uses a Retinex-style parameter internally and can optionally use a
+volume mask.</p>
+<p>This operation is intended to enhance or denoise volume features, but it should
+be inspected carefully because filtering can alter map appearance.</p>
+<p>## Adjust Gray Values</p>
+<p>The <strong>Adjust gray values</strong> option adjusts the volume gray values so that they
+are compatible with a set of projection images.</p>
+<p>The user provides <strong>Set of particles</strong>, which may be a set of particles, a set
+of averages, or a set of 2D classes. The protocol uses up to 200 images for the
+adjustment.</p>
+<p>If the images already have projection alignment, those alignments are used. If
+not, the protocol estimates orientations against the input volume using
+significant alignment, with CPU or GPU execution depending on the settings.</p>
+<p>The adjustment then modifies volume gray levels according to the image set.</p>
+<p>## Images for Gray-Value Adjustment</p>
+<p>The <strong>Set of particles</strong> parameter provides the images used for gray-level
+adjustment.</p>
+<p>These images should have the final pixel size and final image size expected
+for the model.</p>
+<p>The image set should correspond to projections of the same structure. If the
+images are unrelated, poorly aligned, or strongly heterogeneous, the gray-level
+adjustment may be unreliable.</p>
+<p>## Symmetry Group for Significant Alignment</p>
+<p>The <strong>Symmetry group</strong> parameter under gray-value adjustment defines the
+symmetry used when assigning orientations to the input images.</p>
+<p>If no symmetry is present, use <strong>c1</strong>.</p>
+<p>This setting is used only when the input images do not already have projection
+alignment and the protocol must estimate orientations for the adjustment step.</p>
+<p>## GPU Execution for Significant Alignment</p>
+<p>The protocol includes hidden GPU settings for the significant-alignment step
+used during gray-value adjustment.</p>
+<p>If GPU execution is requested, the protocol checks that the required Xmipp CUDA
+programs are available. If they are not found, validation reports an error.</p>
+<p>GPU execution can accelerate orientation assignment when adjustment images do
+not already have projection alignment.</p>
+<p>## Segment</p>
+<p>The <strong>Segment</strong> option separates the molecule from the background.</p>
+<p>The protocol first creates a mask using the selected segmentation method, then
+applies that binary mask to the volume.</p>
+<p>Segmentation is useful when the user wants to remove background or keep only
+the molecular region.</p>
+<p>## Segmentation Type</p>
+<p>The <strong>Segmentation Type</strong> parameter controls how the segmentation mask is
+created.</p>
+<p>The available options are:</p>
+<p><strong>Voxel mass</strong>, where the user provides the target number of voxels.</p>
+<p><strong>Aminoacid mass</strong>, where the user provides an approximate number of amino
+acids.</p>
+<p><strong>Dalton mass</strong>, where the user provides the molecular mass in daltons.</p>
+<p><strong>Automatic</strong>, where the protocol uses Otsu thresholding.</p>
+<p>The <strong>Molecule Mass</strong> parameter is used for all segmentation types except
+Automatic.</p>
+<p>## Normalize Background</p>
+<p>The <strong>Normalize background</strong> option normalizes the volume background so that it
+has zero mean and standard deviation 1.</p>
+<p>The <strong>Mask Radius</strong> parameter defines the radius, in pixels, used to identify
+the region outside the molecule as background. If it is set to -1, the protocol
+uses half the size of the volume.</p>
+<p>The protocol validates that the radius is not larger than the allowed volume
+half-size.</p>
+<p>## Invert Contrast</p>
+<p>The <strong>Invert contrast</strong> option multiplies the volume values by -1.</p>
+<p>This can be useful when the map contrast convention is opposite to what a
+downstream protocol expects.</p>
+<p>Because it changes the sign of density, it should be used only when the
+contrast convention is clearly known.</p>
+<p>## Threshold</p>
+<p>The <strong>Threshold</strong> option replaces selected voxel values according to a
+threshold rule.</p>
+<p>The selection can be:</p>
+<p><strong>abs_below</strong>, selecting voxels whose absolute value is below the threshold;</p>
+<p><strong>below</strong>, selecting voxels below the threshold;</p>
+<p><strong>above</strong>, selecting voxels above the threshold.</p>
+<p>Selected voxels are then substituted according to the chosen substitution mode.</p>
+<p>## Substitute By</p>
+<p>The <strong>Substitute by</strong> parameter controls how threshold-selected voxels are
+replaced.</p>
+<p>The options are:</p>
+<p><strong>value</strong>, replacing selected voxels with the user-provided fill value;</p>
+<p><strong>binarize</strong>, converting selected and non-selected voxels into a binary
+representation;</p>
+<p><strong>avg</strong>, replacing selected voxels by the average of the non-selected voxels.</p>
+<p>This option determines whether thresholding behaves as clipping, binarization,
+or background replacement.</p>
+<p>## Operation Order</p>
+<p>The selected operations are applied in the following order:</p>
+<ol class="arabic simple">
+<li><p>change hand;</p></li>
+<li><p>change icosahedral orientation;</p></li>
+<li><p>randomize phases;</p></li>
+<li><p>symmetrize;</p></li>
+<li><p>Laplacian filtering;</p></li>
+<li><p>gray-value adjustment;</p></li>
+<li><p>segmentation;</p></li>
+<li><p>background normalization;</p></li>
+<li><p>contrast inversion;</p></li>
+<li><p>thresholding.</p></li>
+</ol>
+<p>The order matters. For example, segmenting before normalizing may produce a
+different result than normalizing before segmenting.</p>
+<p>## Output Volumes</p>
+<p>The main output is the processed volume or volume set.</p>
+<p>For a single input volume, the output is one processed map. For a set of
+volumes, the output contains the processed version of each input map.</p>
+<p>The output can be used in downstream protocols such as alignment, comparison,
+masking, filtering, subtraction, validation, or visualization.</p>
+<p>## Validation Rules</p>
+<p>The protocol checks that an input volume or volume set has been provided.</p>
+<p>If background normalization is selected, the background radius must be valid
+for the input volume size.</p>
+<p>If symmetrization is selected, the symmetry group must not be c1. To avoid
+symmetrization, the user should disable the Symmetrize option.</p>
+<p>If GPU execution is requested for significant alignment and the required CUDA
+programs are not available, the protocol reports a validation error.</p>
+<p>## Interpreting the Result</p>
+<p>The output should be interpreted as a processed version of the input volume or
+volumes.</p>
+<p>Some operations are purely geometrical, such as changing hand or icosahedral
+orientation. Others change intensities, such as normalization, gray-value
+adjustment, thresholding, or contrast inversion. Others change structural
+support, such as segmentation or masking.</p>
+<p>Because these operations can strongly affect map appearance, the output should
+always be inspected together with the original input.</p>
+<p>## Practical Recommendations</p>
+<p>Use change hand only when the map handedness is known to be wrong.</p>
+<p>Use icosahedral orientation conversion only for maps with icosahedral symmetry
+and known convention differences.</p>
+<p>Use symmetrization only when symmetry is biologically justified.</p>
+<p>Use gray-value adjustment when a map must be made compatible with a set of
+projection images.</p>
+<p>Use segmentation and thresholding cautiously, especially when weak or flexible
+density is important.</p>
+<p>Use background normalization to standardize maps before downstream analysis.</p>
+<p>Inspect the output after each major preprocessing workflow. When uncertain,
+run separate preprocessing protocols for individual operations so that their
+effects can be checked independently.</p>
+<p>## Final Perspective</p>
+<p>Preprocess Volumes is a general map-preparation protocol.</p>
+<p>For biological users, its value is that it gathers several common volume
+preprocessing operations in one place: changing hand, changing symmetry
+orientation, randomizing phases, symmetrizing, denoising, adjusting gray
+values, segmenting, normalizing, inverting contrast, and thresholding.</p>
+<p>The protocol is powerful but should be used carefully. Each selected operation
+changes the map in a specific way, and biological interpretation should always
+be based on the processed output together with the original map and the
+processing context.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="xmipp3.protocols.protocol_preprocess.protocol_preprocess.XmippProtPreprocessVolumes.AGG_AVERAGE">
 <span class="sig-name descname"><span class="pre">AGG_AVERAGE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#xmipp3.protocols.protocol_preprocess.protocol_preprocess.XmippProtPreprocessVolumes.AGG_AVERAGE" title="Permalink to this definition"></a></dt>

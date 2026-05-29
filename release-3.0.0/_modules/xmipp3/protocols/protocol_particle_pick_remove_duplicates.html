@@ -127,9 +127,6 @@
 <span class="c1"># *  e-mail address &#39;coss@cnb.csic.es&#39;</span>
 <span class="c1"># *</span>
 <span class="c1"># **************************************************************************</span>
-<span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">Consensus picking protocol</span>
-<span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
@@ -145,6 +142,154 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This protocol removes coordinates that are closer than a given threshold.</span>
 <span class="sd">    The remaining coordinate is the average of the previous ones.</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Remove Duplicates protocol cleans a coordinate set by merging particle</span>
+<span class="sd">    coordinates that are closer than a selected distance threshold.</span>
+
+<span class="sd">    Particle-picking protocols may sometimes produce repeated coordinates for the</span>
+<span class="sd">    same particle. This can happen when two picks are placed very close to each</span>
+<span class="sd">    other, when an automatic picker detects the same particle more than once, or</span>
+<span class="sd">    when manual corrections leave duplicated positions in the coordinate set.</span>
+
+<span class="sd">    If duplicates are not removed, the same physical particle may be extracted</span>
+<span class="sd">    several times. This can bias later processing, overrepresent some particles,</span>
+<span class="sd">    and introduce unnecessary redundancy into classification or reconstruction.</span>
+
+<span class="sd">    This protocol identifies coordinates that are close enough to be considered</span>
+<span class="sd">    the same particle and replaces them with a single averaged coordinate.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The input is one **SetOfCoordinates**.</span>
+
+<span class="sd">    For each micrograph, the protocol reads all coordinates associated with that</span>
+<span class="sd">    micrograph. It then groups coordinates that fall within the selected radius.</span>
+<span class="sd">    Each group is treated as one particle, and the output coordinate is computed as</span>
+<span class="sd">    the average position of the grouped coordinates.</span>
+
+<span class="sd">    The protocol writes a new cleaned coordinate set containing the non-duplicated</span>
+<span class="sd">    coordinates.</span>
+
+<span class="sd">    The output can be used directly for particle extraction.</span>
+
+<span class="sd">    ## Input Coordinates</span>
+
+<span class="sd">    The **Input coordinates** parameter should point to the coordinate set to be</span>
+<span class="sd">    cleaned.</span>
+
+<span class="sd">    This coordinate set may come from manual picking, automatic picking, consensus</span>
+<span class="sd">    picking, or any other Scipion-compatible particle-picking protocol.</span>
+
+<span class="sd">    The protocol processes the coordinates micrograph by micrograph. It preserves</span>
+<span class="sd">    the association with the original micrographs and creates an output coordinate</span>
+<span class="sd">    set linked to the input coordinate set.</span>
+
+<span class="sd">    ## Radius</span>
+
+<span class="sd">    The **Radius** parameter defines the maximum distance, in pixels, within which</span>
+<span class="sd">    two coordinates are considered duplicates.</span>
+
+<span class="sd">    If two or more coordinates are closer than this radius, they are assumed to</span>
+<span class="sd">    represent the same particle and are merged.</span>
+
+<span class="sd">    A small radius removes only nearly identical picks. A larger radius removes</span>
+<span class="sd">    coordinates that are farther apart, but may accidentally merge nearby distinct</span>
+<span class="sd">    particles if particles are densely packed.</span>
+
+<span class="sd">    The radius should be chosen according to particle size, picking accuracy, and</span>
+<span class="sd">    particle density.</span>
+
+<span class="sd">    ## Automatic Radius from Box Size</span>
+
+<span class="sd">    If the radius is set to **-1**, the protocol automatically defines the radius</span>
+<span class="sd">    as:</span>
+
+<span class="sd">    \[</span>
+<span class="sd">    0.6 \times \text{box size}</span>
+<span class="sd">    \]</span>
+
+<span class="sd">    This default is based on the idea that two coordinates separated by much less</span>
+<span class="sd">    than the particle box size are likely to refer to the same particle.</span>
+
+<span class="sd">    This automatic option is convenient when the coordinate set has a meaningful</span>
+<span class="sd">    box size. However, users should still consider whether the default radius is</span>
+<span class="sd">    appropriate for their specimen. Very crowded particles, elongated particles, or</span>
+<span class="sd">    particles with unusual shapes may require manual adjustment.</span>
+
+<span class="sd">    ## Coordinate Merging</span>
+
+<span class="sd">    When several coordinates are considered duplicates, the protocol keeps one</span>
+<span class="sd">    representative coordinate.</span>
+
+<span class="sd">    This representative position is computed as the average of the duplicated</span>
+<span class="sd">    coordinates. Therefore, the output coordinate may be slightly different from</span>
+<span class="sd">    any of the original positions.</span>
+
+<span class="sd">    Averaging is useful when several picks are clustered around the same particle</span>
+<span class="sd">    center. It provides a central position for extraction rather than arbitrarily</span>
+<span class="sd">    choosing one of the duplicate picks.</span>
+
+<span class="sd">    ## Output Coordinates</span>
+
+<span class="sd">    The main output is **outputCoordinates**.</span>
+
+<span class="sd">    This output contains the cleaned coordinate set after duplicate removal. It</span>
+<span class="sd">    uses the same micrographs as the input coordinate set and preserves the</span>
+<span class="sd">    coordinate-set box size information.</span>
+
+<span class="sd">    The output can be passed to extraction protocols in the same way as any other</span>
+<span class="sd">    coordinate set.</span>
+
+<span class="sd">    The number of output coordinates is usually smaller than or equal to the number</span>
+<span class="sd">    of input coordinates.</span>
+
+<span class="sd">    ## Streaming Behavior</span>
+
+<span class="sd">    The protocol supports streaming coordinate input.</span>
+
+<span class="sd">    As coordinates become available for each micrograph, the protocol can process</span>
+<span class="sd">    that micrograph and append cleaned coordinates to the output set. The output</span>
+<span class="sd">    stream remains open until the input coordinate stream is closed and all</span>
+<span class="sd">    available micrographs have been processed.</span>
+
+<span class="sd">    This makes the protocol useful in automated picking pipelines, where</span>
+<span class="sd">    coordinates may be produced progressively.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    Use this protocol after automatic picking if the picker tends to place several</span>
+<span class="sd">    coordinates on the same particle.</span>
+
+<span class="sd">    Use it after consensus or merged picking workflows when several sources may</span>
+<span class="sd">    contribute overlapping coordinates.</span>
+
+<span class="sd">    Start with the automatic radius if the coordinate box size is reliable. Then</span>
+<span class="sd">    inspect the cleaned coordinates visually on representative micrographs.</span>
+
+<span class="sd">    Decrease the radius if nearby distinct particles are being merged.</span>
+
+<span class="sd">    Increase the radius if obvious duplicates remain after cleaning.</span>
+
+<span class="sd">    Be especially careful with crowded samples, filaments, aggregates, or particles</span>
+<span class="sd">    that are very close to each other. In such cases, an overly large radius can</span>
+<span class="sd">    remove valid neighboring particles.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    Remove Duplicates is a coordinate-cleaning protocol. It does not pick new</span>
+<span class="sd">    particles and does not evaluate particle quality. Instead, it ensures that the</span>
+<span class="sd">    same physical particle is not represented by several nearby coordinates.</span>
+
+<span class="sd">    For biological users, this is important because duplicate coordinates can</span>
+<span class="sd">    propagate into duplicate particle images, biased class averages, and</span>
+<span class="sd">    unnecessary computational cost.</span>
+
+<span class="sd">    The protocol is most useful as a simple quality-control step between particle</span>
+<span class="sd">    picking and particle extraction.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;remove duplicates&#39;</span>

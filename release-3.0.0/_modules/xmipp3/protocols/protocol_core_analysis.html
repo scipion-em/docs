@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_core_analysis</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -147,7 +148,137 @@
 
 <div class="viewcode-block" id="XmippProtCoreAnalysis"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_core_analysis.html#xmipp3.protocols.protocol_core_analysis.XmippProtCoreAnalysis">[docs]</a><span class="k">class</span> <span class="nc">XmippProtCoreAnalysis</span><span class="p">(</span><span class="n">ProtClassify2D</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Analyzes the core of a 2D classification. The core is calculated through</span>
-<span class="sd">    the Mahalanobis distance from each image to the center of the class. &quot;&quot;&quot;</span>
+<span class="sd">    the Mahalanobis distance from each image to the center of the class.</span>
+
+<span class="sd">    AI Generated:</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Core Analysis protocol evaluates the internal consistency of 2D classes</span>
+<span class="sd">    by identifying the most representative particles within each class. It is</span>
+<span class="sd">    based on statistical distances—specifically the Mahalanobis distance—between</span>
+<span class="sd">    each particle and the center of its assigned class. The goal is to</span>
+<span class="sd">    distinguish well-aligned, structurally consistent particles (the *core*)</span>
+<span class="sd">    from outliers or poorly aligned images (often referred to as *junk*).</span>
+
+<span class="sd">    In practical cryo-EM workflows, this protocol is particularly useful after</span>
+<span class="sd">    a 2D classification step. Even when classes appear visually clean, they</span>
+<span class="sd">    often contain particles that do not fully conform to the dominant structure.</span>
+<span class="sd">    Removing these particles improves the quality of downstream steps such as</span>
+<span class="sd">    3D reconstruction, refinement, or heterogeneity analysis.</span>
+
+<span class="sd">    For a biological user, this protocol provides a principled way to “clean”</span>
+<span class="sd">    classes without relying purely on visual inspection, which can be</span>
+<span class="sd">    subjective and time-consuming.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The protocol takes as input a **set of 2D classes**, typically produced by</span>
+<span class="sd">    a previous classification method. Each class contains particles that are</span>
+<span class="sd">    assumed to represent similar projections of the underlying structure.</span>
+
+<span class="sd">    The analysis proceeds by modeling the statistical distribution of particles</span>
+<span class="sd">    within each class. Using this model, the protocol computes how far each</span>
+<span class="sd">    particle deviates from the class center. Particles that deviate strongly</span>
+<span class="sd">    are considered less reliable and may be excluded from the class core.</span>
+
+<span class="sd">    The result is a refined set of classes that contains only the most</span>
+<span class="sd">    representative particles, while outliers are effectively discarded.</span>
+
+<span class="sd">    ## Understanding the Concept of “Core”</span>
+
+<span class="sd">    The *core* of a class can be understood as the subset of particles that</span>
+<span class="sd">    best represent the underlying signal. These particles are mutually</span>
+<span class="sd">    consistent in both appearance and alignment.</span>
+
+<span class="sd">    In contrast, particles outside the core may arise from several sources:</span>
+
+<span class="sd">    * Misalignment during classification</span>
+<span class="sd">    * Structural heterogeneity (different conformations)</span>
+<span class="sd">    * Noise-dominated images</span>
+<span class="sd">    * Contaminants or artifacts</span>
+
+<span class="sd">    By focusing on the core, the protocol enhances the structural signal and</span>
+<span class="sd">    reduces variability that is not biologically meaningful.</span>
+
+<span class="sd">    ## Z-score Thresholds: Controlling Particle Selection</span>
+
+<span class="sd">    The main parameters of this protocol are two Z-score thresholds, which</span>
+<span class="sd">    control how strictly particles are filtered.</span>
+
+<span class="sd">    ### Junk Z-score</span>
+
+<span class="sd">    This parameter defines how far a particle can deviate from the class center</span>
+<span class="sd">    before being considered an outlier. Lower values make the selection</span>
+<span class="sd">    stricter, removing more particles. Higher values are more permissive and</span>
+<span class="sd">    retain more images.</span>
+
+<span class="sd">    From a practical perspective, values around 2–3 are commonly used. A value</span>
+<span class="sd">    near 3 corresponds roughly to keeping particles within the main body of a</span>
+<span class="sd">    Gaussian distribution. Reducing this threshold is useful when classes are</span>
+<span class="sd">    noisy or suspected to contain significant contamination.</span>
+
+<span class="sd">    ### PCA Z-score</span>
+
+<span class="sd">    This parameter performs a similar filtering but in a reduced feature space</span>
+<span class="sd">    obtained through principal component analysis (PCA). It captures</span>
+<span class="sd">    variability in the main modes of variation within the class.</span>
+
+<span class="sd">    Biologically, this is particularly relevant when subtle structural</span>
+<span class="sd">    differences or alignment inconsistencies exist. The PCA-based filtering can</span>
+<span class="sd">    detect outliers that are not obvious in the original space.</span>
+
+<span class="sd">    As with the Junk Z-score, lower values enforce stricter filtering.</span>
+
+<span class="sd">    ## Outputs and Their Interpretation</span>
+
+<span class="sd">    The protocol produces a new set of 2D classes containing only the particles</span>
+<span class="sd">    that belong to the *core* of each class.</span>
+
+<span class="sd">    Importantly, the class identities are preserved, but their composition</span>
+<span class="sd">    changes: each class now contains fewer particles, ideally those that are</span>
+<span class="sd">    more consistent and better aligned.</span>
+
+<span class="sd">    From a biological standpoint, these refined classes typically show:</span>
+
+<span class="sd">    * Sharper structural features</span>
+<span class="sd">    * Reduced noise</span>
+<span class="sd">    * Improved interpretability</span>
+
+<span class="sd">    However, users should be aware that aggressive filtering may remove rare</span>
+<span class="sd">    but biologically relevant states. This is particularly important in systems</span>
+<span class="sd">    with continuous heterogeneity or multiple conformations.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    In routine workflows, this protocol is best used after an initial 2D</span>
+<span class="sd">    classification, especially when preparing data for high-resolution</span>
+<span class="sd">    reconstruction.</span>
+
+<span class="sd">    A good strategy is to start with moderate Z-score thresholds (around 3)</span>
+<span class="sd">    and visually inspect the resulting classes. If classes still appear noisy</span>
+<span class="sd">    or blurred, lowering the thresholds can improve consistency.</span>
+
+<span class="sd">    For datasets with suspected heterogeneity, caution is advised.</span>
+<span class="sd">    Over-filtering may eliminate particles corresponding to minor</span>
+<span class="sd">    conformational states, which could be biologically important.</span>
+
+<span class="sd">    It is also useful to compare results before and after core analysis.</span>
+<span class="sd">    Improvements in class sharpness and downstream reconstruction quality are</span>
+<span class="sd">    good indicators that the protocol has been beneficial.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    Core Analysis is a statistically grounded alternative to manual class</span>
+<span class="sd">    cleaning. By identifying the most representative particles within each</span>
+<span class="sd">    class, it enhances data quality in a reproducible and objective manner.</span>
+
+<span class="sd">    For most cryo-EM users, this protocol serves as a bridge between initial</span>
+<span class="sd">    classification and high-quality structural interpretation, helping to</span>
+<span class="sd">    ensure that subsequent analyses are based on the most reliable subset of</span>
+<span class="sd">    the data.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;core analysis&#39;</span>
     

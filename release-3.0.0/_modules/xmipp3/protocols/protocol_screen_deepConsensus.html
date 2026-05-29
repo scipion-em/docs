@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_screen_deepConsensus</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -178,6 +179,503 @@
 <span class="sd">        The network is trained until the number of particles set is reached,</span>
 <span class="sd">        meanwhile, a preliminary output is generated. Once the threshold is reached,</span>
 <span class="sd">        the final output is produced by batches.</span>
+
+<span class="sd">        AI Generated</span>
+
+<span class="sd">        ## Overview</span>
+
+<span class="sd">        The Deep Consensus Picking protocol combines several particle-picking results</span>
+<span class="sd">        using a deep-learning classifier.</span>
+
+<span class="sd">        Different particle pickers, or the same picker with different parameters, may</span>
+<span class="sd">        produce different coordinate sets. Some particles are selected by all pickers,</span>
+<span class="sd">        some are selected by only one picker, and some false positives appear only in</span>
+<span class="sd">        specific picking results. Classical consensus picking keeps coordinates based</span>
+<span class="sd">        on voting rules, but Deep Consensus goes one step further: it uses the</span>
+<span class="sd">        agreement and disagreement between coordinate sets to train a neural network</span>
+<span class="sd">        that scores candidate particles.</span>
+
+<span class="sd">        The protocol first creates candidate coordinates from the union of the input</span>
+<span class="sd">        picking results. It also creates highly reliable positive examples from</span>
+<span class="sd">        coordinates supported by multiple pickers, and negative examples from</span>
+<span class="sd">        background/noise regions. These examples are used to train a convolutional</span>
+<span class="sd">        neural network. The trained network then assigns a score between 0 and 1 to</span>
+<span class="sd">        candidate particles, and the protocol keeps those above the selected threshold.</span>
+
+<span class="sd">        The main outputs are filtered particle coordinates and the corresponding</span>
+<span class="sd">        extracted particles.</span>
+
+<span class="sd">        ## Inputs and General Workflow</span>
+
+<span class="sd">        The main input is a list of coordinate sets.</span>
+
+<span class="sd">        The protocol uses the micrographs associated with those coordinate sets. It</span>
+<span class="sd">        preprocesses the micrographs, extracts candidate particles at a fixed internal</span>
+<span class="sd">        size of 128 × 128 pixels, trains or loads a neural-network model, scores the</span>
+<span class="sd">        candidate particles, and creates final outputs.</span>
+
+<span class="sd">        The workflow can be summarized as follows:</span>
+
+<span class="sd">        1. Collect input coordinate sets.</span>
+<span class="sd">        2. Build consensus coordinate groups.</span>
+<span class="sd">        3. Preprocess the associated micrographs.</span>
+<span class="sd">        4. Extract particles from candidate coordinates.</span>
+<span class="sd">        5. Generate positive and negative training examples.</span>
+<span class="sd">        6. Train, continue, or load a deep-learning model.</span>
+<span class="sd">        7. Score candidate particles.</span>
+<span class="sd">        8. Keep particles whose score passes the selected threshold.</span>
+<span class="sd">        9. Output both coordinates and particles.</span>
+
+<span class="sd">        The protocol also supports streaming. In streaming mode, training and</span>
+<span class="sd">        prediction are performed in batches as new micrographs and coordinates arrive.</span>
+
+<span class="sd">        ## Input Coordinates</span>
+
+<span class="sd">        The **Input coordinates** parameter contains the coordinate sets to be combined</span>
+<span class="sd">        and screened.</span>
+
+<span class="sd">        These coordinate sets may come from different picking protocols, different</span>
+<span class="sd">        algorithms, different parameter settings, or different manual/automatic</span>
+<span class="sd">        strategies.</span>
+
+<span class="sd">        The protocol assumes that the coordinate sets refer to the same micrographs or</span>
+<span class="sd">        to overlapping micrograph sets. It uses the first coordinate set as the main</span>
+<span class="sd">        source for box-size and micrograph information.</span>
+
+<span class="sd">        For training a new model, more than one coordinate set is normally required.</span>
+<span class="sd">        If only one coordinate set is provided and training is requested, the protocol</span>
+<span class="sd">        reports a validation error, because it cannot derive a meaningful internal</span>
+<span class="sd">        consensus between pickers.</span>
+
+<span class="sd">        ## Model Type</span>
+
+<span class="sd">        The **Select model type** parameter controls how the neural network is</span>
+<span class="sd">        initialized.</span>
+
+<span class="sd">        There are three options:</span>
+
+<span class="sd">        **New** starts from a randomly initialized model and trains it from the current</span>
+<span class="sd">        input data.</span>
+
+<span class="sd">        **Pretrained** starts from a pretrained Deep Consensus model.</span>
+
+<span class="sd">        **PreviousRun** reuses a model trained in a previous Deep Consensus run within</span>
+<span class="sd">        the same Scipion project.</span>
+
+<span class="sd">        The best choice depends on the amount and quality of available training data.</span>
+<span class="sd">        A new model is appropriate when there are enough reliable positive and negative</span>
+<span class="sd">        examples. A pretrained or previous model is useful when the user wants to reuse</span>
+<span class="sd">        prior training or score coordinates directly.</span>
+
+<span class="sd">        ## Previous Run</span>
+
+<span class="sd">        When **PreviousRun** is selected, the **Select previous run** parameter defines</span>
+<span class="sd">        which earlier Deep Consensus run provides the model.</span>
+
+<span class="sd">        This allows the user to continue from a previous model or apply a model already</span>
+<span class="sd">        trained in the same project.</span>
+
+<span class="sd">        This option is useful when a dataset is processed in several stages, when</span>
+<span class="sd">        training was already performed in a previous run, or when the same picking</span>
+<span class="sd">        behavior should be applied consistently to new micrographs.</span>
+
+<span class="sd">        ## Skip Training</span>
+
+<span class="sd">        The **Skip training and score directly with pretrained model?** option is</span>
+<span class="sd">        available when a pretrained or previous model is used.</span>
+
+<span class="sd">        If enabled, the protocol does not train the network again. It directly scores</span>
+<span class="sd">        the candidate particles using the selected model.</span>
+
+<span class="sd">        This is useful when the model is already considered appropriate for the data.</span>
+<span class="sd">        If disabled, the protocol continues training using the current training data.</span>
+
+<span class="sd">        Users should skip training only when the input data are compatible with the</span>
+<span class="sd">        model being reused. A model trained on a different specimen, contrast</span>
+<span class="sd">        convention, box size, or preprocessing strategy may not score particles</span>
+<span class="sd">        reliably.</span>
+
+<span class="sd">        ## Relative Radius</span>
+
+<span class="sd">        The **Relative Radius** parameter defines how close coordinates from different</span>
+<span class="sd">        input sets must be to be considered the same particle.</span>
+
+<span class="sd">        The value is expressed as a fraction of the particle size. For example, a value</span>
+<span class="sd">        of 0.1 means that coordinates within 10% of the particle box size are treated</span>
+<span class="sd">        as corresponding to the same candidate particle.</span>
+
+<span class="sd">        This radius is used when creating consensus coordinate groups. If the radius is</span>
+<span class="sd">        too small, coordinates that correspond to the same particle may fail to merge.</span>
+<span class="sd">        If it is too large, nearby distinct particles may be merged incorrectly.</span>
+
+<span class="sd">        The default value is intended to capture small picker-to-picker differences</span>
+<span class="sd">        without merging clearly separate particles.</span>
+
+<span class="sd">        ## Tolerance Threshold</span>
+
+<span class="sd">        The **Tolerance threshold** parameter defines the neural-network score required</span>
+<span class="sd">        for a candidate particle to be accepted.</span>
+
+<span class="sd">        The network assigns each candidate particle a score between 0 and 1. A score</span>
+<span class="sd">        near 1 indicates that the network considers the candidate more likely to be a</span>
+<span class="sd">        good particle. A score near 0 indicates that it is more likely to be a bad</span>
+<span class="sd">        particle or false positive.</span>
+
+<span class="sd">        Particles with scores above the threshold are included in the final outputs.</span>
+
+<span class="sd">        If the threshold is set to **-1**, all scored particles are allowed to pass.</span>
+<span class="sd">        This is useful when the user wants to inspect the scores manually or create a</span>
+<span class="sd">        subset later using the analysis tools.</span>
+
+<span class="sd">        ## Micrograph Preprocessing</span>
+
+<span class="sd">        Before extracting particles for training and prediction, the protocol</span>
+<span class="sd">        preprocesses the micrographs internally.</span>
+
+<span class="sd">        The preprocessing is designed to make the extracted particle boxes compatible</span>
+<span class="sd">        with the Deep Consensus neural network. It includes:</span>
+
+<span class="sd">        - downsampling micrographs so that extracted particles become 128 × 128 pixels;</span>
+<span class="sd">        - normalizing micrographs to approximately zero mean and unit standard</span>
+<span class="sd">          deviation;</span>
+<span class="sd">        - inverting contrast when needed so that particles are white;</span>
+<span class="sd">        - optionally applying CTF phase flipping;</span>
+<span class="sd">        - extracting particle boxes.</span>
+
+<span class="sd">        This internal preprocessing is important because the neural network expects a</span>
+<span class="sd">        standardized particle representation.</span>
+
+<span class="sd">        ## Contrast Inversion</span>
+
+<span class="sd">        The **Did you invert the micrographs contrast?** option tells the protocol</span>
+<span class="sd">        whether the input micrographs have already been contrast-inverted.</span>
+
+<span class="sd">        Deep Consensus expects particles to be white on a darker background.</span>
+
+<span class="sd">        If the micrographs have not already been inverted, the protocol can invert the</span>
+<span class="sd">        contrast during preprocessing. If they have already been inverted, the user</span>
+<span class="sd">        should indicate this so that the protocol does not invert them again.</span>
+
+<span class="sd">        Using the wrong contrast convention can seriously affect the neural-network</span>
+<span class="sd">        scores.</span>
+
+<span class="sd">        ## Ignore CTF</span>
+
+<span class="sd">        The **Ignore CTF** option controls whether CTF information is used during</span>
+<span class="sd">        particle preprocessing.</span>
+
+<span class="sd">        If CTF is ignored, particles are extracted without phase flipping.</span>
+
+<span class="sd">        If CTF is not ignored, the user must provide a CTF estimation relation. The</span>
+<span class="sd">        protocol uses the CTF information to perform phase flipping during</span>
+<span class="sd">        preprocessing.</span>
+
+<span class="sd">        Phase flipping can make particle images more consistent, but it should only be</span>
+<span class="sd">        used when reliable CTF estimates are available and when this preprocessing is</span>
+<span class="sd">        appropriate for the intended workflow.</span>
+
+<span class="sd">        ## CTF Estimation</span>
+
+<span class="sd">        The **CTF estimation** parameter is required when **Ignore CTF** is disabled.</span>
+
+<span class="sd">        It provides the CTF information associated with the input micrographs. The</span>
+<span class="sd">        protocol converts this information into Xmipp CTF-parameter files and uses it</span>
+<span class="sd">        during micrograph preprocessing and particle extraction.</span>
+
+<span class="sd">        If CTF correction is requested but no CTF relation is provided, the protocol</span>
+<span class="sd">        reports a validation error.</span>
+
+<span class="sd">        ## Training Examples</span>
+
+<span class="sd">        Deep Consensus builds internal training examples from the input coordinate</span>
+<span class="sd">        sets.</span>
+
+<span class="sd">        Positive examples are obtained from strict or high-confidence consensus</span>
+<span class="sd">        coordinates, such as coordinates supported by several pickers. Negative</span>
+<span class="sd">        examples are generated by selecting noise coordinates away from the candidate</span>
+<span class="sd">        particle coordinates.</span>
+
+<span class="sd">        The protocol also creates a broader OR set containing coordinates selected by</span>
+<span class="sd">        at least one picker. These OR candidates are the particles that are later</span>
+<span class="sd">        scored by the neural network.</span>
+
+<span class="sd">        This strategy allows the protocol to learn from the agreement and disagreement</span>
+<span class="sd">        between picking methods.</span>
+
+<span class="sd">        ## Additional Training Data</span>
+
+<span class="sd">        The **Additional training data** parameter allows the user to supplement the</span>
+<span class="sd">        internal training examples.</span>
+
+<span class="sd">        There are three options:</span>
+
+<span class="sd">        **None** uses only the internal positive and negative examples derived from the</span>
+<span class="sd">        input coordinate sets.</span>
+
+<span class="sd">        **Precompiled** adds a precompiled negative training set distributed with the</span>
+<span class="sd">        Deep Consensus model resources.</span>
+
+<span class="sd">        **Custom** allows the user to provide additional positive and negative training</span>
+<span class="sd">        data.</span>
+
+<span class="sd">        Additional data can improve training when the internal examples are limited,</span>
+<span class="sd">        but they must be compatible with the current preprocessing and specimen.</span>
+
+<span class="sd">        ## Custom Additional Training Data</span>
+
+<span class="sd">        When **Custom** additional training data are selected, the user can provide</span>
+<span class="sd">        either particles or coordinates.</span>
+
+<span class="sd">        If particles are provided, they must already be preprocessed in the format</span>
+<span class="sd">        expected by the network: 128 × 128 pixels, white particles, and optionally CTF</span>
+<span class="sd">        corrected in the same way as the protocol.</span>
+
+<span class="sd">        If coordinates are provided, they should come from the same micrographs as the</span>
+<span class="sd">        input coordinates. The protocol will preprocess and extract them internally.</span>
+
+<span class="sd">        The user can provide positive and negative custom examples and assign weights</span>
+<span class="sd">        to control how much they contribute during training.</span>
+
+<span class="sd">        ## Positive and Negative Weights</span>
+
+<span class="sd">        The **Weight of positive additional train data** and **Weight of negative</span>
+<span class="sd">        additional train data** parameters control the relative contribution of custom</span>
+<span class="sd">        training examples.</span>
+
+<span class="sd">        A weight of 1 means that additional examples are weighted similarly to internal</span>
+<span class="sd">        examples.</span>
+
+<span class="sd">        If the weight is set to **-1**, the protocol estimates a weight so that the</span>
+<span class="sd">        additional data contribute approximately as much as the internal particles.</span>
+
+<span class="sd">        These weights are useful when the custom training set is much larger or much</span>
+<span class="sd">        smaller than the internally generated training set.</span>
+
+<span class="sd">        ## Number of Epochs</span>
+
+<span class="sd">        The **Number of epochs** parameter defines how many training epochs are used</span>
+<span class="sd">        for the neural network.</span>
+
+<span class="sd">        More epochs allow the model to learn longer from the training data but increase</span>
+<span class="sd">        runtime and may increase overfitting if the dataset is small or biased.</span>
+
+<span class="sd">        The default value is intended as a practical starting point. Training can also</span>
+<span class="sd">        stop automatically when convergence is detected, depending on the auto-stopping</span>
+<span class="sd">        option.</span>
+
+<span class="sd">        ## Learning Rate</span>
+
+<span class="sd">        The **Learning rate** controls how strongly the neural network weights are</span>
+<span class="sd">        updated during training.</span>
+
+<span class="sd">        A larger learning rate may train faster but can become unstable. A smaller</span>
+<span class="sd">        learning rate is more conservative but may train more slowly.</span>
+
+<span class="sd">        Most users should keep the default value unless they have experience tuning</span>
+<span class="sd">        deep-learning training.</span>
+
+<span class="sd">        ## Auto Stopping</span>
+
+<span class="sd">        The **Auto stop training when convergence is detected?** option enables</span>
+<span class="sd">        automatic stopping based on validation behavior.</span>
+
+<span class="sd">        When enabled, the protocol can reduce the learning rate if improvement stops</span>
+<span class="sd">        and eventually stop training if the learning rate becomes too small. It can</span>
+<span class="sd">        also stop if the validation accuracy reaches the selected threshold.</span>
+
+<span class="sd">        This option is generally useful, but it may stop too early in very small</span>
+<span class="sd">        training sets. The protocol help notes that it is not recommended for very</span>
+<span class="sd">        small datasets with fewer than about 100 true particles.</span>
+
+<span class="sd">        ## Training Accuracy Threshold</span>
+
+<span class="sd">        The **Training mean val_acc threshold** parameter defines a validation-accuracy</span>
+<span class="sd">        level at which training can stop.</span>
+
+<span class="sd">        If the mean validation accuracy surpasses this threshold, the protocol considers</span>
+<span class="sd">        the training sufficiently good and stops further training.</span>
+
+<span class="sd">        The default value is high, reflecting the fact that the network should separate</span>
+<span class="sd">        positive and negative examples clearly before being used for final scoring.</span>
+
+<span class="sd">        ## Regularization Strength</span>
+
+<span class="sd">        The **Regularization strength** parameter controls L2 regularization of the</span>
+<span class="sd">        neural-network weights.</span>
+
+<span class="sd">        Regularization helps reduce overfitting. If the training accuracy improves but</span>
+<span class="sd">        validation accuracy decreases, increasing regularization may help.</span>
+
+<span class="sd">        Typical values span several orders of magnitude. This is an advanced parameter</span>
+<span class="sd">        and should normally be left at its default unless overfitting is observed.</span>
+
+<span class="sd">        ## Number of Models for Ensemble</span>
+
+<span class="sd">        The **Number of models for ensemble** parameter controls how many neural</span>
+<span class="sd">        network models are trained and combined.</span>
+
+<span class="sd">        Training several models can make the prediction more robust, because the final</span>
+<span class="sd">        score benefits from an ensemble rather than a single network. However, runtime</span>
+<span class="sd">        increases approximately linearly with the number of models.</span>
+
+<span class="sd">        Typical values are between 1 and 5. The default provides a compromise between</span>
+<span class="sd">        robustness and computation time.</span>
+
+<span class="sd">        ## Expected Number of Particles for Training</span>
+
+<span class="sd">        The **Expected number of particles to use for training** parameter controls how</span>
+<span class="sd">        many positive particles are used before training is considered complete.</span>
+
+<span class="sd">        If the value is **-1**, the protocol uses all particles found for training.</span>
+
+<span class="sd">        This parameter also affects the effective network size used by the protocol.</span>
+<span class="sd">        The code distinguishes small, medium, and large training regimes according to</span>
+<span class="sd">        the number of training examples.</span>
+
+<span class="sd">        Larger training sets generally improve robustness, but they require more time</span>
+<span class="sd">        and memory.</span>
+
+<span class="sd">        ## Testing After Training</span>
+
+<span class="sd">        The **Perform testing after training?** option allows the user to provide</span>
+<span class="sd">        independent positive and negative test particle sets.</span>
+
+<span class="sd">        If enabled, the protocol scores these test sets after training. This can help</span>
+<span class="sd">        assess whether the trained model generalizes beyond the internal training</span>
+<span class="sd">        examples.</span>
+
+<span class="sd">        The test particles must be preprocessed in the same expected format:</span>
+<span class="sd">        128 × 128 pixels and compatible contrast and CTF treatment.</span>
+
+<span class="sd">        ## Streaming Behavior</span>
+
+<span class="sd">        The protocol is designed for streaming workflows.</span>
+
+<span class="sd">        As micrographs and coordinate sets arrive, the protocol preprocesses</span>
+<span class="sd">        micrographs, computes consensus coordinates, extracts particles, trains the</span>
+<span class="sd">        network in batches, and predicts candidate particles in batches.</span>
+
+<span class="sd">        The relevant streaming parameters are:</span>
+
+<span class="sd">        - **Extraction batch size**;</span>
+<span class="sd">        - **Training batch size**;</span>
+<span class="sd">        - **Perform preliminar predictions with on training CNN**.</span>
+
+<span class="sd">        During streaming, preliminary outputs can be produced while the network is</span>
+<span class="sd">        still being trained. After training is complete, the final network is used to</span>
+<span class="sd">        produce final scored outputs.</span>
+
+<span class="sd">        ## Preliminary Predictions</span>
+
+<span class="sd">        The **Perform preliminar predictions with on training CNN** option enables</span>
+<span class="sd">        temporary predictions before the final model is fully trained.</span>
+
+<span class="sd">        These preliminary predictions are stored in separate preliminary output sets.</span>
+<span class="sd">        They are useful in streaming workflows where the user wants early feedback</span>
+<span class="sd">        before all training data have arrived.</span>
+
+<span class="sd">        Preliminary outputs should be interpreted cautiously because the network is</span>
+<span class="sd">        still being trained. Final outputs should be preferred for downstream</span>
+<span class="sd">        processing.</span>
+
+<span class="sd">        ## Output Coordinates</span>
+
+<span class="sd">        The main coordinate output is **outputCoordinates**.</span>
+
+<span class="sd">        This set contains candidate coordinates whose Deep Consensus score passes the</span>
+<span class="sd">        selected threshold. The coordinates are scaled back to the original micrograph</span>
+<span class="sd">        coordinate system and annotated with the deep-learning score.</span>
+
+<span class="sd">        The score is stored as an Xmipp attribute corresponding to</span>
+<span class="sd">        `zScoreDeepLearning1`.</span>
+
+<span class="sd">        These coordinates can be used for particle extraction or subset selection in</span>
+<span class="sd">        later workflows.</span>
+
+<span class="sd">        ## Output Particles</span>
+
+<span class="sd">        The protocol also creates **outputParticles**.</span>
+
+<span class="sd">        These are the extracted particle images corresponding to the accepted</span>
+<span class="sd">        coordinates. The particles carry the Deep Consensus score and are scaled to the</span>
+<span class="sd">        appropriate sampling rate after internal preprocessing.</span>
+
+<span class="sd">        This output can be inspected directly or used as a starting point for</span>
+<span class="sd">        downstream classification and cleaning.</span>
+
+<span class="sd">        ## Preliminary Outputs</span>
+
+<span class="sd">        When preliminary prediction is enabled, the protocol may also produce:</span>
+
+<span class="sd">        - **preliminarOutputCoordinates**;</span>
+<span class="sd">        - **preliminarOutputParticles**.</span>
+
+<span class="sd">        These outputs are generated while training is still ongoing. They can provide</span>
+<span class="sd">        early information in streaming workflows but should not be considered as final</span>
+<span class="sd">        screening results.</span>
+
+<span class="sd">        ## Validation and Requirements</span>
+
+<span class="sd">        The protocol performs several validation checks.</span>
+
+<span class="sd">        The input coordinate box size must be at least 128 pixels, because the internal</span>
+<span class="sd">        Deep Consensus particle size is 128 × 128 pixels.</span>
+
+<span class="sd">        If CTF phase flipping is requested, CTF information must be provided.</span>
+
+<span class="sd">        Additional training or testing particle sets must also have 128-pixel box size.</span>
+
+<span class="sd">        If only one coordinate set is provided and training is requested, the protocol</span>
+<span class="sd">        reports an error. In that case, the user should use a pretrained or previous</span>
+<span class="sd">        model for direct scoring, or provide additional coordinate sets.</span>
+
+<span class="sd">        The protocol also checks that the required deep-learning toolkit and model</span>
+<span class="sd">        resources are available.</span>
+
+<span class="sd">        ## Practical Recommendations</span>
+
+<span class="sd">        Use several complementary coordinate sets as input. Deep Consensus is most</span>
+<span class="sd">        useful when different pickers provide partially overlapping but not identical</span>
+<span class="sd">        results.</span>
+
+<span class="sd">        Make sure the input coordinate box size is at least 128 pixels.</span>
+
+<span class="sd">        Use a new model when enough data are available for training. Use a pretrained</span>
+<span class="sd">        or previous model when the current data are similar to previous training data</span>
+<span class="sd">        or when only one coordinate set is available.</span>
+
+<span class="sd">        Keep the default threshold at first. Lower it to retain more candidate</span>
+<span class="sd">        particles; raise it to be stricter. Use -1 if you want to keep all candidates</span>
+<span class="sd">        and inspect the scores later.</span>
+
+<span class="sd">        Check the contrast convention carefully. The network expects white particles.</span>
+
+<span class="sd">        Use CTF phase flipping only when reliable CTF estimates are available and the</span>
+<span class="sd">        workflow expects phase-flipped particles.</span>
+
+<span class="sd">        Inspect both accepted and rejected particles before committing to downstream</span>
+<span class="sd">        classification or reconstruction.</span>
+
+<span class="sd">        In streaming workflows, treat preliminary outputs as provisional and use final</span>
+<span class="sd">        outputs once training is complete.</span>
+
+<span class="sd">        ## Final Perspective</span>
+
+<span class="sd">        Deep Consensus Picking is a neural-network-based particle-screening protocol</span>
+<span class="sd">        built on top of multiple picking results.</span>
+
+<span class="sd">        For biological users, its main value is that it converts agreement between</span>
+<span class="sd">        pickers into a learned particle-quality score. It can keep particles that look</span>
+<span class="sd">        convincing to the network even if not all pickers agree, and it can reject</span>
+<span class="sd">        false positives that appear in the broad union of picks.</span>
+
+<span class="sd">        The protocol is especially useful when several picking strategies are</span>
+<span class="sd">        available, when manual inspection of all candidates is impractical, or when a</span>
+<span class="sd">        streaming workflow needs progressively improved particle selection.</span>
+
+<span class="sd">        As with any learned screening method, the result should be checked visually and</span>
+<span class="sd">        validated downstream by 2D classification, particle cleaning, and final</span>
+<span class="sd">        reconstruction behavior.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;deep consensus picking&#39;</span>
     <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_2_0</span>

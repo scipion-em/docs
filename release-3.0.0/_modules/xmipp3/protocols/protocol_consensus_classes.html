@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_consensus_classes</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -155,6 +156,232 @@
 <span class="sd">        Return the consensus clustering based on a objective function</span>
 <span class="sd">        that uses the similarity between clusters intersections and</span>
 <span class="sd">        the entropy of the clustering formed.</span>
+
+<span class="sd">        AI Generated:</span>
+
+<span class="sd">        Overview</span>
+
+<span class="sd">        The Consensus Classes protocol helps you combine and reconcile several</span>
+<span class="sd">        independent 3D classifications of the same particle set into a single,</span>
+<span class="sd">        more stable and interpretable result. In many cryo-EM projects, you may</span>
+<span class="sd">        run multiple 3D classifications (different seeds, parameters, masks,</span>
+<span class="sd">        software, or iterations) and end up with several sets of classes that</span>
+<span class="sd">        are similar but not identical. This protocol is designed to answer a</span>
+<span class="sd">        very practical user question:</span>
+
+<span class="sd">        Which particle groupings are consistently reproduced across different</span>
+<span class="sd">        classifications?</span>
+
+<span class="sd">        Instead of trusting one classification blindly, the protocol looks for</span>
+<span class="sd">        intersections between classes coming from different runs, identifies</span>
+<span class="sd">        particle groups that are repeatedly recovered, and builds a consensus</span>
+<span class="sd">        clustering. This is especially useful when heterogeneity is subtle,</span>
+<span class="sd">        when classification appears unstable, or when you want to justify a</span>
+<span class="sd">        “robust” partition of your dataset.</span>
+
+<span class="sd">        The protocol is intended for users who want a biologically meaningful</span>
+<span class="sd">        summary of multiple classifications: which structural states are truly</span>
+<span class="sd">        supported by the data, and which ones are likely unstable or accidental?</span>
+
+<span class="sd">        Inputs and General Workflow</span>
+<span class="sd">        Input classes (multiple SetOfClasses)</span>
+
+<span class="sd">        You must provide several sets of classes that were computed from the</span>
+<span class="sd">        same underlying particle set (the same images, not just similar</span>
+<span class="sd">        particles). Typical examples include:</span>
+
+<span class="sd">        several 3D classifications started from different random seeds</span>
+
+<span class="sd">        classifications with different regularization / masks</span>
+
+<span class="sd">        classifications produced at different refinement stages</span>
+
+<span class="sd">        alternative pipelines that classify the same particle stack</span>
+
+<span class="sd">        A good practical expectation is that all input classifications refer</span>
+<span class="sd">        to the same image identifiers. If one classification comes from a</span>
+<span class="sd">        different subset, the intersections may become difficult to interpret.</span>
+
+<span class="sd">        What the protocol does internally (conceptually)</span>
+
+<span class="sd">        The protocol proceeds in four conceptual stages:</span>
+
+<span class="sd">        Reference expectation: it estimates what intersection sizes would look</span>
+<span class="sd">        like “by chance” given the class sizes of the input classifications.</span>
+
+<span class="sd">        Class intersections: it computes the actual particle intersections</span>
+<span class="sd">        across all classifications (for example, Class 3 from run A ∩ Class 1</span>
+<span class="sd">        from run B ∩ Class 2 from run C).</span>
+
+<span class="sd">        Pruning (optional): it removes very small intersections if you request</span>
+<span class="sd">        a minimum size.</span>
+
+<span class="sd">        Merging structure: it computes similarities between intersections and</span>
+<span class="sd">        prepares a hierarchical merging structure, which helps you decide how</span>
+<span class="sd">        many consensus groups are reasonable.</span>
+
+<span class="sd">        You will get an output set of consensus classes, plus additional</span>
+<span class="sd">        information that helps you choose whether to keep a fine-grained or</span>
+<span class="sd">        more merged consensus.</span>
+
+<span class="sd">        Understanding “Intersections” Biologically</span>
+
+<span class="sd">        The core concept is an intersection cluster: a group of particles that</span>
+<span class="sd">        are assigned together across multiple classifications.</span>
+
+<span class="sd">        If a group of particles consistently ends up together, it often</span>
+<span class="sd">        represents a real structural state (or a consistent data behavior).</span>
+
+<span class="sd">        If a class splits differently each time, intersections become small and</span>
+<span class="sd">        fragmented, suggesting instability, continuous heterogeneity, or</span>
+<span class="sd">        insufficient signal for discrete clustering.</span>
+
+<span class="sd">        This is why consensus intersections are often a good proxy for r</span>
+<span class="sd">        eproducible heterogeneity.</span>
+
+<span class="sd">        Pruning</span>
+<span class="sd">        Minimum class size</span>
+
+<span class="sd">        You can set a minimum output class size to remove tiny intersections.</span>
+
+<span class="sd">        This is mainly a usability and interpretation option:</span>
+<span class="sd">        - If set to 0, no pruning is performed.</span>
+<span class="sd">        - If set to a positive value, intersections smaller than this threshold</span>
+<span class="sd">        are discarded.</span>
+
+<span class="sd">        From a biological perspective, tiny intersection classes are often:</span>
+<span class="sd">        - unstable fragments produced by random assignment differences</span>
+<span class="sd">        - rare views or low-SNR particles</span>
+<span class="sd">        - junk / contaminants inconsistently grouped</span>
+
+<span class="sd">        That said, truly rare biological states can also be small, so pruning</span>
+<span class="sd">        should be used with caution when you expect minor populations.</span>
+
+<span class="sd">        A common workflow is:</span>
+<span class="sd">        - run once with no pruning to see the full picture</span>
+<span class="sd">        - run again with a modest threshold to simplify interpretation</span>
+
+<span class="sd">        Clustering and Similarity Between Consensus Groups</span>
+
+<span class="sd">        After intersection classes are computed, the protocol evaluates how</span>
+<span class="sd">        similar these intersection groups are to each other. Similarity is</span>
+<span class="sd">        based on particle membership overlap (conceptually: how much two</span>
+<span class="sd">        clusters share their particles), and this overlap is turned into a</span>
+<span class="sd">        distance that can be used for hierarchical clustering.</span>
+
+<span class="sd">        Distance metric (advanced)</span>
+
+<span class="sd">        The metric controls how distances are computed between intersection</span>
+<span class="sd">        clusters during merging analysis. In practice:</span>
+<span class="sd">        - cosine often behaves well when vectors represent “patterns of</span>
+<span class="sd">        similarity to original classes”</span>
+<span class="sd">        - euclidean is a straightforward default</span>
+<span class="sd">        - cityblock (Manhattan) can be more robust to localized differences</span>
+<span class="sd">        - correlation focuses on whether similarity patterns co-vary,</span>
+<span class="sd">        not their absolute values</span>
+
+<span class="sd">        Most users will not need to change this unless they are comparing</span>
+<span class="sd">        behavior across different merging strategies. If you do not have a</span>
+<span class="sd">        specific reason, keep the default.</span>
+
+<span class="sd">        Outputs and Their Interpretation</span>
+<span class="sd">        Output: consensus classes (SetOfClasses)</span>
+
+<span class="sd">        The main output is a new SetOfClasses, where each class corresponds to</span>
+<span class="sd">        a reproducible intersection group across the input classifications.</span>
+
+<span class="sd">        Each consensus class includes:</span>
+<span class="sd">        - a set of particles that consistently co-occur</span>
+<span class="sd">        - a representative class/volume chosen from the input classifications</span>
+<span class="sd">        (the one most similar to the consensus membership)</span>
+<span class="sd">        - optional comments describing where the class came from (a trace of</span>
+<span class="sd">        contributing input classes)</span>
+
+<span class="sd">        What “representative” means here</span>
+
+<span class="sd">        The representative volume is not reconstructed by this protocol.</span>
+<span class="sd">        Instead, it is chosen as the closest matching representative among the</span>
+<span class="sd">        input classes. Biologically, treat it as a label or best exemplar of</span>
+<span class="sd">        that consensus group, not as a newly refined structure.</span>
+
+<span class="sd">        P-values for intersection size (when available)</span>
+
+<span class="sd">        The protocol estimates reference distributions of intersection sizes</span>
+<span class="sd">        based on the input class sizes. This allows it to attach statistical</span>
+<span class="sd">        indicators to each consensus class:</span>
+
+<span class="sd">        intersection size p-value: how surprising it is to observe an</span>
+<span class="sd">        intersection of that size, given the input class sizes</span>
+
+<span class="sd">        relative size p-value: a normalized version that corrects for the</span>
+<span class="sd">        sizes of the parent classes</span>
+
+<span class="sd">        Interpretation in practice:</span>
+<span class="sd">        - very small p-values suggest the consensus cluster is larger than</span>
+<span class="sd">        expected by chance → typically more meaningful and reproducible</span>
+<span class="sd">        - larger p-values suggest the cluster size could be consistent with</span>
+<span class="sd">        random overlap → interpret more cautiously</span>
+
+<span class="sd">        These p-values are not a substitute for biological validation, but they</span>
+<span class="sd">        help prioritize robust classes.</span>
+
+<span class="sd">        Choosing How Many Consensus Classes to Keep</span>
+
+<span class="sd">        A common outcome is that the raw intersection step produces many</span>
+<span class="sd">        consensus groups, sometimes more than you want to interpret. The</span>
+<span class="sd">        protocol therefore computes a hierarchical merging structure and</span>
+<span class="sd">        proposes several “elbow” points—candidate places where merging stops</span>
+<span class="sd">        being beneficial.</span>
+
+<span class="sd">        The elbows are computed using several independent heuristics. You can</span>
+<span class="sd">        treat them as suggestions for where the clustering transitions from</span>
+<span class="sd">        meaningful structure to over-fragmentation.</span>
+
+<span class="sd">        A practical user workflow is:</span>
+<span class="sd">        - Start from the raw consensus output.</span>
+<span class="sd">        - Inspect class sizes and representatives.</span>
+
+<span class="sd">        Use the elbow suggestions as guidance to decide whether to merge into</span>
+<span class="sd">        fewer, more interpretable groups.</span>
+
+<span class="sd">        In biological terms, this is the step where you decide whether your</span>
+<span class="sd">        system behaves like:</span>
+<span class="sd">        - a few discrete states (merge to a small number)</span>
+<span class="sd">        - many small but reproducible substates (keep more classes)</span>
+<span class="sd">        - a continuum (even consensus will fragment; consider continuous</span>
+<span class="sd">        approaches)</span>
+
+<span class="sd">        Practical Recommendations</span>
+
+<span class="sd">        Use this protocol when you have multiple classifications of the same</span>
+<span class="sd">        particles and you want a stable conclusion.</span>
+
+<span class="sd">        Ensure all input classifications truly come from the same particle set</span>
+<span class="sd">        (same identifiers and scope).</span>
+
+<span class="sd">        Do not prune too aggressively at the beginning. First look at the</span>
+<span class="sd">        unpruned consensus to understand the structure of reproducibility.</span>
+
+<span class="sd">        Pay special attention to:</span>
+<span class="sd">        - consensus classes that are both large and statistically surprising</span>
+<span class="sd">        - classes that repeatedly appear with similar representatives across</span>
+<span class="sd">        runs</span>
+
+<span class="sd">        If the consensus produces a large number of tiny classes, that often</span>
+<span class="sd">        indicates that the heterogeneity is weak, continuous, or unstable at</span>
+<span class="sd">        the chosen resolution / preprocessing stage.</span>
+
+<span class="sd">        Final Perspective</span>
+
+<span class="sd">        Consensus analysis is not just a computational convenience—it is a way</span>
+<span class="sd">        to improve biological confidence. When a class is repeatedly recovered</span>
+<span class="sd">        across independent classifications, it is much more likely to</span>
+<span class="sd">        correspond to a genuine structural state rather than an artifact of</span>
+<span class="sd">        parameter choices or stochastic optimization.</span>
+
+<span class="sd">        For cryo-EM users working with heterogeneous samples, Consensus Classes</span>
+<span class="sd">        provides a practical bridge between “many classification runs” and a</span>
+<span class="sd">        single, defensible interpretation of structural variability.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;consensus classes&#39;</span>
     <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">BETA</span>

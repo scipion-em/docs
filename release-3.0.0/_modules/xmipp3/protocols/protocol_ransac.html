@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_ransac</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -157,7 +158,330 @@
 <span class="sd">    information of the particle under study. These reduced sets are </span>
 <span class="sd">    then used to generate volumes from random orientation assignments. </span>
 <span class="sd">    The best volume is determined from these guesses using a random </span>
-<span class="sd">    sample consensus (RANSAC) approach.    </span>
+<span class="sd">    sample consensus (RANSAC) approach.</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The RANSAC protocol generates initial 3D volumes from a set of 2D class</span>
+<span class="sd">    averages or projection averages.</span>
+
+<span class="sd">    Initial model generation is a critical step in single-particle cryo-EM. Before</span>
+<span class="sd">    a high-quality 3D refinement can be performed, the workflow usually needs a</span>
+<span class="sd">    starting volume that has approximately the correct global shape and orientation</span>
+<span class="sd">    distribution. The RANSAC protocol addresses this problem by generating many</span>
+<span class="sd">    candidate initial volumes from small random subsets of the input averages and</span>
+<span class="sd">    then selecting the best candidates according to how well they explain the full</span>
+<span class="sd">    set of input images.</span>
+
+<span class="sd">    The method follows a random sample consensus strategy. Each RANSAC iteration</span>
+<span class="sd">    uses a small subset of 2D averages to propose a tentative 3D volume. The</span>
+<span class="sd">    candidate volume is then projected, and the projections are compared with the</span>
+<span class="sd">    input averages. Volumes supported by many well-correlated images are considered</span>
+<span class="sd">    better candidates. The best volumes are then refined by projection matching.</span>
+
+<span class="sd">    The output is a set of proposed initial volumes, each annotated with scoring</span>
+<span class="sd">    information.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The main input is a set of 2D class averages or projection averages.</span>
+
+<span class="sd">    The protocol first converts the input images into Xmipp metadata format. It</span>
+<span class="sd">    then low-pass filters and resizes the input averages to a working size suitable</span>
+<span class="sd">    for initial-model search. This makes the procedure faster and focuses the</span>
+<span class="sd">    search on low- to medium-resolution structural information.</span>
+
+<span class="sd">    The protocol then runs many independent RANSAC iterations. In each iteration,</span>
+<span class="sd">    it selects a small subset of input averages, assigns or estimates orientations,</span>
+<span class="sd">    reconstructs a tentative volume, projects that volume, and compares the</span>
+<span class="sd">    projections with the input averages.</span>
+
+<span class="sd">    After all iterations, the protocol evaluates the candidate volumes using an</span>
+<span class="sd">    inlier criterion based on projection correlation. The best volumes are selected</span>
+<span class="sd">    and refined through several projection-matching iterations. Finally, the</span>
+<span class="sd">    refined volumes are resized back to the original box size and written as output</span>
+<span class="sd">    volumes.</span>
+
+<span class="sd">    ## Input Averages</span>
+
+<span class="sd">    The **Input averages** parameter should point to a set of 2D classes or</span>
+<span class="sd">    averages.</span>
+
+<span class="sd">    If the input is a SetOfClasses2D, the classes should have representative</span>
+<span class="sd">    images. These representative images are the class averages used by the</span>
+<span class="sd">    protocol. If the input is a SetOfAverages or similar particle-average set, the</span>
+<span class="sd">    images are used directly.</span>
+
+<span class="sd">    The quality of the input averages is very important. RANSAC initial-model</span>
+<span class="sd">    generation works best when the averages show clear structural features and</span>
+<span class="sd">    represent a broad range of particle views.</span>
+
+<span class="sd">    If the input averages are noisy, dominated by contaminants, affected by strong</span>
+<span class="sd">    preferred orientation, or contain many inconsistent particle populations, the</span>
+<span class="sd">    candidate volumes may be poor or ambiguous.</span>
+
+<span class="sd">    ## Symmetry Group</span>
+
+<span class="sd">    The **Symmetry group** parameter defines the symmetry assumed during projection</span>
+<span class="sd">    generation, reconstruction, and volume evaluation.</span>
+
+<span class="sd">    For asymmetric particles, use **c1**. If the particle has known symmetry, the</span>
+<span class="sd">    appropriate Xmipp symmetry group should be provided.</span>
+
+<span class="sd">    Correct symmetry can help generate better initial volumes by enforcing</span>
+<span class="sd">    equivalent views and reducing ambiguity. However, using an incorrect symmetry</span>
+<span class="sd">    can produce misleading models by averaging non-equivalent features.</span>
+
+<span class="sd">    Users should only impose symmetry when it is biologically justified.</span>
+
+<span class="sd">    ## Angular Sampling Rate</span>
+
+<span class="sd">    The **Angular sampling rate** parameter defines how finely projection</span>
+<span class="sd">    directions are explored, in degrees.</span>
+
+<span class="sd">    A smaller angular sampling value means a denser angular search. This can</span>
+<span class="sd">    improve orientation assignment and candidate-volume evaluation, but increases</span>
+<span class="sd">    computation time.</span>
+
+<span class="sd">    A larger value is faster but may miss important orientation differences and</span>
+<span class="sd">    reduce the quality of the initial model.</span>
+
+<span class="sd">    The default value is a practical compromise for many datasets. Advanced users</span>
+<span class="sd">    may adjust it depending on particle size, symmetry, and expected angular</span>
+<span class="sd">    complexity.</span>
+
+<span class="sd">    ## Number of RANSAC Iterations</span>
+
+<span class="sd">    The **Number of RANSAC iterations** parameter controls how many candidate</span>
+<span class="sd">    volumes are generated and tested.</span>
+
+<span class="sd">    Each iteration proposes a volume from a different random subset or sampling of</span>
+<span class="sd">    the input averages. Increasing the number of iterations increases the chance of</span>
+<span class="sd">    finding a good initial model, especially when the input set contains outliers</span>
+<span class="sd">    or multiple particle populations.</span>
+
+<span class="sd">    However, more iterations require more computation. The default is designed to</span>
+<span class="sd">    provide broad exploration while remaining practical for typical workflows.</span>
+
+<span class="sd">    If the output volumes are unstable or poor, increasing the number of RANSAC</span>
+<span class="sd">    iterations may help.</span>
+
+<span class="sd">    ## Dimensionality Reduction</span>
+
+<span class="sd">    The **Perform dimensionality reduction** option changes how representative</span>
+<span class="sd">    input averages are selected during RANSAC.</span>
+
+<span class="sd">    When enabled, the protocol uses Local Tangent Space Alignment, or LTSA, to</span>
+<span class="sd">    organize the input averages in a reduced-dimensional space. It then samples</span>
+<span class="sd">    representative images from this space using a grid.</span>
+
+<span class="sd">    This can help select a small set of averages that captures the diversity of</span>
+<span class="sd">    the dataset, rather than choosing purely random images.</span>
+
+<span class="sd">    Dimensionality reduction is an advanced option. It requires that the number of</span>
+<span class="sd">    input classes be large enough relative to the grid size. If there are too few</span>
+<span class="sd">    classes, the protocol reports a validation error.</span>
+
+<span class="sd">    ## Number of Grids per Dimension</span>
+
+<span class="sd">    When dimensionality reduction is enabled, the **Number of grids per dimension**</span>
+<span class="sd">    parameter controls how the reduced space is sampled.</span>
+
+<span class="sd">    For example, a value of 3 creates a 3 by 3 grid, giving up to 9 regions from</span>
+<span class="sd">    which representative classes can be sampled.</span>
+
+<span class="sd">    A larger grid gives more detailed sampling of the reduced space, but requires</span>
+<span class="sd">    more input classes. A smaller grid is more conservative.</span>
+
+<span class="sd">    This parameter should be chosen according to the number of available classes</span>
+<span class="sd">    and the diversity of the input averages.</span>
+
+<span class="sd">    ## Number of Random Samples</span>
+
+<span class="sd">    When dimensionality reduction is disabled, the **Number of random samples**</span>
+<span class="sd">    parameter defines how many input averages are selected in each RANSAC</span>
+<span class="sd">    iteration.</span>
+
+<span class="sd">    These randomly selected averages are assigned random orientations, or</span>
+<span class="sd">    orientations constrained by an optional initial volume, and are used to</span>
+<span class="sd">    reconstruct a candidate volume.</span>
+
+<span class="sd">    If too few samples are used, the candidate volumes may be unstable or</span>
+<span class="sd">    insufficiently constrained. If too many are used, each iteration becomes more</span>
+<span class="sd">    expensive and less exploratory.</span>
+
+<span class="sd">    The default is intended to generate many quick candidate volumes from small</span>
+<span class="sd">    subsets.</span>
+
+<span class="sd">    ## Initial Volume</span>
+
+<span class="sd">    The **Initial volume** parameter allows the user to provide a very rough volume</span>
+<span class="sd">    to constrain the angular search.</span>
+
+<span class="sd">    This is optional. The protocol can run without an initial volume.</span>
+
+<span class="sd">    A rough initial volume may be useful when the specimen has a known overall</span>
+<span class="sd">    shape, such as a cylinder for a filament-like object. In that case, the initial</span>
+<span class="sd">    volume can help assign more plausible tilt angles, while still allowing the</span>
+<span class="sd">    rotational angle to be uncertain.</span>
+
+<span class="sd">    The initial volume should be used carefully. If it is too specific or</span>
+<span class="sd">    incorrect, it may bias the search toward a wrong structure. It is best used as</span>
+<span class="sd">    a broad geometrical constraint rather than as a detailed reference.</span>
+
+<span class="sd">    ## Maximum Frequency of the Initial Volume</span>
+
+<span class="sd">    The **Max frequency of the initial volume** parameter controls the resolution</span>
+<span class="sd">    used during the initial-model search, expressed in angstroms.</span>
+
+<span class="sd">    The protocol low-pass filters and resizes the input averages according to this</span>
+<span class="sd">    parameter. The goal is to focus the RANSAC search on robust low-resolution</span>
+<span class="sd">    features rather than noisy high-resolution details.</span>
+
+<span class="sd">    A lower-resolution search is usually appropriate for initial model generation.</span>
+<span class="sd">    The purpose is to obtain the correct global shape, not to recover fine</span>
+<span class="sd">    features.</span>
+
+<span class="sd">    ## Inliers Threshold</span>
+
+<span class="sd">    The **Inliers threshold** defines the correlation value used to decide whether</span>
+<span class="sd">    an input average supports a candidate volume.</span>
+
+<span class="sd">    After a candidate volume is generated, the protocol projects it and compares</span>
+<span class="sd">    those projections with the input averages. Averages with correlation above the</span>
+<span class="sd">    threshold are considered inliers.</span>
+
+<span class="sd">    Candidate volumes with more and better inliers receive higher scores.</span>
+
+<span class="sd">    If the threshold is too high, few or no candidate volumes may be considered</span>
+<span class="sd">    valid. If this happens, the user should lower the threshold.</span>
+
+<span class="sd">    If the threshold is too low, poor candidate volumes may appear to have many</span>
+<span class="sd">    inliers, reducing the selectivity of the method.</span>
+
+<span class="sd">    ## Number of Best Volumes to Refine</span>
+
+<span class="sd">    The **Number of best volumes to refine** parameter controls how many of the</span>
+<span class="sd">    best RANSAC candidates are selected for refinement.</span>
+
+<span class="sd">    After all RANSAC iterations are evaluated, the protocol ranks the candidates by</span>
+<span class="sd">    their inlier support. The best candidates are copied into refinement branches.</span>
+
+<span class="sd">    Keeping several candidates is useful because initial-model generation can be</span>
+<span class="sd">    ambiguous. Different candidates may correspond to alternative orientations,</span>
+<span class="sd">    different conformations, or different local optima.</span>
+
+<span class="sd">    The output contains the refined versions of these selected candidates.</span>
+
+<span class="sd">    ## Number of Iterations to Refine the Volumes</span>
+
+<span class="sd">    The **Number of iterations to refine the volumes** parameter defines how many</span>
+<span class="sd">    projection-matching refinement cycles are applied to each selected candidate.</span>
+
+<span class="sd">    In each cycle, the current volume is projected, input averages are assigned to</span>
+<span class="sd">    projections, and a new volume is reconstructed from the updated assignments.</span>
+
+<span class="sd">    More iterations can improve the consistency of the candidate volume, but also</span>
+<span class="sd">    increase computation time. Too many iterations are not always beneficial if the</span>
+<span class="sd">    initial candidate is poor or if the input averages are inconsistent.</span>
+
+<span class="sd">    ## Use All Images to Refine</span>
+
+<span class="sd">    The **Use all images to refine** option controls which averages are used during</span>
+<span class="sd">    the refinement of selected RANSAC volumes.</span>
+
+<span class="sd">    If disabled, only inlier images are used. This keeps refinement focused on the</span>
+<span class="sd">    images that strongly support the candidate volume.</span>
+
+<span class="sd">    If enabled, all input averages are used for refinement. This may be useful when</span>
+<span class="sd">    the input set is clean and the user wants each candidate to be refined using</span>
+<span class="sd">    all available information.</span>
+
+<span class="sd">    For heterogeneous or noisy input sets, using only inliers may be safer.</span>
+
+<span class="sd">    ## GPU Execution</span>
+
+<span class="sd">    The protocol can use GPU acceleration for reconstruction steps when available.</span>
+
+<span class="sd">    GPU execution is enabled through the hidden GPU parameters. If GPU use is</span>
+<span class="sd">    requested but the required Xmipp CUDA programs are not available, the protocol</span>
+<span class="sd">    reports a validation error.</span>
+
+<span class="sd">    GPU acceleration can substantially reduce computation time, especially when</span>
+<span class="sd">    many RANSAC iterations and refinement steps are requested.</span>
+
+<span class="sd">    ## Output Volumes</span>
+
+<span class="sd">    The main output is **outputVolumes**, a set of refined candidate initial</span>
+<span class="sd">    volumes.</span>
+
+<span class="sd">    Each output volume is written in MRC format, resized to the original input box</span>
+<span class="sd">    size, and assigned the sampling rate of the input averages.</span>
+
+<span class="sd">    The output volumes are annotated with Xmipp scoring values, including:</span>
+
+<span class="sd">    - total volume score;</span>
+<span class="sd">    - thresholded volume score;</span>
+<span class="sd">    - mean correlation score;</span>
+<span class="sd">    - minimum correlation score.</span>
+
+<span class="sd">    These scores help the user compare candidate volumes, but they should not be</span>
+<span class="sd">    used blindly. Visual inspection and downstream refinement behavior are also</span>
+<span class="sd">    important.</span>
+
+<span class="sd">    ## Interpreting the Candidate Volumes</span>
+
+<span class="sd">    The RANSAC output volumes should be interpreted as possible initial models.</span>
+
+<span class="sd">    They are not final reconstructions. Their role is to provide plausible starting</span>
+<span class="sd">    points for later 3D refinement.</span>
+
+<span class="sd">    A good candidate should have a reasonable global shape, be compatible with the</span>
+<span class="sd">    2D class averages, and produce stable behavior in subsequent refinement. A poor</span>
+<span class="sd">    candidate may show distorted shape, missing regions, strong artifacts, or</span>
+<span class="sd">    features inconsistent with the class averages.</span>
+
+<span class="sd">    When several output volumes are produced, users should inspect them and choose</span>
+<span class="sd">    the most plausible candidates for downstream refinement.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    Use clean and representative 2D class averages as input. Remove obvious junk</span>
+<span class="sd">    classes before running RANSAC.</span>
+
+<span class="sd">    Use the correct symmetry group only when symmetry is known. Do not impose</span>
+<span class="sd">    symmetry merely to make the output look cleaner.</span>
+
+<span class="sd">    Start with the default number of RANSAC iterations and best volumes. Increase</span>
+<span class="sd">    the number of iterations if the results are unstable or if the dataset is</span>
+<span class="sd">    difficult.</span>
+
+<span class="sd">    If no valid maps are found, lower the inliers threshold.</span>
+
+<span class="sd">    Use dimensionality reduction only when there are enough input classes and when</span>
+<span class="sd">    you want representative sampling of class variability.</span>
+
+<span class="sd">    Consider providing a very rough initial volume only when there is a strong</span>
+<span class="sd">    reason to constrain the angular search. Avoid using a detailed reference that</span>
+<span class="sd">    could bias the initial model.</span>
+
+<span class="sd">    Inspect all output volumes visually before selecting one for refinement.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    RANSAC is an initial-volume generation protocol based on repeated random</span>
+<span class="sd">    hypotheses and consensus scoring.</span>
+
+<span class="sd">    For biological users, its value is that it can propose several possible 3D</span>
+<span class="sd">    starting models from 2D averages without requiring tilted-pair data. By testing</span>
+<span class="sd">    many candidate volumes and retaining those best supported by the input</span>
+<span class="sd">    averages, the protocol reduces dependence on any single random initialization.</span>
+
+<span class="sd">    The resulting volumes should be treated as starting hypotheses. Their quality</span>
+<span class="sd">    must be assessed by visual inspection, agreement with the 2D averages, scoring</span>
+<span class="sd">    information, and performance in subsequent 3D refinement.</span>
 <span class="sd">     &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;ransac&#39;</span>
     <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">PROD</span>

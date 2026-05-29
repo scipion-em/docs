@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_break_symmetry</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -141,8 +142,133 @@
 <span class="sd">    Given an input set of particles with angular assignment, find an</span>
 <span class="sd">    equivalent angular assignment for a given symmetry.</span>
 
-<span class="sd">    Be aware that input symmetry values follows Xmipp conventions as described in:</span>
-<span class="sd">    https://i2pc.github.io/docs/Utils/Conventions/index.html#symmetry</span>
+<span class="sd">    Be aware that input symmetry values follows Xmipp conventions as described</span>
+<span class="sd">    in: https://i2pc.github.io/docs/Utils/Conventions/index.html#symmetry</span>
+
+<span class="sd">    AI Generated:</span>
+
+<span class="sd">    What this protocol is for</span>
+
+<span class="sd">    Break symmetry is a protocol for particle sets that already have a 3D</span>
+<span class="sd">    angular assignment (projection alignment). In symmetric specimens, a given</span>
+<span class="sd">    3D orientation is not unique: there are multiple symmetry-related equivalent</span>
+<span class="sd">    orientations that produce the same physical view under the symmetry group.</span>
+<span class="sd">    Many pipelines store one of these equivalent solutions, but the particular</span>
+<span class="sd">    representative chosen can vary across runs, software packages, or even</span>
+<span class="sd">    across different parts of the same workflow.</span>
+
+<span class="sd">    This protocol standardizes that situation by replacing each particle’s</span>
+<span class="sd">    angular assignment with an equivalent assignment under the specified</span>
+<span class="sd">    symmetry. In other words, it “moves” the particle angles to another</span>
+<span class="sd">    symmetry-related version that is still valid, but follows a consistent</span>
+<span class="sd">    convention. This can be very useful when you want to compare angular</span>
+<span class="sd">    assignments between datasets, merge particles from multiple refinements,</span>
+<span class="sd">    analyze angular distributions cleanly, or prepare particles for downstream</span>
+<span class="sd">    steps where a consistent symmetry convention matters.</span>
+
+<span class="sd">    Even though the label says “break symmetry”, for most biological users the</span>
+<span class="sd">    practical interpretation is: choose a symmetry-consistent representative</span>
+<span class="sd">    for each particle’s orientation, removing arbitrary symmetry-related</span>
+<span class="sd">    differences in how orientations are expressed.</span>
+
+<span class="sd">    When you would use it (typical biological scenarios)</span>
+
+<span class="sd">    You usually run this protocol when:</span>
+
+<span class="sd">    You have a symmetric complex (Cn, Dn, etc.) and you want to compare or</span>
+<span class="sd">    combine results from different refinements where symmetry-related angle</span>
+<span class="sd">    conventions differ.</span>
+
+<span class="sd">    You are analyzing angular distributions and want to avoid artificial</span>
+<span class="sd">    multi-cluster patterns caused purely by symmetry-equivalent representations.</span>
+
+<span class="sd">    You are preparing a particle set for a downstream tool that expects a</span>
+<span class="sd">    particular convention for symmetric orientations.</span>
+
+<span class="sd">    You suspect that two particle sets are aligned equivalently but appear</span>
+<span class="sd">    “different” in angles due to symmetry-related remapping; applying a</span>
+<span class="sd">    consistent remapping can make them directly comparable.</span>
+
+<span class="sd">    This protocol does not change the images or re-align particles by</span>
+<span class="sd">    correlation; it only changes the stored orientation metadata to an</span>
+<span class="sd">    equivalent symmetry-related one.</span>
+
+<span class="sd">    Input requirement</span>
+
+<span class="sd">    The input is the protocol’s inherited inputParticles (a SetOfParticles)</span>
+<span class="sd">    that must already contain projection alignment (3D angles and shifts</span>
+<span class="sd">    represented as a transform matrix). If particles do not have an angular</span>
+<span class="sd">    assignment, there is nothing to remap, and the protocol is not applicable.</span>
+
+<span class="sd">    The key parameter: Symmetry group</span>
+
+<span class="sd">    You specify the symmetry group as a string using Xmipp symmetry conventions</span>
+<span class="sd">    (for example c1, c2, c3, d7, etc.). If your specimen has no symmetry or you</span>
+<span class="sd">    are working in an asymmetric refinement, use c1.</span>
+
+<span class="sd">    This parameter must match the symmetry you want to use to define</span>
+<span class="sd">    equivalences. If you provide the wrong symmetry, the protocol will still</span>
+<span class="sd">    generate “equivalent” angles under that wrong symmetry, but they will not</span>
+<span class="sd">    represent the biology of your particle and can confuse downstream analysis.</span>
+
+<span class="sd">    A practical hint: use the same symmetry you used in the refinement that</span>
+<span class="sd">    produced the angular assignments, unless you have a specific reason to</span>
+<span class="sd">    remap under a different group.</span>
+
+<span class="sd">    What the protocol does to your data</span>
+
+<span class="sd">    Internally, the protocol exports particle metadata, runs an Xmipp symmetry</span>
+<span class="sd">    remapping tool, and then rebuilds a new particle set where each particle</span>
+<span class="sd">    keeps the same identity and image association but has an updated projection</span>
+<span class="sd">    transform consistent with the remapped angles.</span>
+
+<span class="sd">    The important consequence is that the output particle set remains a valid</span>
+<span class="sd">    aligned dataset, but the angular assignments may look different</span>
+<span class="sd">    numerically—while still representing the same physical orientations up to</span>
+<span class="sd">    symmetry.</span>
+
+<span class="sd">    Outputs and how to use them</span>
+
+<span class="sd">    The protocol produces outputParticles, a new particle set with the remapped</span>
+<span class="sd">    angular assignments. You would use this output in any step where you want</span>
+<span class="sd">    symmetry-consistent angles, for example:</span>
+
+<span class="sd">    comparing particle poses across runs,</span>
+
+<span class="sd">    plotting angular distributions,</span>
+
+<span class="sd">    exporting poses to other tools,</span>
+
+<span class="sd">    merging aligned particle sets coming from different refinement branches.</span>
+
+<span class="sd">    Because only metadata is changed, downstream refinement should remain</span>
+<span class="sd">    consistent in terms of physical interpretation, but you gain a cleaner,</span>
+<span class="sd">    more standardized representation of orientations.</span>
+
+<span class="sd">    What this protocol does not do</span>
+
+<span class="sd">    It does not refine angles, does not assess alignment quality, and does not</span>
+<span class="sd">    “fix” incorrect orientations. If the original angular assignments are wrong</span>
+<span class="sd">    due to misalignment or heterogeneity, this protocol will not correct that.</span>
+<span class="sd">    It also does not change the symmetry of the reconstruction; it only uses</span>
+<span class="sd">    the symmetry group to choose an equivalent representation of each</span>
+<span class="sd">    particle’s pose.</span>
+
+<span class="sd">    Practical checks after running</span>
+
+<span class="sd">    A quick way to confirm the protocol did what you intended is to compare</span>
+<span class="sd">    angular distribution plots before and after. For symmetric datasets, you</span>
+<span class="sd">    often see that “symmetry-induced duplicates” in angle space collapse into a</span>
+<span class="sd">    cleaner pattern. If instead the result looks inconsistent or dramatically</span>
+<span class="sd">    different in a way that does not match symmetry expectations, the most</span>
+<span class="sd">    common cause is an incorrect symmetry group string.</span>
+
+<span class="sd">    Note on conventions</span>
+
+<span class="sd">    Xmipp uses its own symmetry conventions and naming; the protocol explicitly</span>
+<span class="sd">    follows those conventions. If you are unsure, consult the Xmipp symmetry</span>
+<span class="sd">    documentation referenced in the protocol help and ensure your symmetry</span>
+<span class="sd">    string matches that format.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;break symmetry&#39;</span>
 

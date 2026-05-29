@@ -140,7 +140,189 @@
 
 
 <div class="viewcode-block" id="XmippApplyZernike3D"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_apply_zernike3d.html#xmipp3.protocols.protocol_apply_zernike3d.XmippApplyZernike3D">[docs]</a><span class="k">class</span> <span class="nc">XmippApplyZernike3D</span><span class="p">(</span><span class="n">ProtAnalysis3D</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Applies deformation to atomic structures using Zernike3D basis functions. This allows flexible modeling of structural variations in atomic models to better fit experimental density maps.</span>
+    <span class="sd">&quot;&quot;&quot; Applies deformation to atomic structures using Zernike3D basis</span>
+<span class="sd">    functions. This allows flexible modeling of structural variations in atomic</span>
+<span class="sd">    models to better fit experimental density maps.</span>
+
+<span class="sd">    AI Generated:</span>
+
+<span class="sd">    What this protocol is for</span>
+
+<span class="sd">    Apply deformation field – Zernike3D takes a deformation field encoded as</span>
+<span class="sd">    Zernike3D coefficients and applies it either to a 3D volume or to an atomic</span>
+<span class="sd">    structure (PDB). The biological motivation is flexible modeling: many</span>
+<span class="sd">    macromolecules are not perfectly rigid, and when you estimate continuous</span>
+<span class="sd">    deformations (for example, from Zernike3D-based heterogeneity analysis),</span>
+<span class="sd">    you often want to materialize those deformations to see what they mean</span>
+<span class="sd">    structurally. This protocol is the “application” step: it turns coefficients</span>
+<span class="sd">    into an actual deformed map or a deformed structure that you can visualize,</span>
+<span class="sd">    compare, fit, or analyze downstream.</span>
+
+<span class="sd">    A typical use case is that you have one or more volumes that already carry</span>
+<span class="sd">    Zernike3D coefficients (for instance, volumes representing different</span>
+<span class="sd">    deformation states), and you want to generate the corresponding deformed</span>
+<span class="sd">    outputs. If you work with atomic models, you can also warp a PDB according</span>
+<span class="sd">    to those same coefficients to obtain an interpretable, atom-level</span>
+<span class="sd">    representation of the deformation.</span>
+
+<span class="sd">    Inputs: what you provide and what they represent</span>
+
+<span class="sd">    The main input is one or more Zernike3D volume(s). In practice, this means</span>
+<span class="sd">    a Volume or SetOfVolumes that has Zernike3D coefficients associated with</span>
+<span class="sd">    it. Many workflows store these coefficients as part of the volume object</span>
+<span class="sd">    produced by an upstream Zernike3D estimation step; this protocol expects</span>
+<span class="sd">    that association.</span>
+
+<span class="sd">    Depending on how the input volume(s) were generated, the protocol may also</span>
+<span class="sd">    ask you for Zernike parameters explicitly:</span>
+
+<span class="sd">    A volume mask (if the input volume does not already carry the reference</span>
+<span class="sd">    mask internally). This mask defines the region where the deformation is</span>
+<span class="sd">    considered meaningful and prevents deformations from being driven by or</span>
+<span class="sd">    applied to irrelevant solvent regions.</span>
+
+<span class="sd">    The Zernike Degree (L1) and Harmonical Degree (L2) (if they are not</span>
+<span class="sd">    already stored in the volume). These control the complexity of the</span>
+<span class="sd">    deformation basis: low degrees capture smooth, global deformations; higher</span>
+<span class="sd">    degrees allow more localized, higher-frequency warping.</span>
+
+<span class="sd">    Finally, you choose whether you want to apply the deformation to a structure:</span>
+
+<span class="sd">    If Apply to structure? is set to No, the protocol will apply the</span>
+<span class="sd">    coefficients directly to the input volume(s), producing deformed map(s).</span>
+
+<span class="sd">    If Apply to structure? is set to Yes, you provide an input PDB (atomic</span>
+<span class="sd">    structure) that will be deformed according to the coefficients.</span>
+
+<span class="sd">    Applying deformation to volumes versus applying deformation to a PDB</span>
+
+<span class="sd">    If you apply the deformation to volumes, the protocol produces a new</span>
+<span class="sd">    deformed volume for each input coefficient set. This is often the most</span>
+<span class="sd">    direct way to see the deformation in the same representation as the</span>
+<span class="sd">    experimental map. Biologically, this is convenient for comparing states,</span>
+<span class="sd">    generating movies, interpreting which regions move, or preparing deformed</span>
+<span class="sd">    maps for segmentation or visualization.</span>
+
+<span class="sd">    If you apply the deformation to a PDB, the protocol outputs a deformed</span>
+<span class="sd">    atomic structure for each coefficient set. This is particularly useful when</span>
+<span class="sd">    you want an atom-level interpretation of the motion: which domains shift,</span>
+<span class="sd">    how secondary structure is displaced, whether loops move coherently, and</span>
+<span class="sd">    so on. It is also useful as a starting point for further real-space</span>
+<span class="sd">    refinement or as an interpretable model for downstream biological</span>
+<span class="sd">    discussion.</span>
+
+<span class="sd">    A key practical point is that the volume(s) and the input structure should</span>
+<span class="sd">    already be in the same coordinate frame. If the PDB is not aligned to the</span>
+<span class="sd">    volume reference frame, the deformation will still be applied</span>
+<span class="sd">    mathematically, but the result will not correspond to the intended</span>
+<span class="sd">    biological motion.</span>
+
+<span class="sd">    The “Move structure to box origin?” option</span>
+
+<span class="sd">    When deforming a PDB, the protocol offers Move structure to box origin?</span>
+<span class="sd">    This is a common source of confusion in practice, so it helps to interpret</span>
+<span class="sd">    it in workflow terms.</span>
+
+<span class="sd">    If your PDB has been aligned and positioned inside Scipion with correct</span>
+<span class="sd">    origin conventions (i.e., it already matches the volume box coordinate</span>
+<span class="sd">    system used by the Zernike3D field), you typically keep this option</span>
+<span class="sd">    disabled.</span>
+
+<span class="sd">    If, on the other hand, your PDB comes from an external source and its</span>
+<span class="sd">    coordinate system is not centered or not expressed in the same origin</span>
+<span class="sd">    convention as the volume box, enabling this option helps place the structure</span>
+<span class="sd">    correctly relative to the volume by using the volume box size. Biologically,</span>
+<span class="sd">    this matters because Zernike3D deformation fields are defined over the</span>
+<span class="sd">    volume box; if the model is shifted relative to that box, the applied</span>
+<span class="sd">    deformation will act on the wrong spatial region.</span>
+
+<span class="sd">    A practical rule is: if you visualize the PDB and the reference map together</span>
+<span class="sd">    and they overlap correctly before deformation, you usually do not need to</span>
+<span class="sd">    move to the box origin. If they do not, you likely need either an explicit</span>
+<span class="sd">    alignment step or this origin correction (depending on the situation).</span>
+
+<span class="sd">    Mask usage and biological implications</span>
+
+<span class="sd">    When applying coefficients to volumes, the protocol can use a mask (either</span>
+<span class="sd">    stored inside the input volume object or provided as an input). Biologically,</span>
+<span class="sd">    the mask is important because deformations outside the molecular region are</span>
+<span class="sd">    not meaningful and can introduce edge artifacts. A good mask typically</span>
+<span class="sd">    includes the molecular density and excludes large solvent regions. If your</span>
+<span class="sd">    upstream Zernike3D estimation was performed with a particular mask, you</span>
+<span class="sd">    generally want to use the same one when applying the coefficients, to</span>
+<span class="sd">    preserve consistency.</span>
+
+<span class="sd">    Understanding L1 and L2 (in practical biological terms)</span>
+
+<span class="sd">    The Zernike Degree (L1) and Harmonical Degree (L2) define how rich the</span>
+<span class="sd">    deformation basis is. You do not usually “tune” these at the application</span>
+<span class="sd">    stage (they come from how the coefficients were generated), but it helps to</span>
+<span class="sd">    know what they imply when interpreting the results:</span>
+
+<span class="sd">    Lower degrees correspond to smoother, more global motions (domain-level</span>
+<span class="sd">    shifts, overall bending, gentle warps).</span>
+
+<span class="sd">    Higher degrees allow finer spatial variation (more localized changes), which</span>
+<span class="sd">    can capture subtler heterogeneity but can also look less physically</span>
+<span class="sd">    plausible if pushed beyond what the data supports.</span>
+
+<span class="sd">    If you see deformations that look overly wiggly or non-biological, that is</span>
+<span class="sd">    often a sign that the underlying coefficient estimation used an overly</span>
+<span class="sd">    flexible basis relative to the data quality—something you would address</span>
+<span class="sd">    upstream. At the application stage, you mainly want to ensure the degrees</span>
+<span class="sd">    you apply match the coefficients you have.</span>
+
+<span class="sd">    Outputs: what you get</span>
+
+<span class="sd">    The protocol produces an output object named deformed. Depending on your</span>
+<span class="sd">    inputs and choices, this output can be:</span>
+
+<span class="sd">    A single deformed Volume, if you provided one input volume and chose to</span>
+<span class="sd">    deform volumes.</span>
+
+<span class="sd">    A SetOfVolumes with one deformed volume per input coefficient set, if you</span>
+<span class="sd">    provided a set of input volumes.</span>
+
+<span class="sd">    A single deformed AtomStruct (PDB), if you provided one coefficient set and</span>
+<span class="sd">    chose to deform a structure.</span>
+
+<span class="sd">    A SetOfAtomStructs, if you provided multiple coefficient sets and chose to</span>
+<span class="sd">    deform a structure.</span>
+
+<span class="sd">    Each output carries the relevant Zernike3D parameters (L1, L2, and an</span>
+<span class="sd">    effective Rmax scale), and it keeps references to the associated map/mask</span>
+<span class="sd">    metadata when available, which helps maintain provenance in a Scipion</span>
+<span class="sd">    workflow.</span>
+
+<span class="sd">    Typical biological processing scenarios</span>
+
+<span class="sd">    A common scenario is to take several Zernike3D coefficient states (for</span>
+<span class="sd">    example, different conformations along a continuous trajectory) and</span>
+<span class="sd">    generate a corresponding series of deformed maps. You can then visualize</span>
+<span class="sd">    them as a morph or movie to communicate the motion clearly.</span>
+
+<span class="sd">    Another common scenario is to deform an atomic model across those same</span>
+<span class="sd">    states. This is particularly powerful when you want to describe motion in</span>
+<span class="sd">    terms of domains and residues, or when you want to interpret how</span>
+<span class="sd">    flexibility could relate to function (opening/closing, ligand access,</span>
+<span class="sd">    allostery).</span>
+
+<span class="sd">    In both cases, the main success factor is coordinate consistency: ensure</span>
+<span class="sd">    your coefficient-bearing volumes, reference maps/masks, and any PDB you</span>
+<span class="sd">    deform are all aligned in the same frame before applying deformation.</span>
+
+<span class="sd">    Practical checks after running</span>
+
+<span class="sd">    After producing deformed outputs, it is good practice to visually inspect</span>
+<span class="sd">    them in the same viewer as the reference map. For deformed volumes, overlay</span>
+<span class="sd">    them with the original reference to see whether motions are plausible and</span>
+<span class="sd">    localized to expected regions. For deformed PDBs, check for obvious geometry</span>
+<span class="sd">    issues (extreme distortions, broken-looking regions) and confirm that the</span>
+<span class="sd">    global placement still makes sense relative to the map.</span>
+
+<span class="sd">    In short, this protocol is the “make it real” step for Zernike3D deformation</span>
+<span class="sd">    fields, producing deformed maps and/or deformed atomic structures that you</span>
+<span class="sd">    can directly interpret biologically.</span>
 <span class="sd"> &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;apply deformation field - Zernike3D&#39;</span>
 

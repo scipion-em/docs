@@ -101,8 +101,7 @@
            <div itemprop="articleBody">
              
   <h1>Source code for xmipp3.protocols.protocol_structure_map</h1><div class="highlight"><pre>
-<span></span>
-<span class="c1"># **************************************************************************</span>
+<span></span><span class="c1"># **************************************************************************</span>
 <span class="c1"># *</span>
 <span class="c1"># * Authors:     David Herreros Calero (dherreros@cnb.csic.es)</span>
 <span class="c1"># *</span>
@@ -147,7 +146,231 @@
 
 
 <div class="viewcode-block" id="XmippProtStructureMap"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_structure_map.html#xmipp3.protocols.protocol_structure_map.XmippProtStructureMap">[docs]</a><span class="k">class</span> <span class="nc">XmippProtStructureMap</span><span class="p">(</span><span class="n">ProtAnalysis3D</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Performs structure mapping based on correlation distance between volumes. This protocol helps identify similarities and differences among multiple structures by quantifying their spatial relationships.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Performs structure mapping based on correlation distance between</span>
+<span class="sd">    volumes. This protocol helps identify similarities and differences among</span>
+<span class="sd">    multiple structures by quantifying their spatial relationships.</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Struct Map protocol compares several 3D volumes and represents their</span>
+<span class="sd">    relationships in a low-dimensional structural map.</span>
+
+<span class="sd">    When several volumes are available, for example from 3D classification,</span>
+<span class="sd">    different reconstructions, or alternative processing branches, it is often</span>
+<span class="sd">    useful to quantify how similar or different they are. This protocol computes a</span>
+<span class="sd">    pairwise correlation-based distance between all input volumes. It then converts</span>
+<span class="sd">    the resulting distance matrix into coordinate maps using multidimensional</span>
+<span class="sd">    scaling.</span>
+
+<span class="sd">    The output files allow the user to visualize the relative arrangement of the</span>
+<span class="sd">    volumes in one, two, or three dimensions. Volumes that are close in the</span>
+<span class="sd">    structural map are more similar by correlation distance. Volumes that are far</span>
+<span class="sd">    apart are more different.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The input is a set of volumes or a set of 3D classes.</span>
+
+<span class="sd">    If the input is a set of 3D classes, the protocol uses the representative</span>
+<span class="sd">    volume of each class. If the input is a set of volumes, each volume is used</span>
+<span class="sd">    directly.</span>
+
+<span class="sd">    The protocol first rescales all volumes to a common working sampling rate</span>
+<span class="sd">    defined by the target resolution. It also crops them to a common box size so</span>
+<span class="sd">    that pairwise comparisons are technically consistent.</span>
+
+<span class="sd">    Then, for each ordered pair of different volumes, one volume is locally aligned</span>
+<span class="sd">    to the other and a correlation value is computed. The protocol converts this</span>
+<span class="sd">    correlation into a distance using:</span>
+
+<span class="sd">    \[</span>
+<span class="sd">    \text{distance} = 1 - \text{correlation}</span>
+<span class="sd">    \]</span>
+
+<span class="sd">    These distances are assembled into a correlation-distance matrix. Finally, the</span>
+<span class="sd">    protocol applies multidimensional scaling to generate 1D, 2D, and 3D coordinate</span>
+<span class="sd">    representations.</span>
+
+<span class="sd">    ## Input Volume(s)</span>
+
+<span class="sd">    The **Input volume(s)** parameter accepts either:</span>
+
+<span class="sd">    - a **SetOfVolumes**;</span>
+<span class="sd">    - a **SetOfClasses3D**.</span>
+
+<span class="sd">    For a SetOfVolumes, each volume is compared with all the others.</span>
+
+<span class="sd">    For a SetOfClasses3D, the representative volume of each class is used. The</span>
+<span class="sd">    protocol also records class weights corresponding to the number of particles in</span>
+<span class="sd">    each class.</span>
+
+<span class="sd">    The volumes should represent related structures. Comparing unrelated maps is</span>
+<span class="sd">    technically possible, but the resulting structural map may be difficult to</span>
+<span class="sd">    interpret biologically.</span>
+
+<span class="sd">    ## Target Resolution</span>
+
+<span class="sd">    The **Target resolution** parameter defines the resolution used to prepare the</span>
+<span class="sd">    volumes for comparison.</span>
+
+<span class="sd">    The protocol rescales the input volumes so that the target resolution</span>
+<span class="sd">    corresponds approximately to two thirds of the Fourier spectrum. This reduces</span>
+<span class="sd">    the influence of high-frequency noise and focuses the comparison on the</span>
+<span class="sd">    structural scale selected by the user.</span>
+
+<span class="sd">    The default value is 8 Å, which is appropriate for comparing global shapes or</span>
+<span class="sd">    medium-resolution structural differences.</span>
+
+<span class="sd">    A lower numerical target resolution includes finer detail but may make the</span>
+<span class="sd">    comparison more sensitive to noise, local artifacts, or alignment errors. A</span>
+<span class="sd">    higher numerical value focuses on coarser global differences.</span>
+
+<span class="sd">    ## Volume Rescaling and Cropping</span>
+
+<span class="sd">    Before comparing volumes, the protocol brings them to a common scale.</span>
+
+<span class="sd">    It computes a working sampling rate from the target resolution and the sampling</span>
+<span class="sd">    rates of the input volumes. Volumes are resized when necessary and then cropped</span>
+<span class="sd">    to the smallest box size among the input volumes.</span>
+
+<span class="sd">    This ensures that all volumes can be compared on compatible grids.</span>
+
+<span class="sd">    Users should still make sure that the volumes are biologically comparable and</span>
+<span class="sd">    that important density is not lost when volumes are cropped to the smallest</span>
+<span class="sd">    box size.</span>
+
+<span class="sd">    ## Pairwise Local Alignment</span>
+
+<span class="sd">    For each pair of different volumes, the protocol locally aligns one volume to</span>
+<span class="sd">    the other before computing the correlation distance.</span>
+
+<span class="sd">    This step reduces the effect of small residual translations or rotations</span>
+<span class="sd">    between volumes. It is important because a poor relative alignment would make</span>
+<span class="sd">    two similar maps appear artificially different.</span>
+
+<span class="sd">    The alignment is local. Therefore, the volumes should already be roughly in the</span>
+<span class="sd">    same orientation and coordinate frame. The protocol is not intended to solve</span>
+<span class="sd">    completely arbitrary relationships between unrelated volumes.</span>
+
+<span class="sd">    ## Correlation Distance</span>
+
+<span class="sd">    After local alignment, the protocol computes the correlation between the two</span>
+<span class="sd">    volumes.</span>
+
+<span class="sd">    The distance used for the structural map is:</span>
+
+<span class="sd">    \[</span>
+<span class="sd">    1 - \text{correlation}</span>
+<span class="sd">    \]</span>
+
+<span class="sd">    A smaller distance means stronger similarity. A larger distance means weaker</span>
+<span class="sd">    similarity.</span>
+
+<span class="sd">    Because the protocol computes ordered pair comparisons, the distance matrix may</span>
+<span class="sd">    reflect the alignment direction used for each pair. Users should interpret the</span>
+<span class="sd">    matrix as a practical correlation-distance summary rather than as a perfect</span>
+<span class="sd">    mathematical metric.</span>
+
+<span class="sd">    ## Correlation Matrix</span>
+
+<span class="sd">    The protocol writes the pairwise distance matrix to:</span>
+
+<span class="sd">    `CorrMatrix.txt`</span>
+
+<span class="sd">    This matrix contains the distance between every pair of input volumes. The</span>
+<span class="sd">    diagonal entries are zero because each volume is identical to itself in the</span>
+<span class="sd">    comparison matrix.</span>
+
+<span class="sd">    This file is useful for quantitative inspection, clustering, plotting, or</span>
+<span class="sd">    external analysis.</span>
+
+<span class="sd">    ## Structural Coordinate Maps</span>
+
+<span class="sd">    After computing the distance matrix, the protocol applies multidimensional</span>
+<span class="sd">    scaling to obtain low-dimensional coordinates.</span>
+
+<span class="sd">    It writes three coordinate files:</span>
+
+<span class="sd">    - `CoordinateMatrixCorr1.txt`;</span>
+<span class="sd">    - `CoordinateMatrixCorr2.txt`;</span>
+<span class="sd">    - `CoordinateMatrixCorr3.txt`.</span>
+
+<span class="sd">    These files contain 1D, 2D, and 3D embeddings of the input volumes based on</span>
+<span class="sd">    their pairwise correlation distances.</span>
+
+<span class="sd">    The 2D or 3D coordinate maps are usually the most useful for visualization.</span>
+<span class="sd">    Nearby points correspond to similar volumes, while separated points correspond</span>
+<span class="sd">    to more different volumes.</span>
+
+<span class="sd">    ## Weights File</span>
+
+<span class="sd">    The protocol writes a file named:</span>
+
+<span class="sd">    `weights.txt`</span>
+
+<span class="sd">    For input 3D classes, the weights correspond to the number of particles in each</span>
+<span class="sd">    class. For input volumes, the weights are set to 1.</span>
+
+<span class="sd">    These weights can be useful when plotting the structural map. For example,</span>
+<span class="sd">    class points can be drawn with sizes proportional to the number of particles</span>
+<span class="sd">    they represent.</span>
+
+<span class="sd">    ## Interpretation of the Structural Map</span>
+
+<span class="sd">    The structural map should be interpreted as a relative similarity map of the</span>
+<span class="sd">    input volumes.</span>
+
+<span class="sd">    Clusters of nearby volumes suggest similar structures or similar class</span>
+<span class="sd">    representatives. Gradual arrangements may suggest continuous variability or</span>
+<span class="sd">    progressive structural changes. Isolated points may indicate distinct classes,</span>
+<span class="sd">    outliers, artifacts, or volumes that differ strongly from the rest.</span>
+
+<span class="sd">    The map is based on correlation distance after local alignment and rescaling.</span>
+<span class="sd">    It does not directly identify the biological cause of differences. Differences</span>
+<span class="sd">    may arise from conformational variability, compositional heterogeneity,</span>
+<span class="sd">    resolution differences, noise, masking, reconstruction artifacts, or alignment</span>
+<span class="sd">    issues.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    Use this protocol when you have several related volumes and want to summarize</span>
+<span class="sd">    their structural relationships.</span>
+
+<span class="sd">    For 3D classification results, use the class representatives as input and</span>
+<span class="sd">    inspect the weights file together with the coordinate map.</span>
+
+<span class="sd">    Start with a target resolution around 8 Å when comparing global or</span>
+<span class="sd">    medium-resolution structural differences.</span>
+
+<span class="sd">    Use a lower target-resolution value only when the volumes are reliable enough</span>
+<span class="sd">    to compare finer details.</span>
+
+<span class="sd">    Make sure volumes are approximately aligned and represent comparable regions</span>
+<span class="sd">    before running the protocol.</span>
+
+<span class="sd">    Inspect the correlation matrix as well as the coordinate maps. A low-dimensional</span>
+<span class="sd">    embedding is a simplification of the full pairwise distance matrix.</span>
+
+<span class="sd">    Be cautious if one input volume has a much smaller box size than the others,</span>
+<span class="sd">    because all volumes are cropped to the smallest dimension.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    Struct Map is a comparative volume-analysis protocol.</span>
+
+<span class="sd">    For biological users, its main value is that it converts a collection of 3D</span>
+<span class="sd">    maps or 3D class representatives into a quantitative structural relationship</span>
+<span class="sd">    map. This can help interpret 3D classification results, compare alternative</span>
+<span class="sd">    reconstructions, identify outlier volumes, or visualize structural variability</span>
+<span class="sd">    among maps.</span>
+
+<span class="sd">    The protocol should be used as an exploratory analysis tool. The structural map</span>
+<span class="sd">    suggests relationships among volumes, but biological interpretation requires</span>
+<span class="sd">    inspection of the original maps, class sizes, reconstruction quality, and the</span>
+<span class="sd">    processing context.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;struct map&#39;</span>
     <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_2_0</span>
     <span class="n">OUTPUT_SUFFIX</span> <span class="o">=</span> <span class="s1">&#39;_</span><span class="si">%d</span><span class="s1">_crop.vol&#39;</span>

@@ -137,7 +137,15 @@
 
 <span class="kn">from</span> <span class="nn">pwem</span> <span class="kn">import</span> <span class="n">emlib</span>
 <span class="kn">from</span> <span class="nn">xmipp3.convert</span> <span class="kn">import</span> <span class="n">getXmippAttribute</span>
-<span class="kn">from</span> <span class="nn">xmipp3.protocols.protocol_deep_micrograph_screen</span> <span class="kn">import</span> <span class="n">XmippProtDeepMicrographScreen</span>
+<span class="kn">from</span> <span class="nn">xmipp3.protocols.protocol_deep_micrograph_screen</span> <span class="kn">import</span> <span class="n">XmippProtDeepMicrographScreen</span><span class="p">,</span> <span class="n">NUM_THUMBNAILS</span>
+<span class="kn">from</span> <span class="nn">xmippLib</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.image</span> <span class="k">as</span> <span class="nn">mpimg</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Patch</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span>
+
 
 <div class="viewcode-block" id="XmippDeepMicrographViewer"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.viewers.viewer_deep_micrograph_cleaner.html#xmipp3.viewers.viewer_deep_micrograph_cleaner.XmippDeepMicrographViewer">[docs]</a><span class="k">class</span> <span class="nc">XmippDeepMicrographViewer</span><span class="p">(</span><span class="n">ProtocolViewer</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;         </span>
@@ -164,10 +172,18 @@
                            <span class="s2">&quot; to the threshold indicated in the box.</span><span class="se">\n</span><span class="s2">&quot;</span>
                            <span class="s2">&quot;If you like the result, save the result&quot;</span>
                            <span class="s2">&quot; with the &#39;+Coordinates&#39; button&quot;</span><span class="p">)</span>
-
+        <span class="n">form</span><span class="o">.</span><span class="n">addParam</span><span class="p">(</span><span class="s1">&#39;visualizeMaskAndMic&#39;</span><span class="p">,</span> <span class="n">LabelParam</span><span class="p">,</span>
+                    <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Visualize </span><span class="si">{</span><span class="n">NUM_THUMBNAILS</span><span class="si">}</span><span class="s2"> micrographs with the mask and coords. overlayed&quot;</span><span class="p">,</span>
+                    <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Visualize micrographs with the DeepMicrographCleaner mask &quot;</span>
+                         <span class="s2">&quot;overlayed using a color transparency and the coords stamp.</span><span class="se">\n</span><span class="s2">&quot;</span>
+                         <span class="s2">&quot;The transparency and the color (blue to yellow) indicates the Deep score factor applied.&quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;Will be shown the first </span><span class="si">{</span><span class="n">NUM_THUMBNAILS</span><span class="si">}</span><span class="s2"> miccrographs.&quot;</span>
+                         <span class="sa">f</span><span class="s2">&quot;If aliasing arise is because the compresion of the thumbnails&quot;</span>
+        <span class="p">)</span>
     <span class="k">def</span> <span class="nf">_getVisualizeDict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;visualizeCoordinates&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizeCoordinates</span><span class="p">,</span>
-                <span class="s1">&#39;visualizeHistogram&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizeHistogram</span><span class="p">}</span>
+                <span class="s1">&#39;visualizeHistogram&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizeHistogram</span><span class="p">,</span>
+                <span class="s1">&#39;visualizeMaskAndMic&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_visualizeMaskAndMic</span><span class="p">}</span>
 
     <span class="k">def</span> <span class="nf">_visualizeCoordinates</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">views</span> <span class="o">=</span> <span class="p">[]</span>
@@ -222,14 +238,71 @@
                 <span class="n">plotter</span><span class="o">.</span><span class="n">createSubPlot</span><span class="p">(</span><span class="s2">&quot;Deep micrograph score&quot;</span><span class="p">,</span>
                                       <span class="s2">&quot;Deep micrograph score&quot;</span><span class="p">,</span>
                                       <span class="s2">&quot;Number of Coordinates&quot;</span><span class="p">)</span>
-                <span class="n">cScores</span> <span class="o">=</span> <span class="p">[</span><span class="n">getXmippAttribute</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">mdLabel</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-                           <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">outCoords</span><span class="p">]</span>
+                <span class="n">cScores</span> <span class="o">=</span> <span class="p">[</span><span class="n">getXmippAttribute</span><span class="p">(</span><span class="n">coord</span><span class="p">,</span> <span class="n">mdLabel</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="k">for</span> <span class="n">coord</span> <span class="ow">in</span> <span class="n">outCoords</span><span class="p">]</span>
                 <span class="n">plotter</span><span class="o">.</span><span class="n">plotHist</span><span class="p">(</span><span class="n">cScores</span><span class="p">,</span> <span class="n">nbins</span><span class="o">=</span><span class="n">numberOfBins</span><span class="p">)</span>
                 <span class="n">views</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">plotter</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; &gt; &#39;outputCoordinates&#39; don&#39;t have &#39;xmipp_zScoreDeepLearning2&#39; label.&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; &gt; Output not ready yet.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">views</span>
+
+    <span class="k">def</span> <span class="nf">_visualizeMaskAndMic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">e</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">saveMicThumbnailWithMask</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">views</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">thumb_dir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">protocol</span><span class="o">.</span><span class="n">_getExtraPath</span><span class="p">(</span><span class="s1">&#39;thumbnails&#39;</span><span class="p">)</span>
+        <span class="n">thumbs</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">thumb_dir</span><span class="p">,</span> <span class="n">f</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">thumb_dir</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;.png&#39;</span><span class="p">)</span>
+        <span class="p">])</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">thumbs</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">thumbs</span><span class="p">)</span>
+        <span class="n">per_page</span> <span class="o">=</span> <span class="mi">15</span>
+        <span class="n">cols</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">per_page</span> <span class="o">/</span> <span class="n">cols</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">page_start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">per_page</span><span class="p">):</span>
+            <span class="n">page_thumbs</span> <span class="o">=</span> <span class="n">thumbs</span><span class="p">[</span><span class="n">page_start</span><span class="p">:</span><span class="n">page_start</span> <span class="o">+</span> <span class="n">per_page</span><span class="p">]</span>
+
+            <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="n">cols</span> <span class="o">*</span> <span class="mi">5</span><span class="p">,</span> <span class="n">rows</span> <span class="o">*</span> <span class="mi">5</span><span class="p">))</span>
+            <span class="n">gs</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">gridspec</span><span class="o">.</span><span class="n">GridSpec</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">figure</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span> <span class="n">wspace</span><span class="o">=</span><span class="mf">0.05</span><span class="p">,</span> <span class="n">hspace</span><span class="o">=</span><span class="mf">0.08</span><span class="p">)</span>
+
+            <span class="n">axes</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">rows</span> <span class="o">*</span> <span class="n">cols</span><span class="p">):</span>
+                <span class="n">r</span><span class="p">,</span> <span class="n">c</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">cols</span><span class="p">)</span>
+                <span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_subplot</span><span class="p">(</span><span class="n">gs</span><span class="p">[</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">])</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+                <span class="n">axes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ax</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">fn</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">page_thumbs</span><span class="p">):</span>
+                <span class="n">img</span> <span class="o">=</span> <span class="n">mpimg</span><span class="o">.</span><span class="n">imread</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+                <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">page_thumbs</span><span class="p">),</span> <span class="n">rows</span> <span class="o">*</span> <span class="n">cols</span><span class="p">):</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">delaxes</span><span class="p">(</span><span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+            <span class="n">cmap</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">get_cmap</span><span class="p">(</span><span class="s1">&#39;YlGnBu&#39;</span><span class="p">)</span>
+            <span class="n">norm</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">colors</span><span class="o">.</span><span class="n">Normalize</span><span class="p">(</span><span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">sm</span> <span class="o">=</span> <span class="n">matplotlib</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="n">norm</span><span class="p">)</span>
+            <span class="n">sm</span><span class="o">.</span><span class="n">set_array</span><span class="p">([])</span>
+
+            <span class="n">cbar_ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">add_axes</span><span class="p">([</span><span class="mf">0.2</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">])</span>
+            <span class="n">cbar</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">sm</span><span class="p">,</span> <span class="n">cax</span><span class="o">=</span><span class="n">cbar_ax</span><span class="p">,</span> <span class="n">orientation</span><span class="o">=</span><span class="s1">&#39;horizontal&#39;</span><span class="p">)</span>
+            <span class="n">cbar</span><span class="o">.</span><span class="n">set_label</span><span class="p">(</span><span class="s1">&#39;Mask deep score&#39;</span><span class="p">)</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">fig</span><span class="o">.</span><span class="n">canvas</span><span class="o">.</span><span class="n">manager</span><span class="o">.</span><span class="n">set_window_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Thumbnails </span><span class="si">{</span><span class="n">page_start</span> <span class="o">+</span> <span class="mi">1</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">page_start</span> <span class="o">+</span> <span class="nb">len</span><span class="p">(</span><span class="n">page_thumbs</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>  <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+            <span class="n">views</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">views</span></div>
 </pre></div>

@@ -222,8 +222,238 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="xmipp3-protocols-protocol-compute-likelihood-module">
-<h1>xmipp3.protocols.protocol_compute_likelihood module<a class="headerlink" href="#xmipp3-protocols-protocol-compute-likelihood-module" title="Permalink to this heading"></a></h1>
+  <div class="section" id="module-xmipp3.protocols.protocol_compute_likelihood">
+<span id="xmipp3-protocols-protocol-compute-likelihood-module"></span><h1>xmipp3.protocols.protocol_compute_likelihood module<a class="headerlink" href="#module-xmipp3.protocols.protocol_compute_likelihood" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">xmipp3.protocols.protocol_compute_likelihood.</span></span><span class="sig-name descname"><span class="pre">XmippProtComputeLikelihood</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_compute_likelihood.html#XmippProtComputeLikelihood"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="../pwem/pwem.protocols.protocol_3d.html#pwem.protocols.protocol_3d.ProtAnalysis3D" title="pwem.protocols.protocol_3d.ProtAnalysis3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtAnalysis3D</span></code></a></p>
+<p>This protocol computes the log likelihood or correlation of a set of
+particles with assigned angles when compared to a set of maps or atomic
+models</p>
+<p>AI Generated:</p>
+<p>Overview</p>
+<dl class="simple">
+<dt>The Log Likelihood protocol evaluates how well experimental cryo-EM particle</dt><dd><p>images agree with one or more reference structures. These references can
+be 3D volumes obtained from previous reconstructions or sets of volumes
+representing different structural states. For each particle, the protocol
+computes a statistical measure—typically a log likelihood score—that
+quantifies how consistent the particle image is with the projections of
+each reference.</p>
+</dd>
+</dl>
+<p>In practice, this protocol answers a biologically meaningful question:</p>
+<p>Given the current particle orientations, which structural model best
+explains each particle image?</p>
+<p>This type of analysis is useful in several situations. It can help compare
+particles against multiple candidate structures, quantify the quality of
+particle assignments, or evaluate how well experimental data support a
+given model. The protocol can also automatically group particles according
+to the reference that best explains them, providing a simple form of
+likelihood-based classification.</p>
+<p>Because the protocol relies on already assigned particle orientations, it
+is typically applied after alignment or refinement steps in the cryo-EM
+workflow.</p>
+<p>Inputs and General Workflow</p>
+<p>The protocol requires two main inputs:</p>
+<p>Input particles</p>
+<p>These must be particle images with assigned projection angles. In other
+words, each particle should already have orientation parameters describing
+how it relates to a 3D structure. These orientations usually come from
+previous reconstruction or refinement steps.</p>
+<p>Reference volumes</p>
+<p>The user can provide either:
+- a single volume, or
+- a set of volumes representing different structural hypotheses or
+conformational states.</p>
+<p>For each particle, the protocol generates projections of the reference
+volume(s) using the particle’s assigned orientation and compares them with
+the experimental image.</p>
+<p>The comparison produces a log likelihood score, reflecting how probable the
+experimental image is given the reference projection and the estimated
+noise. When multiple references are provided, the protocol compares each
+particle against all references and determines which one best explains the
+data.</p>
+<p>Particle and Noise Regions</p>
+<p>A key concept in this protocol is the separation between particle signal
+and background noise. The algorithm estimates the noise statistics from a
+region surrounding the particle and uses this information when computing
+the likelihood score.</p>
+<p>Two parameters control this separation.</p>
+<p>Particle radius. This defines the circular region that contains the particle signal.
+Ideally, this radius should include the full particle but avoid large
+solvent regions. Choosing a value that is too large may dilute the signal,
+while a value that is too small may exclude important structural features.</p>
+<p>If this parameter is left at the default value, the protocol assumes that
+the particle occupies roughly half the image width.</p>
+<p>Noise radius. This defines the outer radius used to estimate background noise. The
+region between the particle radius and the noise radius forms a ring where
+the algorithm measures noise statistics.</p>
+<p>In practice:</p>
+<p>The particle radius should cover the particle.</p>
+<p>The noise radius should extend slightly beyond the particle.</p>
+<p>If the noise radius is not specified, the protocol automatically uses the
+outer image region.</p>
+<p>Correct estimation of noise is important because it strongly affects the
+likelihood calculation.</p>
+<p>Reference Projections and Residual Images</p>
+<p>For each particle and each reference volume, the protocol generates a
+projection of the reference using the particle’s assigned orientation.
+This projection is then compared with the experimental image.</p>
+<p>The difference between the projection and the experimental particle image
+is called the residual image. Residuals contain information about:
+- noise in the experimental image
+- model inaccuracies
+- structural differences between particle and reference</p>
+<p>These residuals are used internally to estimate the likelihood score and
+can optionally be stored for further analysis.</p>
+<p>From a biological perspective, large residuals often indicate that the
+particle is poorly explained by the reference model.</p>
+<p>Gray Level Optimization</p>
+<p>Experimental particle images and simulated projections may differ in
+overall intensity scale. The protocol therefore includes an option to
+optimize the gray scale factor between the projection and the experimental
+image.</p>
+<p>When enabled, the algorithm adjusts the intensity scale to maximize the
+agreement between the two images. This step improves robustness when image
+normalization or detector scaling differs across datasets.</p>
+<p>A parameter called maximum gray change limits how much the scale can vary.
+Restricting this range prevents unrealistic intensity adjustments that
+could artificially inflate the likelihood score.</p>
+<p>In most practical cases, enabling gray optimization improves stability and
+is recommended.</p>
+<p>Normalization Options</p>
+<p>The protocol optionally performs intensity normalization of both particles
+and reference projections. Normalization ensures that the likelihood
+calculation is not biased by global intensity differences.</p>
+<p>Three normalization strategies are available:</p>
+<p>Old Xmipp normalization</p>
+<p>The entire image is normalized so that the mean intensity becomes zero and
+the standard deviation becomes one.</p>
+<p>New Xmipp normalization</p>
+<p>Normalization is performed using only the background region of the image.
+This approach better preserves the particle signal and is generally
+preferred for cryo-EM analysis.</p>
+<p>Ramp normalization</p>
+<p>This method subtracts background gradients before applying normalization.
+It is particularly useful when micrographs contain slow intensity
+variations or illumination gradients.</p>
+<p>For most cryo-EM workflows, the newer normalization approaches provide
+more reliable statistical behavior.</p>
+<p>CTF Considerations</p>
+<p>The protocol can optionally ignore the Contrast Transfer Function (CTF)
+during the comparison between particles and projections.</p>
+<p>In general, CTF effects should be considered during likelihood calculations
+because they influence the appearance of particle images. However, this
+option becomes useful when images have already been CTF-corrected using
+Wiener filtering or similar procedures.</p>
+<p>If the dataset has already undergone strong CTF correction, disabling CTF
+application can avoid redundant processing.</p>
+<p>Outputs and Their Interpretation</p>
+<p>After execution, the protocol produces several outputs.</p>
+<p>Particle set with likelihood values</p>
+<p>Each particle receives a log likelihood score describing how well it
+matches each reference. These values can be used to evaluate particle
+quality or to study the consistency between particles and structural models.</p>
+<p>Residual images (optional)</p>
+<p>Residual images represent the difference between experimental particles
+and reference projections. Inspecting residuals can reveal systematic
+mismatches, noise patterns, or structural variability.</p>
+<p>Likelihood matrix</p>
+<p>Internally, the protocol constructs a matrix containing the likelihood of
+every particle with respect to every reference. This matrix provides a
+quantitative view of how strongly each particle supports each structural
+hypothesis.</p>
+<p>3D classes based on likelihood</p>
+<p>When multiple references are provided, the protocol assigns each particle
+to the reference with the highest likelihood score. The resulting grouping
+is stored as a set of 3D classes, where each class corresponds to one
+reference volume.</p>
+<p>Biologically, this allows users to see which particles are most compatible
+with each structural state.</p>
+<p>Practical Recommendations</p>
+<dl class="simple">
+<dt>In most workflows, this protocol is applied after particle orientations</dt><dd><p>have been determined, typically following a refinement or reconstruction
+step.</p>
+</dd>
+</dl>
+<p>A common use case is to compare particles against several candidate models
+representing different conformations or processing strategies. In this
+situation, the likelihood scores provide a quantitative way to determine
+which model best explains the experimental data.</p>
+<p>When selecting the particle radius, it is usually better to slightly
+overestimate the particle size rather than risk excluding relevant
+structural features. However, the noise ring should still contain a
+reasonable background region for estimating noise variance.</p>
+<p>If the dataset has inconsistent intensity scaling, enabling gray
+optimization usually improves the reliability of the results.</p>
+<p>When analyzing heterogeneous datasets, the likelihood-based classification
+produced by the protocol can serve as an initial indicator of structural
+variability. However, it should not replace dedicated classification
+methods, which are typically more sensitive to subtle conformational
+differences.</p>
+<p>Final Perspective</p>
+<p>Likelihood evaluation provides a statistically grounded way to connect
+experimental particle images with structural models. Rather than relying
+solely on visual inspection or correlation scores, the log likelihood
+measures how probable each particle image is under a given structural
+hypothesis.</p>
+<p>For cryo-EM users, this protocol offers a powerful tool for model
+validation, particle quality assessment, and reference comparison,
+helping ensure that biological interpretations are supported by the
+underlying experimental data.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.NORM_NEW">
+<span class="sig-name descname"><span class="pre">NORM_NEW</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.NORM_NEW" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.NORM_OLD">
+<span class="sig-name descname"><span class="pre">NORM_OLD</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0</span></em><a class="headerlink" href="#xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.NORM_OLD" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.NORM_RAMP">
+<span class="sig-name descname"><span class="pre">NORM_RAMP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2</span></em><a class="headerlink" href="#xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.NORM_RAMP" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.appendRows">
+<span class="sig-name descname"><span class="pre">appendRows</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputSet</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fnXmd</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_compute_likelihood.html#XmippProtComputeLikelihood.appendRows"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.appendRows" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.convertStep">
+<span class="sig-name descname"><span class="pre">convertStep</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_compute_likelihood.html#XmippProtComputeLikelihood.convertStep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.convertStep" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.createOutputStep">
+<span class="sig-name descname"><span class="pre">createOutputStep</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_compute_likelihood.html#XmippProtComputeLikelihood.createOutputStep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.createOutputStep" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.getMasks">
+<span class="sig-name descname"><span class="pre">getMasks</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_compute_likelihood.html#XmippProtComputeLikelihood.getMasks"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.getMasks" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.normalizeParticlesStep">
+<span class="sig-name descname"><span class="pre">normalizeParticlesStep</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_compute_likelihood.html#XmippProtComputeLikelihood.normalizeParticlesStep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.normalizeParticlesStep" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.produceResidualsStep">
+<span class="sig-name descname"><span class="pre">produceResidualsStep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fnVol</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">i</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_compute_likelihood.html#XmippProtComputeLikelihood.produceResidualsStep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.produceResidualsStep" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.stepsExecutionMode">
+<span class="sig-name descname"><span class="pre">stepsExecutionMode</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#xmipp3.protocols.protocol_compute_likelihood.XmippProtComputeLikelihood.stepsExecutionMode" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </div>
 
 

@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_pick_noise</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -144,7 +145,186 @@
 <span class="n">OUT_COORDS_POS_DIR_BASENAME</span><span class="o">=</span> <span class="s2">&quot;pickNoiseOutPosCoordinates&quot;</span>
 
 <div class="viewcode-block" id="XmippProtPickNoise"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_pick_noise.html#xmipp3.protocols.protocol_pick_noise.XmippProtPickNoise">[docs]</a><span class="k">class</span> <span class="nc">XmippProtPickNoise</span><span class="p">(</span><span class="n">ProtParticlePicking</span><span class="p">,</span> <span class="n">XmippProtocol</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Protocol designed pick noise particles in micrographs and not real particles. The protocol allows you to choose the number of noise particles to extract from each micrograph. Set to -1 for extracting the same amount of noise particles as the number true particles for that micrograph &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Protocol designed pick noise particles in micrographs and not real</span>
+<span class="sd">    particles. The protocol allows you to choose the number of noise particles</span>
+<span class="sd">    to extract from each micrograph. Set to -1 for extracting the same amount</span>
+<span class="sd">    of noise particles as the number true particles for that micrograph.</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Pick Noise protocol generates coordinates corresponding to background or</span>
+<span class="sd">    noise regions in micrographs, rather than to true particles.</span>
+
+<span class="sd">    The protocol starts from an existing set of particle coordinates. These input</span>
+<span class="sd">    coordinates define where the real particles are expected to be. The protocol</span>
+<span class="sd">    then selects additional coordinates in the same micrographs, but sufficiently</span>
+<span class="sd">    far from the true particle positions, so that the selected boxes should mostly</span>
+<span class="sd">    contain background noise.</span>
+
+<span class="sd">    The output is a new set of coordinates representing noise particles. These</span>
+<span class="sd">    coordinates can be used to extract noise images for training, validation,</span>
+<span class="sd">    particle screening, method development, or comparison with real particle</span>
+<span class="sd">    images.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The main input is a set of true particle coordinates.</span>
+
+<span class="sd">    The protocol first writes the input coordinates into Xmipp `.pos` files, one</span>
+<span class="sd">    per micrograph. These files are used by the noise-picking program to know which</span>
+<span class="sd">    regions should be avoided.</span>
+
+<span class="sd">    The protocol then runs the Xmipp noise-picking tool on the directory containing</span>
+<span class="sd">    the micrographs. For each micrograph, it selects coordinates away from the</span>
+<span class="sd">    input particle coordinates. Finally, the generated noise coordinates are read</span>
+<span class="sd">    back into Scipion as a new coordinate set.</span>
+
+<span class="sd">    The output coordinate set is linked to the same micrographs as the input</span>
+<span class="sd">    coordinate set.</span>
+
+<span class="sd">    ## Input Coordinates</span>
+
+<span class="sd">    The **Input coordinates** parameter should point to a SetOfCoordinates</span>
+<span class="sd">    containing true particle positions.</span>
+
+<span class="sd">    These coordinates define the exclusion regions for noise picking. In other</span>
+<span class="sd">    words, the protocol uses them to avoid selecting boxes that overlap with known</span>
+<span class="sd">    particles.</span>
+
+<span class="sd">    The quality of the noise coordinates depends on the quality of the input</span>
+<span class="sd">    particle coordinates. If the input set misses many particles, the protocol may</span>
+<span class="sd">    accidentally select some real particles as noise. If the input set contains</span>
+<span class="sd">    many false positives, valid background regions may be unnecessarily excluded.</span>
+
+<span class="sd">    For this reason, it is preferable to use a reasonably clean particle-coordinate</span>
+<span class="sd">    set as input.</span>
+
+<span class="sd">    ## Number of Noise Particles</span>
+
+<span class="sd">    The **Number of noise particles** parameter controls how many noise coordinates</span>
+<span class="sd">    are selected from each micrograph.</span>
+
+<span class="sd">    If a positive number is provided, the protocol tries to select that number of</span>
+<span class="sd">    noise coordinates per micrograph.</span>
+
+<span class="sd">    If the value is set to **-1**, the protocol selects the same number of noise</span>
+<span class="sd">    coordinates as the number of true particle coordinates in each micrograph.</span>
+
+<span class="sd">    The -1 option is useful when the user wants a balanced set of particle and</span>
+<span class="sd">    noise examples. For example, if a micrograph contains 120 particle picks, the</span>
+<span class="sd">    protocol will try to generate 120 noise picks for that micrograph.</span>
+
+<span class="sd">    ## Box Size</span>
+
+<span class="sd">    The protocol uses the box size stored in the input coordinate set.</span>
+
+<span class="sd">    This box size defines the approximate region that would be extracted around</span>
+<span class="sd">    each coordinate. It is important because noise coordinates should be far enough</span>
+<span class="sd">    from true particles that the extracted noise boxes do not contain particle</span>
+<span class="sd">    signal.</span>
+
+<span class="sd">    If the box size is too small, the exclusion around particles may be too small.</span>
+<span class="sd">    If it is too large, the protocol may reject too many possible background</span>
+<span class="sd">    positions, especially in crowded micrographs.</span>
+
+<span class="sd">    The output noise coordinate set keeps the corresponding box-size information.</span>
+
+<span class="sd">    ## Noise Coordinates</span>
+
+<span class="sd">    The coordinates produced by this protocol should be interpreted as background</span>
+<span class="sd">    or non-particle positions.</span>
+
+<span class="sd">    They are not guaranteed to contain pure noise in a strict physical sense.</span>
+<span class="sd">    Depending on the micrograph, some boxes may include ice features, carbon,</span>
+<span class="sd">    contamination, detector artifacts, or very weak unpicked particles. However,</span>
+<span class="sd">    they are selected to avoid the known particle coordinates.</span>
+
+<span class="sd">    This makes them useful as negative examples: image boxes that should not</span>
+<span class="sd">    represent true particles according to the input coordinate set.</span>
+
+<span class="sd">    ## Output Coordinates</span>
+
+<span class="sd">    The main output is **outputCoordinates**, a SetOfCoordinates containing the</span>
+<span class="sd">    picked noise positions.</span>
+
+<span class="sd">    This output is associated with the same micrographs as the input coordinates.</span>
+<span class="sd">    It can be passed to particle extraction protocols to extract noise boxes using</span>
+<span class="sd">    the same extraction logic used for true particles.</span>
+
+<span class="sd">    The output is especially useful when paired with the original particle</span>
+<span class="sd">    coordinates. The user can extract both real particles and noise particles and</span>
+<span class="sd">    compare them in later workflows.</span>
+
+<span class="sd">    ## Typical Uses</span>
+
+<span class="sd">    Noise coordinates can be useful in several situations.</span>
+
+<span class="sd">    They can be used to train or evaluate particle-picking classifiers, where real</span>
+<span class="sd">    particles are positive examples and noise boxes are negative examples.</span>
+
+<span class="sd">    They can help test particle-screening methods by providing a known background</span>
+<span class="sd">    class.</span>
+
+<span class="sd">    They can be useful for estimating background statistics or for comparing</span>
+<span class="sd">    particle images with non-particle image patches.</span>
+
+<span class="sd">    They can also be used in method-development workflows where algorithms need</span>
+<span class="sd">    examples of both signal and noise.</span>
+
+<span class="sd">    ## Interpretation and Limitations</span>
+
+<span class="sd">    The protocol assumes that regions far from known particle coordinates are</span>
+<span class="sd">    reasonable noise candidates.</span>
+
+<span class="sd">    This assumption is useful but not perfect. If the micrograph contains many</span>
+<span class="sd">    unpicked particles, noise coordinates may include true particles. If the</span>
+<span class="sd">    micrograph contains contamination or strong artifacts, some noise coordinates</span>
+<span class="sd">    may correspond to structured non-particle features rather than simple</span>
+<span class="sd">    background.</span>
+
+<span class="sd">    Therefore, the output should be interpreted as “background/noise candidates”</span>
+<span class="sd">    rather than a perfectly pure noise set.</span>
+
+<span class="sd">    Visual inspection is recommended, especially if the noise coordinates will be</span>
+<span class="sd">    used for training machine-learning models.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    Use a clean and representative input coordinate set. The protocol can only</span>
+<span class="sd">    avoid particles that are present in the input coordinates.</span>
+
+<span class="sd">    Use **-1** for the number of noise particles when you want approximately the</span>
+<span class="sd">    same number of noise examples as real particle examples per micrograph.</span>
+
+<span class="sd">    Use a fixed positive number when you want the same number of noise coordinates</span>
+<span class="sd">    from every micrograph, regardless of particle density.</span>
+
+<span class="sd">    Inspect extracted noise boxes before using them for training or validation.</span>
+<span class="sd">    Remove micrographs with strong contamination if they produce misleading</span>
+<span class="sd">    negative examples.</span>
+
+<span class="sd">    Be careful with crowded micrographs. If particles are very dense, it may be</span>
+<span class="sd">    difficult to find many background regions that are truly far from particles.</span>
+
+<span class="sd">    Remember that the protocol creates coordinates only. To obtain actual noise</span>
+<span class="sd">    images, run an extraction protocol using the generated noise coordinates.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    Pick Noise is a support protocol for generating negative examples from</span>
+<span class="sd">    micrographs.</span>
+
+<span class="sd">    For biological users, its main value is that it creates a coordinate set of</span>
+<span class="sd">    background regions that can be processed in parallel with true particle</span>
+<span class="sd">    coordinates. This is useful for particle-picking validation, classifier</span>
+<span class="sd">    training, background analysis, and quality-control workflows.</span>
+
+<span class="sd">    The protocol is most effective when the input particle coordinates are reliable</span>
+<span class="sd">    and when the generated noise coordinates are visually checked before being used</span>
+<span class="sd">    as negative examples.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;pick noise&#39;</span>
     <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_2_0</span>
     

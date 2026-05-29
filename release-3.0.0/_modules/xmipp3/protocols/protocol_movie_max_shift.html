@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_movie_max_shift</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -165,6 +166,222 @@
 <span class="sd">                                                above are met.</span>
 <span class="sd">            - *by frame or movie*: Rejects movies if one of the conditions</span>
 <span class="sd">                                             above are met.</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Movie Maxshift protocol automatically separates aligned movies according</span>
+<span class="sd">    to the amount of motion estimated during movie alignment.</span>
+
+<span class="sd">    During cryo-EM movie acquisition, particles and ice may move because of</span>
+<span class="sd">    beam-induced motion, mechanical instabilities, charging, or other acquisition</span>
+<span class="sd">    effects. Movie-alignment protocols estimate this motion as a sequence of shifts</span>
+<span class="sd">    between frames. If a movie shows excessive motion, it may produce a blurred or</span>
+<span class="sd">    unreliable averaged micrograph even after alignment.</span>
+
+<span class="sd">    This protocol evaluates the alignment shifts already stored in a set of aligned</span>
+<span class="sd">    movies. It can reject movies based on large jumps between consecutive frames,</span>
+<span class="sd">    large total accumulated motion across the whole movie, or a combination of both</span>
+<span class="sd">    criteria.</span>
+
+<span class="sd">    The output consists of accepted and discarded movie sets. When associated</span>
+<span class="sd">    micrographs are available from the previous movie-alignment protocol, the</span>
+<span class="sd">    protocol also produces accepted and discarded micrograph sets.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The main input is a set of previously aligned movies.</span>
+
+<span class="sd">    The protocol does not perform movie alignment itself. Instead, it reads the</span>
+<span class="sd">    shift trajectory already associated with each movie. For each movie, it</span>
+<span class="sd">    computes motion statistics from the X and Y shifts and applies the selected</span>
+<span class="sd">    rejection rule.</span>
+
+<span class="sd">    Movies that satisfy the selected motion-quality criteria are placed in the</span>
+<span class="sd">    accepted output set. Movies that exceed the selected thresholds are placed in</span>
+<span class="sd">    the discarded output set.</span>
+
+<span class="sd">    If the input aligned movies are associated with output micrographs from the</span>
+<span class="sd">    previous alignment protocol, those micrographs are also separated into accepted</span>
+<span class="sd">    and discarded sets using the same movie decisions.</span>
+
+<span class="sd">    ## Input Movies</span>
+
+<span class="sd">    The **Input movies** parameter must point to a set of aligned movies.</span>
+
+<span class="sd">    This is required because the protocol evaluates the shifts estimated during</span>
+<span class="sd">    movie alignment. If the movies do not contain alignment information, the</span>
+<span class="sd">    protocol cannot compute frame-to-frame motion or total movie travel.</span>
+
+<span class="sd">    Typical inputs are movie sets produced by movie-alignment protocols such as</span>
+<span class="sd">    FlexAlign, MotionCorr-like workflows, or other Scipion-compatible alignment</span>
+<span class="sd">    steps.</span>
+
+<span class="sd">    ## Rejection Type</span>
+
+<span class="sd">    The **Rejection type** parameter defines how the protocol decides whether a</span>
+<span class="sd">    movie should be discarded.</span>
+
+<span class="sd">    There are four possible criteria:</span>
+
+<span class="sd">    **By frame** rejects movies if the maximum displacement between two consecutive</span>
+<span class="sd">    frames is larger than the selected frame-shift threshold.</span>
+
+<span class="sd">    **By whole movie** rejects movies if the total accumulated trajectory length</span>
+<span class="sd">    over the full movie is larger than the selected movie-shift threshold.</span>
+
+<span class="sd">    **By frame and movie** rejects movies only if both conditions are met: the movie</span>
+<span class="sd">    has a large frame-to-frame jump and a large total displacement.</span>
+
+<span class="sd">    **By frame or movie** rejects movies if either condition is met. This is the</span>
+<span class="sd">    most conservative option and is the default behavior.</span>
+
+<span class="sd">    The best choice depends on how strict the user wants the quality-control step</span>
+<span class="sd">    to be. The “or” criterion removes any movie that violates either motion limit,</span>
+<span class="sd">    whereas the “and” criterion removes only movies that are problematic by both</span>
+<span class="sd">    measures.</span>
+
+<span class="sd">    ## Maximum Frame Shift</span>
+
+<span class="sd">    The **Max. frame shift** parameter defines the largest allowed displacement</span>
+<span class="sd">    between consecutive frames.</span>
+
+<span class="sd">    The protocol computes the difference between the X and Y shifts of consecutive</span>
+<span class="sd">    frames and converts this displacement into angstroms using the movie sampling</span>
+<span class="sd">    rate. If the largest frame-to-frame displacement exceeds the threshold, the</span>
+<span class="sd">    movie satisfies the frame-rejection condition.</span>
+
+<span class="sd">    Large frame-to-frame jumps may indicate unstable alignment, sudden specimen</span>
+<span class="sd">    movement, stage instability, charging events, or problematic frames. Such jumps</span>
+<span class="sd">    can be especially damaging because they may not be well corrected by smooth</span>
+<span class="sd">    motion models.</span>
+
+<span class="sd">    This threshold is used when the rejection type includes the frame criterion.</span>
+
+<span class="sd">    ## Maximum Movie Shift</span>
+
+<span class="sd">    The **Max. movie shift** parameter defines the largest allowed total travel</span>
+<span class="sd">    across the movie.</span>
+
+<span class="sd">    The protocol computes the distance between consecutive points of the shift</span>
+<span class="sd">    trajectory and sums these distances along the movie. This gives the total path</span>
+<span class="sd">    length traveled by the aligned frames, expressed in angstroms.</span>
+
+<span class="sd">    A movie may have no single extreme jump but still show a large accumulated</span>
+<span class="sd">    motion. Such movies may be less reliable because the specimen has moved</span>
+<span class="sd">    substantially during exposure.</span>
+
+<span class="sd">    This threshold is used when the rejection type includes the whole-movie</span>
+<span class="sd">    criterion.</span>
+
+<span class="sd">    ## Frame-to-Frame Motion Versus Total Motion</span>
+
+<span class="sd">    The two rejection criteria capture different types of problems.</span>
+
+<span class="sd">    Frame-to-frame motion detects sudden jumps. A movie with one abrupt movement</span>
+<span class="sd">    may be rejected even if its total motion is not very large.</span>
+
+<span class="sd">    Total movie motion detects accumulated drift. A movie may move gradually and</span>
+<span class="sd">    smoothly, but if the accumulated travel is very large, the final correction may</span>
+<span class="sd">    still be less reliable.</span>
+
+<span class="sd">    Using both criteria gives a more complete assessment of movie behavior. The</span>
+<span class="sd">    default “by frame or movie” option is strict because it discards movies that</span>
+<span class="sd">    fail either test.</span>
+
+<span class="sd">    ## Accepted Movies</span>
+
+<span class="sd">    The **outputMovies** set contains the movies that pass the selected motion</span>
+<span class="sd">    criteria.</span>
+
+<span class="sd">    These movies keep their original alignment information. They can be used for</span>
+<span class="sd">    downstream processing or for generating accepted micrographs when available.</span>
+
+<span class="sd">    The accepted set should be understood as the subset whose estimated motion is</span>
+<span class="sd">    within the user-defined limits.</span>
+
+<span class="sd">    ## Discarded Movies</span>
+
+<span class="sd">    The **outputMoviesDiscarded** set contains movies that exceed the selected</span>
+<span class="sd">    motion thresholds.</span>
+
+<span class="sd">    A discarded movie is not necessarily completely unusable, but it has motion</span>
+<span class="sd">    behavior that the user decided to consider risky. Users may inspect discarded</span>
+<span class="sd">    movies to decide whether the thresholds are too strict or whether the discarded</span>
+<span class="sd">    movies show real acquisition problems.</span>
+
+<span class="sd">    This output is useful for troubleshooting, quality-control reports, and</span>
+<span class="sd">    understanding how much data is lost because of excessive motion.</span>
+
+<span class="sd">    ## Associated Micrograph Outputs</span>
+
+<span class="sd">    If the input movies come from a previous protocol that also produced</span>
+<span class="sd">    micrographs, Movie Maxshift can separate those micrographs into accepted and</span>
+<span class="sd">    discarded sets using the same movie decisions.</span>
+
+<span class="sd">    Depending on the previous protocol, these may be regular averaged micrographs</span>
+<span class="sd">    or dose-weighted micrographs.</span>
+
+<span class="sd">    This is useful because downstream processing often continues from</span>
+<span class="sd">    micrographs rather than movies. By propagating the movie-level decision to the</span>
+<span class="sd">    micrographs, the protocol allows the user to continue the workflow only with</span>
+<span class="sd">    motion-acceptable micrographs.</span>
+
+<span class="sd">    If no associated micrograph set is found, the protocol still produces the</span>
+<span class="sd">    movie outputs, but no micrograph outputs are created.</span>
+
+<span class="sd">    ## Streaming Behavior</span>
+
+<span class="sd">    The protocol supports streaming input.</span>
+
+<span class="sd">    As new aligned movies appear, their shifts are evaluated and the accepted and</span>
+<span class="sd">    discarded outputs are updated. The output sets remain open while the input</span>
+<span class="sd">    stream is open and are closed when all movies have been processed.</span>
+
+<span class="sd">    This makes the protocol useful for online quality control during data</span>
+<span class="sd">    acquisition or automated processing.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    Use this protocol after movie alignment, not before. It requires alignment</span>
+<span class="sd">    shifts stored in the input movies.</span>
+
+<span class="sd">    Start with the default rejection type, **by frame or movie**, if you want a</span>
+<span class="sd">    conservative quality-control filter.</span>
+
+<span class="sd">    Use **by frame** when you mainly want to detect abrupt jumps between frames.</span>
+
+<span class="sd">    Use **by whole movie** when you mainly want to detect large accumulated drift.</span>
+
+<span class="sd">    Use **by frame and movie** when you want a more permissive rule that discards</span>
+<span class="sd">    only movies with both sudden jumps and large total travel.</span>
+
+<span class="sd">    Inspect a subset of discarded movies and their corresponding micrographs. This</span>
+<span class="sd">    helps determine whether the thresholds are appropriate for the dataset.</span>
+
+<span class="sd">    Be careful with very strict thresholds. They may remove useful data,</span>
+<span class="sd">    especially in datasets with strong but well-corrected beam-induced motion.</span>
+
+<span class="sd">    Remember that this protocol evaluates the magnitude of estimated motion. It</span>
+<span class="sd">    does not directly evaluate CTF quality, particle quality, ice contamination, or</span>
+<span class="sd">    final reconstruction performance.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    Movie Maxshift is a movie-alignment quality-control protocol. It uses the</span>
+<span class="sd">    motion trajectory estimated during alignment to identify movies with excessive</span>
+<span class="sd">    frame-to-frame jumps or excessive accumulated drift.</span>
+
+<span class="sd">    For biological users and facility workflows, this provides a simple and</span>
+<span class="sd">    interpretable way to remove movies that may compromise downstream processing.</span>
+<span class="sd">    It is especially useful in automated pipelines, where problematic movies should</span>
+<span class="sd">    be detected and separated before CTF estimation, particle picking, and</span>
+<span class="sd">    reconstruction.</span>
+
+<span class="sd">    The protocol is most effective when thresholds are chosen in relation to the</span>
+<span class="sd">    expected motion behavior of the dataset and when accepted/discarded results are</span>
+<span class="sd">    checked visually during workflow setup.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;movie maxshift&#39;</span>
     <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">PROD</span>

@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_apply_transformation_matrix</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -144,6 +145,115 @@
 <span class="sd">    Note:</span>
 <span class="sd">    These particles are practically related to the </span>
 <span class="sd">    aligned volume (but before alignment).</span>
+
+<span class="sd">    AI Generated:</span>
+
+<span class="sd">    What this protocol is for</span>
+
+<span class="sd">    Apply transformation matrix is a metadata-propagation tool that updates the</span>
+<span class="sd">    angular assignment (projection alignment transforms) of a particle set</span>
+<span class="sd">    using the rigid transformation stored in a volume. It is meant for</span>
+<span class="sd">    situations where you have aligned a volume to another reference volume</span>
+<span class="sd">    (for example with an “align volume” protocol), and you now want the</span>
+<span class="sd">    particles that generated the original (pre-alignment) volume to be</span>
+<span class="sd">    expressed in the new reference frame.</span>
+
+<span class="sd">    Biologically, this comes up all the time when comparing reconstructions or</span>
+<span class="sd">    consolidating multiple processing branches. If you align one map to another,</span>
+<span class="sd">    the particle orientations associated with the first map become “out of</span>
+<span class="sd">    frame” relative to the aligned map unless you apply the same transformation</span>
+<span class="sd">    to the particle metadata. This protocol does exactly that: it takes the</span>
+<span class="sd">    transformation matrix stored in the aligned volume and composes it onto</span>
+<span class="sd">    every particle’s projection transform so that the particle angles/shifts</span>
+<span class="sd">    are updated consistently.</span>
+
+<span class="sd">    A useful way to think about it is: “I have particles aligned to a volume;</span>
+<span class="sd">    I moved/rotated that volume to match another reference; now I need to</span>
+<span class="sd">    move/rotate the particle orientations in the same way.”</span>
+
+<span class="sd">    Inputs and what they must contain</span>
+
+<span class="sd">    You provide two inputs.</span>
+
+<span class="sd">    The first is an input particle set that must already have projection</span>
+<span class="sd">    alignment (i.e., assigned angles/transform matrices consistent with a 3D</span>
+<span class="sd">    reference). In Scipion terms, these are particles with 3D/projection</span>
+<span class="sd">    alignment metadata, not merely 2D alignment.</span>
+
+<span class="sd">    The second is an input volume that must contain a stored transform. In</span>
+<span class="sd">    practice, this is typically the output aligned volume produced by a</span>
+<span class="sd">    volume-to-volume alignment protocol (the common example is the output of</span>
+<span class="sd">    an “align volume” step). The crucial requirement is that the volume’s</span>
+<span class="sd">    transform represents the mapping you want to apply to the particle poses.</span>
+
+<span class="sd">    This protocol assumes that the input particles are indeed the ones</span>
+<span class="sd">    associated with the pre-aligned version of that volume. If the particle set</span>
+<span class="sd">    is unrelated (different refinement, different reference, different</span>
+<span class="sd">    convention), applying the matrix will produce particle orientations that</span>
+<span class="sd">    are mathematically consistent but biologically meaningless.</span>
+
+<span class="sd">    What the protocol does (conceptually)</span>
+
+<span class="sd">    For each particle, the protocol takes the particle’s current transform</span>
+<span class="sd">    matrix (its projection orientation and shift) and left-multiplies it by the</span>
+<span class="sd">    volume’s transform matrix. The effect is that every particle’s pose is</span>
+<span class="sd">    rotated/translated according to the same rigid-body transform that was</span>
+<span class="sd">    applied to the volume. No image pixels are changed; only the particle</span>
+<span class="sd">    metadata transforms are updated.</span>
+
+<span class="sd">    This means the protocol is fast and deterministic: it is not a refinement</span>
+<span class="sd">    and it does not depend on correlation or optimization. It simply</span>
+<span class="sd">    re-expresses particle orientations in a new coordinate frame.</span>
+
+<span class="sd">    Outputs and how to use them</span>
+
+<span class="sd">    The output is a new SetOfParticles (outputParticles) that is identical to</span>
+<span class="sd">    the input particle set in terms of particle membership and images, but with</span>
+<span class="sd">    updated projection transforms. You would use this output whenever you want</span>
+<span class="sd">    downstream steps (for example, further refinement, comparison,</span>
+<span class="sd">    classification in a common frame, or export) to interpret the particles</span>
+<span class="sd">    according to the aligned volume’s coordinate system.</span>
+
+<span class="sd">    A typical biological workflow is: align volume A to volume B, then apply</span>
+<span class="sd">    A’s alignment transform to the particles that produced A, so that those</span>
+<span class="sd">    particles are now consistent with the aligned A (and therefore comparable</span>
+<span class="sd">    to B). This is especially helpful when you want to merge particle sets,</span>
+<span class="sd">    compare angular distributions across processing branches, or build</span>
+<span class="sd">    consistent “state-to-state” comparisons where each state was reconstructed</span>
+<span class="sd">    independently but later brought into a common frame.</span>
+
+<span class="sd">    What this protocol does not do (important for interpretation)</span>
+
+<span class="sd">    This protocol does not improve alignment quality and does not validate</span>
+<span class="sd">    anything. If the volume-to-volume alignment transform is wrong or ambiguous</span>
+<span class="sd">    (for instance due to symmetry, masking issues, or heterogeneity), then the</span>
+<span class="sd">    particle updates will also be wrong. In biological practice, it is</span>
+<span class="sd">    therefore wise to first verify that the aligned volume truly matches the</span>
+<span class="sd">    intended reference (visual overlay, landmark comparison, fitting of a known</span>
+<span class="sd">    model, etc.) before propagating the transform to particles and using them</span>
+<span class="sd">    for further quantitative analysis.</span>
+
+<span class="sd">    Also, because this protocol updates only metadata, it is not the right tool</span>
+<span class="sd">    if your goal is to create a physically transformed particle stack where</span>
+<span class="sd">    pixels have been rotated/shifted. For that, you would use protocols that</span>
+<span class="sd">    apply transforms to images (like 2D apply alignment or similar image</span>
+<span class="sd">    transformation steps). Here, the objective is coordinate-frame consistency</span>
+<span class="sd">    for projection parameters.</span>
+
+<span class="sd">    Practical recommendations</span>
+
+<span class="sd">    This protocol is most valuable when you are building multi-branch workflows</span>
+<span class="sd">    and need all results to live in a shared frame. It is also helpful when</span>
+<span class="sd">    preparing data for downstream steps that assume one consistent reference</span>
+<span class="sd">    orientation, such as some comparative analyses or downstream integration</span>
+<span class="sd">    with external modeling pipelines.</span>
+
+<span class="sd">    As a sanity check after running, it is good practice to examine whether</span>
+<span class="sd">    downstream steps that depend on orientation—such as reprojections, angular</span>
+<span class="sd">    distributions, or quick refinements—behave as expected. If something looks</span>
+<span class="sd">    “rotated wrong” globally, that often indicates that the volume transform</span>
+<span class="sd">    being propagated was not the one you intended (or that symmetry introduced</span>
+<span class="sd">    an alternative but equivalent solution).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;apply transformation matrix&#39;</span>

@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_denoise_particles</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -145,6 +146,167 @@
 <span class="sd">    passed through is known to remove part of the signal with the noise. </span>
 <span class="sd">    However this is a good method for clearly see which particle are we </span>
 <span class="sd">    going to process before it&#39;s done.</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Denoise Particles protocol produces a strongly filtered version of a</span>
+<span class="sd">    particle set by projecting the particles onto a reduced basis learned from</span>
+<span class="sd">    2D class averages or averages supplied by the user. The goal is not to</span>
+<span class="sd">    create particles for high-resolution reconstruction, but to obtain</span>
+<span class="sd">    cleaner-looking images that make it easier to visually understand what</span>
+<span class="sd">    kind of particles are present in the dataset.</span>
+
+<span class="sd">    In practical cryo-EM workflows, this protocol is mainly a **visualization</span>
+<span class="sd">    and inspection tool**. It can help the user assess whether a set of</span>
+<span class="sd">    particles is broadly consistent with a given 2D classification, whether</span>
+<span class="sd">    the particles contain recognizable structural signal, or whether large</span>
+<span class="sd">    fractions of the dataset look suspicious. Because the filtering is</span>
+<span class="sd">    intentionally strong, it also removes part of the true signal together</span>
+<span class="sd">    with the noise. For that reason, the output should not be interpreted as a</span>
+<span class="sd">    faithful restoration of the experimental images.</span>
+
+<span class="sd">    For a biological user, the main value of this protocol is that it gives a</span>
+<span class="sd">    simplified, less noisy view of the data, which is often useful before</span>
+<span class="sd">    making decisions about subsequent processing.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The protocol requires two inputs: a **set of particles** to be denoised and</span>
+<span class="sd">    a **set of classes or averages** used to construct the basis for denoising.</span>
+
+<span class="sd">    The input particles must already have **alignment information** relative to</span>
+<span class="sd">    the chosen classes or averages. This is the standard situation after 2D</span>
+<span class="sd">    classification methods such as CL2D or ML2D. This requirement is important</span>
+<span class="sd">    because the denoising relies on the particles being expressed in a</span>
+<span class="sd">    coordinate system that is consistent with the basis learned from the class</span>
+<span class="sd">    information.</span>
+
+<span class="sd">    The workflow has two conceptual stages. First, the protocol builds a</span>
+<span class="sd">    PCA-like basis from the supplied classes or averages. Second, each particle</span>
+<span class="sd">    is projected onto a selected number of basis components, and the particle</span>
+<span class="sd">    is reconstructed from that reduced representation. The reconstructed image</span>
+<span class="sd">    is smoother and less noisy than the original one, but it is also more</span>
+<span class="sd">    model-driven.</span>
+
+<span class="sd">    ## The Role of the Input Classes or Averages</span>
+
+<span class="sd">    The classes or averages define the space of images in which the particles</span>
+<span class="sd">    will be represented. In other words, the denoising is guided by the</span>
+<span class="sd">    dominant patterns present in those reference images.</span>
+
+<span class="sd">    Biologically, this means that the result depends strongly on the quality</span>
+<span class="sd">    and relevance of the chosen classes. If the input classes represent the</span>
+<span class="sd">    real structural views present in the particles, the denoised images can</span>
+<span class="sd">    become much easier to interpret. If the classes are poor, heterogeneous, or</span>
+<span class="sd">    not representative of the particles, the denoising may produce misleading</span>
+<span class="sd">    images.</span>
+
+<span class="sd">    This is therefore not a generic image denoiser. It is a</span>
+<span class="sd">    **class-guided denoising procedure**, and its output reflects the image</span>
+<span class="sd">    space spanned by the chosen classes or averages.</span>
+
+<span class="sd">    ## Basis Construction</span>
+
+<span class="sd">    The protocol constructs a reduced basis using a rotational PCA procedure.</span>
+<span class="sd">    The purpose of this basis is to capture the main modes of variation present</span>
+<span class="sd">    in the input classes or averages.</span>
+
+<span class="sd">    Two parameters are especially relevant here. The</span>
+<span class="sd">    **maximum number of classes** controls how many reference images are used</span>
+<span class="sd">    to build the basis. The **maximum number of PCA bases** controls how many</span>
+<span class="sd">    components are retained during basis construction.</span>
+
+<span class="sd">    In practice, using more classes can make the basis more representative of</span>
+<span class="sd">    the structural diversity in the data, but also potentially more</span>
+<span class="sd">    heterogeneous. Using fewer classes produces a simpler basis, which may be</span>
+<span class="sd">    easier to interpret but may not capture all meaningful views.</span>
+
+<span class="sd">    Similarly, a larger number of PCA components allows a richer representation,</span>
+<span class="sd">    while a smaller number enforces stronger simplification.</span>
+
+<span class="sd">    ## Denoising by Projection onto the Basis</span>
+
+<span class="sd">    Once the basis has been computed, each particle is projected onto a chosen</span>
+<span class="sd">    number of PCA components, and the image is reconstructed from that</span>
+<span class="sd">    projection.</span>
+
+<span class="sd">    This is the central denoising step. By representing each particle with only</span>
+<span class="sd">    the main components of the basis, much of the small-scale noise is</span>
+<span class="sd">    suppressed. At the same time, image details that are not well represented</span>
+<span class="sd">    by the basis may also disappear.</span>
+
+<span class="sd">    The key parameter here is the **number of PCA bases on which to project**.</span>
+<span class="sd">    Smaller values lead to more aggressive denoising and smoother particles,</span>
+<span class="sd">    but at the risk of oversimplifying them. Larger values preserve more</span>
+<span class="sd">    detail, but also keep more noise.</span>
+
+<span class="sd">    A practical way to think about this is that the number of projection bases</span>
+<span class="sd">    controls the balance between interpretability and faithfulness to the</span>
+<span class="sd">    original data.</span>
+
+<span class="sd">    ## Interpretation of the Output</span>
+
+<span class="sd">    The output is a new **set of particles** containing denoised images. These</span>
+<span class="sd">    particles preserve the identity of the input particles, but their image</span>
+<span class="sd">    content has been replaced by a filtered reconstruction derived from the</span>
+<span class="sd">    learned basis.</span>
+
+<span class="sd">    These denoised particles are useful for:</span>
+<span class="sd">    * visually inspecting the dominant particle appearance,</span>
+<span class="sd">    * checking whether the dataset broadly matches the chosen classes,</span>
+<span class="sd">    * identifying obvious mismatches or poor-quality subsets,</span>
+<span class="sd">    * preparing exploratory visual summaries of particle content.</span>
+
+<span class="sd">    However, they should **not** be used as a substitute for the original</span>
+<span class="sd">    particles in serious downstream processing such as high-resolution</span>
+<span class="sd">    refinement or final reconstruction. The protocol documentation is explicit</span>
+<span class="sd">    on this point: the filtering is strong and removes genuine signal together</span>
+<span class="sd">    with noise.</span>
+
+<span class="sd">    From a biological perspective, the output is best interpreted as an</span>
+<span class="sd">    illustrative representation of the particles, not as a more accurate</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    This protocol is best used after a meaningful 2D classification, when the</span>
+<span class="sd">    user already has class averages that reflect the major views present in the</span>
+<span class="sd">    dataset. In that situation, the denoised particles can provide a very</span>
+<span class="sd">    intuitive picture of what the particle set contains.</span>
+
+<span class="sd">    A good starting point is to use a reasonably representative class set and a</span>
+<span class="sd">    moderate number of PCA components. If the denoised particles still look too</span>
+<span class="sd">    noisy, the number of projection components can be reduced. If they look</span>
+<span class="sd">    oversmoothed or overly similar, it may be better to increase the number of</span>
+<span class="sd">    components or revise the class set used to build the basis.</span>
+
+<span class="sd">    Users should be cautious when the dataset contains substantial</span>
+<span class="sd">    heterogeneity. If the class set represents only one subset of the data,</span>
+<span class="sd">    particles belonging to other states may be poorly represented and may be</span>
+<span class="sd">    denoised into misleading images.</span>
+
+<span class="sd">    ## Outputs and Their Interpretation</span>
+
+<span class="sd">    The protocol produces a new set called **outputParticles**, which contains</span>
+<span class="sd">    the denoised version of the input particle images.</span>
+
+<span class="sd">    The output keeps the general metadata and identity of the original set, but</span>
+<span class="sd">    the particle images now correspond to the filtered reconstructions. This</span>
+<span class="sd">    makes it easy to compare the denoised particles with the originals or to</span>
+<span class="sd">    use them for visual inspection in the same workflow context.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    The Denoise Particles protocol is a guided image-simplification tool</span>
+<span class="sd">    designed to help users look at noisy particle data through the lens of an</span>
+<span class="sd">    existing class-based representation. Its main purpose is not to improve the</span>
+<span class="sd">    dataset for reconstruction, but to make it easier to understand and inspect.</span>
+
+<span class="sd">    For most cryo-EM users, it should be viewed as a convenient visualization</span>
+<span class="sd">    aid: useful for exploring, checking, and communicating what the particles</span>
+<span class="sd">    look like, but not as a replacement for the original experimental images in</span>
+<span class="sd">    quantitative processing.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;denoise particles&#39;</span>
 

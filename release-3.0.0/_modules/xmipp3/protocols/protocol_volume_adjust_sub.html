@@ -147,7 +147,7 @@
 <span class="sd">    used by both  XmippProtVolSubtraction and XmippProtVolAdjust.&quot;&quot;&quot;</span>
 
     <span class="n">_possibleOutputs</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;outputVolume&quot;</span><span class="p">:</span> <span class="n">Volume</span><span class="p">}</span>
-    <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">UPDATED</span>
+    <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">PROD</span>
 
     <span class="c1"># --------------------------- DEFINE param functions --------------------------------------------</span>
     <span class="nd">@classmethod</span>
@@ -204,7 +204,250 @@
 <div class="viewcode-block" id="XmippProtVolSubtraction"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_volume_adjust_sub.html#xmipp3.protocols.protocol_volume_adjust_sub.XmippProtVolSubtraction">[docs]</a><span class="k">class</span> <span class="nc">XmippProtVolSubtraction</span><span class="p">(</span><span class="n">XmippProtVolAdjBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; This protocol scales a volume in order to adjust it to another one. Then, it can calculate the subtraction</span>
 <span class="sd">    of the two volumes. Second input can be a pdb. The volumes should be aligned previously and they have to</span>
-<span class="sd">    be equal in size&quot;&quot;&quot;</span>
+<span class="sd">    be equal in size.</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Volumes Subtraction protocol adjusts one volume to another and then</span>
+<span class="sd">    subtracts it.</span>
+
+<span class="sd">    This protocol is useful when two aligned 3D maps represent related structures</span>
+<span class="sd">    and the user wants to remove the signal of one map from the other. A common</span>
+<span class="sd">    case is subtracting a known component, domain, ligand, fitted atomic model, or</span>
+<span class="sd">    reference density from a larger map in order to highlight remaining density.</span>
+
+<span class="sd">    The protocol first adjusts the amplitudes of the second input to make it</span>
+<span class="sd">    comparable with the first volume. It can then subtract the adjusted second</span>
+<span class="sd">    volume from the first one. This adjustment step is important because direct</span>
+<span class="sd">    subtraction of two maps with different scales, filtering, or amplitude behavior</span>
+<span class="sd">    can produce misleading residual density.</span>
+
+<span class="sd">    The main output is a new volume containing the subtraction result.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The protocol requires a first volume, called **Volume 1**, which acts as the</span>
+<span class="sd">    reference volume.</span>
+
+<span class="sd">    The second input can be provided in two ways:</span>
+
+<span class="sd">    - as a second volume;</span>
+<span class="sd">    - as an atomic structure, from which the protocol generates a density volume</span>
+<span class="sd">      and mask.</span>
+
+<span class="sd">    The input volumes should already be aligned and should have the same size. The</span>
+<span class="sd">    protocol is not intended to perform global map alignment before subtraction.</span>
+
+<span class="sd">    If masks are provided, they are used to guide the adjustment and subtraction.</span>
+<span class="sd">    The protocol can also filter the input volumes to a selected resolution before</span>
+<span class="sd">    performing the operation.</span>
+
+<span class="sd">    After running, the protocol creates an output volume named `output_volume.mrc`.</span>
+
+<span class="sd">    ## Volume 1</span>
+
+<span class="sd">    The **Volume 1 (reference)** parameter defines the map from which the second</span>
+<span class="sd">    volume will be subtracted.</span>
+
+<span class="sd">    This volume provides the reference sampling rate, origin, and output metadata.</span>
+<span class="sd">    If the input file is an MRC file, the protocol preserves the origin information</span>
+<span class="sd">    from the MRC header in the output volume.</span>
+
+<span class="sd">    Biologically, this should usually be the map containing the density that the</span>
+<span class="sd">    user wants to analyze after subtracting another component.</span>
+
+<span class="sd">    ## Second Input as a Volume</span>
+
+<span class="sd">    If **Is the second input a PDB?** is set to **No**, the user provides **Volume</span>
+<span class="sd">    2**.</span>
+
+<span class="sd">    This volume is adjusted to Volume 1 and then subtracted from it.</span>
+
+<span class="sd">    The two volumes should already be in the same coordinate frame, have the same</span>
+<span class="sd">    box size, and represent comparable density. If the volumes are shifted,</span>
+<span class="sd">    rotated, or sampled inconsistently, the subtraction result will be unreliable.</span>
+
+<span class="sd">    ## Second Input as a PDB</span>
+
+<span class="sd">    If **Is the second input a PDB?** is set to **Yes**, the protocol converts an</span>
+<span class="sd">    atomic structure into a density map.</span>
+
+<span class="sd">    The PDB can be provided either as a Scipion atomic-structure object or as a</span>
+<span class="sd">    local file. The protocol generates a volume from the atomic model using the</span>
+<span class="sd">    sampling rate, size, and origin of Volume 1. It also generates a mask for the</span>
+<span class="sd">    PDB-derived volume.</span>
+
+<span class="sd">    This option can be convenient, but the protocol help explicitly warns that it</span>
+<span class="sd">    is not the recommended workflow. Automatic PDB-to-map conversion can be</span>
+<span class="sd">    sensitive to origin mismatches. A safer workflow is to convert the PDB to a map</span>
+<span class="sd">    in a separate step, inspect the result, and then use the inspected map as</span>
+<span class="sd">    Volume 2.</span>
+
+<span class="sd">    ## Masks</span>
+
+<span class="sd">    The **Mask volumes?** option controls whether masks are used.</span>
+
+<span class="sd">    Masks are not mandatory, but they are highly recommended. They define the</span>
+<span class="sd">    regions of each volume that should guide the adjustment and subtraction.</span>
+
+<span class="sd">    When masks are enabled, the user provides:</span>
+
+<span class="sd">    - **Mask for volume 1**;</span>
+<span class="sd">    - **Mask for volume 2**, unless the second input is a PDB, in which case the</span>
+<span class="sd">      protocol generates the second mask automatically.</span>
+
+<span class="sd">    Good masks should include the relevant molecular density and avoid excessive</span>
+<span class="sd">    background. Poor masks can produce incorrect amplitude adjustment or unwanted</span>
+<span class="sd">    subtraction artifacts.</span>
+
+<span class="sd">    ## Filter Resolution</span>
+
+<span class="sd">    The **Filter at resolution** parameter defines the resolution, in angstroms,</span>
+<span class="sd">    at which the input volumes are filtered before subtraction.</span>
+
+<span class="sd">    Filtering can make the subtraction more robust by removing high-frequency</span>
+<span class="sd">    differences that should not drive the adjustment. This is especially useful</span>
+<span class="sd">    when the two maps have different noise levels or effective resolutions.</span>
+
+<span class="sd">    A value of **0** means that no filtering is applied.</span>
+
+<span class="sd">    If a positive value is used, the protocol converts the resolution into a</span>
+<span class="sd">    Fourier cutoff using the sampling rate of Volume 1.</span>
+
+<span class="sd">    ## Filter Decay Sigma</span>
+
+<span class="sd">    The **Decay of the filter (sigma)** parameter controls the smoothness of the</span>
+<span class="sd">    filter transition when filtering is applied.</span>
+
+<span class="sd">    A smoother transition can reduce ringing and sharp cutoff artifacts.</span>
+
+<span class="sd">    This is an advanced parameter. Most users should keep the default unless they</span>
+<span class="sd">    have a specific reason to tune the filtering behavior.</span>
+
+<span class="sd">    ## Number of Iterations</span>
+
+<span class="sd">    The **Number of iterations** parameter controls how many iterations are used by</span>
+<span class="sd">    the adjustment/subtraction algorithm.</span>
+
+<span class="sd">    More iterations allow the adjustment process more opportunity to converge, but</span>
+<span class="sd">    increase computation time.</span>
+
+<span class="sd">    The default value is intended as a practical starting point.</span>
+
+<span class="sd">    ## Relaxation Factor</span>
+
+<span class="sd">    The **Relaxation factor (lambda)** controls the strength of the Fourier</span>
+<span class="sd">    amplitude adjustment.</span>
+
+<span class="sd">    The value must be between 0 and 1.</span>
+
+<span class="sd">    A value of 1 means no relaxation in the update. A value closer to 0 makes the</span>
+<span class="sd">    amplitude modification weaker. The protocol validates that this value remains</span>
+<span class="sd">    inside the allowed range.</span>
+
+<span class="sd">    This is an advanced parameter and should usually be left at its default unless</span>
+<span class="sd">    the user understands the adjustment behavior.</span>
+
+<span class="sd">    ## Rotationally Averaged Fourier Amplitudes</span>
+
+<span class="sd">    The **Match the rotationally averaged Fourier amplitudes?** option controls how</span>
+<span class="sd">    Fourier amplitudes are adjusted.</span>
+
+<span class="sd">    When enabled, the protocol matches rotationally averaged Fourier amplitudes</span>
+<span class="sd">    rather than directly taking amplitudes from the reference volume.</span>
+
+<span class="sd">    For subtraction and consensus-like uses, this option is recommended. It helps</span>
+<span class="sd">    avoid overly local or direction-specific amplitude transfer and makes the</span>
+<span class="sd">    adjustment more stable.</span>
+
+<span class="sd">    For sharpening-like workflows, the form help indicates that this option is</span>
+<span class="sd">    usually less appropriate.</span>
+
+<span class="sd">    ## Compute Energy</span>
+
+<span class="sd">    The **Compute energy?** option asks the protocol to compute the energy</span>
+<span class="sd">    difference between adjustment steps and iterations.</span>
+
+<span class="sd">    This is useful for checking whether the method is converging.</span>
+
+<span class="sd">    It is an advanced diagnostic option. It does not change the biological meaning</span>
+<span class="sd">    of the output, but it can help understand whether the adjustment behaved</span>
+<span class="sd">    stably.</span>
+
+<span class="sd">    ## Save Intermediate Files</span>
+
+<span class="sd">    The **Save intermediate files?** option stores additional files:</span>
+
+<span class="sd">    - filtered Volume 1;</span>
+<span class="sd">    - adjusted Volume 2.</span>
+
+<span class="sd">    These are the volumes that are actually used in the subtraction.</span>
+
+<span class="sd">    Saving them is useful for debugging and interpretation, because it allows the</span>
+<span class="sd">    user to inspect what was subtracted after filtering and adjustment. The option</span>
+<span class="sd">    is disabled by default to avoid unnecessary files.</span>
+
+<span class="sd">    ## Output Volume</span>
+
+<span class="sd">    The main output is **outputVolume**.</span>
+
+<span class="sd">    This volume contains the subtraction result and is written as</span>
+<span class="sd">    `output_volume.mrc`.</span>
+
+<span class="sd">    The output volume uses the sampling rate of Volume 1. If Volume 1 is an MRC</span>
+<span class="sd">    file, the origin from its header is copied to the output.</span>
+
+<span class="sd">    The output should be interpreted as Volume 1 after subtracting the adjusted</span>
+<span class="sd">    second input.</span>
+
+<span class="sd">    ## Interpreting the Result</span>
+
+<span class="sd">    The subtraction result depends strongly on alignment, scaling, masking, and</span>
+<span class="sd">    filtering.</span>
+
+<span class="sd">    A good result can reveal residual density, flexible regions, missing</span>
+<span class="sd">    components, ligands, or conformational differences. A poor result may contain</span>
+<span class="sd">    positive or negative artifacts caused by misalignment, incorrect masks,</span>
+<span class="sd">    different resolutions, or unsuitable amplitude adjustment.</span>
+
+<span class="sd">    The output should therefore always be inspected together with the original</span>
+<span class="sd">    volumes, masks, and, when saved, the adjusted intermediate maps.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    Use this protocol only when the two inputs are already aligned and have the</span>
+<span class="sd">    same box size.</span>
+
+<span class="sd">    Prefer providing a precomputed and inspected map as Volume 2 rather than</span>
+<span class="sd">    letting the protocol convert a PDB automatically, unless the coordinate origin</span>
+<span class="sd">    is very well controlled.</span>
+
+<span class="sd">    Use masks whenever possible.</span>
+
+<span class="sd">    Use resolution filtering when the two maps have different effective resolution</span>
+<span class="sd">    or noise behavior.</span>
+
+<span class="sd">    Keep rotationally averaged amplitude matching enabled for most subtraction</span>
+<span class="sd">    workflows.</span>
+
+<span class="sd">    Save intermediate files when testing parameters or when the subtraction result</span>
+<span class="sd">    is difficult to interpret.</span>
+
+<span class="sd">    Inspect the output carefully before using it for biological conclusions.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    Volumes Subtraction is a map-processing protocol for removing one adjusted</span>
+<span class="sd">    density from another.</span>
+
+<span class="sd">    For biological users, its value is that it can isolate residual density or</span>
+<span class="sd">    focus attention on structural differences between two related maps. The</span>
+<span class="sd">    protocol is most reliable when the input maps are well aligned, consistently</span>
+<span class="sd">    sampled, appropriately masked, and filtered to a resolution suitable for the</span>
+<span class="sd">    comparison.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;volumes subtraction&#39;</span>
     <span class="n">IMPORT_OBJ</span> <span class="o">=</span> <span class="mi">0</span>
@@ -369,7 +612,208 @@
 <div class="viewcode-block" id="XmippProtVolAdjust"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_volume_adjust_sub.html#xmipp3.protocols.protocol_volume_adjust_sub.XmippProtVolAdjust">[docs]</a><span class="k">class</span> <span class="nc">XmippProtVolAdjust</span><span class="p">(</span><span class="n">XmippProtVolAdjBase</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; This protocol scales a volume in order to assimilate it to another one.</span>
 <span class="sd">    The volume with the best resolution should be the first one.</span>
-<span class="sd">    The volumes should be aligned previously and they have to be equal in size&quot;&quot;&quot;</span>
+<span class="sd">    The volumes should be aligned previously and they have to be equal in</span>
+<span class="sd">    size.</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Volume Adjust protocol modifies one volume so that its amplitudes become</span>
+<span class="sd">    more comparable to a reference volume.</span>
+
+<span class="sd">    Unlike the Volumes Subtraction protocol, this protocol does not subtract the</span>
+<span class="sd">    second volume from the first one. Instead, it adjusts **Volume 2** to resemble</span>
+<span class="sd">    **Volume 1** in terms of Fourier amplitude behavior and scaling. The result is</span>
+<span class="sd">    an adjusted version of Volume 2.</span>
+
+<span class="sd">    This is useful when two aligned maps need to be brought to a comparable scale</span>
+<span class="sd">    before visualization, comparison, consensus analysis, subtraction in a later</span>
+<span class="sd">    step, or other processing.</span>
+
+<span class="sd">    The volume with the best resolution should normally be provided as Volume 1,</span>
+<span class="sd">    the reference. Volume 2 is the map that will be modified.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The protocol requires two input volumes:</span>
+
+<span class="sd">    - **Volume 1**, the reference volume;</span>
+<span class="sd">    - **Volume 2**, the volume to be modified.</span>
+
+<span class="sd">    The volumes should already be aligned and should have the same size. The</span>
+<span class="sd">    protocol does not perform global alignment.</span>
+
+<span class="sd">    If masks are enabled, one mask is provided for each volume. The protocol then</span>
+<span class="sd">    runs the Xmipp volume-adjustment procedure, optionally filtering the volumes to</span>
+<span class="sd">    a selected resolution and iterating the adjustment.</span>
+
+<span class="sd">    The output is a new adjusted volume written as `output_volume.mrc`.</span>
+
+<span class="sd">    ## Volume 1</span>
+
+<span class="sd">    The **Volume 1 (reference)** parameter defines the reference map.</span>
+
+<span class="sd">    This volume provides the target amplitude behavior for the adjustment. The</span>
+<span class="sd">    protocol also uses its sampling rate for the output volume. If Volume 1 is an</span>
+<span class="sd">    MRC file, its origin information is copied to the output.</span>
+
+<span class="sd">    The help text indicates that the volume with the best resolution should be used</span>
+<span class="sd">    as Volume 1.</span>
+
+<span class="sd">    ## Volume 2</span>
+
+<span class="sd">    The **Volume 2 (to modify)** parameter defines the map that will be adjusted.</span>
+
+<span class="sd">    The output volume is an adjusted version of this second map. It is modified so</span>
+<span class="sd">    that it becomes more comparable to Volume 1 according to the selected</span>
+<span class="sd">    amplitude-adjustment settings.</span>
+
+<span class="sd">    Volume 2 should already be aligned with Volume 1 and should have the same box</span>
+<span class="sd">    size. If the volumes are not aligned, the adjustment may compensate</span>
+<span class="sd">    incorrectly and the output may be misleading.</span>
+
+<span class="sd">    ## Masks</span>
+
+<span class="sd">    The **Mask volumes?** option controls whether masks are used.</span>
+
+<span class="sd">    Masks are highly recommended because they restrict the adjustment to the</span>
+<span class="sd">    relevant molecular regions and reduce the influence of solvent or background.</span>
+
+<span class="sd">    When masks are enabled, the user provides:</span>
+
+<span class="sd">    - **Mask for volume 1**;</span>
+<span class="sd">    - **Mask for volume 2**.</span>
+
+<span class="sd">    The masks should correspond to the relevant density in each volume. They should</span>
+<span class="sd">    avoid including large background regions unless those regions are intended to</span>
+<span class="sd">    contribute to the adjustment.</span>
+
+<span class="sd">    ## Filter Resolution</span>
+
+<span class="sd">    The **Filter at resolution** parameter defines the resolution, in angstroms,</span>
+<span class="sd">    used to filter the input volumes during adjustment.</span>
+
+<span class="sd">    A value of **0** means no filtering.</span>
+
+<span class="sd">    Filtering can make the adjustment more stable by focusing it on a controlled</span>
+<span class="sd">    frequency range. This is useful when the two maps have different noise levels,</span>
+<span class="sd">    different effective resolutions, or high-frequency features that should not</span>
+<span class="sd">    drive the amplitude adjustment.</span>
+
+<span class="sd">    ## Filter Decay Sigma</span>
+
+<span class="sd">    The **Decay of the filter (sigma)** parameter controls the smoothness of the</span>
+<span class="sd">    filter transition when filtering is applied.</span>
+
+<span class="sd">    A smoother transition can reduce artifacts associated with abrupt Fourier</span>
+<span class="sd">    cutoffs.</span>
+
+<span class="sd">    This is an advanced setting and is usually left at its default value.</span>
+
+<span class="sd">    ## Number of Iterations</span>
+
+<span class="sd">    The **Number of iterations** parameter controls how many adjustment iterations</span>
+<span class="sd">    are performed.</span>
+
+<span class="sd">    More iterations may allow the procedure to converge more fully, but increase</span>
+<span class="sd">    runtime. Too many iterations are not necessarily better if the maps are noisy,</span>
+<span class="sd">    poorly aligned, or poorly masked.</span>
+
+<span class="sd">    The default value is a reasonable starting point.</span>
+
+<span class="sd">    ## Relaxation Factor</span>
+
+<span class="sd">    The **Relaxation factor (lambda)** controls the strength of the Fourier</span>
+<span class="sd">    amplitude projector used during adjustment.</span>
+
+<span class="sd">    The value must be between 0 and 1.</span>
+
+<span class="sd">    A value of 1 corresponds to no relaxation, while a value closer to 0 reduces</span>
+<span class="sd">    the modification applied to the amplitudes. The protocol validates this range</span>
+<span class="sd">    before running.</span>
+
+<span class="sd">    This is an advanced parameter.</span>
+
+<span class="sd">    ## Rotationally Averaged Fourier Amplitudes</span>
+
+<span class="sd">    The **Match the rotationally averaged Fourier amplitudes?** option controls</span>
+<span class="sd">    whether the adjustment matches rotationally averaged Fourier amplitudes.</span>
+
+<span class="sd">    When enabled, the method adjusts Volume 2 using radial amplitude information</span>
+<span class="sd">    rather than directly copying directional amplitude information from Volume 1.</span>
+
+<span class="sd">    This option is recommended for subtraction and consensus-like workflows. The</span>
+<span class="sd">    form help notes that for sharpening workflows it is recommended to set this</span>
+<span class="sd">    option to **False**.</span>
+
+<span class="sd">    ## Compute Energy</span>
+
+<span class="sd">    The **Compute energy?** option asks the program to compute the energy</span>
+<span class="sd">    difference between adjustment steps and iterations.</span>
+
+<span class="sd">    This can help assess whether the adjustment is converging.</span>
+
+<span class="sd">    It is mainly a diagnostic option for advanced users.</span>
+
+<span class="sd">    ## Output Volume</span>
+
+<span class="sd">    The main output is **outputVolume**.</span>
+
+<span class="sd">    This output is the adjusted version of Volume 2, written as</span>
+<span class="sd">    `output_volume.mrc`.</span>
+
+<span class="sd">    The output volume uses the sampling rate of Volume 1. If Volume 1 is an MRC</span>
+<span class="sd">    file, the origin information from its header is copied to the output.</span>
+
+<span class="sd">    The output can be used for comparison, visualization, later subtraction, or</span>
+<span class="sd">    other downstream protocols requiring the second map to be adjusted to the</span>
+<span class="sd">    reference map.</span>
+
+<span class="sd">    ## Interpreting the Result</span>
+
+<span class="sd">    The adjusted volume should be interpreted as Volume 2 after amplitude and scale</span>
+<span class="sd">    adjustment with respect to Volume 1.</span>
+
+<span class="sd">    No biological density is created by the protocol. The output is a transformed</span>
+<span class="sd">    version of the second map designed to make it more comparable to the reference.</span>
+
+<span class="sd">    If the input volumes are poorly aligned, have different masks, contain</span>
+<span class="sd">    different structures, or differ strongly in resolution, the adjustment may</span>
+<span class="sd">    produce artifacts or misleading amplitudes.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    Use Volume 1 as the better resolved or more reliable reference map.</span>
+
+<span class="sd">    Use Volume 2 as the map that should be modified.</span>
+
+<span class="sd">    Make sure both volumes are already aligned and have the same size before</span>
+<span class="sd">    running the protocol.</span>
+
+<span class="sd">    Use masks whenever possible.</span>
+
+<span class="sd">    Use filtering when comparing maps with different noise or resolution behavior.</span>
+
+<span class="sd">    Keep rotationally averaged amplitude matching enabled for consensus or later</span>
+<span class="sd">    subtraction workflows. Consider disabling it only for sharpening-oriented use</span>
+<span class="sd">    cases.</span>
+
+<span class="sd">    Inspect the adjusted output together with both input maps and masks.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    Volume Adjust is a map-normalization and amplitude-adjustment protocol.</span>
+
+<span class="sd">    For biological users, its main value is that it prepares one map to be more</span>
+<span class="sd">    directly comparable with another. This can be useful before subtraction,</span>
+<span class="sd">    consensus analysis, visualization, or other workflows where differences in map</span>
+<span class="sd">    scale and amplitude behavior would otherwise complicate interpretation.</span>
+
+<span class="sd">    The protocol should be used on already aligned volumes and interpreted as a</span>
+<span class="sd">    preparatory adjustment step rather than as an independent validation or</span>
+<span class="sd">    refinement procedure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;volume adjust&#39;</span>
     <span class="n">IMPORT_OBJ</span> <span class="o">=</span> <span class="mi">0</span>

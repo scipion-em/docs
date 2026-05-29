@@ -228,8 +228,190 @@
 <dt class="sig sig-object py" id="xmipp3.protocols.protocol_shift_particles.XmippProtShiftParticles">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">xmipp3.protocols.protocol_shift_particles.</span></span><span class="sig-name descname"><span class="pre">XmippProtShiftParticles</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_shift_particles.html#XmippProtShiftParticles"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_shift_particles.XmippProtShiftParticles" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="../pwem/pwem.protocols.protocol.html#pwem.protocols.protocol.EMProtocol" title="pwem.protocols.protocol.EMProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">EMProtocol</span></code></a></p>
-<p>This protocol shifts particles to center them into a point selected in a volume. To do so, it generates new
-shifted images and modify the transformation matrix according to the shift performed.</p>
+<p>This protocol shifts particles to center them into a point selected in
+a volume. To do so, it generates new shifted images and modify the
+transformation matrix according to the shift performed.</p>
+<p>AI Generated</p>
+<p>## Overview</p>
+<p>The Shift Particles protocol recenters a set of particles according to a
+selected 3D position.</p>
+<p>In single-particle workflows, particle images may need to be shifted so that a
+particular structural point becomes the new center. This can be useful when the
+particles were extracted around a suboptimal center, when the user wants to
+focus on a specific region of a larger complex, or when a volume-derived point
+should define the new particle origin.</p>
+<p>This protocol shifts particles using either:</p>
+<ul class="simple">
+<li><p>a user-selected point in a volume;</p></li>
+<li><p>the center of mass of a 3D mask.</p></li>
+</ul>
+<p>The protocol can either apply the shift directly to the particle images or
+store the shift in the particle transformation matrices for later application.</p>
+<p>The main output is a new particle set with updated alignment information. The
+protocol also outputs the X, Y, and Z shift values used.</p>
+<p>## Inputs and General Workflow</p>
+<p>The input is a set of particles with projection-alignment transformation
+matrices.</p>
+<p>The protocol first converts the particle set to Xmipp metadata format. It then
+determines the 3D point that should become the new center. This point can come
+from the coordinates selected by the user in a volume, or from the center of
+mass of an input 3D mask.</p>
+<p>The protocol then calls the Xmipp geometry transformation program to shift the
+particles. Depending on the selected options, the shift is applied to the
+particle images or stored in the metadata. If requested, the shifted particles
+are also cropped or windowed to a new box size.</p>
+<p>Finally, the protocol creates an output particle set and stores the shift
+values as scalar outputs.</p>
+<p>## Input Particles</p>
+<p>The <strong>Particles</strong> parameter defines the particle set to be shifted.</p>
+<p>The particles must contain transformation matrices. These transformations are
+needed because the protocol updates the particle alignment information
+according to the selected 3D shift.</p>
+<p>If the input particles do not have transformation matrices, the protocol
+reports a validation error.</p>
+<p>This protocol is therefore intended for particles that have already been
+assigned projection-alignment information, for example after refinement,
+classification, or alignment.</p>
+<p>## Select Position in Volume</p>
+<p>The <strong>Select position in volume?</strong> option controls how the new center is
+defined.</p>
+<p>If this option is enabled, the user provides a volume and selects a point in
+that volume using the wizard. The selected point defines the 3D position to
+which the particles should be shifted.</p>
+<p>This is useful when the desired center is a specific structural feature, such
+as a domain, binding site, symmetry center, or region of interest.</p>
+<p>If this option is disabled, the protocol uses a 3D mask and computes its center
+of mass.</p>
+<p>## Volume for Selecting the New Center</p>
+<p>The <strong>Volume</strong> parameter is used when the user selects the new center manually.</p>
+<p>The volume is displayed in the wizard, where the user can choose the point that
+should become the center of the shifted particles.</p>
+<p>The selected coordinates are stored in the <strong>x</strong>, <strong>y</strong>, and <strong>z</strong> parameters.</p>
+<p>The volume should be in the same coordinate frame as the particles. If the
+volume and particles are not consistent, the selected point may not correspond
+to the intended structural location.</p>
+<p>## X, Y, and Z Coordinates</p>
+<p>The <strong>x</strong>, <strong>y</strong>, and <strong>z</strong> parameters store the selected shift target.</p>
+<p>These values define the 3D point used by the Xmipp geometry transformation.</p>
+<p>When the point is selected through the wizard, these parameters are filled with
+the selected coordinates. The protocol then uses them to shift the particles so
+that this point becomes the new center.</p>
+<p>Users should verify that the selected point is meaningful in relation to the
+particle alignment and the reference volume.</p>
+<p>## Volume Mask and Center of Mass</p>
+<p>When <strong>Select position in volume?</strong> is disabled, the <strong>Volume mask</strong> parameter
+is used.</p>
+<p>The protocol reads the mask and computes its center of mass. This center of
+mass becomes the target point for shifting the particles.</p>
+<p>This option is useful when the desired center corresponds to a segmented region
+of the volume, such as a domain or subunit represented by a mask.</p>
+<p>The mask should be defined in the same coordinate frame as the particles and
+should isolate the region whose center should be used. If the mask contains
+multiple disconnected regions or unwanted density, the center of mass may not
+represent the intended point.</p>
+<p>## Apply Shift to Particles</p>
+<p>The <strong>Apply shift to particles?</strong> option controls whether the particle images
+are actually shifted.</p>
+<p>If set to <strong>Yes</strong>, the protocol applies the shift to the particle images. The
+output images are newly transformed, and the metadata are updated accordingly.</p>
+<p>If set to <strong>No</strong>, the particle image files are not transformed. Instead, the
+shift is stored in the transformation matrix metadata. This is faster because
+the images do not need to be rewritten. The shift can later be applied using a
+2D alignment-application protocol or by re-extracting particles.</p>
+<p>Use <strong>Yes</strong> when you need physically shifted particle images immediately. Use
+<strong>No</strong> when you only want to update the alignment metadata and defer image
+resampling to a later step.</p>
+<p>## Box Size</p>
+<p>The <strong>Use original box size for the shifted particles?</strong> option controls
+whether the output particles keep the same box size as the input particles.</p>
+<p>If enabled, the shifted particles keep the original box size.</p>
+<p>If disabled, the user provides a <strong>Final box size</strong>, and the protocol windows
+or crops the shifted particles to that size.</p>
+<p>Changing the box size can be useful when recentering on a smaller region of a
+larger particle, but it should be done carefully. A box that is too small may
+cut off relevant density. A larger or unchanged box may be safer when the
+appropriate final box size is uncertain.</p>
+<p>## Final Box Size</p>
+<p>The <strong>Final box size</strong> parameter is used when the original box size is not
+kept.</p>
+<p>It defines the box size of the output shifted particles.</p>
+<p>The value should be large enough to contain the recentered structure or region
+of interest, including enough surrounding background for downstream processing.</p>
+<p>After shifting, the protocol uses a windowing operation to create particles
+with the requested final size.</p>
+<p>## Inverse Transformation</p>
+<p>The <strong>Inverse</strong> option controls whether the inverse transformation matrix is
+used.</p>
+<p>This is an advanced option related to the convention used for applying the
+particle transformation. The default enables inverse transformation.</p>
+<p>Most users should keep the default unless they know that their workflow
+requires the opposite transformation convention.</p>
+<p>If the particles appear shifted in the wrong direction, this option may be one
+of the settings to check.</p>
+<p>## Interpolation</p>
+<p>The <strong>Interpolation</strong> parameter defines how pixel values are interpolated when
+the shift is applied to the particle images.</p>
+<p>There are two options:</p>
+<p><strong>Linear</strong> interpolation is faster and usually sufficient for many workflows.</p>
+<p><strong>Spline</strong> interpolation may provide smoother interpolation but can be more
+computationally expensive.</p>
+<p>This option matters only when the shift is applied to the particle images. If
+the shift is only stored in metadata, image interpolation is not performed at
+this stage.</p>
+<p>## Output Particles</p>
+<p>The main output is <strong>outputParticles</strong>.</p>
+<p>This output contains the shifted particle set. It copies the information from
+the input particle set and reads the updated Xmipp metadata with projection
+alignment information.</p>
+<p>If the shift was applied, the output points to the transformed particle images.
+If the shift was not applied, the output particles keep image data unchanged
+but carry updated transformation matrices.</p>
+<p>The output particle set can be used in downstream protocols such as alignment
+application, reconstruction, classification, or re-extraction workflows.</p>
+<p>## Shift Outputs</p>
+<p>The protocol also produces three scalar outputs:</p>
+<ul class="simple">
+<li><p><strong>shiftX</strong>;</p></li>
+<li><p><strong>shiftY</strong>;</p></li>
+<li><p><strong>shiftZ</strong>.</p></li>
+</ul>
+<p>These values record the 3D shift target used by the protocol.</p>
+<p>They are useful for documentation, reproducibility, and checking that the
+selected center or mask-derived center of mass was interpreted as expected.</p>
+<p>## Interpretation of the Result</p>
+<p>The output particles should be interpreted as the same particles recentered
+according to the selected 3D point.</p>
+<p>No particle quality assessment, classification, or refinement is performed.
+The protocol only changes the particle centering and alignment metadata.</p>
+<p>If the selected point is biologically meaningful and correctly related to the
+particle alignment, the output can help focus downstream analysis on a desired
+region. If the point is wrong, the particles may become poorly centered.</p>
+<p>## Practical Recommendations</p>
+<p>Use this protocol only with particles that already have valid projection
+transformation matrices.</p>
+<p>Use manual point selection when the desired center is a recognizable structural
+feature in a reference volume.</p>
+<p>Use the mask center of mass when the desired center corresponds to a segmented
+domain or region.</p>
+<p>Make sure that the volume or mask is in the same coordinate frame as the input
+particles.</p>
+<p>Use <strong>Apply shift to particles = No</strong> when you want a fast metadata-only update
+and plan to apply the transformation later.</p>
+<p>Use <strong>Apply shift to particles = Yes</strong> when downstream protocols require the
+particle images to be physically shifted.</p>
+<p>Inspect a subset of output particles to confirm that the recentering worked as
+expected.</p>
+<p>Be cautious when reducing the box size. Ensure that the recentered density is
+not cropped.</p>
+<p>## Final Perspective</p>
+<p>Shift Particles is a recentering utility for aligned particle sets.</p>
+<p>For biological users, it is useful when a dataset should be shifted toward a
+specific structural point, such as a domain, subunit, or mask-defined center of
+mass. The protocol can either rewrite the particle images or store the shift in
+the alignment metadata, giving flexibility between immediate image
+transformation and faster metadata-only workflows.</p>
+<p>The most important requirement is that the selected center, reference volume,
+mask, and particle transformations all share the same coordinate frame.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="xmipp3.protocols.protocol_shift_particles.XmippProtShiftParticles.convertStep">
 <span class="sig-name descname"><span class="pre">convertStep</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_shift_particles.html#XmippProtShiftParticles.convertStep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_shift_particles.XmippProtShiftParticles.convertStep" title="Permalink to this definition"></a></dt>

@@ -222,8 +222,150 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="xmipp3-protocols-protocol-particle-pick-remove-duplicates-module">
-<h1>xmipp3.protocols.protocol_particle_pick_remove_duplicates module<a class="headerlink" href="#xmipp3-protocols-protocol-particle-pick-remove-duplicates-module" title="Permalink to this heading"></a></h1>
+  <div class="section" id="module-xmipp3.protocols.protocol_particle_pick_remove_duplicates">
+<span id="xmipp3-protocols-protocol-particle-pick-remove-duplicates-module"></span><h1>xmipp3.protocols.protocol_particle_pick_remove_duplicates module<a class="headerlink" href="#module-xmipp3.protocols.protocol_particle_pick_remove_duplicates" title="Permalink to this heading"></a></h1>
+<dl class="py class">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_particle_pick_remove_duplicates.XmippProtPickingRemoveDuplicates">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">xmipp3.protocols.protocol_particle_pick_remove_duplicates.</span></span><span class="sig-name descname"><span class="pre">XmippProtPickingRemoveDuplicates</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_particle_pick_remove_duplicates.html#XmippProtPickingRemoveDuplicates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_particle_pick_remove_duplicates.XmippProtPickingRemoveDuplicates" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="xmipp3.protocols.protocol_particle_pick_consensus.html#xmipp3.protocols.protocol_particle_pick_consensus.XmippProtConsensusPicking" title="xmipp3.protocols.protocol_particle_pick_consensus.XmippProtConsensusPicking"><code class="xref py py-class docutils literal notranslate"><span class="pre">XmippProtConsensusPicking</span></code></a></p>
+<p>This protocol removes coordinates that are closer than a given threshold.
+The remaining coordinate is the average of the previous ones.</p>
+<p>AI Generated</p>
+<p>## Overview</p>
+<p>The Remove Duplicates protocol cleans a coordinate set by merging particle
+coordinates that are closer than a selected distance threshold.</p>
+<p>Particle-picking protocols may sometimes produce repeated coordinates for the
+same particle. This can happen when two picks are placed very close to each
+other, when an automatic picker detects the same particle more than once, or
+when manual corrections leave duplicated positions in the coordinate set.</p>
+<p>If duplicates are not removed, the same physical particle may be extracted
+several times. This can bias later processing, overrepresent some particles,
+and introduce unnecessary redundancy into classification or reconstruction.</p>
+<p>This protocol identifies coordinates that are close enough to be considered
+the same particle and replaces them with a single averaged coordinate.</p>
+<p>## Inputs and General Workflow</p>
+<p>The input is one <strong>SetOfCoordinates</strong>.</p>
+<p>For each micrograph, the protocol reads all coordinates associated with that
+micrograph. It then groups coordinates that fall within the selected radius.
+Each group is treated as one particle, and the output coordinate is computed as
+the average position of the grouped coordinates.</p>
+<p>The protocol writes a new cleaned coordinate set containing the non-duplicated
+coordinates.</p>
+<p>The output can be used directly for particle extraction.</p>
+<p>## Input Coordinates</p>
+<p>The <strong>Input coordinates</strong> parameter should point to the coordinate set to be
+cleaned.</p>
+<p>This coordinate set may come from manual picking, automatic picking, consensus
+picking, or any other Scipion-compatible particle-picking protocol.</p>
+<p>The protocol processes the coordinates micrograph by micrograph. It preserves
+the association with the original micrographs and creates an output coordinate
+set linked to the input coordinate set.</p>
+<p>## Radius</p>
+<p>The <strong>Radius</strong> parameter defines the maximum distance, in pixels, within which
+two coordinates are considered duplicates.</p>
+<p>If two or more coordinates are closer than this radius, they are assumed to
+represent the same particle and are merged.</p>
+<p>A small radius removes only nearly identical picks. A larger radius removes
+coordinates that are farther apart, but may accidentally merge nearby distinct
+particles if particles are densely packed.</p>
+<p>The radius should be chosen according to particle size, picking accuracy, and
+particle density.</p>
+<p>## Automatic Radius from Box Size</p>
+<p>If the radius is set to <strong>-1</strong>, the protocol automatically defines the radius
+as:</p>
+<p>[
+0.6         imes    ext{box size}
+]</p>
+<p>This default is based on the idea that two coordinates separated by much less
+than the particle box size are likely to refer to the same particle.</p>
+<p>This automatic option is convenient when the coordinate set has a meaningful
+box size. However, users should still consider whether the default radius is
+appropriate for their specimen. Very crowded particles, elongated particles, or
+particles with unusual shapes may require manual adjustment.</p>
+<p>## Coordinate Merging</p>
+<p>When several coordinates are considered duplicates, the protocol keeps one
+representative coordinate.</p>
+<p>This representative position is computed as the average of the duplicated
+coordinates. Therefore, the output coordinate may be slightly different from
+any of the original positions.</p>
+<p>Averaging is useful when several picks are clustered around the same particle
+center. It provides a central position for extraction rather than arbitrarily
+choosing one of the duplicate picks.</p>
+<p>## Output Coordinates</p>
+<p>The main output is <strong>outputCoordinates</strong>.</p>
+<p>This output contains the cleaned coordinate set after duplicate removal. It
+uses the same micrographs as the input coordinate set and preserves the
+coordinate-set box size information.</p>
+<p>The output can be passed to extraction protocols in the same way as any other
+coordinate set.</p>
+<p>The number of output coordinates is usually smaller than or equal to the number
+of input coordinates.</p>
+<p>## Streaming Behavior</p>
+<p>The protocol supports streaming coordinate input.</p>
+<p>As coordinates become available for each micrograph, the protocol can process
+that micrograph and append cleaned coordinates to the output set. The output
+stream remains open until the input coordinate stream is closed and all
+available micrographs have been processed.</p>
+<p>This makes the protocol useful in automated picking pipelines, where
+coordinates may be produced progressively.</p>
+<p>## Practical Recommendations</p>
+<p>Use this protocol after automatic picking if the picker tends to place several
+coordinates on the same particle.</p>
+<p>Use it after consensus or merged picking workflows when several sources may
+contribute overlapping coordinates.</p>
+<p>Start with the automatic radius if the coordinate box size is reliable. Then
+inspect the cleaned coordinates visually on representative micrographs.</p>
+<p>Decrease the radius if nearby distinct particles are being merged.</p>
+<p>Increase the radius if obvious duplicates remain after cleaning.</p>
+<p>Be especially careful with crowded samples, filaments, aggregates, or particles
+that are very close to each other. In such cases, an overly large radius can
+remove valid neighboring particles.</p>
+<p>## Final Perspective</p>
+<p>Remove Duplicates is a coordinate-cleaning protocol. It does not pick new
+particles and does not evaluate particle quality. Instead, it ensures that the
+same physical particle is not represented by several nearby coordinates.</p>
+<p>For biological users, this is important because duplicate coordinates can
+propagate into duplicate particle images, biased class averages, and
+unnecessary computational cost.</p>
+<p>The protocol is most useful as a simple quality-control step between particle
+picking and particle extraction.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_particle_pick_remove_duplicates.XmippProtPickingRemoveDuplicates.FN_PREFIX">
+<span class="sig-name descname"><span class="pre">FN_PREFIX</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'purgedCoords_'</span></em><a class="headerlink" href="#xmipp3.protocols.protocol_particle_pick_remove_duplicates.XmippProtPickingRemoveDuplicates.FN_PREFIX" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_particle_pick_remove_duplicates.XmippProtPickingRemoveDuplicates.defineRelations">
+<span class="sig-name descname"><span class="pre">defineRelations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outputSet</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_particle_pick_remove_duplicates.html#XmippProtPickingRemoveDuplicates.defineRelations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_particle_pick_remove_duplicates.XmippProtPickingRemoveDuplicates.defineRelations" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_particle_pick_remove_duplicates.XmippProtPickingRemoveDuplicates.getConsensusRadius">
+<span class="sig-name descname"><span class="pre">getConsensusRadius</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_particle_pick_remove_duplicates.html#XmippProtPickingRemoveDuplicates.getConsensusRadius"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_particle_pick_remove_duplicates.XmippProtPickingRemoveDuplicates.getConsensusRadius" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_particle_pick_remove_duplicates.XmippProtPickingRemoveDuplicates.getMainInput">
+<span class="sig-name descname"><span class="pre">getMainInput</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_particle_pick_remove_duplicates.html#XmippProtPickingRemoveDuplicates.getMainInput"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_particle_pick_remove_duplicates.XmippProtPickingRemoveDuplicates.getMainInput" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_particle_pick_remove_duplicates.XmippProtPickingRemoveDuplicates.insertNewCoorsSteps">
+<span class="sig-name descname"><span class="pre">insertNewCoorsSteps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mics</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_particle_pick_remove_duplicates.html#XmippProtPickingRemoveDuplicates.insertNewCoorsSteps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_particle_pick_remove_duplicates.XmippProtPickingRemoveDuplicates.insertNewCoorsSteps" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_particle_pick_remove_duplicates.XmippProtPickingRemoveDuplicates.outputName">
+<span class="sig-name descname"><span class="pre">outputName</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'outputCoordinates'</span></em><a class="headerlink" href="#xmipp3.protocols.protocol_particle_pick_remove_duplicates.XmippProtPickingRemoveDuplicates.outputName" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="xmipp3.protocols.protocol_particle_pick_remove_duplicates.XmippProtPickingRemoveDuplicates.removeDuplicatesStep">
+<span class="sig-name descname"><span class="pre">removeDuplicatesStep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">micId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">micName</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_particle_pick_remove_duplicates.html#XmippProtPickingRemoveDuplicates.removeDuplicatesStep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_particle_pick_remove_duplicates.XmippProtPickingRemoveDuplicates.removeDuplicatesStep" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </div>
 
 

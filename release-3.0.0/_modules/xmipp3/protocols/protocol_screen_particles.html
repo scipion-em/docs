@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_screen_particles</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -154,6 +155,296 @@
 <span class="sd">    - zScore evaluates the similarity of a particles with an average (lower zScore -&gt; higher similarity).</span>
 <span class="sd">    - SSNR evaluates the signal/noise ration in the Fourier space.</span>
 <span class="sd">    - Variance evaluates the varaince on the micrographs context where the particle was picked.</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Screen Particles protocol computes several quality-related scores for a</span>
+<span class="sd">    set of particles and can automatically reject particles according to selected</span>
+<span class="sd">    criteria.</span>
+
+<span class="sd">    Particle datasets often contain images that are poorly centered, noisy,</span>
+<span class="sd">    contaminated, damaged, extracted from bad micrograph regions, or otherwise</span>
+<span class="sd">    inconsistent with the rest of the dataset. These particles can reduce the</span>
+<span class="sd">    quality of 2D classification, 3D refinement, and final reconstruction.</span>
+
+<span class="sd">    This protocol evaluates particles using several Xmipp statistical criteria.</span>
+<span class="sd">    The main criteria are:</span>
+
+<span class="sd">    - Z-score, which measures how different a particle is from the average or from</span>
+<span class="sd">      expected particle statistics;</span>
+<span class="sd">    - SSNR, which evaluates signal-to-noise behavior in Fourier space;</span>
+<span class="sd">    - variance and Gini-related measures, which evaluate the local micrograph</span>
+<span class="sd">      context where the particle was picked.</span>
+
+<span class="sd">    The protocol writes an output particle set containing the input particles with</span>
+<span class="sd">    the computed metadata. Depending on the selected rejection options, some</span>
+<span class="sd">    particles may be disabled and excluded from the final output.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The input is a set of particles.</span>
+
+<span class="sd">    The protocol converts the input particles to Xmipp metadata format and runs</span>
+<span class="sd">    several screening programs. First, it computes statistical Z-score information.</span>
+<span class="sd">    Then, it computes SSNR-related information. If requested, it also applies</span>
+<span class="sd">    variance-based rejection using metadata already associated with the particles.</span>
+
+<span class="sd">    The output is updated progressively and supports streaming input. New particles</span>
+<span class="sd">    can be processed as they arrive, and the output particle set remains open until</span>
+<span class="sd">    the input stream is closed and all particles have been processed.</span>
+
+<span class="sd">    The final output particle set is also written to an Xmipp metadata file sorted</span>
+<span class="sd">    by Z-score.</span>
+
+<span class="sd">    ## Input Particles</span>
+
+<span class="sd">    The **Input particles** parameter defines the particle set to be screened.</span>
+
+<span class="sd">    The particles can come from extraction, previous particle-processing steps, or</span>
+<span class="sd">    other Scipion-compatible workflows.</span>
+
+<span class="sd">    The protocol does not perform alignment, classification, or reconstruction. It</span>
+<span class="sd">    only computes screening metadata and optionally disables particles according to</span>
+<span class="sd">    the selected automatic rejection rules.</span>
+
+<span class="sd">    The output particles preserve the input particle information and add or update</span>
+<span class="sd">    Xmipp screening attributes.</span>
+
+<span class="sd">    ## Automatic Rejection by Z-score</span>
+
+<span class="sd">    The **Automatic rejection by Zscore** parameter controls whether particles are</span>
+<span class="sd">    rejected according to their Z-score statistics.</span>
+
+<span class="sd">    There are three options:</span>
+
+<span class="sd">    **None** computes and attaches Z-score information but does not reject</span>
+<span class="sd">    particles based on this criterion.</span>
+
+<span class="sd">    **MaxZscore** rejects particles whose Z-score is larger than the selected</span>
+<span class="sd">    threshold.</span>
+
+<span class="sd">    **Percentage** rejects a selected percentage of the worst particles according</span>
+<span class="sd">    to several Z-score-related metadata labels.</span>
+
+<span class="sd">    Z-score rejection is useful for removing particles that are unusually different</span>
+<span class="sd">    from the rest of the dataset.</span>
+
+<span class="sd">    ## Z-score Threshold</span>
+
+<span class="sd">    The **zScore threshold** parameter is used when the rejection mode is</span>
+<span class="sd">    **MaxZscore**.</span>
+
+<span class="sd">    Particles with a Z-score larger than this value are rejected.</span>
+
+<span class="sd">    A lower threshold is stricter and removes more particles. A higher threshold is</span>
+<span class="sd">    more permissive.</span>
+
+<span class="sd">    The default value is intended to remove strong outliers without being overly</span>
+<span class="sd">    aggressive. Users should inspect the output distribution before using very</span>
+<span class="sd">    strict thresholds.</span>
+
+<span class="sd">    ## Percentage Rejection by Z-score</span>
+
+<span class="sd">    The **Percentage** parameter is used when Z-score rejection is set to</span>
+<span class="sd">    **Percentage**.</span>
+
+<span class="sd">    The protocol rejects the selected percentage of worst particles according to</span>
+<span class="sd">    Z-score-related labels, including shape, signal-to-noise, and histogram</span>
+<span class="sd">    statistics.</span>
+
+<span class="sd">    For example, if the percentage is 5, the protocol disables approximately the</span>
+<span class="sd">    worst 5% of particles according to the Z-score screening criteria.</span>
+
+<span class="sd">    This mode is useful when the user wants to remove a fixed fraction of likely</span>
+<span class="sd">    outliers rather than choosing an absolute threshold.</span>
+
+<span class="sd">    ## Automatic Rejection by SSNR</span>
+
+<span class="sd">    The **Automatic rejection by SSNR** parameter controls whether particles are</span>
+<span class="sd">    rejected according to SSNR.</span>
+
+<span class="sd">    SSNR stands for spectral signal-to-noise ratio. It evaluates the relation</span>
+<span class="sd">    between signal and noise in Fourier space.</span>
+
+<span class="sd">    There are two options:</span>
+
+<span class="sd">    **None** computes SSNR-related metadata but does not reject particles by SSNR.</span>
+
+<span class="sd">    **Percentage** rejects the selected percentage of particles with the lowest</span>
+<span class="sd">    SSNR values.</span>
+
+<span class="sd">    Low SSNR particles may correspond to noisy, weak, damaged, or poorly extracted</span>
+<span class="sd">    particles.</span>
+
+<span class="sd">    ## Percentage Rejection by SSNR</span>
+
+<span class="sd">    The **Percentage** parameter under SSNR rejection defines the percentage of</span>
+<span class="sd">    particles to reject according to SSNR.</span>
+
+<span class="sd">    For example, a value of 5 rejects approximately the worst 5% of particles by</span>
+<span class="sd">    SSNR.</span>
+
+<span class="sd">    This is useful when the user wants to remove particles with the weakest</span>
+<span class="sd">    Fourier-space signal while keeping the rejection rate controlled.</span>
+
+<span class="sd">    ## Automatic Rejection by Variance</span>
+
+<span class="sd">    The **Automatic rejection by Variance** parameter controls whether particles</span>
+<span class="sd">    are rejected according to variance-related information from the micrograph</span>
+<span class="sd">    context.</span>
+
+<span class="sd">    There are three options:</span>
+
+<span class="sd">    **None** does not reject by variance.</span>
+
+<span class="sd">    **Variance** rejects particles using the variance score alone.</span>
+
+<span class="sd">    **Var. and Gini** rejects particles using a combined score based on variance</span>
+<span class="sd">    and the Gini coefficient.</span>
+
+<span class="sd">    This criterion is intended to identify particles extracted from problematic</span>
+<span class="sd">    micrograph regions, such as areas with abnormal background, contamination,</span>
+<span class="sd">    carbon, ice artifacts, or strong local intensity variation.</span>
+
+<span class="sd">    ## Variance and Gini Scores</span>
+
+<span class="sd">    Variance measures the amount of local intensity variation around the region</span>
+<span class="sd">    where the particle was picked.</span>
+
+<span class="sd">    The Gini coefficient provides additional information about inequality or</span>
+<span class="sd">    concentration of intensity values. In the combined mode, the protocol uses a</span>
+<span class="sd">    score based on variance multiplied by a Gini-related term.</span>
+
+<span class="sd">    The threshold for variance-based rejection is estimated automatically from the</span>
+<span class="sd">    score distribution using a histogram method.</span>
+
+<span class="sd">    This option requires that particles already contain the necessary</span>
+<span class="sd">    score-by-variance metadata. If the required attribute is missing, the protocol</span>
+<span class="sd">    reports a validation error and suggests using Xmipp extraction to generate the</span>
+<span class="sd">    needed information.</span>
+
+<span class="sd">    ## Add Features</span>
+
+<span class="sd">    The **Add features** option asks the protocol to attach additional ranking</span>
+<span class="sd">    features to each input particle.</span>
+
+<span class="sd">    These features are used internally by the ranking and screening program and can</span>
+<span class="sd">    be useful for later inspection or analysis.</span>
+
+<span class="sd">    This is an advanced option. It increases the amount of metadata associated</span>
+<span class="sd">    with each particle but may be helpful when the user wants to examine screening</span>
+<span class="sd">    criteria in more detail.</span>
+
+<span class="sd">    ## Output Particles</span>
+
+<span class="sd">    The main output is **outputParticles**.</span>
+
+<span class="sd">    This output contains the screened particle set. Particles that pass the</span>
+<span class="sd">    selected criteria are retained as enabled particles. Particles rejected by the</span>
+<span class="sd">    selected automatic rejection rules are disabled and do not appear as accepted</span>
+<span class="sd">    items in the usual output iteration.</span>
+
+<span class="sd">    The output particle set copies the input metadata and adds Xmipp screening</span>
+<span class="sd">    attributes such as Z-score and, when computed, SSNR and variance-related</span>
+<span class="sd">    information.</span>
+
+<span class="sd">    The output can be used directly in downstream protocols such as classification,</span>
+<span class="sd">    refinement, or further particle cleaning.</span>
+
+<span class="sd">    ## Metadata File Sorted by Z-score</span>
+
+<span class="sd">    The protocol also writes an Xmipp metadata file named `images.xmd`, sorted by</span>
+<span class="sd">    the particle Z-score.</span>
+
+<span class="sd">    This file is useful for inspection, debugging, or advanced workflows where the</span>
+<span class="sd">    user wants to examine particles in order of their screening score.</span>
+
+<span class="sd">    Particles with worse scores can be inspected to understand what types of</span>
+<span class="sd">    images are being rejected.</span>
+
+<span class="sd">    ## Streaming Behavior</span>
+
+<span class="sd">    The protocol supports streaming particle input.</span>
+
+<span class="sd">    When the input particle set grows, the protocol detects new particles,</span>
+<span class="sd">    processes only the new items, and appends the screened results to the output</span>
+<span class="sd">    particle set.</span>
+
+<span class="sd">    The output stream remains open while the input stream is open and closes when</span>
+<span class="sd">    all input particles have been processed.</span>
+
+<span class="sd">    This makes the protocol suitable for online or automated workflows, where</span>
+<span class="sd">    particles are extracted progressively during data acquisition or early</span>
+<span class="sd">    processing.</span>
+
+<span class="sd">    ## Summary Information</span>
+
+<span class="sd">    The protocol summary reports the selected rejection methods and, once output</span>
+<span class="sd">    particles are available, basic Z-score statistics.</span>
+
+<span class="sd">    These include:</span>
+
+<span class="sd">    - minimum Z-score;</span>
+<span class="sd">    - maximum Z-score;</span>
+<span class="sd">    - mean Z-score.</span>
+
+<span class="sd">    If variance rejection is enabled, the summary also reports the estimated</span>
+<span class="sd">    variance threshold.</span>
+
+<span class="sd">    This information helps the user understand how strict the screening was and</span>
+<span class="sd">    whether the score distribution looks reasonable.</span>
+
+<span class="sd">    ## Interpreting the Scores</span>
+
+<span class="sd">    The scores should be interpreted as quality-control indicators, not as absolute</span>
+<span class="sd">    biological truth.</span>
+
+<span class="sd">    A particle with a poor Z-score, low SSNR, or abnormal variance may be a false</span>
+<span class="sd">    positive, contaminant, noisy particle, or poorly extracted image. However,</span>
+<span class="sd">    unusual particles can sometimes correspond to rare views, flexible states, or</span>
+<span class="sd">    minority conformations.</span>
+
+<span class="sd">    Automatic rejection is therefore useful, but it should be checked visually and</span>
+<span class="sd">    validated through downstream classification.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    Use this protocol after particle extraction and before expensive classification</span>
+<span class="sd">    or refinement steps.</span>
+
+<span class="sd">    Start with no automatic rejection or a small rejection percentage to inspect</span>
+<span class="sd">    the score distributions.</span>
+
+<span class="sd">    Use Z-score rejection to remove strong statistical outliers.</span>
+
+<span class="sd">    Use SSNR rejection to remove particles with weak Fourier-space signal.</span>
+
+<span class="sd">    Use variance rejection when particles were extracted by Xmipp and contain the</span>
+<span class="sd">    necessary micrograph-context variance metadata.</span>
+
+<span class="sd">    Avoid overly aggressive rejection at early stages, especially if the dataset</span>
+<span class="sd">    may contain rare views or conformational variability.</span>
+
+<span class="sd">    Inspect rejected particles or low-ranked particles to confirm that the selected</span>
+<span class="sd">    criteria behave as expected.</span>
+
+<span class="sd">    Use the screened output as input for 2D classification or further particle</span>
+<span class="sd">    cleaning.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    Screen Particles is a particle-quality assessment and pruning protocol.</span>
+
+<span class="sd">    For biological users, its main value is that it attaches interpretable</span>
+<span class="sd">    screening scores to particles and optionally removes likely outliers before</span>
+<span class="sd">    downstream processing.</span>
+
+<span class="sd">    The protocol is most useful as an early particle-cleaning step, especially in</span>
+<span class="sd">    large datasets where manual inspection of all extracted particles is not</span>
+<span class="sd">    practical. Its decisions should be combined with visual inspection, 2D</span>
+<span class="sd">    classification, and later reconstruction behavior.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;screen particles&#39;</span>

@@ -228,7 +228,170 @@
 <dt class="sig sig-object py" id="xmipp3.protocols.protocol_deep_micrograph_screen.XmippProtDeepMicrographScreen">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">xmipp3.protocols.protocol_deep_micrograph_screen.</span></span><span class="sig-name descname"><span class="pre">XmippProtDeepMicrographScreen</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_deep_micrograph_screen.html#XmippProtDeepMicrographScreen"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_deep_micrograph_screen.XmippProtDeepMicrographScreen" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="../pwem/pwem.protocols.protocol_particles.html#pwem.protocols.protocol_particles.ProtExtractParticles" title="pwem.protocols.protocol_particles.ProtExtractParticles"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtExtractParticles</span></code></a>, <a class="reference internal" href="xmipp3.base.html#xmipp3.base.XmippProtocol" title="xmipp3.base.XmippProtocol"><code class="xref py py-class docutils literal notranslate"><span class="pre">XmippProtocol</span></code></a></p>
-<p>Removes coordinates located in carbon regions or large impurities in micrographs using a pre-trained deep learning model. This screening improves particle picking accuracy by filtering out false positives from contaminated areas.</p>
+<p>Removes coordinates located in carbon regions or large impurities in
+micrographs using a pre-trained deep learning model. This screening
+improves particle picking accuracy by filtering out false positives from
+contaminated areas.</p>
+<p>AI Generated</p>
+<p>## Overview</p>
+<p>The Deep Micrograph Cleaner protocol removes particle coordinates that fall
+in undesirable regions of the micrograph, such as carbon film, large
+contaminants, or other strongly non-particle areas. It uses a pre-trained
+deep learning model to predict which regions of each micrograph are
+suitable for particle picking and which are likely to generate false
+positives.</p>
+<p>In practical cryo-EM workflows, this protocol is typically used after
+particle picking, not before. Its role is to <strong>screen an existing set of
+picked coordinates</strong> and eliminate those that are likely to come from
+visually misleading regions rather than from real particles. This is
+especially useful in datasets containing thick carbon edges, crystalline
+ice, dirt, broken support film, or large impurities.</p>
+<p>For a biological user, this protocol should be understood as a cleaning
+and quality-control step for coordinates. It does not detect new particles;
+instead, it improves an existing picking result by rejecting coordinates
+in problematic regions.</p>
+<p>## Inputs and General Workflow</p>
+<p>The protocol requires as input a <strong>set of coordinates</strong>. These coordinates
+are the candidate particle positions that will be screened.</p>
+<p>By default, the protocol uses the same micrographs from which those
+coordinates were originally picked. Alternatively, the user may provide a
+different set of micrographs. This is useful, for example, when the
+screening should be performed on inverted micrographs or on a different
+representation of the same images.</p>
+<p>The workflow is conceptually simple. For each micrograph, the deep learning
+model predicts a mask that identifies bad regions. The protocol then checks
+which coordinates fall in or near those regions and removes them according
+to the model score and the threshold chosen by the user.</p>
+<p>The output is therefore a new set of coordinates representing the cleaned
+picking result.</p>
+<p>## What the Deep Learning Model Detects</p>
+<p>The model is trained to identify micrograph regions that tend to generate
+false positives during picking. These usually include:
+* carbon support or carbon edges,
+* large contaminants,
+* thick or irregular ice,
+* bright or dark artifacts,
+* regions with poor particle-like signal.</p>
+<p>Biologically, the important point is that these regions often contain
+patterns that resemble particles to a generic picker, but they do not
+correspond to real projections of the biological specimen. By removing
+coordinates from such areas, the protocol helps enrich the dataset in more
+meaningful particle candidates.</p>
+<p>However, as with any deep learning method, the output is probabilistic
+rather than absolute. The model is highly useful, but it should not replace
+visual inspection in critical datasets.</p>
+<p>## Choosing the Micrograph Source</p>
+<p>The protocol allows two possibilities for the micrograph source.</p>
+<p>The most common option is <strong>same as coordinates</strong>, which means that the same
+micrographs used in the picking step are also used for cleaning. This is
+the standard choice and the safest one when the picking and cleaning are
+meant to operate in exactly the same image space.</p>
+<p>The second option is <strong>other</strong>, which allows the user to provide a different
+set of micrographs. This is useful in more specialized situations, such as
+when the original micrographs are not in the most appropriate contrast
+convention for the model or when the user wants to screen coordinates using
+an alternative micrograph representation.</p>
+<p>A particularly important practical note is that the model expects
+<strong>particles to be dark over a bright background</strong>. If the micrographs have
+the opposite contrast, it may be necessary to provide an inverted set
+through the “other” option.</p>
+<p>## Coordinate Scale and Rescaling</p>
+<p>When different micrographs are used for screening, the coordinate system
+may not match exactly the one used during picking. The protocol handles
+this automatically and offers a choice about how the output coordinates
+should be expressed.</p>
+<p>If the user keeps the coordinates at the original scale, the cleaned
+output remains directly comparable to the original picking result. If the
+user chooses to scale coordinates to the new micrographs, the coordinates
+are rescaled accordingly.</p>
+<p>From a practical point of view, this matters mainly when screening is
+performed on a micrograph set with a different sampling rate or box scale.
+In standard workflows using the same micrographs, the issue does not arise.</p>
+<p>## Threshold: Controlling How Strict the Cleaning Is</p>
+<p>The most important user parameter is the <strong>threshold</strong>. This controls how
+strict the protocol is when deciding whether a coordinate should be
+discarded.</p>
+<p>Higher threshold values produce a more aggressive cleaning, removing more
+coordinates. Lower values are more permissive and retain more picks. The
+protocol documentation recommends values roughly between <strong>0.75 and 0.9</strong>,
+which is a reasonable practical range for many datasets.</p>
+<p>If the threshold is set to <strong>-1</strong>, the protocol skips automatic thresholding
+during execution. In that case, the model scores are still computed,
+and manual thresholding can be performed afterwards using the
+result-analysis tools.</p>
+<p>Biologically, this parameter determines the balance between two risks:
+* being too permissive and keeping many false positives,
+* being too strict and removing true particles located near difficult regions.</p>
+<p>The best value depends on the dataset. Micrographs with extensive carbon or
+strong contamination may benefit from stricter thresholds, whereas clean
+datasets may only need mild screening.</p>
+<p>## Batch Processing and Streaming</p>
+<p>The protocol is designed to work both in standard execution and in
+<strong>streaming mode</strong>. This makes it suitable for facility pipelines or
+ongoing acquisitions where micrographs and coordinates arrive progressively.</p>
+<p>To improve efficiency, micrographs can be processed in <strong>batches</strong>. The
+batch size determines how many micrographs are grouped together in a single
+processing step. In streaming scenarios, this helps balance turnaround time
+and GPU efficiency. In static datasets, larger batches can improve
+throughput.</p>
+<p>For most biological users, the default automatic behavior is appropriate
+unless there is a specific need to optimize performance on a given machine.</p>
+<p>## GPU Acceleration</p>
+<p>This protocol is designed to take advantage of <strong>GPU acceleration</strong>, and in
+practice this is usually the preferred way to run it. A CPU implementation
+exists, but for realistic datasets it may be considerably slower.</p>
+<p>In high-throughput workflows, GPU execution is often essential if one wants
+the cleaning step to keep pace with acquisition or with large-scale picking.</p>
+<p>## Predicted Masks and Thumbnails</p>
+<p>Optionally, the protocol can save the <strong>predicted masks</strong> generated by the
+deep learning model. These masks show which micrograph regions were
+identified as problematic.</p>
+<p>It can also generate a limited number of <strong>thumbnails</strong> in which the
+micrograph, the predicted mask, and the coordinate positions are overlaid.
+These thumbnails are very useful for visual inspection because they allow
+the user to see, at a glance, whether the model is behaving sensibly.</p>
+<p>From a practical standpoint, these visual outputs are strongly recommended
+when first using the protocol on a new dataset type. They provide immediate
+intuition about whether the selected threshold is reasonable and whether
+the model is correctly identifying contamination or carbon regions.</p>
+<p>## Outputs and Their Interpretation</p>
+<p>The protocol produces a new <strong>set of cleaned coordinates</strong>. Depending on the
+thresholding strategy, the output name reflects whether the cleaning was
+fully automatic or whether all model scores were retained for later manual
+thresholding.</p>
+<p>These output coordinates represent the subset of the original picking
+result that survived the screening. In other words, the protocol does not
+add coordinates, only removes them.</p>
+<p>Biologically, the cleaned set should contain fewer false positives
+associated with clearly bad regions of the micrograph. This often
+translates into better downstream particle extraction, cleaner 2D classes,
+and a lower burden on later classification steps.</p>
+<p>## Practical Recommendations</p>
+<p>In most workflows, this protocol is best applied after an initial picking
+step and before particle extraction or early classification. It is
+especially useful when the dataset contains obvious carbon edges,
+contamination, or strong regional heterogeneity in image quality.</p>
+<p>A good starting point is to use the same micrographs as the coordinates and
+a threshold in the recommended range, then inspect the resulting thumbnails
+or masks. If too many clearly bad coordinates remain, the threshold can be
+increased. If obviously good particles are being removed, the threshold
+should be relaxed.</p>
+<p>When using a different micrograph source, users should pay close attention
+to coordinate scaling and to the contrast convention expected by the model.</p>
+<p>As with any automatic cleaning step, it is wise not to treat the output as
+infallible. Visual inspection of at least a representative subset of
+micrographs is strongly advisable, particularly for important biological
+datasets.</p>
+<p>## Final Perspective</p>
+<p>The Deep Micrograph Cleaner protocol is a practical deep-learning-based
+tool for improving an existing picking result by removing coordinates in
+contaminated or otherwise unsuitable micrograph regions. Its strength lies
+in automating a task that is often visually obvious to an experienced user
+but tedious to perform manually at scale.</p>
+<p>For most cryo-EM users, it should be seen as a screening and
+quality-improvement step that reduces false positives before downstream
+analysis. When used thoughtfully, it can substantially improve the overall
+quality of the particle set while saving considerable manual effort.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="xmipp3.protocols.protocol_deep_micrograph_screen.XmippProtDeepMicrographScreen.extractMicrographListStepOwn">
 <span class="sig-name descname"><span class="pre">extractMicrographListStepOwn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">micKeyList</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_deep_micrograph_screen.html#XmippProtDeepMicrographScreen.extractMicrographListStepOwn"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_deep_micrograph_screen.XmippProtDeepMicrographScreen.extractMicrographListStepOwn" title="Permalink to this definition"></a></dt>

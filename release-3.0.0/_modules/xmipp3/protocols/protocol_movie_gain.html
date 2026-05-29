@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_movie_gain</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -155,11 +156,297 @@
 
 <div class="viewcode-block" id="XmippProtMovieGain"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_movie_gain.html#xmipp3.protocols.protocol_movie_gain.XmippProtMovieGain">[docs]</a><span class="k">class</span> <span class="nc">XmippProtMovieGain</span><span class="p">(</span><span class="n">ProtProcessMovies</span><span class="p">,</span> <span class="n">Protocol</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot; Estimate the gain image of a camera, directly analyzing one of its movies.</span>
-<span class="sd">    It can correct the orientation of an external gain image (by comparing it with the estimated).</span>
-<span class="sd">    Finally, it estimates the residual gain (the gain of the movie after correcting with a gain).</span>
-<span class="sd">    The gain used in the correction will be preferably the external gain, but can also be the estimated</span>
-<span class="sd">    gain if the first is not found.</span>
-<span class="sd">    The same criteria is used for assigning the gain to the output movies (external corrected &gt; external &gt; estimated)</span>
+<span class="sd">    It can correct the orientation of an external gain image (by comparing it</span>
+<span class="sd">    with the estimated). Finally, it estimates the residual gain (the gain of</span>
+<span class="sd">    the movie after correcting with a gain). The gain used in the correction</span>
+<span class="sd">    will be preferably the external gain, but can also be the estimated</span>
+<span class="sd">    gain if the first is not found. The same criteria is used for assigning</span>
+<span class="sd">    the gain to the output movies (external corrected &gt; external &gt; estimated)</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Movie Gain protocol estimates and evaluates detector gain images directly</span>
+<span class="sd">    from cryo-EM movies.</span>
+
+<span class="sd">    In direct-electron detector data, gain correction is essential because detector</span>
+<span class="sd">    pixels do not all respond identically to the same electron signal. If the gain</span>
+<span class="sd">    reference is missing, incorrectly oriented, or not appropriate for the movies,</span>
+<span class="sd">    the corrected images may contain fixed-pattern artifacts that affect movie</span>
+<span class="sd">    alignment, CTF estimation, particle picking, and reconstruction.</span>
+
+<span class="sd">    This protocol can perform three related tasks:</span>
+
+<span class="sd">    - estimate a gain image from the input movies;</span>
+<span class="sd">    - estimate the correct orientation of an existing external gain reference;</span>
+<span class="sd">    - estimate residual gain after applying a gain correction.</span>
+
+<span class="sd">    The protocol also produces an output movie set associated with the best</span>
+<span class="sd">    available gain image. This makes it useful both as a diagnostic protocol and as</span>
+<span class="sd">    a preparation step before movie alignment.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The main input is a set of movies.</span>
+
+<span class="sd">    The protocol can estimate gain images from selected movies, optionally compare</span>
+<span class="sd">    an estimated gain with an existing gain reference, correct the orientation of</span>
+<span class="sd">    that external gain, normalize the gain, and compute residual gains.</span>
+
+<span class="sd">    The general workflow is:</span>
+
+<span class="sd">    1. Read the input movie set.</span>
+<span class="sd">    2. If requested, estimate gain images from selected movies.</span>
+<span class="sd">    3. If an external gain is available and orientation estimation is enabled,</span>
+<span class="sd">       compare it with an estimated gain and determine the best rotation, mirror,</span>
+<span class="sd">       translation, and possible inversion.</span>
+<span class="sd">    4. If requested, normalize the selected gain so that its mean value is 1.</span>
+<span class="sd">    5. If requested, estimate residual gain after applying the selected gain.</span>
+<span class="sd">    6. Create output movies associated with the final gain image.</span>
+<span class="sd">    7. Optionally output estimated, oriented, and residual gain image sets.</span>
+
+<span class="sd">    The protocol can work in streaming mode, progressively processing movies as</span>
+<span class="sd">    they become available.</span>
+
+<span class="sd">    ## Input Movies</span>
+
+<span class="sd">    The **Input movies** parameter defines the movie set used for gain analysis.</span>
+
+<span class="sd">    Each movie can contribute to the estimation of a gain image. However, by</span>
+<span class="sd">    default, the protocol does not use every movie for gain estimation. Instead, it</span>
+<span class="sd">    uses the **Movie step** parameter to select periodic movies from the dataset.</span>
+<span class="sd">    This reduces computational cost while still sampling the acquisition over time.</span>
+
+<span class="sd">    If the input movie set already has an associated gain reference, the protocol</span>
+<span class="sd">    can use it for orientation estimation, normalization, residual gain estimation,</span>
+<span class="sd">    and assignment to the output movies.</span>
+
+<span class="sd">    ## Estimate Movies Gain</span>
+
+<span class="sd">    The **Estimate movies gain** option enables gain estimation from the movies</span>
+<span class="sd">    themselves.</span>
+
+<span class="sd">    When this option is active, the protocol runs the Xmipp gain-estimation</span>
+<span class="sd">    algorithm on selected movies. The estimated gain images are stored as an output</span>
+<span class="sd">    set.</span>
+
+<span class="sd">    This is useful when the user wants to check whether the detector gain pattern</span>
+<span class="sd">    can be recovered from the data, when no external gain is available, or when the</span>
+<span class="sd">    external gain is suspected to be incorrect or outdated.</span>
+
+<span class="sd">    The estimated gain should be interpreted as a detector-pattern estimate derived</span>
+<span class="sd">    from the movie data. It is not a substitute for careful acquisition</span>
+<span class="sd">    calibration, but it can be very useful for detecting gain-related artifacts.</span>
+
+<span class="sd">    ## Estimate External Gain Orientation</span>
+
+<span class="sd">    The **Estimate external gain orientation** option attempts to determine how an</span>
+<span class="sd">    existing gain reference should be oriented relative to the movies.</span>
+
+<span class="sd">    This option requires an experimental gain associated with the input movie set.</span>
+<span class="sd">    Such a gain is normally provided during movie import.</span>
+
+<span class="sd">    The protocol estimates a gain from one movie and compares it with the external</span>
+<span class="sd">    gain. It tests rotations by multiples of 90 degrees and horizontal mirroring,</span>
+<span class="sd">    and it also accounts for translation and possible inversion. The orientation</span>
+<span class="sd">    with the strongest correlation is selected.</span>
+
+<span class="sd">    The result is an oriented gain image that should match the movie data more</span>
+<span class="sd">    closely.</span>
+
+<span class="sd">    This is particularly useful because gain-reference orientation problems are a</span>
+<span class="sd">    common source of artifacts. A gain file may be correct in content but rotated,</span>
+<span class="sd">    flipped, or otherwise inconsistent with the movie orientation expected by the</span>
+<span class="sd">    processing workflow.</span>
+
+<span class="sd">    ## Normalize Existing Gain</span>
+
+<span class="sd">    The **Normalize existing gain** option normalizes the selected gain image so</span>
+<span class="sd">    that its mean value is 1.</span>
+
+<span class="sd">    This is an advanced option, but it is often conceptually simple: gain</span>
+<span class="sd">    correction should adjust relative pixel sensitivity without changing the global</span>
+<span class="sd">    intensity scale unnecessarily. A gain image with a mean far from 1 may introduce</span>
+<span class="sd">    an unwanted global scaling of the movie intensities.</span>
+
+<span class="sd">    This option requires an external gain. If no experimental gain is associated</span>
+<span class="sd">    with the input movies, normalization cannot be performed.</span>
+
+<span class="sd">    ## Estimate Residual Gain</span>
+
+<span class="sd">    The **Estimate residual gain** option estimates the remaining gain pattern</span>
+<span class="sd">    after applying the selected gain correction.</span>
+
+<span class="sd">    The residual gain is a diagnostic image. Ideally, after proper gain correction,</span>
+<span class="sd">    there should be little remaining detector-fixed pattern. If the residual gain</span>
+<span class="sd">    shows strong structure, this may indicate that the gain reference is wrong,</span>
+<span class="sd">    misoriented, outdated, or insufficient for the data.</span>
+
+<span class="sd">    The protocol writes summary statistics for the residual gain, including mean,</span>
+<span class="sd">    standard deviation, minimum, maximum, and percentiles. These values help the</span>
+<span class="sd">    user assess whether the residual gain is close to flat or whether strong</span>
+<span class="sd">    artifacts remain.</span>
+
+<span class="sd">    Residual gain estimation is especially useful for facility quality control and</span>
+<span class="sd">    for diagnosing unexplained artifacts in movie-alignment or micrograph outputs.</span>
+
+<span class="sd">    ## Frame Step</span>
+
+<span class="sd">    The **Frame step** parameter controls how many frames are used from each movie</span>
+<span class="sd">    for gain estimation.</span>
+
+<span class="sd">    By default, every fifth frame is used. A smaller value uses more frames and may</span>
+<span class="sd">    produce a more stable gain estimate, but increases computation time. A larger</span>
+<span class="sd">    value uses fewer frames and is faster, but may give a noisier estimate.</span>
+
+<span class="sd">    This parameter is an advanced option. The default is a practical compromise for</span>
+<span class="sd">    many datasets.</span>
+
+<span class="sd">    ## Movie Step</span>
+
+<span class="sd">    The **Movie step** parameter controls how often movies are selected for gain</span>
+<span class="sd">    estimation or residual gain estimation.</span>
+
+<span class="sd">    By default, every 250th movie is processed. For example, with the default</span>
+<span class="sd">    value, the protocol analyzes movie 1, movie 251, movie 501, and so on.</span>
+
+<span class="sd">    This is useful because gain patterns are usually detector-related and do not</span>
+<span class="sd">    need to be estimated independently from every movie. Sampling movies over time</span>
+<span class="sd">    can still reveal whether the gain behavior is stable during the acquisition.</span>
+
+<span class="sd">    A smaller movie step processes more movies and gives more temporal detail, but</span>
+<span class="sd">    requires more computation and produces more output gain images. A larger movie</span>
+<span class="sd">    step is faster but may miss time-dependent gain changes.</span>
+
+<span class="sd">    ## Sigma Estimation</span>
+
+<span class="sd">    The **Estimate the sigma parameter** option controls whether the gain</span>
+<span class="sd">    estimation algorithm estimates an internal sigma parameter.</span>
+
+<span class="sd">    This is an advanced option. In routine use, the protocol can run gain</span>
+<span class="sd">    estimation with sigma fixed to zero unless sigma estimation is explicitly</span>
+<span class="sd">    enabled.</span>
+
+<span class="sd">    Most users should leave this option at its default value unless they have a</span>
+<span class="sd">    specific reason to tune the gain-estimation behavior.</span>
+
+<span class="sd">    ## Final Gain Selection</span>
+
+<span class="sd">    The protocol uses a priority order to decide which gain image should be</span>
+<span class="sd">    associated with the output movies.</span>
+
+<span class="sd">    The preferred gain is the oriented and corrected external gain, if it has been</span>
+<span class="sd">    computed. If that is not available, the protocol uses the external gain</span>
+<span class="sd">    associated with the input movies. If no external gain is available, it uses an</span>
+<span class="sd">    estimated gain.</span>
+
+<span class="sd">    This behavior is designed to make the output movie set usable for downstream</span>
+<span class="sd">    processing even when the original gain situation is incomplete.</span>
+
+<span class="sd">    For TIFF movies, the final gain may also be vertically flipped when needed so</span>
+<span class="sd">    that it is consistent with downstream movie handling.</span>
+
+<span class="sd">    ## Output Estimated Gains</span>
+
+<span class="sd">    The **estimatedGains** output contains gain images estimated directly from</span>
+<span class="sd">    selected movies.</span>
+
+<span class="sd">    Each gain image is associated with the movie from which it was estimated. This</span>
+<span class="sd">    output is useful for inspecting gain stability across the acquisition and for</span>
+<span class="sd">    checking whether the estimated detector pattern is consistent with the expected</span>
+<span class="sd">    gain reference.</span>
+
+<span class="sd">    Large differences between estimated gains from different movies may indicate</span>
+<span class="sd">    acquisition instability, insufficient statistics, or artifacts in some movies.</span>
+
+<span class="sd">    ## Output Oriented Gain</span>
+
+<span class="sd">    The **orientedGain** output contains the external gain after orientation</span>
+<span class="sd">    correction.</span>
+
+<span class="sd">    This output is produced when external gain orientation estimation is enabled.</span>
+<span class="sd">    It represents the version of the gain reference that best matches the gain</span>
+<span class="sd">    estimated from the movie data.</span>
+
+<span class="sd">    This is often the most important output when the user suspects that the gain</span>
+<span class="sd">    file is correct but has the wrong orientation.</span>
+
+<span class="sd">    ## Output Residual Gains</span>
+
+<span class="sd">    The **residualGains** output contains residual gain images computed after</span>
+<span class="sd">    correcting movies with the selected gain.</span>
+
+<span class="sd">    Residual gains should ideally be close to flat. Structured residual patterns</span>
+<span class="sd">    may indicate incomplete correction.</span>
+
+<span class="sd">    This output is useful for diagnostics and for facility monitoring. It can help</span>
+<span class="sd">    detect problems that may not be obvious by looking only at averaged</span>
+<span class="sd">    micrographs.</span>
+
+<span class="sd">    ## Output Movies</span>
+
+<span class="sd">    The **outputMovies** set contains the input movies copied into a new movie set</span>
+<span class="sd">    with the selected final gain assigned.</span>
+
+<span class="sd">    This output can be passed to movie-alignment protocols. The goal is to ensure</span>
+<span class="sd">    that downstream processing uses the best available gain reference: preferably</span>
+<span class="sd">    the oriented external gain, otherwise the original external gain, and finally</span>
+<span class="sd">    an estimated gain when no external gain is available.</span>
+
+<span class="sd">    The movies themselves are not necessarily rewritten frame by frame by this</span>
+<span class="sd">    protocol. The main purpose of the output set is to carry the corrected gain</span>
+<span class="sd">    association into later processing.</span>
+
+<span class="sd">    ## Streaming Behavior</span>
+
+<span class="sd">    The protocol supports streaming input.</span>
+
+<span class="sd">    As new movies arrive, they are appended to the output movie set. Gain</span>
+<span class="sd">    estimation and residual gain estimation are performed only for selected movies</span>
+<span class="sd">    according to the movie-step parameter.</span>
+
+<span class="sd">    This allows the protocol to be used during acquisition or online processing. It</span>
+<span class="sd">    can progressively monitor whether gain behavior remains stable over time while</span>
+<span class="sd">    still allowing downstream movie processing to continue.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    Use this protocol when no gain reference is available, when the gain reference</span>
+<span class="sd">    orientation is uncertain, or when there are fixed-pattern artifacts that may be</span>
+<span class="sd">    related to gain correction.</span>
+
+<span class="sd">    If an external gain is available, enable orientation estimation to verify that</span>
+<span class="sd">    it matches the movie data. Incorrect gain orientation is a common and serious</span>
+<span class="sd">    source of artifacts.</span>
+
+<span class="sd">    Keep gain normalization enabled when using an external gain unless there is a</span>
+<span class="sd">    specific reason not to normalize it.</span>
+
+<span class="sd">    Use residual gain estimation as a diagnostic. A good gain correction should</span>
+<span class="sd">    leave only weak residual structure.</span>
+
+<span class="sd">    The default frame step and movie step are intended to reduce computation while</span>
+<span class="sd">    still sampling the dataset. Decrease the movie step if you want to monitor gain</span>
+<span class="sd">    changes more frequently across the acquisition.</span>
+
+<span class="sd">    Inspect the estimated gain, oriented gain, and residual gain images visually.</span>
+<span class="sd">    Strong stripes, patches, checkerboard patterns, or detector-fixed artifacts</span>
+<span class="sd">    should be investigated before proceeding.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    Movie Gain is a detector-quality and gain-correction support protocol. It helps</span>
+<span class="sd">    the user determine whether a gain reference is available, correctly oriented,</span>
+<span class="sd">    properly normalized, and sufficient to correct the movies.</span>
+
+<span class="sd">    For biological users, this protocol is important because gain problems can</span>
+<span class="sd">    propagate into nearly every later processing step. Poor gain correction may</span>
+<span class="sd">    affect motion correction, CTF estimation, particle picking, 2D classification,</span>
+<span class="sd">    and final reconstruction quality.</span>
+
+<span class="sd">    Used early in the workflow, Movie Gain can prevent subtle detector artifacts</span>
+<span class="sd">    from being mistaken for specimen problems or structural features.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;movie gain&#39;</span>
     <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">UPDATED</span>

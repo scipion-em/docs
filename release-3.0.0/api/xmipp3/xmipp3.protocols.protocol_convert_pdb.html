@@ -228,7 +228,144 @@
 <dt class="sig sig-object py" id="xmipp3.protocols.protocol_convert_pdb.XmippProtConvertPdb">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">xmipp3.protocols.protocol_convert_pdb.</span></span><span class="sig-name descname"><span class="pre">XmippProtConvertPdb</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_convert_pdb.html#XmippProtConvertPdb"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_convert_pdb.XmippProtConvertPdb" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="../pwem/pwem.protocols.protocol_3d.html#pwem.protocols.protocol_3d.ProtInitialVolume" title="pwem.protocols.protocol_3d.ProtInitialVolume"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtInitialVolume</span></code></a></p>
-<p>Converts atomic structure files in PDB (Protein Data Bank) format into volumetric maps. Converting a PDB to a volume generates a simulated electron density map, useful for validating atomic models, fitting into experimental maps or performing docking.</p>
+<p>Converts atomic structure files in PDB (Protein Data Bank) format into
+volumetric maps. Converting a PDB to a volume generates a simulated
+electron density map, useful for validating atomic models, fitting into
+experimental maps or performing docking.</p>
+<p>Overview</p>
+<p>The Convert PDBs to Volumes protocol transforms one or more atomic
+structure files (typically PDB, optionally CIF) into 3D volumetric density
+maps. The output is a simulated electron density map sampled on a 3D grid,
+at a user-defined voxel size (Å/px). This is a standard step whenever you
+want to bring an atomic model into the same “map space” used by cryo-EM.</p>
+<p>From a user perspective, this protocol is most commonly used to:
+- compare an atomic model to an experimental cryo-EM map (visual
+inspection, fitting, validation),
+- generate a reference density from a known structure (for docking or
+alignment),
+- prepare model-based volumes for workflows that require volumes as input
+(e.g., projections, template-based comparisons),
+- convert multiple models into volumes in a consistent way (e.g.,
+alternative conformations, homologs, mutants).</p>
+<p>It is a practical bridge between atomic coordinates and volumetric cryo-EM
+representations.</p>
+<p>Inputs and General Workflow
+Input structure(s)</p>
+<p>You can provide either:
+- a single atomic structure (AtomStruct), or
+- a set of atomic structures (SetOfAtomStructs).</p>
+<p>If you provide a set, the protocol converts each structure independently
+and outputs a set of volumes.</p>
+<p>Sampling rate (Å/px)</p>
+<p>This parameter defines the voxel size of the simulated volume. It should be
+chosen to match the voxel size of the experimental map you plan to compare
+against.</p>
+<p>Practical rule:
+- If you will fit the simulated volume into an experimental map, use the
+same sampling rate as the experimental map.
+- If you only want a qualitative visualization, a slightly coarser
+sampling may be acceptable, but keep in mind it changes the apparent sharpness.</p>
+<p>Defining the Output Box: Size and Origin</p>
+<p>A crucial practical aspect of PDB→volume conversion is deciding the box
+size and (optionally) the origin of the output volume. This protocol
+offers two main strategies.</p>
+<p>Option A — Use an existing volume as a template</p>
+<p>“Use a volume as an empty template?” = Yes</p>
+<p>You provide an input volume, and the protocol uses its:
+- box size
+- origin / coordinate frame</p>
+<p>This is the best choice when your goal is direct comparison with an
+existing cryo-EM map, because it ensures that the simulated volume lives
+in the same grid and coordinate system.</p>
+<p>Important practical note:</p>
+<p>If you use a template volume, you should typically set Center PDB = No
+(advanced option).
+Otherwise, the protocol will re-center the model, which may break the
+intended correspondence with the template map.</p>
+<p>Use this mode when:
+- you already have an experimental map and want the model density to
+match its frame exactly,
+- you are preparing volumes for subsequent alignment or difference-map
+analysis.</p>
+<p>Option B — Define the output size explicitly</p>
+<p>If you do not use a template volume, you can control the output size.</p>
+<p>For a set of structures, you provide a single Box side size (px) that
+will be applied to all.</p>
+<p>For a single structure, you may:
+- let the protocol estimate a reasonable size automatically, or
+- enable Set final size? and specify X (and optionally Y, Z).</p>
+<p>Use this mode when:
+- you want standardized boxes across many models,
+- you are building references for downstream workflows that require fixed
+dimensions,
+- there is no existing experimental map that defines the coordinate frame.</p>
+<p>Centering the Model
+Center PDB (advanced)</p>
+<p>If enabled, the protocol centers the atomic model using its center of mass
+before generating the volume.</p>
+<p>This is often convenient when:
+- you are generating a model map mainly for visualization,
+- you want the density centered in the box for general use,
+- you are converting multiple models and want consistent centering.</p>
+<p>However, centering can be problematic if you are trying to preserve an
+external coordinate frame (for example when matching an experimental map or
+a template). In those cases, centering should usually be disabled.</p>
+<p>Store centered PDB (advanced)</p>
+<p>If you enable this option, the protocol will also save the centered PDB
+file(s) in the output directory. This is useful when you want to:
+- keep a record of the exact coordinates used,
+- reuse the centered structure in later docking or fitting steps,
+- share the centered model with collaborators.</p>
+<p>CIF to PDB Conversion
+Convert CIF to PDB (advanced)</p>
+<p>Some structures are distributed as mmCIF rather than PDB. If you enable
+this option, CIF inputs will be converted to PDB before volume generation.</p>
+<p>This is generally safe for typical structures, but very large models can
+sometimes cause conversion difficulties. If conversion fails, a practical
+workaround is to:
+- disable conversion and use the CIF directly when possible in your
+workflow, or
+- convert the CIF externally using specialized tools before running the
+protocol.</p>
+<p>Outputs and Their Interpretation</p>
+<p>Depending on whether the input is a single structure or a set, you will
+obtain:
+- Output volume (single input). A single Volume object (typically saved as
+MRC), with the sampling rate set to your chosen value.</p>
+<p>If you used a template volume, the output will also preserve the template’s
+origin/frame, which is essential for direct overlays.</p>
+<ul class="simple">
+<li><p>Output volumes (set input). A SetOfVolumes, one volume per input</p></li>
+</ul>
+<p>structure, all created using the same sampling rate (and the same box size
+if you specified one).</p>
+<ul class="simple">
+<li><p>Output PDB / Output AtomStructs (optional). If you enabled Store centered</p></li>
+</ul>
+<p>PDB, the protocol outputs the centered structure(s) linked to the generated
+volume(s). This is helpful for reproducibility: it lets you know exactly
+what model coordinates correspond to the simulated density.</p>
+<p>Practical Recommendations</p>
+<p>For model-to-map comparison, start by matching the sampling rate to the
+experimental map.</p>
+<p>If you want the simulated volume to overlay the experimental map without
+additional alignment, use the template volume mode and disable centering.</p>
+<p>If you are preparing generic references or a library of model maps,
+centering is often convenient and makes volumes easier to handle downstream.</p>
+<p>If you plan to process many structures, use a SetOfAtomStructs input and
+define a consistent box size so all outputs are directly comparable.</p>
+<p>After conversion, always visually inspect the output volume:
+- is the density fully inside the box?
+- is it centered as expected?
+- does the apparent size match the model?</p>
+<p>Final Perspective</p>
+<p>Converting atomic models to volumes is not just a file format
+transformation—it is a way to place atomic information into the same
+representation used by cryo-EM maps. The key practical choices are sampling
+rate, box definition, and whether to preserve an external coordinate frame.</p>
+<p>Used carefully, this protocol provides reliable simulated densities that
+support fitting, validation, and biologically meaningful comparison between
+models and experimental reconstructions.</p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="xmipp3.protocols.protocol_convert_pdb.XmippProtConvertPdb.OUTPUT_NAME1">
 <span class="sig-name descname"><span class="pre">OUTPUT_NAME1</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'outputVolume'</span></em><a class="headerlink" href="#xmipp3.protocols.protocol_convert_pdb.XmippProtConvertPdb.OUTPUT_NAME1" title="Permalink to this definition"></a></dt>

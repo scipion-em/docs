@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_apply_tilt_to_ctf</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -139,7 +140,160 @@
 <span class="kn">import</span> <span class="nn">math</span>
 
 <div class="viewcode-block" id="XmippProtApplyTiltToCtf"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_apply_tilt_to_ctf.html#xmipp3.protocols.protocol_apply_tilt_to_ctf.XmippProtApplyTiltToCtf">[docs]</a><span class="k">class</span> <span class="nc">XmippProtApplyTiltToCtf</span><span class="p">(</span><span class="n">EMProtocol</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; Applies a local deviation correction to the particle’s contrast transfer function (CTF) estimation based on the tilt angle of the micrograph. This adjustment improves reconstruction quality, especially for tilted samples.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot; Applies a local deviation correction to the particle’s contrast</span>
+<span class="sd">    transfer function (CTF) estimation based on the tilt angle of the</span>
+<span class="sd">    micrograph. This adjustment improves reconstruction quality, especially for</span>
+<span class="sd">    tilted samples.</span>
+
+<span class="sd">    AI Generated:</span>
+
+<span class="sd">    What this protocol is for</span>
+
+<span class="sd">    Apply tilt to CTF is a practical correction step for datasets acquired with</span>
+<span class="sd">    a known stage tilt (or effective specimen tilt) where defocus varies</span>
+<span class="sd">    systematically across the micrograph. In a tilted acquisition, particles</span>
+<span class="sd">    located on one side of the image are physically closer to the objective</span>
+<span class="sd">    lens than particles on the opposite side, so they experience a different</span>
+<span class="sd">    defocus. If you treat the whole micrograph as having a single defocus</span>
+<span class="sd">    value, that assumption becomes increasingly inaccurate as the tilt grows,</span>
+<span class="sd">    and this can degrade downstream refinement and resolution.</span>
+
+<span class="sd">    This protocol applies a simple, physically motivated correction: it updates</span>
+<span class="sd">    each particle’s defocus by adding an offset that depends on the particle’s</span>
+<span class="sd">    position along the tilt axis and the specified tilt angle. The result is a</span>
+<span class="sd">    new particle set whose per-particle CTF defocus values are adjusted to</span>
+<span class="sd">    reflect the linear defocus gradient induced by tilt. For a biological user,</span>
+<span class="sd">    the goal is straightforward: better CTF modeling for tilted data, which</span>
+<span class="sd">    often translates into improved consistency in refinement and better</span>
+<span class="sd">    high-resolution signal.</span>
+
+<span class="sd">    This is not a full “local CTF refinement” algorithm; it is an explicit</span>
+<span class="sd">    geometric correction based on known tilt geometry. It is therefore</span>
+<span class="sd">    particularly useful when you know the acquisition tilt angle (for example</span>
+<span class="sd">    from the microscope settings) and you want a fast, deterministic way to</span>
+<span class="sd">    incorporate that information into per-particle defocus.</span>
+
+<span class="sd">    What you need to provide</span>
+
+<span class="sd">    You provide a set of particles and the set of micrographs from which they</span>
+<span class="sd">    were extracted. The particles must already have two types of metadata: a</span>
+<span class="sd">    CTF model (so there are defocus values to correct) and particle coordinates</span>
+<span class="sd">    (so the protocol knows where each particle sits within its micrograph). The</span>
+<span class="sd">    micrographs are needed because the correction depends on the micrograph</span>
+<span class="sd">    dimensions and sampling rate, and because particles need to be associated</span>
+<span class="sd">    with their parent micrograph.</span>
+
+<span class="sd">    In practice, you run this after particle extraction and after a standard</span>
+<span class="sd">    CTF estimation step that has assigned defocus values to particles</span>
+<span class="sd">    (typically inherited from micrograph CTF, or already particle-level). Then</span>
+<span class="sd">    you apply the tilt-induced correction to produce a particle set with</span>
+<span class="sd">    updated defoci.</span>
+
+<span class="sd">    How the correction works conceptually</span>
+
+<span class="sd">    The protocol assumes that tilt produces a linear defocus ramp across the</span>
+<span class="sd">    micrograph along a chosen axis. You tell the protocol which axis</span>
+<span class="sd">    corresponds to the tilt direction (X or Y), the tilt angle in degrees, and</span>
+<span class="sd">    whether defocus increases or decreases along that axis. For each particle,</span>
+<span class="sd">    the protocol measures how far the particle is from the micrograph center</span>
+<span class="sd">    along the chosen axis, converts that distance into ångströms using the</span>
+<span class="sd">    micrograph pixel size, and multiplies it by the sine of the tilt angle</span>
+<span class="sd">    (with the appropriate sign). That quantity is the defocus offset added to</span>
+<span class="sd">    both DefocusU and DefocusV.</span>
+
+<span class="sd">    Biologically, this is exactly what you expect from simple tilted-plane</span>
+<span class="sd">    geometry: particles on one side of the micrograph are effectively at a</span>
+<span class="sd">    different height relative to the beam, and thus show a systematic defocus</span>
+<span class="sd">    shift. This protocol encodes that correction in the particle CTF parameters.</span>
+
+<span class="sd">    Tilt axis: choosing X vs Y</span>
+
+<span class="sd">    The tilt axis parameter specifies the direction along which defocus changes</span>
+<span class="sd">    across the micrograph. The protocol offers X and Y. The correct choice</span>
+<span class="sd">    depends on the microscope acquisition geometry and on how your micrographs</span>
+<span class="sd">    are oriented in your processing pipeline.</span>
+
+<span class="sd">    As a practical guideline, in many tomography-related conventions the tilt</span>
+<span class="sd">    axis is often treated as Y, but for single-particle tilted data it can vary</span>
+<span class="sd">    depending on acquisition settings and any rotations introduced during</span>
+<span class="sd">    motion correction or preprocessing. If you choose the wrong axis, the</span>
+<span class="sd">    protocol will apply the gradient in the wrong direction, which can make CTF</span>
+<span class="sd">    modeling worse rather than better. When in doubt, it is useful to confirm</span>
+<span class="sd">    tilt direction from acquisition metadata or by inspecting whether defocus</span>
+<span class="sd">    appears to vary predominantly along one direction in diagnostic tools.</span>
+
+<span class="sd">    Tilt angle: what value to use</span>
+
+<span class="sd">    The tilt angle is the acquisition tilt in degrees and is restricted to the</span>
+<span class="sd">    range 0–90°. A tilt angle of 0 means no correction (no gradient). As tilt</span>
+<span class="sd">    increases, the defocus gradient across the micrograph becomes stronger, and</span>
+<span class="sd">    this correction becomes more important.</span>
+
+<span class="sd">    For a biological user, the main decision is simply to use the tilt value</span>
+<span class="sd">    that matches your acquisition. If your dataset includes multiple tilts (for</span>
+<span class="sd">    example, intentionally varied tilts), you should apply this protocol</span>
+<span class="sd">    separately per subset or use appropriate metadata-driven approaches; this</span>
+<span class="sd">    particular protocol applies one global tilt angle setting to all particles</span>
+<span class="sd">    you feed into it.</span>
+
+<span class="sd">    Tilt sign: “Increasing” vs “Decreasing”</span>
+
+<span class="sd">    Even with the correct axis and angle, you must specify whether defocus</span>
+<span class="sd">    increases or decreases as you move along the chosen axis. This is</span>
+<span class="sd">    essentially the directionality of the gradient. The protocol provides two</span>
+<span class="sd">    options: “Increasing” and “Decreasing”.</span>
+
+<span class="sd">    In biological practice, the easiest way to determine the correct sign is</span>
+<span class="sd">    to compare a few particles from opposite sides of a micrograph (along the</span>
+<span class="sd">    tilt axis) using any tool that can estimate local defocus or by inspecting</span>
+<span class="sd">    whether refinement improves when using one sign versus the other. If you</span>
+<span class="sd">    pick the wrong sign, you will invert the defocus ramp and degrade CTF</span>
+<span class="sd">    consistency.</span>
+
+<span class="sd">    Output: what you get</span>
+
+<span class="sd">    The protocol outputs a new SetOfParticles with updated CTF parameters.</span>
+<span class="sd">    The only intended change is the per-particle defocus values: both DefocusU</span>
+<span class="sd">    and DefocusV are shifted by the computed tilt-induced offset. Everything</span>
+<span class="sd">    else about the particle set—images, coordinates, general metadata—remains</span>
+<span class="sd">    the same.</span>
+
+<span class="sd">    This makes the output easy to integrate downstream: you simply use the</span>
+<span class="sd">    output particle set in subsequent steps (2D classification, refinement,</span>
+<span class="sd">    polishing strategies that rely on particle CTF, etc.) so that those steps</span>
+<span class="sd">    see a more realistic defocus model for each particle.</span>
+
+<span class="sd">    When this helps most (biological perspective)</span>
+
+<span class="sd">    This protocol is most useful when you have moderate to high tilt and a</span>
+<span class="sd">    fairly large field of view, because that combination produces a sizable</span>
+<span class="sd">    defocus difference across the micrograph. It can be beneficial for</span>
+<span class="sd">    specimens that require tilt to overcome preferred orientation, and for</span>
+<span class="sd">    workflows where high-resolution consistency depends strongly on accurate</span>
+<span class="sd">    CTF modeling.</span>
+
+<span class="sd">    It is also useful as a lightweight alternative when you do not want to</span>
+<span class="sd">    run a full local CTF refinement but you still want to account for the</span>
+<span class="sd">    dominant, predictable component of defocus variability introduced by tilt.</span>
+
+<span class="sd">    What this protocol does not replace</span>
+
+<span class="sd">    This correction is intentionally simple: it models defocus variation as a</span>
+<span class="sd">    linear gradient. Real micrographs may also exhibit non-linear defocus</span>
+<span class="sd">    behavior due to uneven ice thickness, charging, local bending, or</span>
+<span class="sd">    higher-order optical effects. If those effects dominate, you may still</span>
+<span class="sd">    need true local CTF refinement tools. Nonetheless, even in those cases,</span>
+<span class="sd">    applying the known tilt geometry can remove a large systematic component</span>
+<span class="sd">    and make subsequent local refinement more stable.</span>
+
+<span class="sd">    Practical recommendation</span>
+
+<span class="sd">    A good practical workflow is to apply this correction when you know the</span>
+<span class="sd">    acquisition tilt and then evaluate whether downstream refinement metrics</span>
+<span class="sd">    (for example, map sharpening behavior, FSC, or visual high-frequency detail)</span>
+<span class="sd">    improve. If you see improvement, keep it; if not, re-check axis and sign</span>
+<span class="sd">    first before concluding that tilt correction is unnecessary.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">PROD</span>
 
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;apply tilt to ctf&#39;</span>

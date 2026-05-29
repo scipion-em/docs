@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_flexalign</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -152,7 +153,329 @@
 
 <div class="viewcode-block" id="XmippProtFlexAlign"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_flexalign.html#xmipp3.protocols.protocol_flexalign.XmippProtFlexAlign">[docs]</a><span class="k">class</span> <span class="nc">XmippProtFlexAlign</span><span class="p">(</span><span class="n">ProtAlignMovies</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Wrapper protocol for Xmipp Movie Alignment using cross-correlation methods. It aligns movie frames to produce beam-induced motion corrected micrographs.</span>
+<span class="sd">    Wrapper protocol for Xmipp Movie Alignment using cross-correlation methods.</span>
+<span class="sd">    It aligns movie frames to produce beam-induced motion corrected micrographs.</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The FlexAlign protocol aligns cryo-EM movie frames to correct for beam-induced</span>
+<span class="sd">    motion and produce motion-corrected micrographs. During exposure, the electron</span>
+<span class="sd">    beam causes the sample, ice, and support film to move. If this motion is not</span>
+<span class="sd">    corrected, high-resolution information is blurred when the frames are summed.</span>
+
+<span class="sd">    FlexAlign estimates the shifts between movie frames using cross-correlation</span>
+<span class="sd">    methods. It can perform both global movie alignment and local alignment, where</span>
+<span class="sd">    different regions of the image are allowed to move slightly differently. This</span>
+<span class="sd">    local correction is especially important for modern direct-electron detector</span>
+<span class="sd">    data, where beam-induced motion may vary across the field of view.</span>
+
+<span class="sd">    The main outputs are aligned movies, averaged micrographs, motion-shift plots,</span>
+<span class="sd">    and, optionally, power spectral density diagnostics before and after alignment.</span>
+<span class="sd">    These outputs help the user assess whether the movie alignment has improved the</span>
+<span class="sd">    data and whether the corrected micrographs are suitable for later CTF</span>
+<span class="sd">    estimation, particle picking, and reconstruction.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The protocol takes a set of input movies. Each movie is processed independently.</span>
+<span class="sd">    For each movie, FlexAlign reads the selected frame range, estimates frame</span>
+<span class="sd">    shifts, optionally estimates local motion, applies the correction, and produces</span>
+<span class="sd">    the requested output objects.</span>
+
+<span class="sd">    Depending on the selected options, the protocol may save:</span>
+
+<span class="sd">    - an aligned average micrograph;</span>
+<span class="sd">    - an aligned movie;</span>
+<span class="sd">    - estimated frame shifts;</span>
+<span class="sd">    - shift plots;</span>
+<span class="sd">    - PSD images before and after alignment.</span>
+
+<span class="sd">    The averaged micrographs are usually the most important output for the standard</span>
+<span class="sd">    single-particle workflow. They are used for CTF estimation and particle picking.</span>
+<span class="sd">    The aligned movies are useful if further movie-level processing is needed.</span>
+
+<span class="sd">    ## EER Movies</span>
+
+<span class="sd">    If the input movies are in EER format, the protocol allows the user to define</span>
+<span class="sd">    the **Number of EER frames**. EER files contain very fine-grained subframes,</span>
+<span class="sd">    which must be grouped into a practical number of frames before alignment.</span>
+
+<span class="sd">    A larger number of EER frames gives finer temporal sampling of the motion, but</span>
+<span class="sd">    also increases computational cost and may reduce the signal available in each</span>
+<span class="sd">    frame group. A smaller number of frames gives stronger signal per frame group,</span>
+<span class="sd">    but may describe the motion less precisely.</span>
+
+<span class="sd">    The default value is a reasonable starting point for many datasets, but users</span>
+<span class="sd">    may adjust it depending on dose, exposure time, and the expected amount of</span>
+<span class="sd">    motion.</span>
+
+<span class="sd">    ## Frame Ranges for Alignment and Summation</span>
+
+<span class="sd">    As in other Scipion movie-alignment protocols, the user can define which frames</span>
+<span class="sd">    are used to estimate the alignment and which frames are used to generate the</span>
+<span class="sd">    final summed micrograph.</span>
+
+<span class="sd">    The **alignment frame range** determines the frames used to estimate motion.</span>
+<span class="sd">    The **summation frame range** determines the frames included in the final</span>
+<span class="sd">    average.</span>
+
+<span class="sd">    These two ranges do not necessarily have to be identical. For example, very</span>
+<span class="sd">    early frames may contain strong initial motion, and very late frames may contain</span>
+<span class="sd">    more radiation damage. Depending on the dataset, users may exclude some frames</span>
+<span class="sd">    from the final sum while still using enough frames to estimate a stable motion</span>
+<span class="sd">    trajectory.</span>
+
+<span class="sd">    From a biological point of view, this choice controls the compromise between</span>
+<span class="sd">    signal, radiation damage, and motion correction quality.</span>
+
+<span class="sd">    ## Global and Local Alignment</span>
+
+<span class="sd">    FlexAlign can perform local alignment in addition to global alignment.</span>
+
+<span class="sd">    Global alignment estimates a single shift per frame. This corrects the average</span>
+<span class="sd">    motion of the whole movie. It is often sufficient when the motion is small or</span>
+<span class="sd">    spatially homogeneous.</span>
+
+<span class="sd">    Local alignment estimates position-dependent motion. In this mode, different</span>
+<span class="sd">    regions of the micrograph can have different shifts. This is useful because</span>
+<span class="sd">    beam-induced motion is frequently not uniform across the image.</span>
+
+<span class="sd">    The option **Compute local alignment?** enables this local correction. In most</span>
+<span class="sd">    modern cryo-EM workflows, local alignment is recommended, especially for</span>
+<span class="sd">    high-resolution single-particle analysis.</span>
+
+<span class="sd">    If local alignment is disabled, the protocol performs a simpler correction.</span>
+<span class="sd">    This may be faster, but it can leave residual local blurring in the corrected</span>
+<span class="sd">    micrograph.</span>
+
+<span class="sd">    ## Control Points</span>
+
+<span class="sd">    For local alignment, FlexAlign models the motion field using control points.</span>
+<span class="sd">    These control points define how flexibly the estimated deformation can vary</span>
+<span class="sd">    across space and time.</span>
+
+<span class="sd">    The protocol can determine the number of control points automatically. This is</span>
+<span class="sd">    the recommended option for most users. Automatic control-point selection uses</span>
+<span class="sd">    the movie dimensions, sampling rate, and number of frames to choose values that</span>
+<span class="sd">    are appropriate for the dataset.</span>
+
+<span class="sd">    Advanced users can disable automatic control-point selection and manually set</span>
+<span class="sd">    the number of control points in X, Y, and time. Larger numbers allow a more</span>
+<span class="sd">    flexible motion model, but they may also make the estimation less stable if the</span>
+<span class="sd">    movie does not contain enough signal. Too few control points may underfit the</span>
+<span class="sd">    motion and fail to correct local deformation.</span>
+
+<span class="sd">    At least three control points are required in each dimension.</span>
+
+<span class="sd">    ## Patches for Local Alignment</span>
+
+<span class="sd">    Local alignment also uses image patches. These patches provide local regions</span>
+<span class="sd">    from which the motion can be estimated.</span>
+
+<span class="sd">    The **Auto patches** option lets the protocol choose the number of patches</span>
+<span class="sd">    automatically. This is recommended for routine use.</span>
+
+<span class="sd">    If the number of patches is set manually, the user controls how finely the</span>
+<span class="sd">    micrograph is divided for local motion estimation. More patches can capture</span>
+<span class="sd">    more local variation, but each patch contains less signal. Fewer patches are</span>
+<span class="sd">    more stable but may miss spatially varying motion.</span>
+
+<span class="sd">    The correct balance depends on micrograph size, particle distribution, dose,</span>
+<span class="sd">    ice quality, and the amount of beam-induced movement.</span>
+
+<span class="sd">    ## Minimum Patch Size</span>
+
+<span class="sd">    The **Min size of the patch** parameter defines the minimum physical size, in</span>
+<span class="sd">    angstroms, that each local-alignment patch should cover.</span>
+
+<span class="sd">    This parameter helps prevent the local-alignment model from using patches that</span>
+<span class="sd">    are too small to provide reliable correlation signal. If patches are too small,</span>
+<span class="sd">    their estimated shifts may become noisy. If they are too large, local motion may</span>
+<span class="sd">    be averaged out.</span>
+
+<span class="sd">    For most users, the default value should be left unchanged unless there is a</span>
+<span class="sd">    specific reason to tune local alignment behavior.</span>
+
+<span class="sd">    ## Grouping Frames</span>
+
+<span class="sd">    The **Group N frames** parameter controls whether several consecutive frames</span>
+<span class="sd">    are summed before estimating local alignment.</span>
+
+<span class="sd">    Grouping frames increases the signal-to-noise ratio of the images used for</span>
+<span class="sd">    alignment, which can make shift estimation more stable. However, grouping also</span>
+<span class="sd">    reduces temporal resolution. If too many frames are grouped together, rapid</span>
+<span class="sd">    motion may be smoothed out and not fully corrected.</span>
+
+<span class="sd">    The default value is a practical compromise. Increasing this value may help for</span>
+<span class="sd">    very noisy movies; decreasing it may help when motion changes rapidly across</span>
+<span class="sd">    the exposure.</span>
+
+<span class="sd">    ## Maximum Resolution for Correlation</span>
+
+<span class="sd">    The **Maximum resolution** parameter defines the highest-resolution information</span>
+<span class="sd">    preserved during the correlation step.</span>
+
+<span class="sd">    Movie alignment is usually driven by relatively low- and medium-resolution</span>
+<span class="sd">    features, which are more robust to noise. Very high-resolution information may</span>
+<span class="sd">    be too noisy to help the correlation and can sometimes make alignment less</span>
+<span class="sd">    stable.</span>
+
+<span class="sd">    The default value limits the correlation to a resolution range that is usually</span>
+<span class="sd">    suitable for estimating motion. Users should be cautious when changing this</span>
+<span class="sd">    parameter. Preserving too much high-resolution information during correlation</span>
+<span class="sd">    does not necessarily improve the final micrograph.</span>
+
+<span class="sd">    ## Maximum Shift</span>
+
+<span class="sd">    The **Maximum shift** parameter defines the maximum allowed displacement, in</span>
+<span class="sd">    angstroms, between consecutive frames.</span>
+
+<span class="sd">    This parameter acts as a safeguard against unrealistic frame-to-frame jumps. If</span>
+<span class="sd">    the value is too small, genuine motion may be artificially restricted. If it is</span>
+<span class="sd">    too large, the algorithm may accept unstable or incorrect correlations.</span>
+
+<span class="sd">    The default value is suitable for many datasets. Datasets with very strong</span>
+<span class="sd">    initial beam-induced motion may require a larger value, but such changes should</span>
+<span class="sd">    be checked carefully using the resulting shift plots.</span>
+
+<span class="sd">    ## Binning</span>
+
+<span class="sd">    If a binning factor is used, the movie is processed at reduced image size. This</span>
+<span class="sd">    can speed up alignment and reduce memory requirements.</span>
+
+<span class="sd">    Binning may be useful for very large movies or for preliminary processing.</span>
+<span class="sd">    However, excessive binning can remove information needed for accurate alignment</span>
+<span class="sd">    and may reduce the quality of the final corrected micrographs.</span>
+
+<span class="sd">    The bin factor must be greater than or equal to 1. A value of 1 means that no</span>
+<span class="sd">    binning is applied.</span>
+
+<span class="sd">    ## Gain and Dark Correction</span>
+
+<span class="sd">    If the input movie set has associated gain or dark references, FlexAlign can</span>
+<span class="sd">    use them during processing.</span>
+
+<span class="sd">    Gain correction compensates for pixel-to-pixel sensitivity differences in the</span>
+<span class="sd">    detector. Dark correction compensates for detector background signal. These</span>
+<span class="sd">    corrections are important because uncorrected detector artifacts can interfere</span>
+<span class="sd">    with frame alignment, CTF estimation, and later particle processing.</span>
+
+<span class="sd">    The protocol includes a **Gain orientation** section that allows the user to</span>
+<span class="sd">    rotate or flip the gain reference. This is useful when the gain image and the</span>
+<span class="sd">    movie frames have different orientations.</span>
+
+<span class="sd">    For TIFF movies, the gain reference may require an automatic vertical flip.</span>
+<span class="sd">    The protocol also allows explicit gain rotation by 90, 180, or 270 degrees, and</span>
+<span class="sd">    flipping upside down or left-right.</span>
+
+<span class="sd">    Users should pay special attention to gain orientation. An incorrectly oriented</span>
+<span class="sd">    gain reference can introduce strong artifacts into the corrected micrographs.</span>
+
+<span class="sd">    ## PSD Computation</span>
+
+<span class="sd">    The option **Compute PSD?** makes the protocol compute power spectral density</span>
+<span class="sd">    diagnostics before and after alignment.</span>
+
+<span class="sd">    PSD images are useful for assessing data quality and the effect of motion</span>
+<span class="sd">    correction. After successful alignment, Thon rings and other frequency-domain</span>
+<span class="sd">    features may become clearer, especially at higher resolution.</span>
+
+<span class="sd">    These diagnostics are particularly useful when checking whether motion</span>
+<span class="sd">    correction has improved the data before proceeding to CTF estimation.</span>
+
+<span class="sd">    If PSD computation is enabled only for diagnostic purposes, temporary average</span>
+<span class="sd">    micrographs used for PSD calculation may be removed automatically unless the</span>
+<span class="sd">    user has also requested to save the average micrographs.</span>
+
+<span class="sd">    ## Shift Plots</span>
+
+<span class="sd">    For each processed movie, FlexAlign stores a plot of the estimated motion</span>
+<span class="sd">    trajectory. This plot shows the cumulative shifts in X and Y across frames.</span>
+
+<span class="sd">    Shift plots are one of the most useful practical diagnostics of movie</span>
+<span class="sd">    alignment. Smooth trajectories usually indicate stable alignment. Very abrupt</span>
+<span class="sd">    jumps may indicate poor correlation, very low signal, incorrect gain correction,</span>
+<span class="sd">    bad frames, or excessive motion.</span>
+
+<span class="sd">    Users should inspect representative shift plots, especially when processing a</span>
+<span class="sd">    new dataset or when changing alignment parameters.</span>
+
+<span class="sd">    ## GPU and CPU Execution</span>
+
+<span class="sd">    FlexAlign can use either the GPU or CPU implementation, depending on the</span>
+<span class="sd">    available installation and selected options.</span>
+
+<span class="sd">    Local alignment requires the GPU implementation. If local alignment is enabled,</span>
+<span class="sd">    the protocol must be run with GPU support.</span>
+
+<span class="sd">    The protocol checks that the required Xmipp binaries are available. If the GPU</span>
+<span class="sd">    version is selected but the CUDA-enabled binary is not present, the protocol</span>
+<span class="sd">    will report an error. In that case, the Xmipp installation should be checked.</span>
+
+<span class="sd">    When using GPUs, the number of Scipion threads should be consistent with the</span>
+<span class="sd">    number of selected GPU devices. In typical use, the protocol expects the number</span>
+<span class="sd">    of threads to correspond to the number of GPUs plus one.</span>
+
+<span class="sd">    ## Outputs and Their Interpretation</span>
+
+<span class="sd">    Depending on the selected options, the protocol can produce aligned</span>
+<span class="sd">    micrographs, aligned movies, shift metadata, alignment plots, and PSD</span>
+<span class="sd">    diagnostics.</span>
+
+<span class="sd">    The aligned average micrographs are generally used as input for CTF estimation</span>
+<span class="sd">    and particle picking. They represent the motion-corrected sum of the selected</span>
+<span class="sd">    movie frames.</span>
+
+<span class="sd">    The aligned movies preserve the corrected frame sequence and may be useful for</span>
+<span class="sd">    additional movie-level processing.</span>
+
+<span class="sd">    The shift metadata and plots describe the estimated motion. They should be used</span>
+<span class="sd">    to evaluate whether the correction behaved sensibly.</span>
+
+<span class="sd">    The PSD diagnostics help assess whether the alignment improves the frequency</span>
+<span class="sd">    content of the micrograph and whether the corrected images are suitable for</span>
+<span class="sd">    subsequent processing.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    For most modern single-particle cryo-EM datasets, local alignment should be</span>
+<span class="sd">    enabled and automatic control points and patches should be used.</span>
+
+<span class="sd">    Keep PSD computation enabled when processing a new dataset, because it provides</span>
+<span class="sd">    a useful diagnostic of alignment quality.</span>
+
+<span class="sd">    Use the default maximum resolution for correlation unless there is a specific</span>
+<span class="sd">    reason to change it. Movie alignment does not usually benefit from using very</span>
+<span class="sd">    high-resolution noisy information during correlation.</span>
+
+<span class="sd">    Inspect the shift plots for several movies. Smooth, physically plausible motion</span>
+<span class="sd">    trajectories are a good sign. Sudden jumps or erratic behavior should be</span>
+<span class="sd">    investigated.</span>
+
+<span class="sd">    Check gain orientation carefully. Many alignment problems are caused not by the</span>
+<span class="sd">    motion algorithm itself, but by incorrect gain correction.</span>
+
+<span class="sd">    Use frame ranges thoughtfully. Excluding damaged late frames or unstable early</span>
+<span class="sd">    frames from the final sum can improve the quality of the averaged micrographs.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    FlexAlign is an early but crucial step in the cryo-EM image-processing</span>
+<span class="sd">    workflow. It converts raw detector movies into motion-corrected images that can</span>
+<span class="sd">    be reliably used for CTF estimation, particle picking, classification, and</span>
+<span class="sd">    reconstruction.</span>
+
+<span class="sd">    Good movie alignment preserves high-resolution information that would otherwise</span>
+<span class="sd">    be blurred by beam-induced motion. Poor alignment, incorrect gain correction,</span>
+<span class="sd">    or inappropriate frame selection can limit the achievable resolution of the</span>
+<span class="sd">    entire project.</span>
+
+<span class="sd">    For biological users, the main goal is to obtain corrected micrographs with</span>
+<span class="sd">    stable motion trajectories, clear diagnostic PSDs, and no obvious artifacts.</span>
+<span class="sd">    These corrected micrographs form the foundation for the rest of the</span>
+<span class="sd">    single-particle analysis workflow.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">NO_ROTATION</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">NO_FLIP</span> <span class="o">=</span> <span class="mi">0</span>

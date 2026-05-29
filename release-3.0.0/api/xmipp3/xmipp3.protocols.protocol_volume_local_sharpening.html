@@ -228,7 +228,192 @@
 <dt class="sig sig-object py" id="xmipp3.protocols.protocol_volume_local_sharpening.XmippProtLocSharp">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">xmipp3.protocols.protocol_volume_local_sharpening.</span></span><span class="sig-name descname"><span class="pre">XmippProtLocSharp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_volume_local_sharpening.html#XmippProtLocSharp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_volume_local_sharpening.XmippProtLocSharp" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="../pwem/pwem.protocols.protocol_3d.html#pwem.protocols.protocol_3d.ProtAnalysis3D" title="pwem.protocols.protocol_3d.ProtAnalysis3D"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtAnalysis3D</span></code></a></p>
-<p>Calculates sharpened maps based on a given resolution map. The sharpening process enhances high-resolution features by boosting contrast where the local resolution allows to do so.</p>
+<p>Calculates sharpened maps based on a given resolution map. The sharpening
+process enhances high-resolution features by boosting contrast where the
+local resolution allows to do so.</p>
+<p>AI Generated</p>
+<p>## Overview</p>
+<p>The LocalDeblur Sharpening protocol performs local sharpening of a cryo-EM map
+using an associated local-resolution map.</p>
+<p>In cryo-EM, different regions of the same reconstruction may have different
+local resolution. A single global sharpening factor may therefore be too weak
+for well-resolved regions and too strong for poorly resolved regions.
+LocalDeblur addresses this by using a local-resolution map to guide the
+sharpening process spatially.</p>
+<p>The protocol enhances map features according to the local resolution estimated
+at each region. It can run for one or several iterations. When several
+iterations are used, the protocol sharpens the map, re-estimates local
+resolution using MonoRes, and then sharpens again using the updated resolution
+map.</p>
+<p>The main output is a sharpened volume. If several iterations are performed,
+the protocol outputs a set of sharpened volumes, one per iteration.</p>
+<p>## Inputs and General Workflow</p>
+<p>The protocol requires:</p>
+<ul class="simple">
+<li><p>an input cryo-EM map;</p></li>
+<li><p>a local-resolution map.</p></li>
+</ul>
+<p>The input map and local-resolution map are converted to the format expected by
+Xmipp. The protocol checks and prepares the background of the resolution map,
+then creates a binary mask from it. The mask defines the region where local
+resolution is meaningful.</p>
+<p>The protocol then runs the local sharpening program using the input map,
+resolution map, sampling rate, regularization parameters, and number of
+threads. If iterative sharpening is requested, it alternates between
+sharpening and MonoRes local-resolution estimation.</p>
+<p>At the end, the last sharpened map is written as <cite>sharpenedMap_last.mrc</cite> and
+registered as the output.</p>
+<p>## Input Map</p>
+<p>The <strong>Input Map</strong> parameter defines the cryo-EM volume to be sharpened.</p>
+<p>This map should be a reconstruction that the user wants to enhance for
+visualization, interpretation, or model building. The sampling rate of this
+volume is used throughout the calculation.</p>
+<p>The input map should correspond to the same coordinate frame and box as the
+resolution map. If the map and resolution map are not aligned or do not have
+compatible dimensions, the local sharpening will not be meaningful.</p>
+<p>## Resolution Map</p>
+<p>The <strong>Resolution Map</strong> parameter provides the local-resolution information used
+to guide sharpening.</p>
+<p>LocalDeblur was specially designed to work with resolution maps obtained from
+MonoRes, but the protocol help also indicates that resolution maps from ResMap
+and BlocRes are accepted.</p>
+<p>The resolution map should contain local-resolution values in angstroms. Regions
+outside the molecule should ideally be zero or clearly distinguishable from the
+valid resolution region.</p>
+<p>The quality of the sharpening depends strongly on the quality of this
+resolution map. If the resolution map is noisy, poorly masked, or inconsistent
+with the input map, the sharpening may be unreliable.</p>
+<p>## Background Check</p>
+<p>Before sharpening, the protocol checks the background values of the resolution
+map.</p>
+<p>If the minimum value of the resolution map is larger than a small threshold, it
+assumes that the background may not be properly set to zero. In that case, it
+sets the largest background-like values to zero using a thresholding operation.</p>
+<p>This step helps prepare imported resolution maps whose background convention
+may not be ideal for LocalDeblur.</p>
+<p>## Binary Mask Creation</p>
+<p>The protocol creates a binary mask from the resolution map.</p>
+<p>It thresholds the resolution map so that voxels below 0.1 are converted into a
+binary mask. This mask is used by the MonoRes re-estimation step when iterative
+sharpening is performed.</p>
+<p>The mask should represent the region where the local-resolution values are
+valid. If the resolution map background is not correct, the mask may be wrong,
+and the sharpening may be affected.</p>
+<p>## Lambda</p>
+<p>The <strong>lambda</strong> parameter is a regularization parameter.</p>
+<p>The method normally determines this parameter automatically. The form help
+indicates that lambda is directly related to convergence. Increasing it may
+accelerate convergence, but it also increases the risk of falling into local
+minima.</p>
+<p>The default value is 1. In the protocol, the user-provided lambda value is
+passed explicitly only in the first iteration when it differs from 1.</p>
+<p>Most users should keep the default value unless they have a specific reason to
+control convergence behavior.</p>
+<p>## K Parameter</p>
+<p>The <strong>K</strong> parameter controls part of the sharpening behavior.</p>
+<p>The help text indicates that <strong>K = 0.025</strong> works well for all tested cases and
+that K should usually remain in the range <strong>0.01–0.05</strong>.</p>
+<p>For maps with FSC resolution worse than 6 Å, the help suggests that <strong>K =
+0.01</strong> can be a good alternative.</p>
+<p>This is an advanced parameter. Users should normally start with the default and
+adjust it only if the sharpening appears too weak, too strong, or unstable.</p>
+<p>## Number of Iterations</p>
+<p>The <strong>No. Iterations</strong> parameter controls how many sharpening rounds are
+performed.</p>
+<p>If the value is <strong>1</strong>, the protocol performs a single local-sharpening step
+using the input resolution map.</p>
+<p>If the value is larger than 1, the protocol performs several rounds. In each
+round, the previously sharpened map is used as input, and MonoRes is run to
+estimate a new local-resolution map for the next sharpening round.</p>
+<p>If the value is <strong>-1</strong>, the protocol determines the stopping point
+automatically. It stops when the sharpening convergence criterion stabilizes or
+when the updated local-resolution range becomes sufficiently narrow.</p>
+<p>## Iterative MonoRes Re-estimation</p>
+<p>When more than one iteration is requested, the protocol re-estimates local
+resolution after each sharpening step.</p>
+<p>The MonoRes calculation uses:</p>
+<ul class="simple">
+<li><p>the current sharpened map;</p></li>
+<li><p>the binary mask created from the resolution map;</p></li>
+<li><p>the input map sampling rate;</p></li>
+<li><p>a minimum resolution of twice the sampling rate;</p></li>
+<li><p>a maximum resolution derived from the current resolution map;</p></li>
+<li><p>a step of 0.25 Å;</p></li>
+<li><p>significance of 0.95.</p></li>
+</ul>
+<p>This creates an updated local-resolution map that guides the next sharpening
+iteration.</p>
+<p>## Automatic Stopping</p>
+<p>When the number of iterations is set to <strong>-1</strong>, the protocol stops
+automatically according to convergence criteria.</p>
+<p>It monitors the sharpening lambda/cost value stored in the metadata file. If
+the value changes only slightly between iterations, the protocol stops.</p>
+<p>It can also stop when the range of local-resolution values becomes smaller
+than a predefined threshold.</p>
+<p>Automatic stopping is useful when the user does not know how many sharpening
+iterations are appropriate, but the result should still be inspected carefully.</p>
+<p>## Metadata Parameters</p>
+<p>During sharpening, the protocol writes a metadata file named <cite>params.xmd</cite>.</p>
+<p>This file stores parameters reported by the local sharpening program, including
+values used to evaluate convergence and the number of internal iterations.</p>
+<p>These metadata are mainly useful for advanced users who want to inspect the
+behavior of the sharpening process.</p>
+<p>## Output Volume</p>
+<p>If only one sharpening iteration is performed, the main output is
+<strong>outputVolume</strong>.</p>
+<p>This output is the final sharpened map, written as:</p>
+<p><cite>sharpenedMap_last.mrc</cite></p>
+<p>The output volume keeps the sampling rate and origin of the input volume.</p>
+<p>It is annotated as the last sharpening epoch.</p>
+<p>## Output Volumes</p>
+<p>If more than one sharpening iteration is performed, the protocol creates
+<strong>outputVolumes</strong>, a set containing the sharpened maps from the successive
+iterations.</p>
+<p>Intermediate maps are named according to their iteration, while the final map
+is stored as <cite>sharpenedMap_last.mrc</cite>.</p>
+<p>This output set allows the user to compare sharpening rounds and choose the map
+that provides the best balance between enhanced detail and noise amplification.</p>
+<p>## Imported Resolution Maps</p>
+<p>If the protocol cannot find the internally updated MonoRes resolution map, it
+prints a warning indicating that the resolution map was probably imported.</p>
+<p>The warning notes that the ideal case is to calculate the resolution map
+previously in the same project using MonoRes.</p>
+<p>This is not necessarily an error, but it reminds the user that resolution-map
+compatibility is important for robust local sharpening.</p>
+<p>## Interpreting the Sharpened Map</p>
+<p>The sharpened output should be interpreted as an enhanced version of the input
+map.</p>
+<p>LocalDeblur can improve the visibility of high-resolution features where the
+local-resolution map indicates that such features are supported. However,
+sharpening can also amplify noise or create misleading visual contrast if the
+local-resolution map is inaccurate or if parameters are too aggressive.</p>
+<p>Poorly resolved regions should not be overinterpreted simply because the map
+appears sharper. The sharpened map should always be compared with the original
+map, half maps, FSC information, and local-resolution estimates.</p>
+<p>## Practical Recommendations</p>
+<p>Use a local-resolution map that corresponds exactly to the input map.</p>
+<p>Prefer MonoRes resolution maps when available, since LocalDeblur was designed
+for them.</p>
+<p>Start with the default K and lambda values.</p>
+<p>Use one iteration first. If the result is conservative or if iterative
+refinement is desired, try multiple iterations and compare the outputs.</p>
+<p>Use automatic iteration only when you are prepared to inspect the sequence of
+sharpened maps.</p>
+<p>For maps worse than about 6 Å global FSC resolution, consider a smaller K value
+such as 0.01, as suggested by the protocol help.</p>
+<p>Inspect the sharpened map together with the original map and validation data.
+Avoid interpreting isolated sharpened features without support from the
+experimental data.</p>
+<p>## Final Perspective</p>
+<p>LocalDeblur Sharpening is a local map-enhancement protocol guided by a
+local-resolution map.</p>
+<p>For biological users, its main value is that it sharpens different regions of
+a cryo-EM map according to their estimated local resolution, instead of
+applying a single global sharpening factor.</p>
+<p>The protocol can improve interpretability and model-building guidance, but it
+should be used as part of a validation-aware workflow. The final map is an
+enhanced representation of the reconstruction, not a replacement for the
+original map or for independent validation.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="xmipp3.protocols.protocol_volume_local_sharpening.XmippProtLocSharp.MonoResStep">
 <span class="sig-name descname"><span class="pre">MonoResStep</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iter</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_volume_local_sharpening.html#XmippProtLocSharp.MonoResStep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_volume_local_sharpening.XmippProtLocSharp.MonoResStep" title="Permalink to this definition"></a></dt>

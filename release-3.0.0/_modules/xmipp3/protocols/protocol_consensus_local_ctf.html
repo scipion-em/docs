@@ -146,7 +146,175 @@
 <span class="n">CITE</span> <span class="o">=</span><span class="s1">&#39;Fernandez-Gimenez2023b&#39;</span>
 
 <div class="viewcode-block" id="XmippProtConsensusLocalCTF"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_consensus_local_ctf.html#xmipp3.protocols.protocol_consensus_local_ctf.XmippProtConsensusLocalCTF">[docs]</a><span class="k">class</span> <span class="nc">XmippProtConsensusLocalCTF</span><span class="p">(</span><span class="n">ProtAnalysis3D</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This protocol compares local defocus estimations obtained from multiple protocols for a set of particles. It evaluates the consistency among different CTF estimates and generates a set of particles with a consensus defocus.&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;This protocol compares local defocus estimations obtained from multiple</span>
+<span class="sd">    protocols for a set of particles. It evaluates the consistency among</span>
+<span class="sd">    different CTF estimates and generates a set of particles with a consensus</span>
+<span class="sd">    defocus.</span>
+
+<span class="sd">    AI Generated:</span>
+
+<span class="sd">    Overview</span>
+
+<span class="sd">    The Consensus Local Defocus protocol is designed for a common practical</span>
+<span class="sd">    problem in cryo-EM processing: you may estimate local CTF/defocus per</span>
+<span class="sd">    particle using different programs (for example Xmipp, Relion-based workflows,</span>
+<span class="sd">    gCTF-derived approaches, or other local CTF estimators) and obtain slightly</span>
+<span class="sd">    different values. This protocol compares those alternative estimates and</span>
+<span class="sd">    produces a single consensus defocus per particle, together with a measure</span>
+<span class="sd">    of disagreement.</span>
+
+<span class="sd">    From a user perspective, it answers:</span>
+
+<span class="sd">    If several methods estimate local defocus for the same particles, what is</span>
+<span class="sd">    the most reliable “central” value—and how consistent are the methods with each other?</span>
+
+<span class="sd">    This is particularly useful when you want to:</span>
+<span class="sd">    - reduce method-specific noise or bias by combining estimates,</span>
+<span class="sd">    - detect problematic particles where defocus estimation is unstable,</span>
+<span class="sd">    - generate a unified particle set for downstream refinement using</span>
+<span class="sd">    consistent CTF parameters.</span>
+
+<span class="sd">    Inputs and General Workflow</span>
+
+<span class="sd">    The protocol uses two types of particle sets:</span>
+<span class="sd">    - Input particles to assign the consensus defocus. This is the target</span>
+<span class="sd">    particle set you want to update with the final consensus defocus values.</span>
+<span class="sd">    Think of it as your “main dataset” that will continue through the pipeline.</span>
+
+<span class="sd">    - Input defocus estimations (multiple particle sets). Here you provide</span>
+<span class="sd">    several particle sets, each containing the same particles but with</span>
+<span class="sd">    different local defocus estimations already stored in their CTF models.</span>
+
+<span class="sd">    Important practical point: these sets must correspond to the same images</span>
+<span class="sd">    (same particle identities). The protocol matches particles by their</span>
+<span class="sd">    internal identifiers. If one set is missing particles or uses different</span>
+<span class="sd">    identifiers, those particles may simply not receive a consensus value.</span>
+
+<span class="sd">    What the Protocol Computes</span>
+
+<span class="sd">    For each particle, the protocol collects the defocus parameters from all</span>
+<span class="sd">    the provided estimations:</span>
+<span class="sd">    - Defocus U</span>
+<span class="sd">    - Defocus V</span>
+<span class="sd">    - Defocus angle (astigmatism angle)</span>
+
+<span class="sd">    It then computes:</span>
+<span class="sd">    1) Consensus defocus (median). The protocol uses the median across methods</span>
+<span class="sd">    as the consensus value (for U, V, and angle). The median is a very robust</span>
+<span class="sd">    choice: it is much less sensitive than the mean to an outlier method or to</span>
+<span class="sd">    occasional failed estimates.</span>
+
+<span class="sd">    Biologically/practically, this means the consensus is aiming to represent</span>
+<span class="sd">    the “typical” defocus estimate supported by most methods.</span>
+
+<span class="sd">    2) Residual disagreement (MAD). To quantify how consistent the estimators</span>
+<span class="sd">    are, the protocol computes the MAD (median absolute deviation) for defocus</span>
+<span class="sd">    U (and internally also for V and angle, although the output explicitly</span>
+<span class="sd">    stores a residual value associated with defocus).</span>
+
+<span class="sd">    Interpretation:</span>
+<span class="sd">    - low MAD → the different methods largely agree → defocus is stable and</span>
+<span class="sd">    reliable</span>
+<span class="sd">    - high MAD → the methods disagree → particle defocus may be ambiguous (</span>
+<span class="sd">    low SNR, contamination, bad local background, poor particle windowing, etc.)</span>
+
+<span class="sd">    In practice, this residual is extremely useful as a quality indicator.</span>
+
+<span class="sd">    3) Correlation matrices between methods. The protocol also computes and</span>
+<span class="sd">    saves correlation matrices comparing the defocus estimates across all</span>
+<span class="sd">    particles:</span>
+<span class="sd">    - correlation between methods for Defocus U</span>
+<span class="sd">    - correlation between methods for Defocus V</span>
+<span class="sd">    - correlation between methods for Defocus angle</span>
+
+<span class="sd">    These summaries help you understand whether two estimators behave similarly</span>
+<span class="sd">    (high correlation) or systematically differ (low correlation).</span>
+
+<span class="sd">    Outputs and Their Interpretation</span>
+
+<span class="sd">    Output: particles with consensus defocus</span>
+
+<span class="sd">    The main output is a new SetOfParticles in which each particle has updated</span>
+<span class="sd">    CTF parameters:</span>
+<span class="sd">    - Defocus U = median across methods</span>
+<span class="sd">    - Defocus V = median across methods</span>
+<span class="sd">    - Defocus angle = median across methods</span>
+
+<span class="sd">    In addition, the protocol stores a defocus residual (derived from the MAD)</span>
+<span class="sd">    in the particle’s CTF metadata. This residual acts as a per-particle</span>
+<span class="sd">    indicator of uncertainty or disagreement among methods.</span>
+
+<span class="sd">    This output is typically what you would feed into:</span>
+<span class="sd">    - CTF-aware refinement</span>
+<span class="sd">    - polishing / per-particle corrections (depending on your pipeline)</span>
+<span class="sd">    - quality filtering steps (e.g., removing particles with highly unstable</span>
+<span class="sd">    defocus)</span>
+
+<span class="sd">    Saved diagnostic files</span>
+
+<span class="sd">    In the protocol’s extra output directory, it also writes text files with:</span>
+<span class="sd">    - defocus matrices (per particle × per method, plus the median column)</span>
+<span class="sd">    - correlation matrices between methods</span>
+
+<span class="sd">    These are mainly intended for diagnosis and reporting. For example, they</span>
+<span class="sd">    allow you to identify whether one estimator is systematically shifted</span>
+<span class="sd">    relative to the others.</span>
+
+<span class="sd">    Practical Recommendations</span>
+
+<span class="sd">    When to use it</span>
+
+<span class="sd">    This protocol is most useful when you have:</span>
+<span class="sd">    - two or more alternative local defocus estimations for the same dataset,</span>
+<span class="sd">    and</span>
+<span class="sd">    - you want a single consistent particle set for downstream processing.</span>
+
+<span class="sd">    It is also useful as a sanity check: if estimators strongly disagree</span>
+<span class="sd">    globally, that often indicates an underlying problem (incorrect pixel size,</span>
+<span class="sd">    wrong voltage/spherical aberration settings, wrong micrograph grouping, or</span>
+<span class="sd">    poor preprocessing).</span>
+
+<span class="sd">    How many methods should you include?</span>
+
+<span class="sd">    Two can already be helpful, but three or more is often better because the</span>
+<span class="sd">    median becomes more informative and robust.</span>
+
+<span class="sd">    How to interpret the residual</span>
+
+<span class="sd">    Particles with very high residual disagreement are often:</span>
+<span class="sd">    - low contrast / low SNR</span>
+<span class="sd">    - partially contaminated or overlapping</span>
+<span class="sd">    - near carbon edges or gradients</span>
+<span class="sd">    - poorly centered or poorly windowed</span>
+<span class="sd">    - affected by local ice thickness changes</span>
+
+<span class="sd">    A common downstream strategy is to:</span>
+<span class="sd">    - plot or inspect the distribution of residuals,</span>
+<span class="sd">    - remove the worst tail (for example top 5–10%) if it is clearly separated.</span>
+
+<span class="sd">    (Exact thresholds are dataset-dependent; the residual is best used</span>
+<span class="sd">    comparatively.)</span>
+
+<span class="sd">    Caution with defocus angle</span>
+
+<span class="sd">    Angle can be less stable than defocus values, especially when astigmatism</span>
+<span class="sd">    is weak. If you see strong disagreement specifically in angles, it may not</span>
+<span class="sd">    always be biologically meaningful—often it is a symptom of low astigmatism</span>
+<span class="sd">    signal.</span>
+
+<span class="sd">    Final Perspective</span>
+
+<span class="sd">    Local CTF estimation is one of those steps where small numerical</span>
+<span class="sd">    differences can propagate into refinement quality and interpretability.</span>
+<span class="sd">    The Consensus Local Defocus protocol provides a simple and robust way to</span>
+<span class="sd">    combine multiple estimators, producing a single defocus per particle while</span>
+<span class="sd">    also reporting how reliable that consensus is.</span>
+
+<span class="sd">    For many users, its main value is not only the consensus defocus itself,</span>
+<span class="sd">    but also the per-particle disagreement indicator, which helps detect</span>
+<span class="sd">    problematic particles and increase confidence in downstream structural</span>
+<span class="sd">    conclusions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;consensus local defocus&#39;</span>
     <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">PROD</span>
 

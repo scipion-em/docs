@@ -228,10 +228,167 @@
 <dt class="sig sig-object py" id="xmipp3.protocols.protocol_mics_defocus_balancer.XmippProtMicDefocusSampler">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">xmipp3.protocols.protocol_mics_defocus_balancer.</span></span><span class="sig-name descname"><span class="pre">XmippProtMicDefocusSampler</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_mics_defocus_balancer.html#XmippProtMicDefocusSampler"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_mics_defocus_balancer.XmippProtMicDefocusSampler" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="../pwem/pwem.protocols.protocol_micrographs.html#pwem.protocols.protocol_micrographs.ProtCTFMicrographs" title="pwem.protocols.protocol_micrographs.ProtCTFMicrographs"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtCTFMicrographs</span></code></a></p>
-<p>Protocol to make a balanced subsample of meaningful CTFs in basis of the defocus values.
-Both CTFs and micrographs will be output. CTFs with different defocus values look differently,
-while low defocus images will have bigger fringes, higher defocus values will have more compact rings.
+<p>Protocol to make a balanced subsample of meaningful CTFs in basis of the
+defocus values. Both CTFs and micrographs will be output. CTFs with
+different defocus values look differently, while low defocus images
+will have bigger fringes, higher defocus values will have more compact rings.
 Micrographs with a greater defocus will have more contrast.</p>
+<p>AI Generated</p>
+<p>## Overview</p>
+<p>The Micrographs Defocus Sampler protocol selects a subset of micrographs and
+their associated CTF estimations so that the selected images are balanced across
+the defocus range of the dataset.</p>
+<p>In cryo-EM, micrographs acquired at different defocus values can look quite
+different. Low-defocus micrographs usually show wider CTF fringes and lower
+image contrast, while high-defocus micrographs show more compact Thon rings and
+stronger contrast. Because of this, a random subset of micrographs may not
+represent the full optical diversity of the dataset.</p>
+<p>This protocol addresses that problem by sampling micrographs according to their
+defocus values. It divides the defocus range into bins and selects images from
+each bin, producing a more balanced subset than a purely random selection.</p>
+<p>The protocol outputs both the selected CTF estimations and the corresponding
+micrographs.</p>
+<p>## Inputs and General Workflow</p>
+<p>The main input is a <strong>SetOfCTF</strong>. Each CTF item is linked to the micrograph
+from which it was estimated.</p>
+<p>The protocol reads the defocus value of each CTF estimation, specifically the
+defocusU value, and uses these values to organize the micrographs across the
+observed defocus range.</p>
+<p>The defocus range is divided into a fixed number of bins. The protocol then
+samples micrographs from each bin so that the final output contains a more
+uniform representation of low, medium, and high defocus values.</p>
+<p>The final outputs are:</p>
+<ul class="simple">
+<li><p>a selected set of CTF estimations;</p></li>
+<li><p>the corresponding selected set of micrographs.</p></li>
+</ul>
+<p>These outputs can be used for inspection, quality control, representative
+visualization, or downstream tests on a manageable but defocus-balanced subset.</p>
+<p>## Input CTF</p>
+<p>The <strong>Input CTF</strong> parameter should point to the CTF estimations that will be
+sampled.</p>
+<p>Each CTF must be associated with a micrograph. The protocol uses this
+relationship to produce both output CTFs and output micrographs.</p>
+<p>The quality of the result depends on the quality and completeness of the input
+CTF set. If the CTF estimation contains incorrect defocus values, the balanced
+sampling will reflect those incorrect values.</p>
+<p>This protocol does not estimate CTF parameters. It assumes that CTF estimation
+has already been performed.</p>
+<p>## Sample Size</p>
+<p>The <strong>Sample size</strong> parameter defines the number of images that the protocol
+will try to select.</p>
+<p>For example, if the sample size is 25, the protocol will output up to 25
+micrographs and their corresponding CTF estimations.</p>
+<p>The sample size should be chosen according to the intended use. A small sample
+is useful for quick visual inspection or illustrative examples. A larger sample
+may be preferable for more robust quality-control checks or benchmark tests.</p>
+<p>The selected subset is not intended to replace the full dataset for final
+processing. Its purpose is to provide a representative defocus-balanced sample.</p>
+<p>## Minimum Number of Images to Make Sampling</p>
+<p>The <strong>Minimum number of images to make sampling</strong> parameter controls when the
+protocol starts the balanced sampling.</p>
+<p>This is especially relevant in streaming workflows, where CTF estimations may
+arrive gradually as micrographs are processed. The protocol waits until at
+least this number of CTF estimations is available before performing the
+sampling, unless the input stream is closed.</p>
+<p>This avoids selecting a sample too early, before the dataset contains enough
+micrographs to represent the defocus distribution.</p>
+<p>For non-streaming datasets, this parameter acts as a practical threshold for
+when sampling should be performed.</p>
+<p>## Defocus-Based Balanced Sampling</p>
+<p>The protocol uses defocusU values to organize the input CTFs.</p>
+<p>Conceptually, the procedure is:</p>
+<ol class="arabic simple">
+<li><p>Read the defocus value for each CTF.</p></li>
+<li><p>Determine the minimum and maximum defocus values.</p></li>
+<li><p>Divide this interval into several bins.</p></li>
+<li><p>Select images from each bin.</p></li>
+<li><p>If the selected set is still smaller than the requested sample size, add
+additional images from the remaining pool.</p></li>
+</ol>
+<p>This strategy tries to prevent the selected subset from being dominated by the
+most common defocus values. Instead, it increases the chance that the final
+sample contains examples from across the full defocus range.</p>
+<p>Because the selection involves random sampling within bins, running the
+protocol again may produce a different subset.</p>
+<p>## Why Balance by Defocus?</p>
+<p>Defocus affects both image contrast and the appearance of the CTF. Therefore,
+a balanced defocus sample is useful when the user wants to inspect whether the
+dataset behaves consistently across optical conditions.</p>
+<p>For example, such a subset may help answer questions such as:</p>
+<ul class="simple">
+<li><p>Do low-defocus and high-defocus micrographs both look acceptable?</p></li>
+<li><p>Are Thon rings visible across the whole defocus range?</p></li>
+<li><p>Are some defocus ranges associated with poorer images?</p></li>
+<li><p>Does a downstream protocol behave similarly for different defocus values?</p></li>
+</ul>
+<p>This can be especially useful for quality-control reports, visual summaries,
+training examples, or testing processing workflows on a representative subset.</p>
+<p>## Output Micrographs</p>
+<p>The <strong>outputMicrographs</strong> object contains the micrographs associated with the
+selected CTF estimations.</p>
+<p>These micrographs are not modified. They are simply copied into a new Scipion
+set so that the user can inspect or process the selected subset separately from
+the full dataset.</p>
+<p>This output is useful for visual inspection, manual checking, or running quick
+tests on representative micrographs.</p>
+<p>## Output CTF</p>
+<p>The <strong>outputCTF</strong> object contains the selected CTF estimations.</p>
+<p>The output CTF set remains linked to the selected output micrographs. This
+means that downstream protocols can use the selected micrographs together with
+their corresponding CTF information.</p>
+<p>This output is useful when the user wants to inspect the CTFs themselves, plot
+their defocus distribution, or run downstream tests that require both
+micrographs and CTF metadata.</p>
+<p>## Summary Statistics</p>
+<p>The protocol reports basic statistics of the defocus values in the input group
+used for sampling. These include the defocus range, minimum, maximum, mean, and
+standard deviation.</p>
+<p>These values help the user understand the defocus distribution from which the
+sample was drawn.</p>
+<p>A wide defocus range indicates that the dataset contains substantial optical
+variation. A narrow range means that the micrographs were acquired with more
+similar defocus values.</p>
+<p>These statistics are descriptive. They are not a quality criterion by
+themselves, but they provide useful context for interpreting the selected
+sample.</p>
+<p>## Streaming Behavior</p>
+<p>The protocol is designed to work with streaming input.</p>
+<p>In a streaming workflow, new CTF estimations may appear progressively. The
+protocol checks whether new input CTFs are available and waits until either
+enough CTFs have accumulated or the input stream has closed.</p>
+<p>Once a balanced sample has been selected and the outputs have been created, the
+protocol finishes.</p>
+<p>This behavior is useful during online or near-real-time processing, where the
+user may want a representative subset for early inspection without waiting for
+all downstream processing to finish.</p>
+<p>## Practical Recommendations</p>
+<p>Use this protocol after CTF estimation, not before. The protocol needs defocus
+values and micrograph associations from an existing CTF set.</p>
+<p>Choose a sample size large enough to cover the defocus range meaningfully. Very
+small samples may miss some parts of the distribution even if the sampling is
+balanced.</p>
+<p>Use a larger minimum number of images when working with streaming data, so that
+the protocol does not sample too early from an incomplete and unrepresentative
+defocus distribution.</p>
+<p>Remember that the selection is balanced by defocus, not by all possible quality
+criteria. A selected micrograph may still be poor because of drift, ice
+contamination, astigmatism, poor CTF fit, or other problems.</p>
+<p>Inspect the output micrographs and CTFs together. The purpose of this protocol
+is to make such inspection more representative across the defocus range.</p>
+<p>If reproducibility of the exact selected subset is important, note that the
+sampling includes random choices within defocus bins.</p>
+<p>## Final Perspective</p>
+<p>The Micrographs Defocus Sampler is a practical quality-control and dataset
+selection tool. It does not modify images or estimate new CTF parameters.
+Instead, it selects a representative subset of micrographs and CTFs across the
+observed defocus range.</p>
+<p>For biological users and facility workflows, this can be useful for quickly
+checking whether different defocus conditions are well represented and whether
+data quality is consistent across the acquisition strategy.</p>
+<p>The protocol is especially helpful when the full dataset is large and the user
+needs a small, interpretable, defocus-balanced subset for inspection, reporting,
+or preliminary testing.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="xmipp3.protocols.protocol_mics_defocus_balancer.XmippProtMicDefocusSampler.createOutputStep">
 <span class="sig-name descname"><span class="pre">createOutputStep</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_mics_defocus_balancer.html#XmippProtMicDefocusSampler.createOutputStep"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_mics_defocus_balancer.XmippProtMicDefocusSampler.createOutputStep" title="Permalink to this definition"></a></dt>

@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_assignment_tilt_pair</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -145,7 +146,145 @@
 
 <div class="viewcode-block" id="XmippProtAssignmentTiltPair"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_assignment_tilt_pair.html#xmipp3.protocols.protocol_assignment_tilt_pair.XmippProtAssignmentTiltPair">[docs]</a><span class="k">class</span> <span class="nc">XmippProtAssignmentTiltPair</span><span class="p">(</span><span class="n">XmippProtParticlePickingPairs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;    </span>
-<span class="sd">    Determines the affine transformation between two sets of points obtained from tilted micrograph pairs. This transformation aligns coordinate sets for accurate particle matching and analysis.</span>
+<span class="sd">    Determines the affine transformation between two sets of points obtained</span>
+<span class="sd">    from tilted micrograph pairs. This transformation aligns coordinate sets</span>
+<span class="sd">    for accurate particle matching and analysis.</span>
+
+<span class="sd">    AI Generated:</span>
+
+<span class="sd">    What this protocol is for</span>
+
+<span class="sd">    Assign tiltpairs is designed for workflows that use paired micrographs</span>
+<span class="sd">    acquired at two tilts (an untilted image and a tilted image of the same</span>
+<span class="sd">    area). Its goal is to match particles between the untilted and tilted</span>
+<span class="sd">    views by estimating the geometric relationship between both coordinate</span>
+<span class="sd">    systems. Concretely, it determines an affine transformation that maps</span>
+<span class="sd">    points picked in the untilted micrograph to their corresponding points in</span>
+<span class="sd">    the tilted micrograph (and vice versa), and it uses this to establish</span>
+<span class="sd">    reliable particle correspondences.</span>
+
+<span class="sd">    For a biological user, this is a key step when working with tilt-pair</span>
+<span class="sd">    strategies (for example, validating orientations, studying handedness,</span>
+<span class="sd">    improving angular assignment robustness, or performing analyses where you</span>
+<span class="sd">    need to know which tilted particle corresponds to which untilted particle).</span>
+<span class="sd">    Instead of relying on manual pairing, the protocol automates matching in a</span>
+<span class="sd">    way that is tolerant to shift, tilt geometry, and the typical distortions</span>
+<span class="sd">    introduced by tilting.</span>
+
+<span class="sd">    Inputs: what you need to provide</span>
+
+<span class="sd">    You start by selecting a MicrographsTiltPair object, i.e., a collection of</span>
+<span class="sd">    paired micrographs where each pair contains an untilted micrograph and its</span>
+<span class="sd">    corresponding tilted micrograph. This is the backbone that tells the</span>
+<span class="sd">    protocol which images belong together.</span>
+
+<span class="sd">    Then you provide the particle information in one of two forms, controlled</span>
+<span class="sd">    by Input type:</span>
+
+<span class="sd">    If you choose Coordinates, you will provide two coordinate sets: one for</span>
+<span class="sd">    the untilted micrographs and one for the tilted micrographs. These are</span>
+<span class="sd">    typically the outputs of picking steps (manual or automatic) performed</span>
+<span class="sd">    separately on untilted and tilted images.</span>
+
+<span class="sd">    If you choose Particles, you will provide two particle sets instead: an</span>
+<span class="sd">    untilted particle set and a tilted particle set. In this case, the protocol</span>
+<span class="sd">    uses the coordinates stored inside each particle set. This option is</span>
+<span class="sd">    convenient when picking has already been followed by extraction and you</span>
+<span class="sd">    want to work directly with particle objects rather than coordinate-only</span>
+<span class="sd">    objects.</span>
+
+<span class="sd">    A critical practical requirement is that the untilted and tilted inputs</span>
+<span class="sd">    must be of the same type (both coordinates or both particles). The protocol</span>
+<span class="sd">    enforces this because it needs a consistent representation on both sides</span>
+<span class="sd">    of the pairing.</span>
+
+<span class="sd">    What the protocol does during processing</span>
+
+<span class="sd">    For each micrograph pair, the protocol takes the two point clouds</span>
+<span class="sd">    (untilted picks and tilted picks) and searches for the best mapping between</span>
+<span class="sd">    them under an affine model, allowing for the expected effects of tilting</span>
+<span class="sd">    plus practical nuisances such as global shifts. Once a mapping is found,</span>
+<span class="sd">    it establishes a correspondence between points across the pair. In parallel,</span>
+<span class="sd">    it also estimates the tilt axis from the matched coordinates, which is</span>
+<span class="sd">    often useful for downstream tilt-pair interpretation.</span>
+
+<span class="sd">    From the user perspective, the protocol transforms two separate picking</span>
+<span class="sd">    results into a coherent “paired” coordinate dataset where the same physical</span>
+<span class="sd">    particle is recognized across both tilts.</span>
+
+<span class="sd">    The parameters you will most likely care about</span>
+
+<span class="sd">    The Tilt angle parameter is optional but can be very helpful. If you enter</span>
+<span class="sd">    a tilt angle (in degrees), the protocol will focus the search around that</span>
+<span class="sd">    value, exploring an interval of approximately ±15 degrees. This can speed</span>
+<span class="sd">    up matching and make it more robust when you have prior knowledge from the</span>
+<span class="sd">    acquisition. If you leave it at the default (−1), the protocol will proceed</span>
+<span class="sd">    without assuming prior tilt-angle information, which is convenient when</span>
+<span class="sd">    metadata is missing or uncertain.</span>
+
+<span class="sd">    The Threshold value controls how strict the matching is. It is expressed as</span>
+<span class="sd">    a fraction of the particle box size: a candidate match between a tilted</span>
+<span class="sd">    point and an untilted point is accepted only if the distance is smaller than</span>
+<span class="sd">    threshold × particle size. Biologically, this threshold is the knob that</span>
+<span class="sd">    balances sensitivity and specificity. If it is too permissive, you may</span>
+<span class="sd">    accept incorrect matches, especially in dense particle fields or</span>
+<span class="sd">    contaminated areas. If it is too strict, true matches may be rejected when</span>
+<span class="sd">    there are distortions, picking imprecision, or moderate drift between</span>
+<span class="sd">    tilts. The default is a moderate value that often works well, but if you</span>
+<span class="sd">    see too many mismatches or too few matches, this is typically the first</span>
+<span class="sd">    parameter to adjust.</span>
+
+<span class="sd">    The Maximum shift (pixels) specifies how much global displacement is</span>
+<span class="sd">    allowed between the tilted and untilted micrographs. This matters because</span>
+<span class="sd">    tilt pairs can be shifted due to stage movement or imperfect re-centering.</span>
+<span class="sd">    If you set this too low, correct pairings may fail in datasets where the</span>
+<span class="sd">    two images are significantly shifted. If you set it excessively high, the</span>
+<span class="sd">    search space becomes larger and matching can become more ambiguous in</span>
+<span class="sd">    crowded micrographs. If you have a good idea of how well-centered your</span>
+<span class="sd">    tilt pairs are, tailoring this parameter can improve robustness.</span>
+
+<span class="sd">    What is considered “particle size” in this protocol</span>
+
+<span class="sd">    The protocol needs a notion of particle size to interpret the threshold.</span>
+<span class="sd">    If you use particle sets, it uses the particle box dimension directly. If</span>
+<span class="sd">    you use coordinate sets, it uses the box size stored in the coordinate set.</span>
+<span class="sd">    In practice, this means your coordinate set should have a meaningful box</span>
+<span class="sd">    size (typically matching what you would extract later), because it controls</span>
+<span class="sd">    the distance scale used for matching.</span>
+
+<span class="sd">    Outputs and how to use them</span>
+
+<span class="sd">    The protocol produces matched outputs via its “tilt-pair coordinate</span>
+<span class="sd">    registration” step. In Scipion terms, the typical outcome is an output</span>
+<span class="sd">    tilt-pair coordinate set (often represented as a specialized tilt-pair</span>
+<span class="sd">    object or a registered coordinate set, depending on the surrounding</span>
+<span class="sd">    workflow) where correspondences between untilted and tilted picks are</span>
+<span class="sd">    established and stored. This output is what you use in downstream tilt-pair</span>
+<span class="sd">    processing steps, including any analysis that compares alignment parameters</span>
+<span class="sd">    between tilts or uses tilt-pair information to validate projection</span>
+<span class="sd">    directions.</span>
+
+<span class="sd">    Additionally, the estimated tilt axis is computed as part of processing and</span>
+<span class="sd">    becomes available for interpretation and subsequent steps that benefit</span>
+<span class="sd">    from knowing the tilt geometry.</span>
+
+<span class="sd">    Practical interpretation and biological usage patterns</span>
+
+<span class="sd">    A common biological workflow is to run picking (or extraction) independently</span>
+<span class="sd">    on the untilted and tilted images, then run Assign tiltpairs to match</span>
+<span class="sd">    particles across the pair. After that, you can proceed with analyses that</span>
+<span class="sd">    depend on having the same particle observed under two tilts. This can be</span>
+<span class="sd">    useful for diagnosing orientation assignments, checking for</span>
+<span class="sd">    mirror/handedness issues, or providing additional constraints in advanced</span>
+<span class="sd">    angular validation strategies.</span>
+
+<span class="sd">    If you find that matching fails or produces suspicious results, the most</span>
+<span class="sd">    common causes are (i) incorrect pairing of micrographs (wrong</span>
+<span class="sd">    untilted/tilted association), (ii) different particle populations picked in</span>
+<span class="sd">    the two images (for example, one image includes many contaminants or a</span>
+<span class="sd">    different picking threshold), (iii) a threshold that is too strict or too</span>
+<span class="sd">    permissive, or (iv) a maximum shift that does not reflect the real</span>
+<span class="sd">    displacement between images.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;assign tiltpairs&#39;</span>
     <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_1_1</span>

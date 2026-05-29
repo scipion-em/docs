@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_reconstruct_highres</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -188,7 +189,458 @@
 <span class="sd">       The algorithm reports the cross correlation (global alignment) or cost (local) function</span>
 <span class="sd">       per defocus group, so that we can see which was the percentile of each particle in its</span>
 <span class="sd">       defocus group. You may want to perform iterations one by one, and remove from one</span>
-<span class="sd">       iteration to the next, those particles that worse fit the model.&quot;&quot;&quot;</span>
+<span class="sd">       iteration to the next, those particles that worse fit the model.</span>
+
+<span class="sd">       AI Generated</span>
+
+<span class="sd">        ## Overview</span>
+
+<span class="sd">        The Highres protocol performs iterative high-resolution 3D refinement of a</span>
+<span class="sd">        particle set against one or two reference volumes.</span>
+
+<span class="sd">        This protocol is intended for the later stages of single-particle cryo-EM</span>
+<span class="sd">        processing, when the user already has a reasonable initial volume and wants to</span>
+<span class="sd">        improve the angular assignment, reconstruction, and map quality. It assumes a</span>
+<span class="sd">        mostly homogeneous particle population, although it can reduce the influence of</span>
+<span class="sd">        poorly fitting particles through several weighting schemes.</span>
+
+<span class="sd">        The protocol works iteratively. In each iteration, it prepares particles and</span>
+<span class="sd">        references at a sampling rate appropriate for the current estimated resolution,</span>
+<span class="sd">        assigns particle orientations, weights and qualifies particles, reconstructs</span>
+<span class="sd">        two half maps, post-processes the result, evaluates the FSC, and prepares the</span>
+<span class="sd">        next reference.</span>
+
+<span class="sd">        The main outputs are a refined volume with associated half maps and a particle</span>
+<span class="sd">        set containing the final projection-alignment parameters and Xmipp quality</span>
+<span class="sd">        attributes.</span>
+
+<span class="sd">        ## Inputs and General Workflow</span>
+
+<span class="sd">        The protocol requires full-size particle images and, unless continuing from a</span>
+<span class="sd">        previous run, one or more initial volumes.</span>
+
+<span class="sd">        The particle images should be provided at the finest available sampling rate.</span>
+<span class="sd">        The reference volumes and masks do not need to be at the same sampling rate as</span>
+<span class="sd">        the particles; the protocol rescales images, volumes, and masks internally</span>
+<span class="sd">        according to the resolution reached in each iteration.</span>
+
+<span class="sd">        The workflow is organized into iterations. Each iteration typically performs:</span>
+
+<span class="sd">        - global, local, stochastic, automatic, or no angular assignment;</span>
+<span class="sd">        - particle weighting;</span>
+<span class="sd">        - particle qualification by alignment quality;</span>
+<span class="sd">        - reconstruction of two half maps;</span>
+<span class="sd">        - post-processing of the reconstructed volume;</span>
+<span class="sd">        - FSC-based resolution evaluation;</span>
+<span class="sd">        - cleanup of intermediate files when requested.</span>
+
+<span class="sd">        This iterative structure allows the refinement to move progressively from</span>
+<span class="sd">        coarser to finer information.</span>
+
+<span class="sd">        ## Continue from a Previous Run</span>
+
+<span class="sd">        The **Continue from a previous run?** option allows the protocol to resume from</span>
+<span class="sd">        an earlier Highres run.</span>
+
+<span class="sd">        When this option is enabled, the user selects a previous run, and several</span>
+<span class="sd">        parameters and intermediate files are reused. This is useful when the user</span>
+<span class="sd">        wants to extend the number of iterations, change later-stage settings, or</span>
+<span class="sd">        continue after a partial workflow.</span>
+
+<span class="sd">        If new input particles are not provided, the particle metadata from the</span>
+<span class="sd">        previous run are reused. If new particles are provided, they are converted and</span>
+<span class="sd">        used in the continuation.</span>
+
+<span class="sd">        This option is useful for iterative refinement strategies where the user</span>
+<span class="sd">        examines one run and then continues with adjusted parameters.</span>
+
+<span class="sd">        ## Full-Size Images</span>
+
+<span class="sd">        The **Full-size Images** parameter defines the particle set to be refined.</span>
+
+<span class="sd">        The particles should be at full resolution, meaning the finest sampling rate</span>
+<span class="sd">        available for the project. The protocol may internally downsample them during</span>
+<span class="sd">        early iterations, but it keeps the full-size images as the original source.</span>
+
+<span class="sd">        The particle set should be reasonably clean and should correspond to a mostly</span>
+<span class="sd">        homogeneous structural population. The protocol is not designed to solve</span>
+<span class="sd">        strong heterogeneity by itself.</span>
+
+<span class="sd">        If the input particles already contain useful quality values from a previous</span>
+<span class="sd">        run, these may be carried into the metadata in some continuation or</span>
+<span class="sd">        no-alignment workflows.</span>
+
+<span class="sd">        ## Initial Volumes</span>
+
+<span class="sd">        The **Initial volumes** parameter provides the starting reference for the</span>
+<span class="sd">        refinement.</span>
+
+<span class="sd">        The input can be a single volume or a set of two volumes. If two volumes are</span>
+<span class="sd">        provided, they are used as the initial references for the two half-map</span>
+<span class="sd">        branches.</span>
+
+<span class="sd">        If no initial volume is provided and the input particles already have angular</span>
+<span class="sd">        assignments, the protocol can generate an initial reconstruction from the</span>
+<span class="sd">        particles using Fourier reconstruction.</span>
+
+<span class="sd">        The initial volume does not need to be high resolution, but it should be a</span>
+<span class="sd">        reasonable representation of the particle. A poor or incorrect starting volume</span>
+<span class="sd">        can lead to incorrect angular assignments and poor convergence.</span>
+
+<span class="sd">        ## Particle Radius</span>
+
+<span class="sd">        The **Radius of particle** parameter defines the radius, in pixels, of a</span>
+<span class="sd">        spherical mask covering the particle in the input images.</span>
+
+<span class="sd">        If the value is -1 or otherwise not positive, the protocol uses approximately</span>
+<span class="sd">        half the particle box size.</span>
+
+<span class="sd">        This radius is used in several internal operations, such as masking particles</span>
+<span class="sd">        and references. It should cover the particle density while excluding as much</span>
+<span class="sd">        empty background as possible.</span>
+
+<span class="sd">        For elongated or non-spherical particles, the spherical mask is only an</span>
+<span class="sd">        approximation, but it is still useful for limiting the region used during</span>
+<span class="sd">        alignment and reconstruction.</span>
+
+<span class="sd">        ## Symmetry Group</span>
+
+<span class="sd">        The **Symmetry group** parameter defines the symmetry imposed during angular</span>
+<span class="sd">        assignment and reconstruction.</span>
+
+<span class="sd">        Use **c1** when no symmetry is present. If the particle has a known symmetry,</span>
+<span class="sd">        the appropriate Xmipp symmetry group can be provided.</span>
+
+<span class="sd">        Correct symmetry can improve signal and stability. Incorrect symmetry can</span>
+<span class="sd">        produce misleading maps by forcing together non-equivalent density. Symmetry</span>
+<span class="sd">        should therefore be imposed only when justified by the biological structure.</span>
+
+<span class="sd">        ## Correct CTF Envelope</span>
+
+<span class="sd">        The **Correct CTF envelope** option controls whether the CTF envelope is</span>
+<span class="sd">        corrected during refinement.</span>
+
+<span class="sd">        Envelope correction can be useful when the envelope has been estimated</span>
+<span class="sd">        reliably. If the envelope is not reliable, applying this correction may amplify</span>
+<span class="sd">        noise or introduce artifacts.</span>
+
+<span class="sd">        This option should be used cautiously and according to the quality of the CTF</span>
+<span class="sd">        metadata.</span>
+
+<span class="sd">        ## Remove Intermediate Files</span>
+
+<span class="sd">        The **Remove intermediate files** option helps save disk space by deleting</span>
+<span class="sd">        temporary files that are no longer needed.</span>
+
+<span class="sd">        High-resolution refinement can generate many intermediate files, especially</span>
+<span class="sd">        projection galleries, angle metadata, temporary stacks, and iteration</span>
+<span class="sd">        directories. Removing them can substantially reduce storage requirements.</span>
+
+<span class="sd">        Users who need to debug the protocol or inspect intermediate results may want</span>
+<span class="sd">        to disable this option temporarily.</span>
+
+<span class="sd">        ## Next Reference Preparation</span>
+
+<span class="sd">        At the end of each iteration, the protocol prepares the reference volumes for</span>
+<span class="sd">        the next iteration.</span>
+
+<span class="sd">        This preparation can include FSC-based filtering, additional low-pass</span>
+<span class="sd">        filtering, spherical or cylindrical masking, positivity enforcement, user</span>
+<span class="sd">        masks, dropout, and optional custom commands.</span>
+
+<span class="sd">        The goal is to prevent the next angular assignment from using unreliable</span>
+<span class="sd">        high-frequency information or noisy regions of the map.</span>
+
+<span class="sd">        ## Low-Pass Filter for the Next Reference</span>
+
+<span class="sd">        The **Low pass filter?** option controls whether the reference for the next</span>
+<span class="sd">        iteration is filtered according to the current estimated resolution.</span>
+
+<span class="sd">        The maximum frequency used for the next reference is based on the current</span>
+<span class="sd">        resolution plus the **Resolution offset**. A positive offset makes the</span>
+<span class="sd">        reference more conservative by using less high-resolution information. A</span>
+<span class="sd">        negative offset makes the process more aggressive by allowing more information.</span>
+
+<span class="sd">        This mechanism helps reduce overfitting during refinement.</span>
+
+<span class="sd">        ## FSC Criterion and Resolution Offset</span>
+
+<span class="sd">        The **FSC criterion** defines how the protocol estimates resolution from the</span>
+<span class="sd">        FSC between the two half maps. Common values are 0.143 and 0.5.</span>
+
+<span class="sd">        The **Resolution offset** modifies the low-pass filtering applied to the next</span>
+<span class="sd">        reference. For example, if the current resolution is 8 Å and the offset is 2 Å,</span>
+<span class="sd">        the next reference may be filtered around 10 Å.</span>
+
+<span class="sd">        A conservative offset can make refinement more stable, especially in early</span>
+<span class="sd">        iterations. A more aggressive setting may converge faster but can increase the</span>
+<span class="sd">        risk of overfitting or instability.</span>
+
+<span class="sd">        ## Masks for the Next Reference</span>
+
+<span class="sd">        The protocol can apply several types of masking to the next reference.</span>
+
+<span class="sd">        The **Spherical mask?** option applies a spherical mask based on the particle</span>
+<span class="sd">        radius. If helical symmetry post-processing is enabled, a cylindrical mask may</span>
+<span class="sd">        be used instead.</span>
+
+<span class="sd">        The **Mask** parameter allows the user to provide an external volume mask.</span>
+<span class="sd">        Smooth masks are recommended, and values should range from 0 to 1.</span>
+
+<span class="sd">        Masks should include the relevant particle density while excluding solvent and</span>
+<span class="sd">        irrelevant regions. Overly tight masks can remove real density, whereas overly</span>
+<span class="sd">        loose masks may allow noise to influence alignment.</span>
+
+<span class="sd">        ## Positivity and Dropout</span>
+
+<span class="sd">        The **Positivity?** option removes negative values from the next reference.</span>
+<span class="sd">        This can help stabilize refinement when negative density is not meaningful for</span>
+<span class="sd">        the map.</span>
+
+<span class="sd">        The **Dropout** parameter randomly drops voxels inside the binary mask with a</span>
+<span class="sd">        given probability. This is an advanced regularization option that can reduce</span>
+<span class="sd">        dependence on specific reference features.</span>
+
+<span class="sd">        Most users should keep dropout at 0 unless they have a specific reason to use</span>
+<span class="sd">        it.</span>
+
+<span class="sd">        ## Angular Assignment Modes</span>
+
+<span class="sd">        The **Image alignment** parameter defines how particle orientations are updated.</span>
+
+<span class="sd">        The available modes are:</span>
+
+<span class="sd">        **Global** searches over a projection gallery and is useful when orientations</span>
+<span class="sd">        are still uncertain.</span>
+
+<span class="sd">        **Local** refines orientations and other parameters around existing angular</span>
+<span class="sd">        assignments.</span>
+
+<span class="sd">        **Automatic** starts with global alignment and then switches to local alignment</span>
+<span class="sd">        in later iterations.</span>
+
+<span class="sd">        **Stochastic** performs global alignment using random subsets of images.</span>
+
+<span class="sd">        **No alignment** reconstructs using existing particle orientations without</span>
+<span class="sd">        changing them.</span>
+
+<span class="sd">        The appropriate mode depends on the stage of refinement. Early stages usually</span>
+<span class="sd">        benefit from global alignment. Later high-resolution refinement usually</span>
+<span class="sd">        benefits from local alignment.</span>
+
+<span class="sd">        ## Number of Iterations</span>
+
+<span class="sd">        The **Number of iterations** parameter controls how many refinement cycles are</span>
+<span class="sd">        performed.</span>
+
+<span class="sd">        For global, local, and stochastic modes, the user specifies the number of</span>
+<span class="sd">        iterations directly. In automatic mode, the protocol uses a predefined</span>
+<span class="sd">        transition strategy. In no-alignment mode, only one iteration is needed.</span>
+
+<span class="sd">        It is often better to run a moderate number of iterations, inspect the results,</span>
+<span class="sd">        and then continue from the previous run if further refinement is needed.</span>
+
+<span class="sd">        ## Multiresolution Approach</span>
+
+<span class="sd">        The **Multiresolution approach** adapts the sampling rate of the images to the</span>
+<span class="sd">        current estimated resolution.</span>
+
+<span class="sd">        In early iterations, when the map is low resolution, the protocol can work with</span>
+<span class="sd">        downsampled images. As the resolution improves, it moves toward finer sampling.</span>
+
+<span class="sd">        This reduces computational cost and helps the refinement focus on information</span>
+<span class="sd">        that is meaningful at the current stage.</span>
+
+<span class="sd">        The **Max. Target Resolution** list defines the target resolution schedule in</span>
+<span class="sd">        angstroms. The protocol also limits how quickly the resolution can improve</span>
+<span class="sd">        between iterations.</span>
+
+<span class="sd">        ## Angular Search Limits</span>
+
+<span class="sd">        The **Max. shift** parameter defines the maximum allowed particle shift as a</span>
+<span class="sd">        percentage of the image size.</span>
+
+<span class="sd">        The **Tilt angle** parameters define the minimum and maximum tilt angles used</span>
+<span class="sd">        during angular assignment. In this convention, 0 degrees corresponds to top</span>
+<span class="sd">        views and 90 degrees to side views.</span>
+
+<span class="sd">        Restricting tilt angles can be useful for specimens with known orientation</span>
+<span class="sd">        ranges, but incorrect restrictions can exclude valid views and bias the</span>
+<span class="sd">        reconstruction.</span>
+
+<span class="sd">        ## Local Alignment Options</span>
+
+<span class="sd">        In local alignment mode, the protocol can optimize several parameters around</span>
+<span class="sd">        the current particle assignment.</span>
+
+<span class="sd">        These include:</span>
+
+<span class="sd">        - shifts;</span>
+<span class="sd">        - scale;</span>
+<span class="sd">        - angles;</span>
+<span class="sd">        - gray-value scale and offset;</span>
+<span class="sd">        - defocus.</span>
+
+<span class="sd">        Shift and angle optimization are commonly useful. Scale, gray-value, and</span>
+<span class="sd">        defocus optimization are more specialized and should be used only when there is</span>
+<span class="sd">        a clear reason.</span>
+
+<span class="sd">        The local alignment also uses a Fourier padding factor, which affects</span>
+<span class="sd">        projection accuracy and computational cost.</span>
+
+<span class="sd">        ## Restrict Reconstruction Angles</span>
+
+<span class="sd">        The **Restrict reconstruction angles** option allows reconstruction to use only</span>
+<span class="sd">        particles whose assigned tilt angles fall within a selected range.</span>
+
+<span class="sd">        This can be useful for special cases such as helices, where side views close to</span>
+<span class="sd">        90 degrees may be preferred for reconstruction.</span>
+
+<span class="sd">        This option should be used carefully. Excluding orientations can improve a</span>
+<span class="sd">        specific reconstruction strategy, but it also reduces the number of particles</span>
+<span class="sd">        and angular coverage.</span>
+
+<span class="sd">        ## Particle Weights</span>
+
+<span class="sd">        The protocol can assign weights to particles during reconstruction.</span>
+
+<span class="sd">        Several weighting options are available:</span>
+
+<span class="sd">        **Weight by SSNR** uses signal-to-noise information.</span>
+
+<span class="sd">        **Weight by Continuous cost** uses the local-assignment cost.</span>
+
+<span class="sd">        **Weight by angular stability** downweights particles whose angular assignment</span>
+<span class="sd">        is unstable between iterations.</span>
+
+<span class="sd">        **Weight by CC percentile** weights particles according to their cross-</span>
+<span class="sd">        correlation percentile within their defocus group.</span>
+
+<span class="sd">        The **Minimum CC weight** defines the lower bound for CC-based weights.</span>
+
+<span class="sd">        These weights help reduce the influence of poorly fitting or unstable</span>
+<span class="sd">        particles without necessarily removing them completely.</span>
+
+<span class="sd">        ## Particle Qualification</span>
+
+<span class="sd">        The protocol evaluates particle quality within defocus groups.</span>
+
+<span class="sd">        For global alignment, the relevant score is usually cross-correlation. For</span>
+<span class="sd">        local alignment, the relevant score may be a cost function. The protocol</span>
+<span class="sd">        computes percentiles within defocus groups so that particles are compared with</span>
+<span class="sd">        others acquired under similar CTF conditions.</span>
+
+<span class="sd">        This information is stored in the output particle metadata and can be useful</span>
+<span class="sd">        for later particle filtering or inspection.</span>
+
+<span class="sd">        ## Reconstruction and Half Maps</span>
+
+<span class="sd">        Each iteration reconstructs two half maps from two particle subsets.</span>
+
+<span class="sd">        The two half maps are used to estimate FSC and monitor resolution. The final</span>
+<span class="sd">        average map for the iteration is produced from the two half maps.</span>
+
+<span class="sd">        The final output volume keeps the half-map file names associated with it, so</span>
+<span class="sd">        they can be used for validation or post-processing.</span>
+
+<span class="sd">        ## Post-Processing Options</span>
+
+<span class="sd">        The protocol includes several optional post-processing operations.</span>
+
+<span class="sd">        These include:</span>
+
+<span class="sd">        - applying an ad hoc mask;</span>
+<span class="sd">        - symmetrizing within a mask;</span>
+<span class="sd">        - applying helical symmetry;</span>
+<span class="sd">        - running a custom post-processing command;</span>
+<span class="sd">        - significant denoising in real space;</span>
+<span class="sd">        - significant denoising in Fourier space;</span>
+<span class="sd">        - Laplacian denoising;</span>
+<span class="sd">        - blind deconvolution;</span>
+<span class="sd">        - attenuation of undershooting;</span>
+<span class="sd">        - difference evaluation.</span>
+
+<span class="sd">        These options are advanced and should be used only when the user understands</span>
+<span class="sd">        their purpose. Post-processing can improve interpretability, but inappropriate</span>
+<span class="sd">        post-processing can also introduce misleading features.</span>
+
+<span class="sd">        ## Helical Symmetry Post-Processing</span>
+
+<span class="sd">        The protocol includes specialized options for applying helical symmetry during</span>
+<span class="sd">        post-processing.</span>
+
+<span class="sd">        The user can define a helical radius, request dihedral symmetry, and specify</span>
+<span class="sd">        search ranges for helical rotation and axial shift.</span>
+
+<span class="sd">        These options are useful only for helical specimens. They should not be enabled</span>
+<span class="sd">        for non-helical particles.</span>
+
+<span class="sd">        ## Output Volume</span>
+
+<span class="sd">        The main output is **outputVolume**.</span>
+
+<span class="sd">        This volume corresponds to the final averaged reconstruction from the last</span>
+<span class="sd">        iteration. It is registered with the sampling rate used in the final iteration</span>
+<span class="sd">        and includes links to the two half maps.</span>
+
+<span class="sd">        The output should be inspected together with the FSC, filtered maps, and</span>
+<span class="sd">        particle statistics generated during refinement.</span>
+
+<span class="sd">        ## Output Particles</span>
+
+<span class="sd">        The protocol also produces **outputParticles** when final angle metadata are</span>
+<span class="sd">        available.</span>
+
+<span class="sd">        This particle set contains the input particles updated with final projection</span>
+<span class="sd">        alignment parameters. The output particles may also include Xmipp attributes</span>
+<span class="sd">        such as shifts, angles, scale, maximum cross-correlation, percentile scores,</span>
+<span class="sd">        weights, angular stability, continuous-assignment cost, and related quality</span>
+<span class="sd">        fields.</span>
+
+<span class="sd">        This output is useful for later reconstruction, particle filtering, local</span>
+<span class="sd">        defocus refinement, or additional analysis.</span>
+
+<span class="sd">        ## Practical Recommendations</span>
+
+<span class="sd">        Use this protocol after obtaining a reasonable initial model and a reasonably</span>
+<span class="sd">        clean particle set.</span>
+
+<span class="sd">        Start with global alignment if orientations are still uncertain. Move to local</span>
+<span class="sd">        alignment when particles stop changing substantially between iterations.</span>
+
+<span class="sd">        Use automatic alignment when you want the protocol to perform this transition</span>
+<span class="sd">        for you.</span>
+
+<span class="sd">        Keep the multiresolution approach enabled for most workflows. It reduces cost</span>
+<span class="sd">        and helps avoid using high-frequency information too early.</span>
+
+<span class="sd">        Use conservative low-pass filtering for the next reference to reduce</span>
+<span class="sd">        overfitting.</span>
+
+<span class="sd">        Inspect FSC curves, filtered volumes, particle weights, and the number of used</span>
+<span class="sd">        and rejected particles after each iteration.</span>
+
+<span class="sd">        Do not rely on this protocol to solve strong heterogeneity. If the particle</span>
+<span class="sd">        population is mixed, use classification or subset selection before high-</span>
+<span class="sd">        resolution refinement.</span>
+
+<span class="sd">        Use post-processing options cautiously and document them clearly if the output</span>
+<span class="sd">        map will be interpreted biologically.</span>
+
+<span class="sd">        ## Final Perspective</span>
+
+<span class="sd">        Highres is an advanced iterative 3D refinement protocol for producing</span>
+<span class="sd">        high-resolution cryo-EM reconstructions from full-size particles.</span>
+
+<span class="sd">        For biological users, the protocol is most useful when the project has already</span>
+<span class="sd">        passed the initial-model and cleaning stages and the goal is to refine a mostly</span>
+<span class="sd">        homogeneous particle set toward a reliable final map.</span>
+
+<span class="sd">        The quality of the result depends on the starting reference, particle</span>
+<span class="sd">        homogeneity, angular-assignment strategy, CTF information, weighting choices,</span>
+<span class="sd">        and careful control of overfitting through half-map FSC evaluation and</span>
+<span class="sd">        reference filtering.</span>
+<span class="sd">       &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;highres&#39;</span>
     <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">PROD</span>
 

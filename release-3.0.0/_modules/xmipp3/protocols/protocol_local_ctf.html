@@ -146,7 +146,241 @@
 <span class="sd">    The set of particles must have a 3D angular assignment.</span>
 <span class="sd">    This protocol refines the CTF, computing local defocus change.</span>
 <span class="sd">    The maximun allowed defocus is a parameter introduced by the user (advanced).</span>
-<span class="sd">    The protocol gives back the input set of particles with the refine local defocus and the defocus change with relation to the global defocus.&quot;&quot;&quot;</span>
+<span class="sd">    The protocol gives back the input set of particles with the refine local</span>
+<span class="sd">    defocus and the defocus change with relation to the global defocus.</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Estimate Local Defocus protocol refines the CTF information of a set of</span>
+<span class="sd">    particles by estimating a local defocus correction for each particle.</span>
+
+<span class="sd">    In standard cryo-EM processing, CTF estimation is usually performed at the</span>
+<span class="sd">    micrograph level. This means that all particles from the same micrograph are</span>
+<span class="sd">    initially assigned the same global defocus parameters, or parameters derived</span>
+<span class="sd">    from a fitted defocus model. However, the true defocus can vary locally across</span>
+<span class="sd">    the micrograph because of sample tilt, ice curvature, specimen height</span>
+<span class="sd">    variation, beam-induced deformation, or other acquisition effects.</span>
+
+<span class="sd">    This protocol refines the defocus at the particle level by comparing each</span>
+<span class="sd">    particle with the corresponding projection of a reference volume. The input</span>
+<span class="sd">    particles must already have 3D projection alignment information, because the</span>
+<span class="sd">    protocol needs to know which projection direction of the volume corresponds to</span>
+<span class="sd">    each particle.</span>
+
+<span class="sd">    The output is a new set of particles with refined local defocus information and</span>
+<span class="sd">    an additional defocus-change value relative to the original defocus.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The protocol requires two main inputs:</span>
+
+<span class="sd">    - a set of particles with projection alignment;</span>
+<span class="sd">    - a reference volume.</span>
+
+<span class="sd">    The particles are first converted to Xmipp metadata format. The reference</span>
+<span class="sd">    volume is also converted to Xmipp format and resized if necessary so that its</span>
+<span class="sd">    box size matches the particle images.</span>
+
+<span class="sd">    The protocol then compares each particle with the corresponding projection of</span>
+<span class="sd">    the reference volume and optimizes the defocus parameters. During this process,</span>
+<span class="sd">    it can also optimize simple gray-scale differences between the experimental</span>
+<span class="sd">    particle and the reprojection.</span>
+
+<span class="sd">    Finally, the refined CTF columns are merged back into the particle metadata and</span>
+<span class="sd">    a new Scipion particle set is produced.</span>
+
+<span class="sd">    ## Input Images</span>
+
+<span class="sd">    The **Input images** parameter should point to a SetOfParticles with 3D</span>
+<span class="sd">    projection alignment information.</span>
+
+<span class="sd">    This requirement is essential. The protocol does not determine the particle</span>
+<span class="sd">    orientation from scratch. Instead, it assumes that each particle already has a</span>
+<span class="sd">    valid projection direction and uses that direction to compare the particle with</span>
+<span class="sd">    the reference volume.</span>
+
+<span class="sd">    If the angular assignments are poor, the local defocus refinement may also be</span>
+<span class="sd">    poor. Apparent CTF differences may then partly reflect alignment errors,</span>
+<span class="sd">    conformational mismatch, or particle heterogeneity rather than true defocus</span>
+<span class="sd">    variation.</span>
+
+<span class="sd">    This protocol is therefore best used after a reliable 3D refinement or angular</span>
+<span class="sd">    assignment step.</span>
+
+<span class="sd">    ## Reference Volume</span>
+
+<span class="sd">    The **Volume to compare images to** is the 3D map used as the structural</span>
+<span class="sd">    reference during local defocus refinement.</span>
+
+<span class="sd">    The volume should represent the same structure as the input particles and</span>
+<span class="sd">    should be good enough to generate meaningful projections. If the volume is</span>
+<span class="sd">    low-quality, strongly biased, or corresponds to a different conformational</span>
+<span class="sd">    state, the defocus refinement may become unreliable.</span>
+
+<span class="sd">    Before the refinement, the protocol checks whether the volume and particle</span>
+<span class="sd">    images have the same box size. If not, the volume is resized to match the</span>
+<span class="sd">    particle dimensions. This allows projections of the volume to be compared</span>
+<span class="sd">    directly with the particle images.</span>
+
+<span class="sd">    ## Maximum Defocus Change</span>
+
+<span class="sd">    The **Maximum defocus change** parameter defines the largest allowed correction</span>
+<span class="sd">    to the particle defocus, in angstroms.</span>
+
+<span class="sd">    This parameter constrains the local refinement around the original defocus</span>
+<span class="sd">    value. It prevents the optimization from moving to unrealistically large</span>
+<span class="sd">    defocus changes that may fit noise or compensate for other errors.</span>
+
+<span class="sd">    A smaller value makes the refinement more conservative. This is appropriate</span>
+<span class="sd">    when the original CTF estimation is expected to be accurate and only small</span>
+<span class="sd">    local deviations are expected.</span>
+
+<span class="sd">    A larger value allows more flexibility. This may be useful for tilted samples,</span>
+<span class="sd">    thick ice, strongly curved specimens, or datasets where substantial local</span>
+<span class="sd">    defocus variation is expected.</span>
+
+<span class="sd">    However, increasing this value too much can make the refinement less stable.</span>
+<span class="sd">    The local defocus correction should remain physically plausible.</span>
+
+<span class="sd">    ## Gray-Scale Optimization</span>
+
+<span class="sd">    The protocol can also optimize simple gray-scale differences between each</span>
+<span class="sd">    particle and the corresponding projection of the volume.</span>
+
+<span class="sd">    The reprojection can be modified as:</span>
+
+<span class="sd">    \[</span>
+<span class="sd">    aP + b</span>
+<span class="sd">    \]</span>
+
+<span class="sd">    where \(P\) is the projection, \(a\) is a scale factor, and \(b\) is an</span>
+<span class="sd">    intensity shift.</span>
+
+<span class="sd">    The **Maximum gray scale change** parameter restricts the allowed range of the</span>
+<span class="sd">    scale factor. The scale factor is constrained to the interval:</span>
+
+<span class="sd">    \[</span>
+<span class="sd">    [1 - \text{maxGrayScaleChange},\; 1 + \text{maxGrayScaleChange}]</span>
+<span class="sd">    \]</span>
+
+<span class="sd">    The **Maximum gray shift change** parameter restricts the allowed additive</span>
+<span class="sd">    intensity shift to:</span>
+
+<span class="sd">    \[</span>
+<span class="sd">    [-\text{maxGrayShiftChange},\; \text{maxGrayShiftChange}]</span>
+<span class="sd">    \]</span>
+
+<span class="sd">    These options allow the comparison to tolerate moderate intensity differences</span>
+<span class="sd">    between experimental particles and model projections. This is useful because</span>
+<span class="sd">    particles may differ in normalization, local background, or contrast strength.</span>
+
+<span class="sd">    These are advanced parameters. In most workflows, the default values should be</span>
+<span class="sd">    used unless there is a clear reason to restrict or relax gray-scale</span>
+<span class="sd">    optimization.</span>
+
+<span class="sd">    ## Same Defocus in U and V</span>
+
+<span class="sd">    The **Force defocusV to be equal than defocusU** option constrains the refined</span>
+<span class="sd">    CTF to have the same defocus in the two principal directions.</span>
+
+<span class="sd">    Normally, the CTF may include astigmatism. In that case, defocusU and defocusV</span>
+<span class="sd">    can be different, corresponding to different defocus values along two</span>
+<span class="sd">    directions.</span>
+
+<span class="sd">    If this option is enabled, the protocol forces both values to be equal. This</span>
+<span class="sd">    removes astigmatism from the local refinement and estimates only a single</span>
+<span class="sd">    defocus value per particle.</span>
+
+<span class="sd">    This option may be useful when the user wants a simpler local defocus model or</span>
+<span class="sd">    when astigmatism is expected to be negligible. It should not be used if real</span>
+<span class="sd">    astigmatism is present and should be preserved.</span>
+
+<span class="sd">    ## Phase-Flipped Particles</span>
+
+<span class="sd">    If the input particles are marked as phase-flipped, the protocol passes this</span>
+<span class="sd">    information to the refinement program.</span>
+
+<span class="sd">    This is important because phase-flipped images have already been modified to</span>
+<span class="sd">    compensate for CTF phase reversals. The comparison between particles and</span>
+<span class="sd">    projections must take this processing state into account.</span>
+
+<span class="sd">    Users should therefore ensure that the particle metadata correctly describe</span>
+<span class="sd">    whether the particles have been phase-flipped.</span>
+
+<span class="sd">    ## Local Defocus Change</span>
+
+<span class="sd">    One of the most important values produced by the protocol is the local</span>
+<span class="sd">    **defocus change**.</span>
+
+<span class="sd">    This value describes how much the refined particle defocus differs from the</span>
+<span class="sd">    original defocus value. It can be interpreted as a particle-level correction to</span>
+<span class="sd">    the global or previously assigned CTF estimate.</span>
+
+<span class="sd">    Small defocus changes indicate that the original CTF estimate was already</span>
+<span class="sd">    consistent with the particle and reference volume. Larger changes may indicate</span>
+<span class="sd">    local height variation, specimen tilt, local ice curvature, or inaccuracies in</span>
+<span class="sd">    the original CTF model.</span>
+
+<span class="sd">    Very large or spatially inconsistent changes should be interpreted with care,</span>
+<span class="sd">    because they may also reflect poor alignment, wrong particles, structural</span>
+<span class="sd">    heterogeneity, or mismatch between particles and the reference volume.</span>
+
+<span class="sd">    ## Outputs and Their Interpretation</span>
+
+<span class="sd">    The main output is a new **SetOfParticles**.</span>
+
+<span class="sd">    This output preserves the information from the input particles but includes</span>
+<span class="sd">    refined CTF values and the local defocus-change information computed by the</span>
+<span class="sd">    protocol.</span>
+
+<span class="sd">    The output particles can be used in later refinement or reconstruction steps</span>
+<span class="sd">    that benefit from more accurate particle-level CTF information.</span>
+
+<span class="sd">    The output should be interpreted as the same particle dataset with improved</span>
+<span class="sd">    local CTF metadata, not as a new classification or filtering of particles.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    Use this protocol only after the particles have reliable 3D projection</span>
+<span class="sd">    alignment. The method depends on comparing each particle with the correct</span>
+<span class="sd">    projection of the reference volume.</span>
+
+<span class="sd">    Use a reference volume that corresponds to the same structural state as the</span>
+<span class="sd">    particles. If the dataset contains strong conformational heterogeneity, it may</span>
+<span class="sd">    be better to refine local defocus separately for more homogeneous subsets.</span>
+
+<span class="sd">    Start with the default maximum defocus change unless there is a specific reason</span>
+<span class="sd">    to expect larger local defocus variation.</span>
+
+<span class="sd">    Be cautious when allowing very large defocus changes. A better numerical fit</span>
+<span class="sd">    does not necessarily mean a physically meaningful CTF correction.</span>
+
+<span class="sd">    Use the same-defocus option only when astigmatism should be ignored or when a</span>
+<span class="sd">    single-defocus local model is desired.</span>
+
+<span class="sd">    After running the protocol, inspect the distribution of defocus changes. Values</span>
+<span class="sd">    should be compatible with the expected experimental geometry and sample</span>
+<span class="sd">    properties.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    Estimate Local Defocus is a particle-level CTF refinement protocol. It improves</span>
+<span class="sd">    the CTF description of each particle by using the structural information</span>
+<span class="sd">    contained in a reference volume and the known projection direction of each</span>
+<span class="sd">    particle.</span>
+
+<span class="sd">    For biological users, the main value of this protocol is that it can correct</span>
+<span class="sd">    local defocus variations that are not captured by a single micrograph-level CTF</span>
+<span class="sd">    estimate. This can be especially useful for tilted specimens, thick samples,</span>
+<span class="sd">    curved ice, or high-resolution projects where small CTF inaccuracies matter.</span>
+
+<span class="sd">    The protocol should be used carefully, with a reliable reference volume and</span>
+<span class="sd">    good angular assignments, because local defocus refinement can otherwise absorb</span>
+<span class="sd">    errors that come from alignment, heterogeneity, or model mismatch rather than</span>
+<span class="sd">    from true CTF variation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;estimate local defocus&#39;</span>
     <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_2_0</span>
     

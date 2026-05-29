@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_cl2d_clustering</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -141,7 +142,173 @@
 
 
 <div class="viewcode-block" id="XmippProtCL2DClustering"><a class="viewcode-back" href="../../../api/xmipp3/xmipp3.protocols.protocol_cl2d_clustering.html#xmipp3.protocols.protocol_cl2d_clustering.XmippProtCL2DClustering">[docs]</a><span class="k">class</span> <span class="nc">XmippProtCL2DClustering</span><span class="p">(</span><span class="n">ProtAnalysis2D</span><span class="p">,</span> <span class="n">XmippProtocol</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Groups similar 2D class averages using clustering. This process helps identify homogeneous subsets within the dataset, improving classification and downstream analysis. &quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Groups similar 2D class averages using clustering. This process helps</span>
+<span class="sd">    identify homogeneous subsets within the dataset, improving classification</span>
+<span class="sd">    and downstream analysis.</span>
+
+<span class="sd">    AI Generated:</span>
+
+<span class="sd">    This protocol takes a collection of 2D class representatives (either a SetOfClasses2D or a SetOfAverages) and groups them into a smaller number of clusters of similar-looking averages. The idea is not to re-align particles or to re-run 2D classification, but to organize the existing 2D summaries into homogeneous groups. This is particularly handy when you have many 2D classes and you want to quickly identify families (similar views, similar structural states, or recurring artifacts) and extract a concise set of “representative” images.</span>
+
+<span class="sd">    What you provide as input</span>
+
+<span class="sd">    You provide inputSet2D, which can be either:</span>
+
+<span class="sd">    SetOfClasses2D: the protocol will use the representatives of each class</span>
+<span class="sd">    (i.e., the class averages) as the images to cluster.</span>
+
+<span class="sd">    SetOfAverages: the protocol will use those averages directly.</span>
+
+<span class="sd">    Internally, it records the sampling rate from the input: for classes it</span>
+<span class="sd">    reads it from the first representative; for averages it reads it from the</span>
+<span class="sd">    averages set.</span>
+
+<span class="sd">    How the protocol prepares data (convert step)</span>
+
+<span class="sd">    Before clustering, the protocol exports the input representatives into a</span>
+<span class="sd">    single stack:</span>
+
+<span class="sd">    class_representatives.mrcs (stored under the protocol extra folder)</span>
+
+<span class="sd">    At the same time, it writes a simple text file:</span>
+
+<span class="sd">    class_representatives.txt</span>
+
+<span class="sd">    This second file is just the list of the original reference IDs (the image</span>
+<span class="sd">    indices / ids associated with each representative in the stack). That file</span>
+<span class="sd">    is crucial later because the clustering program will work on the exported</span>
+<span class="sd">    stack, and then Scipion needs a way to map “cluster members” back to the</span>
+<span class="sd">    original class/average IDs.</span>
+
+<span class="sd">    Choosing the search range for the number of clusters</span>
+
+<span class="sd">    The clustering program searches for an “optimal” number of clusters, but</span>
+<span class="sd">    you can constrain the search:</span>
+
+<span class="sd">    Minimum number of clusters (min_cluster): by default 10. This is the lower</span>
+<span class="sd">    bound of the scan; it prevents the program from collapsing everything into</span>
+<span class="sd">    a very small number of groups too early.</span>
+
+<span class="sd">    Maximum number of clusters (max_cluster): by default -1, meaning “use the</span>
+<span class="sd">    internal default”, which here is intended to behave like N_classes − 2</span>
+<span class="sd">    (i.e., search up to almost the full number of images). If you set a smaller</span>
+<span class="sd">    maximum, you restrict how fine-grained clustering is allowed to be.</span>
+
+<span class="sd">    There is also a computational control:</span>
+
+<span class="sd">    Number of computational threads (compute_threads): how many CPU threads the</span>
+<span class="sd">    clustering executable uses (default 8). More threads typically means faster</span>
+<span class="sd">    clustering.</span>
+
+<span class="sd">    The clustering run (xmipp_cl2d_clustering)</span>
+
+<span class="sd">    Once the representative stack exists, the protocol launches:</span>
+
+<span class="sd">    xmipp_cl2d_clustering -i class_representatives.mrcs -o &lt;extraDir&gt; -m &lt;min&gt;</span>
+<span class="sd">    -M &lt;max&gt; -j &lt;threads&gt;</span>
+
+<span class="sd">    The program writes its results into the output directory, including a key</span>
+<span class="sd">    text file:</span>
+
+<span class="sd">    best_clusters_with_names.txt</span>
+
+<span class="sd">    This file is the authoritative description of which original representatives</span>
+<span class="sd">    ended up in each cluster.</span>
+
+<span class="sd">    What you can ask the protocol to produce</span>
+
+<span class="sd">    In the Output section you choose an “Extraction option”:</span>
+
+<span class="sd">    Classes</span>
+<span class="sd">    The protocol builds a new SetOfClasses2D where each output class corresponds</span>
+<span class="sd">    to one cluster. Importantly, this output is only possible if the input is</span>
+<span class="sd">    actually a SetOfClasses2D, because it needs to pull the underlying particles</span>
+<span class="sd">    from each original class and regroup them.</span>
+
+<span class="sd">    Averages</span>
+<span class="sd">    The protocol extracts one “representative” per cluster and outputs a</span>
+<span class="sd">    SetOfAverages. In this implementation the representative is simply the first</span>
+<span class="sd">    class/average ID listed for that cluster in the results file (treated as</span>
+<span class="sd">    the “centroid” by convention in the output text). So you get one average</span>
+<span class="sd">    per cluster, which is a compact summary of the diversity in your original</span>
+<span class="sd">    set.</span>
+
+<span class="sd">    Both</span>
+<span class="sd">    It creates the clustered SetOfClasses2D (clusters as classes) and also the</span>
+<span class="sd">    SetOfAverages (one representative per cluster).</span>
+
+<span class="sd">    How output objects are built (and what that implies)</span>
+<span class="sd">    Output: SetOfAverages (cluster representatives)</span>
+
+<span class="sd">    For each cluster, the protocol reads the list of member IDs from</span>
+<span class="sd">    best_clusters_with_names.txt and takes the first one as the cluster</span>
+<span class="sd">    representative. If the input was classes, it clones the representative</span>
+<span class="sd">    image of that class. If the input was averages, it clones that average. It</span>
+<span class="sd">    then creates a Particle object (used here as an image container) and sets</span>
+<span class="sd">    its objId and classId to the chosen ID. Finally it stores all these into a</span>
+<span class="sd">    SetOfAverages and sets the sampling rate.</span>
+
+<span class="sd">    Practical implication: the “representative” is not a newly computed</span>
+<span class="sd">    centroid; it is a selected existing average/class representative.</span>
+
+<span class="sd">    Output: SetOfClasses2D (clusters as new classes)</span>
+
+<span class="sd">    This is only allowed when the input is a SetOfClasses2D (the protocol</span>
+<span class="sd">    explicitly validates this). For each cluster:</span>
+
+<span class="sd">    It creates one new Class2D, using the first member’s class as the template</span>
+<span class="sd">    (copying metadata/info).</span>
+
+<span class="sd">    It then iterates over all particles inside each member class, reassigns</span>
+<span class="sd">    their classId to the new cluster-class id, clones them, and accumulates</span>
+<span class="sd">    them.</span>
+
+<span class="sd">    After creating all new classes, it fills each class with its collected</span>
+<span class="sd">    particles and writes the set.</span>
+
+<span class="sd">    Practical implication: the resulting clustered classes contain the union of</span>
+<span class="sd">    particles from all original classes that were grouped together. This is a</span>
+<span class="sd">    re-grouping operation; it does not re-align or recompute averages inside</span>
+<span class="sd">    this protocol.</span>
+
+<span class="sd">    Output bookkeeping and summary</span>
+
+<span class="sd">    The protocol sets a summary string of the form:</span>
+
+<span class="sd">    “Classify original input set of N images into K groups…”</span>
+
+<span class="sd">    where N is the number of input classes/averages and K is the number of</span>
+<span class="sd">    clusters found (i.e., the number of “Cluster X” blocks parsed in the result</span>
+<span class="sd">    file).</span>
+
+<span class="sd">    It also defines source relations so provenance is preserved: clustered</span>
+<span class="sd">    classes are linked to the original particle images pointer; cluster</span>
+<span class="sd">    representatives are linked to the original input 2D set.</span>
+
+<span class="sd">    Validation rules and common gotchas</span>
+
+<span class="sd">    If you request Classes (or Both), the input must be a SetOfClasses2D. If</span>
+<span class="sd">    your input is a SetOfAverages, you can only extract Averages (cluster</span>
+<span class="sd">    representatives), because there are no underlying per-class particle</span>
+<span class="sd">    memberships to regroup.</span>
+
+<span class="sd">    The protocol relies on the format of best_clusters_with_names.txt (lines</span>
+<span class="sd">    like Cluster 0: followed by numeric IDs). If that file is missing or</span>
+<span class="sd">    malformed, output creation will fail because it cannot reconstruct the</span>
+<span class="sd">    cluster dictionary.</span>
+
+<span class="sd">    Extra visualization hooks</span>
+
+<span class="sd">    The protocol exposes paths to two PNGs (presumably generated by the</span>
+<span class="sd">    clustering executable) that a viewer can show:</span>
+
+<span class="sd">    best_cluster_visualization_with_images.png</span>
+
+<span class="sd">    all_clusters_with_labels.png</span>
+
+<span class="sd">    They’re meant to help you visually assess cluster separation and membership</span>
+<span class="sd">    at a glance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;clustering 2d classes&#39;</span>
     <span class="n">_devStatus</span> <span class="o">=</span> <span class="n">BETA</span>

@@ -228,7 +228,200 @@
 <dt class="sig sig-object py" id="xmipp3.protocols.protocol_ctf_micrographs.XmippProtCTFMicrographs">
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">xmipp3.protocols.protocol_ctf_micrographs.</span></span><span class="sig-name descname"><span class="pre">XmippProtCTFMicrographs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_ctf_micrographs.html#XmippProtCTFMicrographs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_ctf_micrographs.XmippProtCTFMicrographs" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="../pwem/pwem.protocols.protocol_micrographs.html#pwem.protocols.protocol_micrographs.ProtCTFMicrographs" title="pwem.protocols.protocol_micrographs.ProtCTFMicrographs"><code class="xref py py-class docutils literal notranslate"><span class="pre">ProtCTFMicrographs</span></code></a></p>
-<p>Estimates the contrast transfer function (CTF) parameters on a set of micrographs using Xmipp, as well as other useful parameters such as ice thickness or information decay rate. Accurate CTF estimation is essential for correcting image distortions and improving resolution. It is recommended to use over the defocus calculated by other means (ie CTFFIND, gCTF or Warp).</p>
+<p>Estimates the contrast transfer function (CTF) parameters on a set of
+micrographs using Xmipp, as well as other useful parameters such as ice
+thickness or information decay rate. Accurate CTF estimation is essential
+for correcting image distortions and improving resolution. It is recommended
+to use over the defocus calculated by other means (ie CTFFIND, gCTF or
+Warp).</p>
+<p>AI Generated</p>
+<p># CTF Estimation (XmippProtCTFMicrographs) — User Manual</p>
+<p>## Overview</p>
+<dl class="simple">
+<dt>The CTF Estimation protocol determines the contrast transfer function (CTF)</dt><dd><p>parameters of a set of micrographs using Xmipp. In addition to estimating
+the usual optical parameters such as defocus and astigmatism, the protocol
+also computes several quality indicators that help assess whether the
+estimation is reliable. These include measures related to ice
+contamination, PSD quality, fitting consistency, and the plausibility of
+the estimated CTF model.</p>
+</dd>
+</dl>
+<p>In practical cryo-EM workflows, CTF estimation is one of the earliest and
+most important image-processing steps. Its purpose is to characterize how
+the microscope optics have modulated the recorded images so that later
+steps—particle picking, classification, reconstruction, and refinement—can
+properly account for those distortions. Errors at this stage can propagate
+throughout the workflow and strongly affect the final resolution and
+interpretability of the reconstruction.</p>
+<p>For a biological user, this protocol is not just a numerical fitting
+routine. It is also a quality-control step that identifies micrographs
+whose power spectra or CTF fits are not trustworthy enough for further
+processing.</p>
+<p>## Inputs and General Workflow</p>
+<p>The protocol takes as input a <strong>set of micrographs</strong>. For each micrograph,
+Xmipp analyzes its power spectrum and estimates the corresponding CTF
+parameters. These include the two main defocus values, the astigmatism
+angle, and, when requested, an additional phase shift associated with
+phase-plate imaging.</p>
+<p>The protocol can work in two different ways. In the standard mode, it
+performs a full estimation starting from the user-defined defocus range.
+In an alternative mode, it can use defocus values from a previous CTF
+estimation as an initial guess, optionally refining them further. This is
+useful when one wants to stabilize the estimation or compare Xmipp results
+to those produced by another CTF program.</p>
+<p>The output is a set of estimated CTF models linked to the input micrographs,
+together with diagnostic images such as the PSD and enhanced PSD that are
+useful for visual inspection.</p>
+<p>## Automatic Downsampling and Its Role</p>
+<p>A particularly important feature of this protocol is the use of
+<strong>automatic downsampling</strong> during CTF estimation. The idea is to adapt the
+effective sampling of the micrograph to a range where the estimation is
+numerically stable and efficient.</p>
+<p>From a practical point of view, very finely sampled micrographs can make
+CTF estimation unnecessarily slow or unstable, while moderate downsampling
+often improves robustness without compromising the estimation of the
+relevant frequency range. Xmipp can therefore test one or more downsampling
+factors automatically and keep the first one that yields an acceptable
+result.</p>
+<p>For most users, this means that the protocol tries to make CTF estimation
+more reliable without requiring extensive manual tuning. Nevertheless,
+downsampling should still be understood as a computational aid, not as a
+substitute for good data quality.</p>
+<p>## Using a Previous CTF Estimation</p>
+<p>The protocol can optionally start from a <strong>previous CTF estimation</strong>
+associated with the same micrographs. In this mode, the earlier defocus
+values are used as initial guesses, and the user may choose whether Xmipp
+should optimize them or simply reuse them.</p>
+<p>This option is especially useful when:
+* the dataset has already been processed by another CTF program,
+* one wants to refine or validate previous estimates,
+* streaming workflows require stable initialization,
+* or difficult micrographs benefit from starting near a plausible solution.</p>
+<p>Biologically and experimentally, this can improve robustness in challenging
+datasets. However, if the previous estimates are themselves poor, they may
+bias the result rather than help it.</p>
+<p>## Estimating Additional Phase Shift</p>
+<p>For datasets collected with a <strong>phase plate</strong>, the protocol can estimate an
+additional phase shift. This is important because phase-plate imaging
+modifies the CTF beyond the standard defocus-based form.</p>
+<p>When this option is enabled, the protocol searches not only for the usual
+CTF parameters but also for the phase shift introduced by the phase plate.
+This makes the protocol suitable for both conventional cryo-EM datasets and
+phase-plate experiments.</p>
+<p>From a biological perspective, the key point is that phase-plate data
+should not be treated exactly like conventional defocus-based data.
+Enabling phase-shift estimation is essential when the acquisition method
+requires it.</p>
+<p>## 1D Acceleration</p>
+<p>The protocol includes an option for <strong>1D acceleration</strong>, which speeds up
+estimation by simplifying part of the calculation. This can be very helpful
+in large datasets or facility pipelines where fast turnaround is important.</p>
+<p>However, the speed gain may come at some loss of robustness or accuracy in
+difficult cases. For routine datasets, this option is often acceptable.
+For borderline micrographs, unusual astigmatism, or problematic ice
+conditions, users may prefer to disable it if they suspect that estimation
+quality is being compromised.</p>
+<p>## Amplitude Contrast Refinement</p>
+<p>In standard cryo-EM practice, the amplitude contrast is usually fixed to a
+reasonable value rather than refined. This protocol, however, allows the
+user to <strong>refine amplitude contrast</strong> if desired.</p>
+<p>This option should be used cautiously. Although there are cases where
+amplitude-contrast refinement may slightly improve consistency or final
+FSC, it is not standard practice and may lead to overfitting or unstable
+estimates if the data do not support it.</p>
+<p>For most biological users, the safest approach is to leave amplitude
+contrast fixed unless there is a specific reason to explore this refinement.</p>
+<p>## Border Handling and Window Size</p>
+<p>The CTF estimation is based on local regions of the micrograph and on the
+analysis of its power spectrum. The protocol uses a <strong>window size</strong> to
+define the size of the image patches used during estimation. It can also
+optionally skip micrograph borders, which may be beneficial when the
+edges contain artifacts, empty regions, or non-representative signal.</p>
+<p>In practical terms, the border option is mainly relevant when the
+micrograph edges are unreliable. In many cases, keeping the full image is
+appropriate, but in datasets with obvious border artifacts it may improve
+estimation quality to exclude them.</p>
+<p>## Quality Evaluation of the Estimated CTF</p>
+<p>One of the strongest points of this protocol is that it does not simply
+return a CTF estimate—it also evaluates whether that estimate is good
+enough.</p>
+<p>After fitting the CTF, Xmipp computes a series of quality criteria based on
+the PSD and the fitted model. These include:
+* the position of the first zero,
+* the maximum reliable frequency,
+* the ratio related to astigmatism behavior,
+* the correlation between different CTF oscillation regions,
+* the CTF margin,
+* the non-astigmatic validity,
+* the PSD correlation at high angles,
+* and an iceness-related criterion.</p>
+<p>If the estimated CTF fails these criteria, the corresponding micrograph is
+marked as rejected. This is very important biologically, because micrographs
+with poor CTF fits often correspond to thick ice, contamination, low
+contrast, or unstable imaging conditions.</p>
+<p>Thus, the protocol acts not only as an estimator, but also as an automated
+micrograph-quality assessor.</p>
+<p>## PSD and Diagnostic Outputs</p>
+<p>For each micrograph, the protocol produces several diagnostic files,
+including the <strong>PSD</strong>, an <strong>enhanced PSD</strong>, and fitted CTF model views.
+These outputs are often extremely useful for users who want to inspect the
+result visually.</p>
+<p>The PSD shows the oscillatory pattern on which the CTF estimation is based,
+while the enhanced PSD and model images help assess whether the fit follows
+the observed Thon rings in a plausible way.</p>
+<p>In practice, visual inspection of these outputs remains important,
+especially in difficult datasets. Automatic criteria are valuable, but an
+experienced user can often detect subtle failures or borderline cases by
+examining the PSD images directly.</p>
+<p>## Streaming Workflows</p>
+<p>This protocol is designed to work well in <strong>streaming mode</strong>, where
+micrographs arrive progressively during data acquisition. In this setting,
+it can estimate the CTF of each new micrograph as it becomes available, and
+it can also wait for a previous CTF estimation when using it as
+initialization.</p>
+<p>This makes the protocol especially suitable for facility environments or
+automated pipelines, where early feedback on data quality is essential. In
+these contexts, rapid identification of poor micrographs can guide
+acquisition decisions before too much unusable data are collected.</p>
+<p>## Outputs and Their Interpretation</p>
+<p>The main output is a <strong>set of CTF models</strong> linked to the input micrographs.
+Each accepted micrograph receives an estimated CTF model together with
+associated diagnostic information.</p>
+<p>For rejected cases, the protocol can generate placeholder error entries,
+ensuring that the workflow keeps track of which micrographs failed and why.</p>
+<p>From a biological and practical perspective, the resulting CTF set should
+be interpreted as both:
+* a description of the microscope-induced image distortions, and
+* a quality-filtered basis for subsequent processing.</p>
+<p>Micrographs with reliable CTF estimates can proceed to particle picking and
+downstream analysis. Those with poor estimates should usually be inspected
+carefully and often excluded.</p>
+<p>## Practical Recommendations</p>
+<p>In routine workflows, it is generally advisable to start with the automatic
+downsampling options enabled, since they often improve robustness and speed
+without much user intervention.</p>
+<p>If previous CTF estimations exist, using them as initial values can be very
+helpful, especially for difficult datasets or when comparing different CTF
+programs. However, they should not be trusted blindly.</p>
+<p>For phase-plate data, enabling phase-shift estimation is essential. For
+conventional datasets, it is unnecessary.</p>
+<p>Amplitude-contrast refinement should be regarded as experimental and only
+used when there is a clear rationale. Similarly, 1D acceleration is very
+useful for throughput, but if suspicious results appear, it may be worth
+rerunning problematic micrographs without that simplification.</p>
+<p>Finally, even though the protocol includes automated rejection criteria,
+users should visually inspect PSDs and fitted models in any dataset that
+matters biologically. Automated filters are powerful, but expert
+interpretation remains important.</p>
+<p>## Final Perspective</p>
+<p>The Xmipp CTF Estimation protocol is more than a standard defocus-fitting
+tool. It combines CTF estimation, quality evaluation, diagnostic
+visualization, and streaming compatibility in a single workflow step.</p>
+<p>For most cryo-EM users, its main value lies in providing not only CTF
+parameters, but also confidence about whether those parameters are
+trustworthy. Careful use of this protocol helps ensure that downstream
+particle processing begins from a technically sound and biologically
+interpretable set of micrographs.</p>
 <dl class="py method">
 <dt class="sig sig-object py" id="xmipp3.protocols.protocol_ctf_micrographs.XmippProtCTFMicrographs.calculateAutodownsampling">
 <span class="sig-name descname"><span class="pre">calculateAutodownsampling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">samplingRate</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targetSampling</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/xmipp3/protocols/protocol_ctf_micrographs.html#XmippProtCTFMicrographs.calculateAutodownsampling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#xmipp3.protocols.protocol_ctf_micrographs.XmippProtCTFMicrographs.calculateAutodownsampling" title="Permalink to this definition"></a></dt>

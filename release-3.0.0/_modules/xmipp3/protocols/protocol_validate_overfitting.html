@@ -90,6 +90,7 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../../../index.html" class="icon icon-home"></a> &raquo;</li>
           <li><a href="../../index.html">Module code</a> &raquo;</li>
+          <li><a href="../../xmipp3.html">xmipp3</a> &raquo;</li>
       <li>xmipp3.protocols.protocol_validate_overfitting</li>
       <li class="wy-breadcrumbs-aside">
       </li>
@@ -160,6 +161,316 @@
 <span class="sd">    This method has been proposed by:</span>
 <span class="sd">    B. Heymann &quot;Validation of 3D EM Reconstructions&quot;, 2015.</span>
 <span class="sd">    (see References)</span>
+
+<span class="sd">    AI Generated</span>
+
+<span class="sd">    ## Overview</span>
+
+<span class="sd">    The Validate Overfitting protocol evaluates how the estimated reconstruction</span>
+<span class="sd">    resolution changes as a function of the number of particles used.</span>
+
+<span class="sd">    In cryo-EM validation, one concern is that apparent high-resolution signal may</span>
+<span class="sd">    come from overfitting, especially when few particles are used. This protocol</span>
+<span class="sd">    addresses that concern by repeatedly reconstructing independent random subsets</span>
+<span class="sd">    of particles of different sizes. For each subset size, it computes the</span>
+<span class="sd">    resolution between two independently reconstructed half volumes.</span>
+
+<span class="sd">    Optionally, the protocol also performs the same experiment using aligned</span>
+<span class="sd">    Gaussian noise. This gives a noise-bound reference curve. If reconstructions</span>
+<span class="sd">    from real particles behave similarly to reconstructions from aligned noise,</span>
+<span class="sd">    especially at low particle numbers, the apparent resolution should be</span>
+<span class="sd">    interpreted cautiously.</span>
+
+<span class="sd">    The protocol writes text files containing the mean and standard deviation of</span>
+<span class="sd">    the estimated resolution for each tested particle subset size.</span>
+
+<span class="sd">    ## Inputs and General Workflow</span>
+
+<span class="sd">    The main input is a set of particles with projection-alignment information.</span>
+
+<span class="sd">    The protocol writes the input particles to Xmipp metadata format. If resizing</span>
+<span class="sd">    is enabled, it creates resized versions of the particles and, when noise</span>
+<span class="sd">    validation is requested, of the reference volume.</span>
+
+<span class="sd">    For each requested subset size, and for each randomization iteration, the</span>
+<span class="sd">    protocol creates two independent random particle subsets of that size. It</span>
+<span class="sd">    reconstructs one volume from each subset, computes FSC between the two volumes,</span>
+<span class="sd">    and records the frequency at which the FSC drops below 0.5.</span>
+
+<span class="sd">    After all repetitions are complete, the protocol summarizes the results across</span>
+<span class="sd">    iterations for each subset size. If noise validation is enabled, the same</span>
+<span class="sd">    summary is produced for the Gaussian-noise reconstructions.</span>
+
+<span class="sd">    ## Input Particles</span>
+
+<span class="sd">    The **Input particles** parameter defines the particle set used for the</span>
+<span class="sd">    validation experiment.</span>
+
+<span class="sd">    The particles must have projection alignment, because the protocol reconstructs</span>
+<span class="sd">    3D volumes using the orientations already assigned to the particles. The</span>
+<span class="sd">    protocol does not solve particle orientations from scratch.</span>
+
+<span class="sd">    The reliability of the validation depends on the quality of these alignments.</span>
+<span class="sd">    Poor angular assignments, strong heterogeneity, bad particles, or incorrect</span>
+<span class="sd">    CTF handling in previous steps can affect the resulting resolution curves.</span>
+
+<span class="sd">    ## Resize Input Particles and Volume</span>
+
+<span class="sd">    The **Resize input particles and volume?** option allows the protocol to reduce</span>
+<span class="sd">    the image and volume size before running the validation.</span>
+
+<span class="sd">    This is useful when the goal is not to obtain the best possible reconstruction</span>
+<span class="sd">    but to perform a faster validation experiment. Resizing reduces computational</span>
+<span class="sd">    cost, especially because the protocol performs many reconstructions.</span>
+
+<span class="sd">    If resizing is enabled, the input particles are resized using Fourier resizing.</span>
+<span class="sd">    If the noise-bound calculation is also enabled, the reference volume is resized</span>
+<span class="sd">    as well.</span>
+
+<span class="sd">    The protocol also rescales particle shifts so that the alignment metadata</span>
+<span class="sd">    remain consistent with the new image size.</span>
+
+<span class="sd">    ## New Size</span>
+
+<span class="sd">    The **New size** parameter is used when resizing is enabled.</span>
+
+<span class="sd">    It defines the new particle and volume size in pixels.</span>
+
+<span class="sd">    The new size must be smaller than the current particle size. The protocol</span>
+<span class="sd">    validates that Fourier resizing is not used to increase dimensions and that the</span>
+<span class="sd">    new size is not identical to the current size.</span>
+
+<span class="sd">    A smaller size makes the protocol faster but limits the resolution range that</span>
+<span class="sd">    can be meaningfully analyzed.</span>
+
+<span class="sd">    ## Calculate the Noise Bound for Resolution</span>
+
+<span class="sd">    The **Calculate the noise bound for resolution?** option enables the Gaussian</span>
+<span class="sd">    noise control experiment.</span>
+
+<span class="sd">    When this option is enabled, the protocol creates Gaussian-noise images,</span>
+<span class="sd">    assigns orientations to them by aligning them to projections from a reference</span>
+<span class="sd">    volume, reconstructs noise volumes, and computes FSC between independent noise</span>
+<span class="sd">    reconstructions.</span>
+
+<span class="sd">    This produces a reference curve describing the apparent resolution that can be</span>
+<span class="sd">    obtained from aligned noise under the same reconstruction procedure.</span>
+
+<span class="sd">    This option increases computational time but provides an important control for</span>
+<span class="sd">    detecting overfitting.</span>
+
+<span class="sd">    ## Initial 3D Reference Volume</span>
+
+<span class="sd">    The **Initial 3D reference volume** parameter is required when the noise-bound</span>
+<span class="sd">    calculation is enabled.</span>
+
+<span class="sd">    The reference volume is used to generate a projection library. Gaussian-noise</span>
+<span class="sd">    images are then aligned against this projection library, producing orientation</span>
+<span class="sd">    assignments for the noise images.</span>
+
+<span class="sd">    The resulting noise reconstructions show how much apparent structure can be</span>
+<span class="sd">    introduced by aligning pure noise to a reference.</span>
+
+<span class="sd">    The input can be a volume or a set of volumes, although the protocol uses the</span>
+<span class="sd">    selected reference volume file for the projection library.</span>
+
+<span class="sd">    ## Symmetry Group</span>
+
+<span class="sd">    The **Symmetry group** parameter defines the symmetry imposed during</span>
+<span class="sd">    reconstruction and, when the noise-bound calculation is enabled, during</span>
+<span class="sd">    projection-library generation.</span>
+
+<span class="sd">    For asymmetric particles, use **c1**. If the particle has known symmetry, the</span>
+<span class="sd">    appropriate Xmipp symmetry group can be used.</span>
+
+<span class="sd">    Using incorrect symmetry may artificially improve apparent signal or distort</span>
+<span class="sd">    the validation. Symmetry should be used only when biologically justified.</span>
+
+<span class="sd">    ## Number of Particles</span>
+
+<span class="sd">    The **Number of particles** parameter defines the subset sizes tested by the</span>
+<span class="sd">    protocol.</span>
+
+<span class="sd">    For each listed value, the protocol reconstructs pairs of random subsets of</span>
+<span class="sd">    that size. The default list covers a broad range from small subsets to several</span>
+<span class="sd">    thousand particles.</span>
+
+<span class="sd">    The protocol automatically ignores subset sizes larger than half of the input</span>
+<span class="sd">    particle set. This is because each validation repetition needs two independent</span>
+<span class="sd">    subsets of the selected size.</span>
+
+<span class="sd">    The resulting curve shows how apparent resolution improves as more particles</span>
+<span class="sd">    are used.</span>
+
+<span class="sd">    ## Number of Iterations</span>
+
+<span class="sd">    The **Number of times the randomization is performed** parameter defines how</span>
+<span class="sd">    many repeated experiments are performed for each subset size.</span>
+
+<span class="sd">    Each repetition uses new random subsets. The protocol then computes the mean</span>
+<span class="sd">    and standard deviation of the estimated resolution across repetitions.</span>
+
+<span class="sd">    More iterations provide a more stable estimate and better uncertainty</span>
+<span class="sd">    assessment, but increase runtime.</span>
+
+<span class="sd">    The default value is 10.</span>
+
+<span class="sd">    ## Maximum Resolution</span>
+
+<span class="sd">    The **Maximum resolution** parameter defines the highest digital frequency used</span>
+<span class="sd">    during Fourier reconstruction.</span>
+
+<span class="sd">    The value is expressed as a digital frequency. Nyquist corresponds to 0.5.</span>
+
+<span class="sd">    This parameter limits the frequency range used during reconstruction. The</span>
+<span class="sd">    default value of 0.5 allows reconstruction up to Nyquist.</span>
+
+<span class="sd">    ## Angular Sampling Rate</span>
+
+<span class="sd">    The **Angular sampling rate** parameter is used when the noise-bound</span>
+<span class="sd">    calculation is enabled.</span>
+
+<span class="sd">    It defines the angular sampling of the projection library generated from the</span>
+<span class="sd">    reference volume. Gaussian-noise images are aligned against this library.</span>
+
+<span class="sd">    A smaller angular sampling value generates a denser projection library and may</span>
+<span class="sd">    make noise alignment more effective, but increases computation time.</span>
+
+<span class="sd">    ## Reconstruction Procedure</span>
+
+<span class="sd">    For each subset size and repetition, the protocol creates two random subsets</span>
+<span class="sd">    of particles.</span>
+
+<span class="sd">    Each subset is reconstructed independently using Xmipp Fourier reconstruction.</span>
+<span class="sd">    The protocol uses the input particle orientations, selected symmetry, maximum</span>
+<span class="sd">    resolution, padding, and sampling rate.</span>
+
+<span class="sd">    If GPU execution is enabled, the CUDA Fourier reconstruction program is used</span>
+<span class="sd">    when available. Otherwise, the CPU Fourier reconstruction program is used.</span>
+
+<span class="sd">    The two reconstructed volumes are then compared by FSC.</span>
+
+<span class="sd">    ## FSC Criterion</span>
+
+<span class="sd">    The protocol computes FSC between the two independent reconstructions obtained</span>
+<span class="sd">    from the two random subsets.</span>
+
+<span class="sd">    It records the frequency at which the FSC first drops below 0.5. This</span>
+<span class="sd">    frequency is used as the resolution-related value for that repetition.</span>
+
+<span class="sd">    After all repetitions, the protocol computes the mean and standard deviation</span>
+<span class="sd">    for each subset size.</span>
+
+<span class="sd">    The output files report both the mean frequency and an inverse-square</span>
+<span class="sd">    transformation used for plotting or analysis.</span>
+
+<span class="sd">    ## Gaussian-Noise Reconstructions</span>
+
+<span class="sd">    When noise-bound calculation is enabled, the protocol performs a parallel</span>
+<span class="sd">    experiment with Gaussian-noise images.</span>
+
+<span class="sd">    For each particle subset, it creates noise images, aligns them against</span>
+<span class="sd">    reference projections, reconstructs volumes from the aligned noise, and</span>
+<span class="sd">    computes FSC between independent noise reconstructions.</span>
+
+<span class="sd">    This tests how much apparent resolution can be produced by the alignment and</span>
+<span class="sd">    reconstruction process itself, even when the input images contain no real</span>
+<span class="sd">    particle signal.</span>
+
+<span class="sd">    ## Output Values</span>
+
+<span class="sd">    The main numerical output is written to:</span>
+
+<span class="sd">    `outputValues.txt`</span>
+
+<span class="sd">    This file contains one row per accepted subset size. Each row includes:</span>
+
+<span class="sd">    - number of particles;</span>
+<span class="sd">    - mean recorded FSC frequency;</span>
+<span class="sd">    - standard deviation of that frequency;</span>
+<span class="sd">    - mean inverse-square-transformed value;</span>
+<span class="sd">    - standard deviation of that transformed value.</span>
+
+<span class="sd">    These values can be plotted to show how reconstruction resolution changes with</span>
+<span class="sd">    particle number.</span>
+
+<span class="sd">    ## Noise Output Values</span>
+
+<span class="sd">    If the noise-bound calculation is enabled, the protocol also writes:</span>
+
+<span class="sd">    `outputNoiseValues.txt`</span>
+
+<span class="sd">    This file has the same structure as `outputValues.txt`, but for the aligned</span>
+<span class="sd">    Gaussian-noise reconstructions.</span>
+
+<span class="sd">    Comparison between `outputValues.txt` and `outputNoiseValues.txt` is central to</span>
+<span class="sd">    the overfitting interpretation.</span>
+
+<span class="sd">    ## Interpreting the Results</span>
+
+<span class="sd">    A reliable dataset should show a clear difference between real-particle</span>
+<span class="sd">    reconstructions and aligned-noise reconstructions.</span>
+
+<span class="sd">    As the number of particles increases, the real-particle reconstruction should</span>
+<span class="sd">    improve in a way that reflects genuine signal accumulation. The noise-bound</span>
+<span class="sd">    curve indicates how much apparent resolution can arise from overfitting or</span>
+<span class="sd">    alignment of noise.</span>
+
+<span class="sd">    If the real-particle curve is close to the noise curve, especially for small</span>
+<span class="sd">    particle numbers, the apparent resolution may not be reliable. If the</span>
+<span class="sd">    real-particle curve is clearly better than the noise curve, this supports the</span>
+<span class="sd">    validity of the reconstruction.</span>
+
+<span class="sd">    The results should be interpreted together with half-map FSC, map appearance,</span>
+<span class="sd">    particle quality, angular distribution, and biological plausibility.</span>
+
+<span class="sd">    ## GPU Execution</span>
+
+<span class="sd">    The protocol supports GPU reconstruction.</span>
+
+<span class="sd">    If GPU execution is enabled, the protocol uses Xmipp CUDA Fourier</span>
+<span class="sd">    reconstruction when available. If multiple MPI processes are used, GPU-related</span>
+<span class="sd">    parameters are adjusted to distribute work over available GPUs.</span>
+
+<span class="sd">    If GPU execution is requested but the required Xmipp CUDA programs are not</span>
+<span class="sd">    available, the protocol reports a validation error.</span>
+
+<span class="sd">    GPU execution is recommended because the protocol performs many independent</span>
+<span class="sd">    reconstructions.</span>
+
+<span class="sd">    ## Practical Recommendations</span>
+
+<span class="sd">    Use this protocol after particles have projection-alignment parameters.</span>
+
+<span class="sd">    Enable the noise-bound calculation when you want a stronger overfitting</span>
+<span class="sd">    assessment, especially for small or difficult datasets.</span>
+
+<span class="sd">    Use resizing when you want a faster diagnostic run and do not need to test the</span>
+<span class="sd">    full-resolution behavior.</span>
+
+<span class="sd">    Choose subset sizes that cover the range from small particle numbers to a</span>
+<span class="sd">    substantial fraction of the dataset. The protocol will automatically ignore</span>
+<span class="sd">    sizes larger than half the input set.</span>
+
+<span class="sd">    Increase the number of iterations if the curves are noisy or unstable.</span>
+
+<span class="sd">    Use the same symmetry and reconstruction conventions that are appropriate for</span>
+<span class="sd">    the real dataset.</span>
+
+<span class="sd">    Plot the real-particle and noise curves together when interpreting the result.</span>
+
+<span class="sd">    ## Final Perspective</span>
+
+<span class="sd">    Validate Overfitting is a reconstruction-validation protocol based on particle</span>
+<span class="sd">    subsampling.</span>
+
+<span class="sd">    For biological users, its main value is that it tests whether apparent</span>
+<span class="sd">    resolution improves with particle number in a way that is clearly better than</span>
+<span class="sd">    what can be obtained from aligned Gaussian noise.</span>
+
+<span class="sd">    The protocol does not produce a final reconstruction. Instead, it produces</span>
+<span class="sd">    diagnostic curves that help assess whether a reconstruction is supported by</span>
+<span class="sd">    real signal or may be affected by overfitting.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">_label</span> <span class="o">=</span> <span class="s1">&#39;validate overfitting&#39;</span>
     <span class="n">_lastUpdateVersion</span> <span class="o">=</span> <span class="n">VERSION_1_1</span>
