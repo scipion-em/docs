@@ -102,12 +102,69 @@
   <h1>Source code for pyworkflow.utils.retry_streaming</h1><div class="highlight"><pre>
 <span></span>
 
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">random</span>
 <span class="kn">import</span> <span class="nn">sqlite3</span>
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
 
 <span class="kn">from</span> <span class="nn">pyworkflow.utils</span> <span class="kn">import</span> <span class="n">yellowStr</span><span class="p">,</span> <span class="n">redStr</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># Stream state constants (mirrors pyworkflow.object.Set)</span>
+<span class="n">_STREAM_OPEN</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">_STREAM_STATE_KEY</span> <span class="o">=</span> <span class="s1">&#39;_streamState&#39;</span>
+
+
+<div class="viewcode-block" id="safeIsStreamOpen"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.retry_streaming.html#pyworkflow.utils.retry_streaming.safeIsStreamOpen">[docs]</a><span class="k">def</span> <span class="nf">safeIsStreamOpen</span><span class="p">(</span><span class="n">setObj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Check if a Set&#39;s stream is open using an independent SQLite connection.</span>
+
+<span class="sd">    Opens a short-lived, read-only connection to the Set&#39;s backing SQLite file</span>
+<span class="sd">    and queries ONLY the _streamState property. This avoids:</span>
+<span class="sd">      - Reusing the Set&#39;s internal mapper connection (no mapper contention)</span>
+<span class="sd">      - Holding protocol-level locks during the check</span>
+<span class="sd">      - The heavyweight loadAllProperties() call that reads ALL properties</span>
+
+<span class="sd">    Safe to call from any thread while the producer may be writing concurrently.</span>
+<span class="sd">    Returns False (stream closed) on any error, since a missing/corrupt DB means</span>
+<span class="sd">    no more data is coming.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dbPath</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">setObj</span><span class="p">,</span> <span class="s1">&#39;getFileName&#39;</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="kc">None</span><span class="p">)()</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">dbPath</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dbPath</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">False</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;file:</span><span class="si">{</span><span class="n">dbPath</span><span class="si">}</span><span class="s2">?mode=ro&quot;</span><span class="p">,</span> <span class="n">uri</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="s2">&quot;SELECT value FROM Properties WHERE key=?&quot;</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">_STREAM_STATE_KEY</span><span class="p">,)</span>
+            <span class="p">)</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">row</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">==</span> <span class="n">_STREAM_OPEN</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="refreshStreamState"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.retry_streaming.html#pyworkflow.utils.retry_streaming.refreshStreamState">[docs]</a><span class="k">def</span> <span class="nf">refreshStreamState</span><span class="p">(</span><span class="n">setObj</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;Update the in-memory stream state of a Set from the database.</span>
+
+<span class="sd">    Uses safeIsStreamOpen() to read the current state from an independent</span>
+<span class="sd">    connection, then patches the in-memory _streamState attribute so that</span>
+<span class="sd">    subsequent setObj.isStreamOpen() calls return the fresh value without</span>
+<span class="sd">    needing loadAllProperties().</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">pyworkflow.object</span> <span class="kn">import</span> <span class="n">Set</span>
+    <span class="k">if</span> <span class="n">safeIsStreamOpen</span><span class="p">(</span><span class="n">setObj</span><span class="p">):</span>
+        <span class="n">setObj</span><span class="o">.</span><span class="n">setStreamState</span><span class="p">(</span><span class="n">Set</span><span class="o">.</span><span class="n">STREAM_OPEN</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">setObj</span><span class="o">.</span><span class="n">setStreamState</span><span class="p">(</span><span class="n">Set</span><span class="o">.</span><span class="n">STREAM_CLOSED</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="is_sqlite_lock_error"><a class="viewcode-back" href="../../../api/pyworkflow/pyworkflow.utils.retry_streaming.html#pyworkflow.utils.retry_streaming.is_sqlite_lock_error">[docs]</a><span class="k">def</span> <span class="nf">is_sqlite_lock_error</span><span class="p">(</span><span class="n">exc</span><span class="p">:</span> <span class="ne">Exception</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
