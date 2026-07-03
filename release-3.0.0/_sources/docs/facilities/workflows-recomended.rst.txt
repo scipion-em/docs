@@ -14,32 +14,21 @@ The following streaming workflows are available inside Scipion (import workflow 
 Simple Processing
 ^^^^^^^^^^^^^^^^^
 
-**Purpose**
-
-Basic preprocessing and acquisition monitoring.
+**Purpose** Basic preprocessing and acquisition monitoring.
 
 **Processing**
-
 Movies → Motion correction
 Motion-corrected micrographs → CTF estimation
 Quality filters for micrograph curation
 
-**Main plugins**
-
-pwem
-Xmipp3
-MotionCor2
-Cistem
+**Main plugins** pwem, Xmipp3, MotionCor2, Cistem
 
 2D SmartScope
 ^^^^^^^^^^^^^
 
-**Purpose**
-
-Automated screening with real-time feedback to SmartScope.
+**Purpose** Automated screening with real-time feedback to SmartScope.
 
 **Processing**
-
 Movies → Motion correction
 MaxShift analysis
 CTF estimation + CTF consensus
@@ -51,26 +40,14 @@ Streaming 2D classification
 2D class quality assessment
 Feedback to SmartScope
 
-**Main plugins**
-
-pwem
-Xmipp3
-MotionCor2
-MIFFI
-Cistem
-SmartScope
-SPHIRE
-CryoAssess
+**Main plugins** pwem, Xmipp3, MotionCor2, MIFFI, Cistem, SmartScope, SPHIRE, CryoAssess
 
 2D Xmipp
 ^^^^^^^^
 
-**Purpose**
-
-Complete streaming SPA preprocessing and 2D classification.
+**Purpose** Complete streaming SPA preprocessing and 2D classification.
 
 **Processing**
-
 Movies → Motion correction
 CTF estimation
 Dose, MaxShift and tilt analysis
@@ -83,28 +60,14 @@ Picker training
 Particle picking
 Streaming 2D classification
 
-**Main plugins**
-
-pwem
-Xmipp3
-MotionCor2
-MIFFI
-Cistem
-EMFacilities
-SPHIRE
-Gautomatch
-Relion
-RePiC
+**Main plugins** pwem, Xmipp3, MotionCor2, MIFFI, Cistem, EMFacilities, SPHIRE, Gautomatch, Relion, RePiC
 
 2D Relion
 ^^^^^^^^^
 
-**Purpose**
-
-Streaming processing from movies to 2D classes using Relion.
+**Purpose** Streaming processing from movies to 2D classes using Relion.
 
 **Processing**
-
 Movies → Motion correction
 CTF estimation
 Quality filters
@@ -113,23 +76,14 @@ Picker training
 Particle picking
 2D classification (25k, 50k and 100k particles)
 
-**Main plugins**
-
-pwem
-Relion
-MotionCor2
-Cistem
-Xmipp3
+**Main plugins** pwem, Relion, MotionCor2, Cistem, Xmipp3
 
 2D CryoSPARC
 ^^^^^^^^^^^^
 
-**Purpose**
-
-Streaming processing from movies to 2D classes using CryoSPARC.
+**Purpose** Streaming processing from movies to 2D classes using CryoSPARC.
 
 **Processing**
-
 Movies → Motion correction
 CTF estimation
 Quality filters
@@ -138,23 +92,14 @@ Picker training
 Particle picking
 2D classification (25k, 50k and 100k particles)
 
-**Main plugins**
-
-pwem
-CryoSPARC
-MotionCor2
-Cistem
-Xmipp3
+**Main plugins** pwem, CryoSPARC, MotionCor2, Cistem, Xmipp3
 
 3D Relion
 ^^^^^^^^^
 
-**Purpose**
-
-Automated streaming workflow from movies to an initial 3D reconstruction.
+**Purpose** Automated streaming workflow from movies to an initial 3D reconstruction.
 
 **Processing**
-
 Movies → Motion correction
 CTF estimation
 Quality filters
@@ -166,23 +111,14 @@ Particle picking
 Automatic 2D/3D class selection
 Multiple unsymmetrized 3D models
 
-**Main plugins**
-
-pwem
-Relion
-MotionCor2
-Cistem
-Xmipp3
+**Main plugins** pwem, Relion, MotionCor2, Cistem, Xmipp3
 
 3D CryoSPARC
 ^^^^^^^^^^^^
 
-**Purpose**
-
-Automated streaming workflow from movies to an initial 3D reconstruction.
+**Purpose** Automated streaming workflow from movies to an initial 3D reconstruction.
 
 **Processing**
-
 Movies → Motion correction
 CTF estimation
 Quality filters
@@ -194,10 +130,4 @@ Particle picking
 Automatic 2D/3D class selection
 Multiple unsymmetrized 3D models
 
-**Main plugins**
-
-pwem
-CryoSPARC
-MotionCor2
-Cistem
-Xmipp3
+**Main plugins** pwem, CryoSPARC, MotionCor2, Cistem, Xmipp3
