@@ -4,9 +4,9 @@
 
 .. _facilities-workflows:
 
-===================
-Streaming workflows
-===================
+============================
+Streaming workflows creation
+============================
 
 Scipion can launch streaming workflows in several ways. The most basic one is
 creating an empty project to start a new workflow with an *Import Movies*
