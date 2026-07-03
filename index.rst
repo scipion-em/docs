@@ -40,7 +40,6 @@ later on.
    docs/facilities/installation-deployment
    docs/facilities/customize-report
    docs/facilities/SPA
-   docs/facilities/OSCEM
 
 
 .. _dev-docs:
