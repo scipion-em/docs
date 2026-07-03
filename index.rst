@@ -36,9 +36,12 @@ later on.
    :glob:
    :caption: Facilities
 
-   docs/facilities/facilities
-   docs/facilities/facilities-workflows
+   docs/facilities/facilities-overview
+   docs/facilities/installation-deployment
    docs/facilities/customize-report
+   docs/facilities/SPA
+   docs/facilities/OSCEM
+
 
 .. _dev-docs:
 
