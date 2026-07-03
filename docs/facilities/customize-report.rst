@@ -29,3 +29,6 @@ Implementation detail of the different monitor report system may be found in the
 * `Pure HTML based <customize-report-html>`_
 * `Grafana, Influxdb based <customize-report-grafana>`_
 
+.. figure:: /docs/images/facilities/monitorS.png
+   :width: 700
+   :alt: monitor Summary view

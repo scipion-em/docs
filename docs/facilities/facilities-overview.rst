@@ -64,10 +64,10 @@ To enable this functionality, SmartScope and the scipion-em-smartscope plugin mu
    :align: center
    :alt: Feedback loop
 
-   Fig. 1. Main description of the feedback loop
 
 OSC-EM (Open Standards Community for EM)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. figure:: /docs/images/facilities/OSCEM.png
    :width: 200
    :alt: scipion logo
