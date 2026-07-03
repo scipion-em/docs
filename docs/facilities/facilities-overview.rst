@@ -53,9 +53,18 @@ The Scipion team has extensive experience deploying Scipion in cryo-EM facilitie
 
 Towards Closed-Loop Data Acquisition
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Scipion is extending its streaming capabilities towards closed-loop acquisition, where processing results can directly influence microscope operation during data collection. Through its integration with **SmartScope**, processing results obtained during streaming can be fed back into the acquisition workflow, enabling data-driven decisions while screening is still in progress.
+Scipion is extending its streaming capabilities towards closed-loop acquisition, where processing results can directly influence microscope operation during data collection. Through its integration with `SmartScope <https://docs.smartscope.org/>`_, processing results obtained during the processing on Scipion can be fed back into the screening, enabling data-driven decisions while screening is still in progress.
 
-This feedback loop allows microscope acquisition strategies to be adapted automatically according to live processing results, improving screening efficiency, optimizing microscope usage, and moving towards increasingly autonomous cryo-EM data collection.
+This feedback loop allows microscope acquisition strategies to be adapted automatically according to live processing results, improving screening efficiency, optimizing microscope usage, and moving towards increasingly autonomous and more efficient cryo-EM data collection.
+
+To enable this functionality, SmartScope and the scipion-em-smartscope plugin must be installed and configured. Scipion provides a dedicated streaming workflow up to the 2D classification stage that includes all the protocols required to implement the feedback loop between image processing and microscope acquisition. This workflow can also serve as a starting point for facilities wishing to customize their own closed-loop acquisition strategies.
+
+.. figure:: /docs/images/guis/feedbackLoop.png
+   :width: 600
+   :align: center
+   :alt: Feedback loop
+
+   Fig. 1. Main description of the feedback loop
 
 OSC-EM (Open Standards Community for EM)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

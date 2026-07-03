@@ -92,6 +92,7 @@ OSC-EM (Open Standards Community for EM)
 -----------------------------------------
 .. figure:: /docs/images/facilities/OSCEM.png
    :width: 200
+   :align: left
    :alt: scipion logo
 
 
