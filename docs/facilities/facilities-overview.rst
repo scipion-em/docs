@@ -59,15 +59,15 @@ This feedback loop allows microscope acquisition strategies to be adapted automa
 
 To enable this functionality, SmartScope and the scipion-em-smartscope plugin must be installed and configured. Scipion provides a dedicated streaming workflow up to the 2D classification stage that includes all the protocols required to implement the feedback loop between image processing and microscope acquisition. This workflow can also serve as a starting point for facilities wishing to customize their own closed-loop acquisition strategies.
 
-.. figure:: /docs/images/guis/feedbackLoop.png
+.. figure:: /docs/images/facilities/feedbackLoop.png
    :width: 600
    :align: center
    :alt: Feedback loop
 
-   Fig. 1. Main description of the feedback loop
 
 OSC-EM (Open Standards Community for EM)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 .. figure:: /docs/images/facilities/OSCEM.png
    :width: 200
    :alt: scipion logo
