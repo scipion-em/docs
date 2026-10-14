@@ -120,17 +120,30 @@ Open **/path/for/scipion/config/scipion.conf** file and append the variables bel
 
 See `Configuration guide <scipion-configuration>`_ for more details about these and other possible variables.
 
-Install xmipp
-=============
-`Xmipp <https://i2pc.github.io/docs/index.html>`__ is a good partner for Scipion in cryoem. It binds to Scipion environment offering file format (stk, vol, mrc, tiff, dm4,...) conversions for many cryo em methods and more than a `hundred of protocols <https://i2pc.github.io/docs/protocolsMap.html>`__ to use in your SPA workflows
 
-To install Xmipp plugin, please review the `requirements <https://i2pc.github.io/docs/Installation/Requirements/index.html>`__ . If all of them are available in your system you can install it you can install Xmipp from the :ref:`Plugin manager guide <Plugin-Manager>` or from the terminal as this:
+
+
+Scipion through SBGrid
+=======================================
+
+Scipion and Xmipp are also available through SBGrid, a software distribution platform that provides access to a broad collection of structural biology applications, including software for single-particle analysis (SPA), tomography, molecular modelling, and protein structure prediction.
+
+This installation option requires membership in SBGrid. If you are already an SBGrid member and have installed and configured the SBGrid environment, you can install Scipion by running:
 
 ::
+    sbgrid-cli install scipion
 
-    /path/for/scipion/scipion3 install -p scipion-em-xmipp  | tee -a install.log
+This command installs Scipion and provides access to Xmipp and the Scipion plugins supported by SBGrid, together with the corresponding software dependencies. Many of these applications are already configured to work with the SBGrid environment. Plugin availability and the underlying software may vary depending on your SBGrid access and installation.
 
-If any error arise, check `install.log` file for errors. 
+For details about the available plugins, configuration, and usage, see the Scipion documentation on SBGrid and the Scipion entry in the SBGrid software catalogue.
+
+
+
+Install xmipp
+=============
+`Xmipp <https://i2pc.github.io/docs/index.html>`__ is a good partner for Scipion in cryoem. It binds to Scipion environment offering more than a `hundred of protocols <https://i2pc.github.io/docs/protocolsMap.html>`__ to use in your SPA workflows It can be installed through Scipion's plugin manager, which handles the installation of the required components.
+
+For detailed instructions, system `requirements <https://i2pc.github.io/docs/Installation/Requirements/index.html>`__ , and configuration options, refer to the Xmipp installation `documentation <https://i2pc.github.io/docs/#>`__.
 
 .. note::
   For HPC clusters the above command should not have installed (compiled) Xmipp. You need to compile it manually following `those steps <https://i2pc.github.io/docs/Installation/Installations/index.html#installation-for-hpc-clusters>`__
@@ -138,8 +151,6 @@ If any error arise, check `install.log` file for errors.
 .. note::
     If you want to install the devel version `please visit this page <https://i2pc.github.io/docs/Installation/Installations/index.html#standlone-installation>`__
 
-
- We recomend to visit the `documentation <https://i2pc.github.io/docs/#>`__ and do not hesitate to `contact us <https://i2pc.github.io/docs/contact.html#contact-us>`__
 
 Installing other plugins
 ========================
