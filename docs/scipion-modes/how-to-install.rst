@@ -131,6 +131,7 @@ Scipion and Xmipp are also available through SBGrid, a software distribution pla
 This installation option requires membership in SBGrid. If you are already an SBGrid member and have installed and configured the SBGrid environment, you can install Scipion by running:
 
 ::
+    
     sbgrid-cli install scipion
 
 This command installs Scipion and provides access to Xmipp and the Scipion plugins supported by SBGrid, together with the corresponding software dependencies. Many of these applications are already configured to work with the SBGrid environment. Plugin availability and the underlying software may vary depending on your SBGrid access and installation.
